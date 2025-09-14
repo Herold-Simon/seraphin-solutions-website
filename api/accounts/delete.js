@@ -22,16 +22,25 @@ module.exports = function handler(req, res) {
     return res.status(400).json({ message: 'Alle Felder sind erforderlich' });
   }
 
-  // Für die Demo: Akzeptiere alle Löschungen
-  // In Production würde hier eine echte Datenbank-Löschung stehen
+  // Lösche das Konto aus der Account-Store
+  const { deleteAccount } = require('../auth/account-store');
+  const deleted = deleteAccount(username);
+
   console.log('Account deletion request:', {
     username,
     deviceId,
+    deleted,
     timestamp: new Date().toISOString()
   });
 
-  return res.status(200).json({
-    message: 'Konto erfolgreich gelöscht',
-    timestamp: new Date().toISOString()
-  });
+  if (deleted) {
+    return res.status(200).json({
+      message: 'Konto erfolgreich gelöscht',
+      timestamp: new Date().toISOString()
+    });
+  } else {
+    return res.status(404).json({
+      message: 'Konto nicht gefunden'
+    });
+  }
 }
