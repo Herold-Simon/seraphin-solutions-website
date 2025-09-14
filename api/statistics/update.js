@@ -1,4 +1,6 @@
 // Statistics update endpoint for app synchronization
+const { updateStatistics, getAccount } = require('../database');
+
 module.exports = function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -22,25 +24,22 @@ module.exports = function handler(req, res) {
     return res.status(400).json({ message: 'Alle Felder sind erforderlich' });
   }
 
-  // In a real implementation, you would:
-  // 1. Verify the device ID belongs to the user
-  // 2. Update the statistics in your database
-  // 3. Validate the statistics data format
+  // Verify user exists and device ID matches
+  const user = getAccount(username);
+  if (!user || user.deviceId !== deviceId) {
+    return res.status(403).json({ message: 'Geräte-ID stimmt nicht überein' });
+  }
+
+  // Update statistics in database
+  const success = updateStatistics(username, statistics);
   
-  // For this demo, we'll simulate statistics update
-  const updateData = {
-    deviceId: deviceId,
-    username: username,
-    statistics: statistics,
-    updatedAt: new Date().toISOString(),
-    timestamp: timestamp
-  };
-
-  // In production, update database
-  console.log('Statistics updated:', updateData);
-
-  return res.status(200).json({
-    message: 'Statistiken erfolgreich aktualisiert',
-    timestamp: new Date().toISOString()
-  });
+  if (success) {
+    console.log('Statistics updated for user:', username);
+    return res.status(200).json({
+      message: 'Statistiken erfolgreich aktualisiert',
+      timestamp: new Date().toISOString()
+    });
+  } else {
+    return res.status(500).json({ message: 'Fehler beim Aktualisieren der Statistiken' });
+  }
 }
