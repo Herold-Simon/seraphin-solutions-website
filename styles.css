@@ -2285,6 +2285,24 @@ body {
     color: var(--primary-blue);
 }
 
+.footer-login-link {
+    background: var(--gradient-primary);
+    color: var(--white) !important;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-block;
+    margin-top: 0.5rem;
+}
+
+.footer-login-link:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    color: var(--white) !important;
+}
+
 .social-links {
     display: flex;
     gap: 1rem;
