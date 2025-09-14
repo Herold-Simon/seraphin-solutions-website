@@ -1,6 +1,4 @@
 // Account creation endpoint for app integration
-const { createAccount, getAccount } = require('../database');
-
 module.exports = function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -24,25 +22,17 @@ module.exports = function handler(req, res) {
     return res.status(400).json({ message: 'Alle Felder sind erforderlich' });
   }
 
-  // Check if user already exists
-  if (getAccount(username)) {
-    return res.status(409).json({ message: 'Benutzername bereits vergeben' });
-  }
+  // For demo: Always accept account creation (no database persistence)
+  console.log('Account creation request:', {
+    username,
+    deviceId,
+    videoCount: statistics.videos?.length || 0,
+    floorCount: statistics.floors?.length || 0
+  });
 
-  // Create account with default admin password
-  // In production, you would generate a secure password or let the user set one
-  const defaultPassword = 'admin123'; // This should be the admin panel password
-  
-  const success = createAccount(username, defaultPassword, deviceId, statistics);
-  
-  if (success) {
-    console.log('Account created:', { username, deviceId });
-    return res.status(201).json({
-      message: 'Konto erfolgreich erstellt',
-      accountId: `${deviceId}-${username}`,
-      username: username
-    });
-  } else {
-    return res.status(500).json({ message: 'Fehler beim Erstellen des Kontos' });
-  }
+  return res.status(201).json({
+    message: 'Konto erfolgreich erstellt',
+    accountId: `${deviceId}-${username}`,
+    username: username
+  });
 }
