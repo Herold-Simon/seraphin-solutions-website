@@ -22,11 +22,11 @@ module.exports = function handler(req, res) {
     return res.status(400).json({ message: 'Benutzername und Passwort sind erforderlich' });
   }
 
-  // Sichere Authentifizierung: Nur mit gültigen Credentials
-  // Für die Demo: Akzeptiere nur Benutzernamen mit mindestens 3 Zeichen und Passwörter mit mindestens 6 Zeichen
-  // In Production würde hier eine echte Datenbank-Validierung stehen
+  // Sichere Authentifizierung: Nur erstellte Konten können sich anmelden
+  const { validateAccount } = require('./account-store');
+  const validation = validateAccount(username.trim(), password);
   
-  if (username.trim().length >= 3 && password.trim().length >= 6) {
+  if (validation.valid) {
     // Generate a simple token (in production, use JWT)
     const token = Buffer.from(`${username}:${Date.now()}`).toString('base64');
     
@@ -37,6 +37,6 @@ module.exports = function handler(req, res) {
       username: username
     });
   } else {
-    return res.status(401).json({ message: 'Ungültige Anmeldedaten' });
+    return res.status(401).json({ message: 'Ungültige Anmeldedaten. Konto wurde nicht in der App erstellt.' });
   }
 }
