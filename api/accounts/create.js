@@ -1,4 +1,4 @@
-// Login endpoint for website authentication
+// Account creation endpoint for app integration
 module.exports = function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,37 +15,33 @@ module.exports = function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { username, password } = req.body;
+  const { deviceId, username, statistics } = req.body;
 
   // Validate input
-  if (!username || !password) {
-    return res.status(400).json({ message: 'Benutzername und Passwort sind erforderlich' });
+  if (!deviceId || !username || !statistics) {
+    return res.status(400).json({ message: 'Alle Felder sind erforderlich' });
   }
 
   // In a real implementation, you would:
-  // 1. Query your database for the user
-  // 2. Hash the password and compare with stored hash
-  // 3. Generate a JWT token
+  // 1. Store the account in your database
+  // 2. Hash the admin password for security
+  // 3. Validate the statistics data
   
-  // For this demo, we'll use a simple validation
-  // In production, you should use proper authentication
-  const validUsers = {
-    // This would come from your database
-    'admin': 'admin123', // username: password (in production, use hashed passwords)
-    'demo': 'demo123'
+  // For this demo, we'll simulate account creation
+  const accountData = {
+    deviceId: deviceId,
+    username: username,
+    statistics: statistics,
+    createdAt: new Date().toISOString(),
+    isActive: true
   };
 
-  if (validUsers[username] && validUsers[username] === password) {
-    // Generate a simple token (in production, use JWT)
-    const token = Buffer.from(`${username}:${Date.now()}`).toString('base64');
-    
-    // In production, store this in a database with expiration
-    return res.status(200).json({
-      message: 'Erfolgreich angemeldet',
-      token: token,
-      username: username
-    });
-  } else {
-    return res.status(401).json({ message: 'Ungültige Anmeldedaten' });
-  }
+  // In production, save to database
+  console.log('Account created:', accountData);
+
+  return res.status(201).json({
+    message: 'Konto erfolgreich erstellt',
+    accountId: `${deviceId}-${username}`,
+    username: username
+  });
 }
