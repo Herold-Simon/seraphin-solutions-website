@@ -22,17 +22,32 @@ module.exports = function handler(req, res) {
     return res.status(400).json({ message: 'Alle Felder sind erforderlich' });
   }
 
-  // Für die Demo: Akzeptiere alle Passwort-Updates
-  // In Production würde hier eine echte Datenbank-Aktualisierung stehen
+  // Aktualisiere das Passwort in der Account-Store
+  const { getAllAccounts } = require('../auth/account-store');
+  const accounts = getAllAccounts();
+  const account = accounts.find(acc => acc.username === username && acc.deviceId === deviceId);
+  
+  if (account) {
+    account.password = newPassword;
+    console.log(`Password updated for account: ${username}`);
+  }
+
   console.log('Password update request:', {
     username,
     deviceId,
     passwordLength: newPassword.length,
+    updated: !!account,
     timestamp: new Date().toISOString()
   });
 
-  return res.status(200).json({
-    message: 'Passwort erfolgreich aktualisiert',
-    timestamp: new Date().toISOString()
-  });
+  if (account) {
+    return res.status(200).json({
+      message: 'Passwort erfolgreich aktualisiert',
+      timestamp: new Date().toISOString()
+    });
+  } else {
+    return res.status(404).json({
+      message: 'Konto nicht gefunden'
+    });
+  }
 }
