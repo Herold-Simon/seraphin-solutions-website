@@ -45,6 +45,10 @@ module.exports = function handler(req, res) {
   
   const accountToken = Buffer.from(JSON.stringify(tokenData)).toString('base64');
 
+  // Speichere das Konto in der Account-Store
+  const { addAccount } = require('../auth/account-store');
+  addAccount(username, adminPassword, deviceId, accountToken);
+
   // In Production würde hier eine echte Datenbank-Erstellung stehen
   return res.status(201).json({
     message: 'Konto erfolgreich erstellt',
