@@ -1,4 +1,4 @@
-// Account creation endpoint for app integration
+// Statistics update endpoint for app synchronization
 module.exports = function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,7 +15,7 @@ module.exports = function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { deviceId, username, statistics } = req.body;
+  const { deviceId, username, statistics, timestamp } = req.body;
 
   // Validate input
   if (!deviceId || !username || !statistics) {
@@ -23,25 +23,24 @@ module.exports = function handler(req, res) {
   }
 
   // In a real implementation, you would:
-  // 1. Store the account in your database
-  // 2. Hash the admin password for security
-  // 3. Validate the statistics data
+  // 1. Verify the device ID belongs to the user
+  // 2. Update the statistics in your database
+  // 3. Validate the statistics data format
   
-  // For this demo, we'll simulate account creation
-  const accountData = {
+  // For this demo, we'll simulate statistics update
+  const updateData = {
     deviceId: deviceId,
     username: username,
     statistics: statistics,
-    createdAt: new Date().toISOString(),
-    isActive: true
+    updatedAt: new Date().toISOString(),
+    timestamp: timestamp
   };
 
-  // In production, save to database
-  console.log('Account created:', accountData);
+  // In production, update database
+  console.log('Statistics updated:', updateData);
 
-  return res.status(201).json({
-    message: 'Konto erfolgreich erstellt',
-    accountId: `${deviceId}-${username}`,
-    username: username
+  return res.status(200).json({
+    message: 'Statistiken erfolgreich aktualisiert',
+    timestamp: new Date().toISOString()
   });
 }
