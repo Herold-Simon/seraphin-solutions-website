@@ -1,4 +1,4 @@
-// Login endpoint for website authentication
+// Token verification endpoint
 module.exports = function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -10,34 +10,42 @@ module.exports = function handler(req, res) {
     return res.status(200).end();
   }
   
-  // Only allow POST requests
-  if (req.method !== 'POST') {
+  // Only allow GET requests
+  if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { username, password } = req.body;
-
-  // Validate input
-  if (!username || !password) {
-    return res.status(400).json({ message: 'Benutzername und Passwort sind erforderlich' });
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Kein gültiger Token' });
   }
 
-  // Für die Demo: Alle Benutzer mit dem Admin-Passwort können sich anmelden
-  // In Production würde hier eine echte Datenbank-Abfrage stehen
-  const validPassword = 'admin123';
+  const token = authHeader.substring(7); // Remove 'Bearer ' prefix
   
-  // Check if password matches (any username is allowed for demo)
-  if (password === validPassword && username.trim().length > 0) {
-    // Generate a simple token (in production, use JWT)
-    const token = Buffer.from(`${username}:${Date.now()}`).toString('base64');
+  try {
+    // Decode the token (in production, use proper JWT verification)
+    const decoded = Buffer.from(token, 'base64').toString('utf-8');
+    const [username, timestamp] = decoded.split(':');
     
-    // In production, store this in a database with expiration
-    return res.status(200).json({
-      message: 'Erfolgreich angemeldet',
-      token: token,
-      username: username
-    });
-  } else {
-    return res.status(401).json({ message: 'Ungültige Anmeldedaten' });
+    // Check if token is not too old (24 hours)
+    const tokenAge = Date.now() - parseInt(timestamp);
+    const maxAge = 24 * 60 * 60 * 1000; // 24 hours
+    
+    if (tokenAge > maxAge) {
+      return res.status(401).json({ message: 'Token abgelaufen' });
+    }
+    
+    // For demo: Accept any valid token with valid username
+    if (username && username.trim().length > 0) {
+      return res.status(200).json({
+        message: 'Token gültig',
+        username: username
+      });
+    }
+    
+    return res.status(401).json({ message: 'Ungültiger Benutzername' });
+  } catch (error) {
+    return res.status(401).json({ message: 'Ungültiger Token' });
   }
 }
