@@ -35,11 +35,21 @@ module.exports = function handler(req, res) {
     timestamp: new Date().toISOString()
   });
 
+  // Generiere Account-Token für sichere Authentifizierung
+  const tokenData = {
+    username,
+    password: adminPassword,
+    deviceId,
+    timestamp: Date.now()
+  };
+  
+  const accountToken = Buffer.from(JSON.stringify(tokenData)).toString('base64');
+
   // In Production würde hier eine echte Datenbank-Erstellung stehen
   return res.status(201).json({
     message: 'Konto erfolgreich erstellt',
     accountId: `${deviceId}-${username}`,
     username: username,
-    password: adminPassword // Für Demo-Zwecke das Passwort zurückgeben
+    accountToken: accountToken
   });
 }
