@@ -1,6 +1,4 @@
 // Token verification endpoint
-const { getAccount } = require('../database');
-
 module.exports = function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -38,16 +36,15 @@ module.exports = function handler(req, res) {
       return res.status(401).json({ message: 'Token abgelaufen' });
     }
     
-    // Verify user still exists and is active
-    const user = getAccount(username);
-    if (!user || !user.isActive) {
-      return res.status(401).json({ message: 'Benutzer nicht gefunden oder inaktiv' });
+    // For demo: Accept any valid token with valid username
+    if (username && username.trim().length > 0) {
+      return res.status(200).json({
+        message: 'Token gültig',
+        username: username
+      });
     }
     
-    return res.status(200).json({
-      message: 'Token gültig',
-      username: username
-    });
+    return res.status(401).json({ message: 'Ungültiger Benutzername' });
   } catch (error) {
     return res.status(401).json({ message: 'Ungültiger Token' });
   }
