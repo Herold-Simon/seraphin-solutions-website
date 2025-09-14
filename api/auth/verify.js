@@ -1,4 +1,6 @@
 // Token verification endpoint
+const { getAccount } = require('../database');
+
 module.exports = function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -34,6 +36,12 @@ module.exports = function handler(req, res) {
     
     if (tokenAge > maxAge) {
       return res.status(401).json({ message: 'Token abgelaufen' });
+    }
+    
+    // Verify user still exists and is active
+    const user = getAccount(username);
+    if (!user || !user.isActive) {
+      return res.status(401).json({ message: 'Benutzer nicht gefunden oder inaktiv' });
     }
     
     return res.status(200).json({
