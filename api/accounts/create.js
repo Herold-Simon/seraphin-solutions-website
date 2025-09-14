@@ -1,4 +1,6 @@
 // Account creation endpoint for app integration
+const { createAccount, getAccount } = require('../database');
+
 module.exports = function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,24 +17,36 @@ module.exports = function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { deviceId, username, statistics } = req.body;
+  const { deviceId, username, statistics, adminPassword } = req.body;
 
   // Validate input
-  if (!deviceId || !username || !statistics) {
+  if (!deviceId || !username || !statistics || !adminPassword) {
     return res.status(400).json({ message: 'Alle Felder sind erforderlich' });
   }
 
-  // For demo: Always accept account creation (no database persistence)
-  console.log('Account creation request:', {
-    username,
-    deviceId,
-    videoCount: statistics.videos?.length || 0,
-    floorCount: statistics.floors?.length || 0
-  });
+  // Check if user already exists
+  if (getAccount(username)) {
+    return res.status(409).json({ message: 'Benutzername bereits vergeben' });
+  }
 
-  return res.status(201).json({
-    message: 'Konto erfolgreich erstellt',
-    accountId: `${deviceId}-${username}`,
-    username: username
-  });
+  // Create account with admin password
+  const success = createAccount(username, adminPassword, deviceId, statistics);
+  
+  if (success) {
+    console.log('Account creation request:', {
+      username,
+      deviceId,
+      adminPasswordLength: adminPassword.length,
+      videoCount: statistics.videos?.length || 0,
+      floorCount: statistics.floors?.length || 0
+    });
+
+    return res.status(201).json({
+      message: 'Konto erfolgreich erstellt',
+      accountId: `${deviceId}-${username}`,
+      username: username
+    });
+  } else {
+    return res.status(500).json({ message: 'Fehler beim Erstellen des Kontos' });
+  }
 }
