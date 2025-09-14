@@ -1,4 +1,6 @@
 // Statistics retrieval endpoint
+const { getStatistics, getAccount } = require('../database');
+
 module.exports = function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -35,53 +37,24 @@ module.exports = function handler(req, res) {
       return res.status(401).json({ message: 'Token abgelaufen' });
     }
     
-    // For demo: Return mock statistics for any valid user
-    const mockStatistics = {
-      deviceId: 'demo-device-001',
-      username: username,
-      statistics: {
-        videos: [
-          {
-            id: '1',
-            title: 'Eingangsbereich',
-            views: 45,
-            lastViewed: Date.now() - 1000 * 60 * 30 // 30 minutes ago
-          },
-          {
-            id: '2',
-            title: 'Bürobereich',
-            views: 32,
-            lastViewed: Date.now() - 1000 * 60 * 15 // 15 minutes ago
-          },
-          {
-            id: '3',
-            title: 'Konferenzraum',
-            views: 28,
-            lastViewed: Date.now() - 1000 * 60 * 45 // 45 minutes ago
-          },
-          {
-            id: '4',
-            title: 'Cafeteria',
-            views: 19,
-            lastViewed: Date.now() - 1000 * 60 * 60 // 1 hour ago
-          }
-        ],
-        floors: [
-          { id: '1', name: 'Erdgeschoss' },
-          { id: '2', name: '1. Obergeschoss' },
-          { id: '3', name: '2. Obergeschoss' }
-        ],
-        timeRangeStart: Date.now() - 7 * 24 * 60 * 60 * 1000, // 7 days ago
-        timeRangeEnd: Date.now(),
-        pieChartVideoCount: 4,
-        lineChartVideoCount: 4,
-        barChartVideoCount: 4,
-        lineRaceVideoCount: 4
-      },
-      timestamp: new Date().toISOString()
-    };
+    // Get user account to verify it exists
+    const user = getAccount(username);
+    if (!user || !user.isActive) {
+      return res.status(401).json({ message: 'Benutzer nicht gefunden oder inaktiv' });
+    }
+    
+    // Get statistics from database
+    const statistics = getStatistics(username);
+    if (!statistics) {
+      return res.status(404).json({ message: 'Keine Statistiken für diesen Benutzer gefunden' });
+    }
 
-    return res.status(200).json(mockStatistics);
+    return res.status(200).json({
+      deviceId: user.deviceId,
+      username: username,
+      statistics: statistics,
+      timestamp: statistics.lastUpdated || new Date().toISOString()
+    });
   } catch (error) {
     return res.status(401).json({ message: 'Ungültiger Token' });
   }
