@@ -1,0 +1,28 @@
+{
+  "functions": {
+    "api/auth/login.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/auth/verify.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/accounts/create.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/statistics/get.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/statistics/update.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/health.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    }
+  ]
+}

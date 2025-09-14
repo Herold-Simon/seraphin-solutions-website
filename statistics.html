@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistiken - Gebäudenavi Dashboard | Seraphin Solutions</title>
+    
+    <!-- Favicon and App Icons -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/favicon.ico">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Gebäudenavi Statistiken Dashboard - Seraphin Solutions">
+    <meta name="keywords" content="Gebäudenavi, Statistiken, Dashboard, Seraphin Solutions">
+    <meta name="author" content="Seraphin Solutions">
+    <meta name="robots" content="noindex, nofollow">
+    
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        .dashboard-container {
+            min-height: 100vh;
+            background: #F8F9FA;
+            padding: 2rem;
+        }
+        
+        .dashboard-header {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .header-info h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2C3E50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header-info p {
+            color: #7F8C8D;
+            font-size: 1rem;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .logout-button {
+            background: #DC2626;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .logout-button:hover {
+            background: #B91C1C;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .status-online {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+        
+        .status-offline {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .stat-card h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2C3E50;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #008CFF;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #7F8C8D;
+            font-size: 0.9rem;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .chart-container h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2C3E50;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+        
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            color: #7F8C8D;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #E9ECEF;
+            border-top: 4px solid #008CFF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-state {
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            color: #DC2626;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .error-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
+        
+        .error-state h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .error-state p {
+            margin-bottom: 1.5rem;
+        }
+        
+        .retry-button {
+            background: #008CFF;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .retry-button:hover {
+            background: #0066CC;
+        }
+        
+        .last-updated {
+            text-align: center;
+            color: #7F8C8D;
+            font-size: 0.9rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #E9ECEF;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 1rem;
+            }
+            
+            .dashboard-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .header-info h1 {
+                font-size: 1.5rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stat-value {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <div class="header-info">
+                <h1><i class="fas fa-chart-bar"></i> Gebäudenavi Statistiken</h1>
+                <p>Live-Dashboard für Ihre Gebäudenavi-Installation</p>
+            </div>
+            <div class="header-actions">
+                <div id="connectionStatus" class="status-indicator status-offline">
+                    <i class="fas fa-circle"></i>
+                    <span>Verbindung wird hergestellt...</span>
+                </div>
+                <button class="logout-button" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Abmelden
+                </button>
+            </div>
+        </div>
+        
+        <div id="loadingState" class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Statistiken werden geladen...</p>
+        </div>
+        
+        <div id="errorState" class="error-state" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Verbindungsfehler</h3>
+            <p>Die Statistiken konnten nicht geladen werden. Bitte überprüfen Sie Ihre Internetverbindung.</p>
+            <button class="retry-button" onclick="loadStatistics()">
+                <i class="fas fa-redo"></i>
+                Erneut versuchen
+            </button>
+        </div>
+        
+        <div id="statisticsContent" style="display: none;">
+            <!-- Overview Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3><i class="fas fa-video"></i> Videos</h3>
+                    <div class="stat-value" id="totalVideos">-</div>
+                    <div class="stat-label">Gesamt Videos</div>
+                </div>
+                
+                <div class="stat-card">
+                    <h3><i class="fas fa-eye"></i> Aufrufe</h3>
+                    <div class="stat-value" id="totalViews">-</div>
+                    <div class="stat-label">Gesamte Aufrufe</div>
+                </div>
+                
+                <div class="stat-card">
+                    <h3><i class="fas fa-layer-group"></i> Stockwerke</h3>
+                    <div class="stat-value" id="totalFloors">-</div>
+                    <div class="stat-label">Verfügbare Stockwerke</div>
+                </div>
+                
+                <div class="stat-card">
+                    <h3><i class="fas fa-clock"></i> Letzte Aktivität</h3>
+                    <div class="stat-value" id="lastActivity">-</div>
+                    <div class="stat-label">Minuten her</div>
+                </div>
+            </div>
+            
+            <!-- Charts -->
+            <div class="chart-container">
+                <h3><i class="fas fa-chart-pie"></i> Video-Aufrufe Verteilung</h3>
+                <div class="chart-wrapper">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h3><i class="fas fa-chart-line"></i> Aufrufe über Zeit</h3>
+                <div class="chart-wrapper">
+                    <canvas id="lineChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h3><i class="fas fa-chart-bar"></i> Top Videos</h3>
+                <div class="chart-wrapper">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div id="lastUpdated" class="last-updated" style="display: none;">
+            Letzte Aktualisierung: <span id="lastUpdateTime">-</span>
+        </div>
+    </div>
+
+    <script>
+        let pieChart, lineChart, barChart;
+        let statisticsData = null;
+        
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Verify token and load statistics
+            verifyTokenAndLoadStats();
+        });
+        
+        async function verifyTokenAndLoadStats() {
+            const token = localStorage.getItem('adminToken');
+            
+            try {
+                const response = await fetch('/api/auth/verify', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    await loadStatistics();
+                } else {
+                    logout();
+                }
+            } catch (error) {
+                console.error('Token verification failed:', error);
+                logout();
+            }
+        }
+        
+        async function loadStatistics() {
+            const token = localStorage.getItem('adminToken');
+            
+            try {
+                document.getElementById('loadingState').style.display = 'block';
+                document.getElementById('errorState').style.display = 'none';
+                document.getElementById('statisticsContent').style.display = 'none';
+                
+                const response = await fetch('/api/statistics/get', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    statisticsData = await response.json();
+                    updateStatisticsDisplay();
+                    updateConnectionStatus(true);
+                } else {
+                    throw new Error('Failed to load statistics');
+                }
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('errorState').style.display = 'block';
+                updateConnectionStatus(false);
+            }
+        }
+        
+        function updateStatisticsDisplay() {
+            if (!statisticsData) return;
+            
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'none';
+            document.getElementById('statisticsContent').style.display = 'block';
+            document.getElementById('lastUpdated').style.display = 'block';
+            
+            // Update overview statistics
+            document.getElementById('totalVideos').textContent = statisticsData.statistics.videos.length;
+            document.getElementById('totalViews').textContent = statisticsData.statistics.videos.reduce((sum, video) => sum + (video.views || 0), 0);
+            document.getElementById('totalFloors').textContent = statisticsData.statistics.floors.length;
+            
+            // Calculate last activity
+            const now = Date.now();
+            const lastViewed = Math.max(...statisticsData.statistics.videos.map(v => v.lastViewed || 0));
+            const minutesAgo = Math.floor((now - lastViewed) / (1000 * 60));
+            document.getElementById('lastActivity').textContent = minutesAgo;
+            
+            // Update last updated time
+            const updateTime = new Date(statisticsData.timestamp).toLocaleString('de-DE');
+            document.getElementById('lastUpdateTime').textContent = updateTime;
+            
+            // Update charts
+            updatePieChart();
+            updateLineChart();
+            updateBarChart();
+        }
+        
+        function updatePieChart() {
+            const ctx = document.getElementById('pieChart').getContext('2d');
+            
+            if (pieChart) {
+                pieChart.destroy();
+            }
+            
+            const videos = statisticsData.statistics.videos;
+            const totalViews = videos.reduce((sum, video) => sum + (video.views || 0), 0);
+            
+            if (totalViews === 0) {
+                ctx.font = '16px Inter';
+                ctx.fillStyle = '#7F8C8D';
+                ctx.textAlign = 'center';
+                ctx.fillText('Keine Aufrufe vorhanden', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
+            
+            const topVideos = videos
+                .filter(v => v.views > 0)
+                .sort((a, b) => b.views - a.views)
+                .slice(0, 5);
+            
+            pieChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: topVideos.map(v => v.title),
+                    datasets: [{
+                        data: topVideos.map(v => v.views),
+                        backgroundColor: [
+                            '#008CFF',
+                            '#32A71A',
+                            '#F59E0B',
+                            '#EF4444',
+                            '#8B5CF6'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateLineChart() {
+            const ctx = document.getElementById('lineChart').getContext('2d');
+            
+            if (lineChart) {
+                lineChart.destroy();
+            }
+            
+            // Simple line chart showing total views over time
+            const now = Date.now();
+            const hours = 24;
+            const dataPoints = [];
+            
+            for (let i = hours; i >= 0; i--) {
+                const time = now - (i * 60 * 60 * 1000);
+                const views = Math.floor(Math.random() * 50) + 10; // Mock data for now
+                dataPoints.push({
+                    x: new Date(time),
+                    y: views
+                });
+            }
+            
+            lineChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Aufrufe',
+                        data: dataPoints,
+                        borderColor: '#008CFF',
+                        backgroundColor: 'rgba(0, 140, 255, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'hour'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateBarChart() {
+            const ctx = document.getElementById('barChart').getContext('2d');
+            
+            if (barChart) {
+                barChart.destroy();
+            }
+            
+            const videos = statisticsData.statistics.videos
+                .filter(v => v.views > 0)
+                .sort((a, b) => b.views - a.views)
+                .slice(0, 10);
+            
+            barChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: videos.map(v => v.title.length > 20 ? v.title.substring(0, 20) + '...' : v.title),
+                    datasets: [{
+                        label: 'Aufrufe',
+                        data: videos.map(v => v.views),
+                        backgroundColor: '#008CFF'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateConnectionStatus(online) {
+            const statusElement = document.getElementById('connectionStatus');
+            if (online) {
+                statusElement.className = 'status-indicator status-online';
+                statusElement.innerHTML = '<i class="fas fa-circle"></i><span>Online</span>';
+            } else {
+                statusElement.className = 'status-indicator status-offline';
+                statusElement.innerHTML = '<i class="fas fa-circle"></i><span>Offline</span>';
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminUsername');
+            window.location.href = 'login.html';
+        }
+        
+        // Auto-refresh every 5 minutes
+        setInterval(() => {
+            if (localStorage.getItem('adminToken')) {
+                loadStatistics();
+            }
+        }, 5 * 60 * 1000);
+    </script>
+</body>
+</html>
