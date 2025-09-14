@@ -1,4 +1,6 @@
 // Login endpoint for website authentication
+const { getAccount } = require('../database');
+
 module.exports = function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -22,20 +24,11 @@ module.exports = function handler(req, res) {
     return res.status(400).json({ message: 'Benutzername und Passwort sind erforderlich' });
   }
 
-  // In a real implementation, you would:
-  // 1. Query your database for the user
-  // 2. Hash the password and compare with stored hash
-  // 3. Generate a JWT token
+  // Get user from database
+  const user = getAccount(username);
   
-  // For this demo, we'll use a simple validation
-  // In production, you should use proper authentication
-  const validUsers = {
-    // This would come from your database
-    'admin': 'admin123', // username: password (in production, use hashed passwords)
-    'demo': 'demo123'
-  };
-
-  if (validUsers[username] && validUsers[username] === password) {
+  // Check if user exists and password matches
+  if (user && user.password === password && user.isActive) {
     // Generate a simple token (in production, use JWT)
     const token = Buffer.from(`${username}:${Date.now()}`).toString('base64');
     
