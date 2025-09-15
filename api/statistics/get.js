@@ -1,6 +1,6 @@
 // api/statistics/get.js - Statistiken für Website abrufen
-import { createClient } from '@supabase/supabase-js';
-import cookie from 'cookie';
+const { createClient } = require('@supabase/supabase-js');
+const cookie = require('cookie');
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -12,9 +12,10 @@ function setCorsHeaders(res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Max-Age', '86400');
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
     // CORS-Header für alle Anfragen setzen
     setCorsHeaders(res);
     
@@ -32,22 +33,40 @@ export default async function handler(req, res) {
         const sessionToken = cookies.session_token;
 
         if (!sessionToken) {
-            return res.status(401).json({ error: 'Nicht authentifiziert' });
+            return res.status(401).json({ success: false, error: 'Nicht authentifiziert' });
         }
 
         // Validiere Session
-        const { data: session } = await supabase
+        const { data: session, error: sessionError } = await supabase
             .from('website_sessions')
-            .select('user_id, website_users!inner(admin_user_id)')
+            .select(`
+                user_id,
+                expires_at,
+                website_users!inner(
+                    id,
+                    username,
+                    admin_user_id
+                )
+            `)
             .eq('session_token', sessionToken)
-            .eq('expires_at', '>', new Date().toISOString())
             .single();
 
-        if (!session) {
-            return res.status(401).json({ error: 'Ungültige Session' });
+        if (sessionError || !session) {
+            console.log('Statistics API - Session validation failed:', sessionError?.message || 'Session not found');
+            return res.status(401).json({ success: false, error: 'Ungültige Session' });
+        }
+
+        // Überprüfe Ablaufzeit
+        const now = new Date();
+        const expiresAt = new Date(session.expires_at);
+        
+        if (now > expiresAt) {
+            console.log('Statistics API - Session expired');
+            return res.status(401).json({ success: false, error: 'Session abgelaufen' });
         }
 
         const adminUserId = session.website_users.admin_user_id;
+        console.log('Statistics API - Loading data for admin_user_id:', adminUserId);
 
         // Hole App-Statistiken
         const { data: appStats } = await supabase
@@ -95,6 +114,6 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error('Statistics fetch error:', error);
-        return res.status(500).json({ error: 'Interner Serverfehler' });
+        return res.status(500).json({ success: false, error: 'Interner Serverfehler: ' + error.message });
     }
 }
