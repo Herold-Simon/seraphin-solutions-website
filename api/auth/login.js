@@ -28,6 +28,15 @@ module.exports = async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
+    // Prüfe Umgebungsvariablen
+    if (!supabaseUrl || !supabaseServiceKey) {
+        console.error('Missing environment variables');
+        return res.status(500).json({
+            error: 'Server configuration error',
+            details: 'Missing Supabase credentials'
+        });
+    }
+
     try {
         const { username, password } = req.body;
 
@@ -43,7 +52,15 @@ module.exports = async function handler(req, res) {
             .eq('is_active', true)
             .single();
 
-        if (userError || !user) {
+        if (userError) {
+            console.error('Database error:', userError);
+            return res.status(500).json({ 
+                error: 'Datenbankfehler',
+                details: userError.message 
+            });
+        }
+
+        if (!user) {
             return res.status(401).json({ error: 'Ungültige Anmeldedaten' });
         }
 
