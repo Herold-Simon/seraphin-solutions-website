@@ -20,6 +20,9 @@
     <!-- ECharts (same as the app) -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     
+    <!-- ApexCharts for enhanced statistics -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
+    
     <style>
         /* Navigation Styles */
         .navbar {
@@ -610,6 +613,28 @@
                             <div id="barChart" style="width: 100%; height: 100%;"></div>
                         </div>
                     </div>
+
+                    <!-- ApexCharts Pie Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header" onclick="toggleChart('pieChart')">
+                            <h3 class="chart-title">Video-Verteilung (Kreisdiagramm)</h3>
+                            <span class="chart-toggle" id="pieChartToggle">▶</span>
+                        </div>
+                        <div class="chart-container" id="pieChartContainer">
+                            <div id="pieChart" style="width: 100%; height: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- ApexCharts Area Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header" onclick="toggleChart('areaChart')">
+                            <h3 class="chart-title">Aufrufe über Zeit (Flächendiagramm)</h3>
+                            <span class="chart-toggle" id="areaChartToggle">▶</span>
+                        </div>
+                        <div class="chart-container" id="areaChartContainer">
+                            <div id="areaChart" style="width: 100%; height: 100%;"></div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="last-updated">
@@ -627,7 +652,9 @@
         let charts = {};
         let chartStates = {
             lineChart: true,
-            barChart: true
+            barChart: true,
+            pieChart: true,
+            areaChart: true
         };
         
         // Dashboard initialisieren
@@ -781,6 +808,8 @@
             // Charts erstellen
             createLineChart();
             createBarChart();
+            createPieChart();
+            createAreaChart();
         }
         
         // Liniendiagramm erstellen (ECharts)
@@ -968,6 +997,149 @@
             charts.barChart.setOption(option);
         }
         
+        // Pie Chart erstellen (ApexCharts)
+        function createPieChart() {
+            const chartElement = document.getElementById('pieChart');
+            if (!chartElement) return;
+            
+            if (charts.pieChart) {
+                charts.pieChart.destroy();
+            }
+            
+            if (!statistics.videos || statistics.videos.length === 0) {
+                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
+                return;
+            }
+            
+            // Top 8 Videos für Pie Chart
+            const topVideos = statistics.videos
+                .filter(video => (video.views || 0) > 0)
+                .sort((a, b) => (b.views || 0) - (a.views || 0))
+                .slice(0, 8);
+            
+            const labels = topVideos.map(video => 
+                video.video_title ? 
+                    (video.video_title.length > 20 ? video.video_title.substring(0, 20) + '...' : video.video_title) :
+                    'Unbenanntes Video'
+            );
+            const data = topVideos.map(video => video.views || 0);
+            
+            const options = {
+                series: data,
+                chart: {
+                    type: 'pie',
+                    height: '100%',
+                    width: '100%'
+                },
+                labels: labels,
+                colors: ['#008CFF', '#00D4AA', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD'],
+                legend: {
+                    position: 'bottom',
+                    fontSize: '12px'
+                },
+                tooltip: {
+                    y: {
+                        formatter: function (val) {
+                            return val.toLocaleString('de-DE') + ' Aufrufe'
+                        }
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val, opts) {
+                        return opts.w.config.series[opts.seriesIndex] > 0 ? val.toFixed(1) + '%' : ''
+                    }
+                }
+            };
+            
+            charts.pieChart = new ApexCharts(chartElement, options);
+            charts.pieChart.render();
+        }
+        
+        // Area Chart erstellen (ApexCharts)
+        function createAreaChart() {
+            const chartElement = document.getElementById('areaChart');
+            if (!chartElement) return;
+            
+            if (charts.areaChart) {
+                charts.areaChart.destroy();
+            }
+            
+            const filteredData = getFilteredHistoryData();
+            if (filteredData.length === 0) {
+                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Historie-Daten verfügbar</div>';
+                return;
+            }
+            
+            const labels = filteredData.map(item => 
+                new Date(item.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })
+            );
+            const data = filteredData.map(item => item.total_views || 0);
+            
+            const options = {
+                series: [{
+                    name: 'Aufrufe',
+                    data: data
+                }],
+                chart: {
+                    type: 'area',
+                    height: '100%',
+                    width: '100%',
+                    toolbar: {
+                        show: true
+                    }
+                },
+                colors: ['#008CFF'],
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    curve: 'smooth',
+                    width: 3
+                },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.7,
+                        opacityTo: 0.3,
+                        stops: [0, 90, 100]
+                    }
+                },
+                xaxis: {
+                    categories: labels,
+                    labels: {
+                        style: {
+                            colors: '#666'
+                        }
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        style: {
+                            colors: '#666'
+                        },
+                        formatter: function (val) {
+                            return val.toLocaleString('de-DE')
+                        }
+                    }
+                },
+                tooltip: {
+                    y: {
+                        formatter: function (val) {
+                            return val.toLocaleString('de-DE') + ' Aufrufe'
+                        }
+                    }
+                },
+                grid: {
+                    borderColor: '#f1f1f1'
+                }
+            };
+            
+            charts.areaChart = new ApexCharts(chartElement, options);
+            charts.areaChart.render();
+        }
+        
         
         // Gefilterte Historie-Daten basierend auf Zeitraum
         function getFilteredHistoryData() {
@@ -1001,6 +1173,8 @@
         function updateCharts() {
             if (chartStates.lineChart) createLineChart();
             if (chartStates.barChart) createBarChart();
+            if (chartStates.pieChart) createPieChart();
+            if (chartStates.areaChart) createAreaChart();
         }
         
         // Chart-Größe bei Fenster-Resize anpassen
@@ -1010,6 +1184,12 @@
             }
             if (charts.barChart) {
                 charts.barChart.resize();
+            }
+            if (charts.pieChart) {
+                charts.pieChart.resize();
+            }
+            if (charts.areaChart) {
+                charts.areaChart.resize();
             }
         });
         
