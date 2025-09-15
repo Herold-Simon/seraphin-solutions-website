@@ -1,67 +1,32 @@
 {
-  "outputDirectory": ".",
-  "builds": [
+  "rewrites": [
     {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
     },
     {
-      "src": "*.html",
-      "use": "@vercel/static"
+      "source": "/dashboard",
+      "destination": "/dashboard.html"
     },
     {
-      "src": "*.css",
-      "use": "@vercel/static"
+      "source": "/login",
+      "destination": "/login.html"
     },
     {
-      "src": "*.js",
-      "use": "@vercel/static"
+      "source": "/info",
+      "destination": "/info.html"
     },
     {
-      "src": "*.png",
-      "use": "@vercel/static"
+      "source": "/impressum",
+      "destination": "/impressum.html"
     },
     {
-      "src": "*.jpg",
-      "use": "@vercel/static"
+      "source": "/datenschutz",
+      "destination": "/datenschutz.html"
     },
     {
-      "src": "*.ico",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/dashboard",
-      "dest": "/dashboard.html"
-    },
-    {
-      "src": "/login",
-      "dest": "/login.html"
-    },
-    {
-      "src": "/info",
-      "dest": "/info.html"
-    },
-    {
-      "src": "/impressum",
-      "dest": "/impressum.html"
-    },
-    {
-      "src": "/datenschutz",
-      "dest": "/datenschutz.html"
-    },
-    {
-      "src": "/passwortverlust",
-      "dest": "/passwortverlust.html"
+      "source": "/passwortverlust",
+      "destination": "/passwortverlust.html"
     }
   ]
 }
