@@ -881,18 +881,28 @@
                 charts.lineChart.dispose();
             }
             
-            const filteredData = getFilteredHistoryData();
-            console.log('📈 Line Chart - Gefilterte Daten:', filteredData);
+            // Verwende Video-Daten mit viewHistory für präzise tägliche Aufrufe
+            const videos = statistics?.videos || [];
+            console.log('📈 Line Chart - Video-Daten:', videos);
             
-            if (!filteredData || filteredData.length === 0) {
-                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Historie-Daten verfügbar</div>';
+            if (!videos || videos.length === 0) {
+                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
                 return;
             }
             
-            const labels = filteredData.map(item => 
+            // Erstelle Zeitreihe basierend auf viewHistory
+            const timeSeriesData = createTimeSeriesFromViewHistory(videos);
+            console.log('📈 Line Chart - Zeitreihen-Daten:', timeSeriesData);
+            
+            if (!timeSeriesData || timeSeriesData.length === 0) {
+                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Aufruf-Daten verfügbar</div>';
+                return;
+            }
+            
+            const labels = timeSeriesData.map(item => 
                 new Date(item.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })
             );
-            const data = filteredData.map(item => item.total_views || 0);
+            const data = timeSeriesData.map(item => item.totalViews || 0);
             
             const option = {
                 tooltip: {
@@ -1138,18 +1148,20 @@
                 charts.areaChart.destroy();
             }
             
-            const filteredData = getFilteredHistoryData();
-            console.log('📊 Area Chart - Gefilterte Daten:', filteredData);
+            // Verwende die gleiche Zeitreihe wie das Liniendiagramm
+            const videos = statistics?.videos || [];
+            const timeSeriesData = createTimeSeriesFromViewHistory(videos);
+            console.log('📊 Area Chart - Zeitreihen-Daten:', timeSeriesData);
             
-            if (!filteredData || filteredData.length === 0) {
-                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Historie-Daten verfügbar</div>';
+            if (!timeSeriesData || timeSeriesData.length === 0) {
+                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Aufruf-Daten verfügbar</div>';
                 return;
             }
             
-            const labels = filteredData.map(item => 
+            const labels = timeSeriesData.map(item => 
                 new Date(item.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })
             );
-            const data = filteredData.map(item => item.total_views || 0);
+            const data = timeSeriesData.map(item => item.totalViews || 0);
             
             const options = {
                 series: [{
@@ -1215,6 +1227,77 @@
             charts.areaChart.render();
         }
         
+        
+        // Erstelle Zeitreihe aus Video viewHistory-Daten
+        function createTimeSeriesFromViewHistory(videos) {
+            console.log('📅 Erstelle Zeitreihe aus viewHistory:', videos);
+            
+            if (!videos || videos.length === 0) {
+                return [];
+            }
+            
+            // Sammle alle einzigartigen Daten aus viewHistory
+            const allDates = new Set();
+            videos.forEach(video => {
+                if (video.view_history) {
+                    Object.keys(video.view_history).forEach(date => {
+                        allDates.add(date);
+                    });
+                }
+            });
+            
+            if (allDates.size === 0) {
+                console.log('⚠️ Keine viewHistory-Daten gefunden');
+                return [];
+            }
+            
+            // Konvertiere zu Array und sortiere
+            const sortedDates = Array.from(allDates).sort();
+            console.log('📅 Sortierte Daten:', sortedDates);
+            
+            // Erstelle Zeitreihe mit gefilterten Daten basierend auf currentTimeRange
+            const now = new Date();
+            let startDate = new Date();
+            
+            if (currentTimeRange === '7') {
+                startDate.setDate(now.getDate() - 7);
+            } else if (currentTimeRange === '30') {
+                startDate.setDate(now.getDate() - 30);
+            } else if (currentTimeRange === '90') {
+                startDate.setDate(now.getDate() - 90);
+            } else if (currentTimeRange === '365') {
+                startDate.setDate(now.getDate() - 365);
+            } else {
+                // Alle Zeit - verwende alle Daten
+                startDate = new Date('2020-01-01');
+            }
+            
+            // Filtere Daten basierend auf Zeitraum
+            const filteredDates = sortedDates.filter(date => {
+                const dateObj = new Date(date);
+                return dateObj >= startDate;
+            });
+            
+            console.log('📅 Gefilterte Daten:', filteredDates);
+            
+            // Erstelle Zeitreihe mit Gesamtaufrufen pro Tag
+            const timeSeries = filteredDates.map(date => {
+                let totalViews = 0;
+                videos.forEach(video => {
+                    if (video.view_history && video.view_history[date]) {
+                        totalViews += video.view_history[date];
+                    }
+                });
+                
+                return {
+                    date: date,
+                    totalViews: totalViews
+                };
+            });
+            
+            console.log('📅 Zeitreihe erstellt:', timeSeries);
+            return timeSeries;
+        }
         
         // Gefilterte Historie-Daten basierend auf Zeitraum
         function getFilteredHistoryData() {

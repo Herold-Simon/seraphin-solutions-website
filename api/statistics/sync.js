@@ -120,7 +120,8 @@ module.exports = async function handler(req, res) {
                     video_id: video.id,
                     video_title: video.title,
                     views: video.views || 0,
-                    last_viewed: video.lastViewed
+                    last_viewed: video.lastViewed,
+                    view_history: video.viewHistory || {} // Wichtig: viewHistory für tägliche Aufrufe
                 };
 
                 if (existingVideo) {
