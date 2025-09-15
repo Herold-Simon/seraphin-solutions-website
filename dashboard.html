@@ -17,8 +17,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- ECharts (same as the app) -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     
     <style>
         /* Navigation Styles */
@@ -596,7 +596,7 @@
                             <span class="chart-toggle" id="lineChartToggle">▶</span>
                         </div>
                         <div class="chart-container" id="lineChartContainer">
-                            <canvas id="lineChart"></canvas>
+                            <div id="lineChart" style="width: 100%; height: 100%;"></div>
                         </div>
                     </div>
 
@@ -607,7 +607,7 @@
                             <span class="chart-toggle" id="barChartToggle">▶</span>
                         </div>
                         <div class="chart-container" id="barChartContainer">
-                            <canvas id="barChart"></canvas>
+                            <div id="barChart" style="width: 100%; height: 100%;"></div>
                         </div>
                     </div>
                 </div>
@@ -783,12 +783,13 @@
             createBarChart();
         }
         
-        // Liniendiagramm erstellen
+        // Liniendiagramm erstellen (ECharts)
         function createLineChart() {
-            const ctx = document.getElementById('lineChart').getContext('2d');
+            const chartElement = document.getElementById('lineChart');
+            if (!chartElement) return;
             
             if (charts.lineChart) {
-                charts.lineChart.destroy();
+                charts.lineChart.dispose();
             }
             
             const filteredData = getFilteredHistoryData();
@@ -797,76 +798,97 @@
             );
             const data = filteredData.map(item => item.total_views || 0);
             
-            charts.lineChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Aufrufe',
-                        data: data,
-                        borderColor: '#008CFF',
-                        backgroundColor: 'rgba(0, 140, 255, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#008CFF',
-                        pointBorderColor: '#008CFF',
-                        pointRadius: 6,
-                        pointHoverRadius: 8
-                    }]
+            const option = {
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    borderColor: '#008CFF',
+                    borderWidth: 1,
+                    textStyle: {
+                        color: '#fff'
+                    }
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleColor: '#fff',
-                            bodyColor: '#fff',
-                            borderColor: '#008CFF',
-                            borderWidth: 1
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: labels,
+                    axisLine: {
+                        lineStyle: {
+                            color: '#666'
                         }
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(0,0,0,0.1)'
-                            },
-                            ticks: {
-                                color: '#666'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                color: '#666'
-                            }
+                    axisTick: {
+                        show: false
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLine: {
+                        show: false
+                    },
+                    axisTick: {
+                        show: false
+                    },
+                    axisLabel: {
+                        color: '#666'
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: 'rgba(0,0,0,0.1)'
                         }
                     }
-                }
-            });
+                },
+                series: [{
+                    name: 'Aufrufe',
+                    type: 'line',
+                    data: data,
+                    smooth: true,
+                    lineStyle: {
+                        color: '#008CFF',
+                        width: 3
+                    },
+                    itemStyle: {
+                        color: '#008CFF'
+                    },
+                    areaStyle: {
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0, color: 'rgba(0, 140, 255, 0.3)'
+                            }, {
+                                offset: 1, color: 'rgba(0, 140, 255, 0.05)'
+                            }]
+                        }
+                    }
+                }]
+            };
+            
+            charts.lineChart = echarts.init(chartElement);
+            charts.lineChart.setOption(option);
         }
         
         
-        // Balkendiagramm erstellen
+        // Balkendiagramm erstellen (ECharts)
         function createBarChart() {
-            const ctx = document.getElementById('barChart').getContext('2d');
+            const chartElement = document.getElementById('barChart');
+            if (!chartElement) return;
             
             if (charts.barChart) {
-                charts.barChart.destroy();
+                charts.barChart.dispose();
             }
             
             if (!statistics.videos || statistics.videos.length === 0) {
-                ctx.fillStyle = '#7F8C8D';
-                ctx.font = '16px Inter';
-                ctx.textAlign = 'center';
-                ctx.fillText('Keine Video-Daten verfügbar', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
                 return;
             }
             
@@ -882,55 +904,68 @@
             );
             const data = topVideos.map(video => video.views || 0);
             
-            charts.barChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Aufrufe',
-                        data: data,
-                        backgroundColor: '#008CFF',
-                        borderColor: '#008CFF',
-                        borderWidth: 1,
-                        borderRadius: 4,
-                        borderSkipped: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    indexAxis: 'y',
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleColor: '#fff',
-                            bodyColor: '#fff'
-                        }
+            const option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
                     },
-                    scales: {
-                        x: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(0,0,0,0.1)'
-                            },
-                            ticks: {
-                                color: '#666'
-                            }
-                        },
-                        y: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                color: '#666'
-                            }
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    borderColor: '#008CFF',
+                    borderWidth: 1,
+                    textStyle: {
+                        color: '#fff'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'value',
+                    axisLine: {
+                        show: false
+                    },
+                    axisTick: {
+                        show: false
+                    },
+                    axisLabel: {
+                        color: '#666'
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: 'rgba(0,0,0,0.1)'
                         }
                     }
-                }
-            });
+                },
+                yAxis: {
+                    type: 'category',
+                    data: labels,
+                    axisLine: {
+                        show: false
+                    },
+                    axisTick: {
+                        show: false
+                    },
+                    axisLabel: {
+                        color: '#666'
+                    }
+                },
+                series: [{
+                    name: 'Aufrufe',
+                    type: 'bar',
+                    data: data,
+                    itemStyle: {
+                        color: '#008CFF',
+                        borderRadius: [0, 4, 4, 0]
+                    }
+                }]
+            };
+            
+            charts.barChart = echarts.init(chartElement);
+            charts.barChart.setOption(option);
         }
         
         
@@ -967,6 +1002,16 @@
             if (chartStates.lineChart) createLineChart();
             if (chartStates.barChart) createBarChart();
         }
+        
+        // Chart-Größe bei Fenster-Resize anpassen
+        window.addEventListener('resize', function() {
+            if (charts.lineChart) {
+                charts.lineChart.resize();
+            }
+            if (charts.barChart) {
+                charts.barChart.resize();
+            }
+        });
         
         // Chart ein-/ausklappen
         function toggleChart(chartName) {
