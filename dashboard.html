@@ -1591,20 +1591,20 @@
         // Keine Daten Nachricht anzeigen
         function showNoDataMessage() {
             try {
-                const loadingElement = document.getElementById('loading');
-                const dashboardElement = document.getElementById('dashboard');
+                const loadingMessageElement = document.getElementById('loadingMessage');
+                const dashboardContentElement = document.getElementById('dashboardContent');
                 
-                if (loadingElement) {
-                    loadingElement.style.display = 'none';
+                if (loadingMessageElement) {
+                    loadingMessageElement.style.display = 'none';
                 }
                 
-                if (dashboardElement) {
-                    dashboardElement.innerHTML = `
-                        <div class="no-data">
-                            <i class="fas fa-chart-line"></i>
-                            <h2>Keine Daten verfügbar</h2>
-                            <p>Es sind noch keine Statistiken vorhanden. Verwenden Sie die App, um Daten zu generieren.</p>
-                            <div class="debug-info" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 14px; color: #666;">
+                if (dashboardContentElement) {
+                    dashboardContentElement.innerHTML = `
+                        <div class="no-data" style="text-align: center; padding: 3rem; color: var(--text-light);">
+                            <i class="fas fa-chart-line" style="font-size: 4rem; margin-bottom: 1rem; color: var(--primary-color);"></i>
+                            <h2 style="margin-bottom: 1rem; color: var(--text-primary);">Keine Daten verfügbar</h2>
+                            <p style="margin-bottom: 2rem; font-size: 1.1rem;">Es sind noch keine Statistiken vorhanden. Verwenden Sie die App, um Daten zu generieren.</p>
+                            <div class="debug-info" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 14px; color: #666; text-align: left; max-width: 600px; margin: 2rem auto;">
                                 <strong>Debug-Informationen:</strong><br>
                                 Statistiken-Objekt: ${statistics ? 'Vorhanden' : 'Nicht vorhanden'}<br>
                                 Videos: ${statistics?.videos?.length || 0}<br>
@@ -1617,8 +1617,9 @@
                             </div>
                         </div>
                     `;
+                    dashboardContentElement.style.display = 'block';
                 } else {
-                    console.error('❌ Dashboard-Element nicht gefunden');
+                    console.error('❌ DashboardContent-Element nicht gefunden');
                 }
             } catch (error) {
                 console.error('❌ Fehler in showNoDataMessage:', error);
