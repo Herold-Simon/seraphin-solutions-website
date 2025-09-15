@@ -1,5 +1,5 @@
 // api/statistics/sync.js - Statistiken-Synchronisation aus App
-import { createClient } from '@supabase/supabase-js';
+const { createClient } = require('@supabase/supabase-js');
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -11,9 +11,10 @@ function setCorsHeaders(res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Max-Age', '86400');
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
     // CORS-Header für alle Anfragen setzen
     setCorsHeaders(res);
     
@@ -27,13 +28,18 @@ export default async function handler(req, res) {
     }
 
     try {
+        console.log('🔄 Statistics sync request received');
+        
         const {
             admin_user_id,
             statistics
         } = req.body;
 
+        console.log('📊 Sync data:', { admin_user_id, statisticsKeys: Object.keys(statistics || {}) });
+
         if (!admin_user_id || !statistics) {
-            return res.status(400).json({ error: 'Admin-Benutzer-ID und Statistiken sind erforderlich' });
+            console.log('❌ Missing required fields:', { admin_user_id: !!admin_user_id, statistics: !!statistics });
+            return res.status(400).json({ success: false, error: 'Admin-Benutzer-ID und Statistiken sind erforderlich' });
         }
 
         // Prüfe ob Admin-Benutzer existiert
@@ -69,9 +75,11 @@ export default async function handler(req, res) {
             });
 
         if (appStatsError) {
-            console.error('App statistics sync error:', appStatsError);
-            return res.status(500).json({ error: 'Fehler beim Synchronisieren der App-Statistiken' });
+            console.error('❌ App statistics sync error:', appStatsError);
+            return res.status(500).json({ success: false, error: 'Fehler beim Synchronisieren der App-Statistiken: ' + appStatsError.message });
         }
+
+        console.log('✅ App statistics synced successfully');
 
         // Synchronisiere Video-Statistiken
         if (statistics.videos && Array.isArray(statistics.videos)) {
@@ -112,7 +120,7 @@ export default async function handler(req, res) {
         });
 
     } catch (error) {
-        console.error('Statistics sync error:', error);
-        return res.status(500).json({ error: 'Interner Serverfehler' });
+        console.error('❌ Statistics sync error:', error);
+        return res.status(500).json({ success: false, error: 'Interner Serverfehler: ' + error.message });
     }
 }
