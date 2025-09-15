@@ -1,98 +1,143 @@
-// api/auth/login.js - Website Login API
 const { createClient } = require('@supabase/supabase-js');
 const bcrypt = require('bcryptjs');
 const cookie = require('cookie');
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
 // CORS-Header setzen
 function setCorsHeaders(res) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Max-Age', '86400');
 }
 
-module.exports = async function handler(req, res) {
-    // CORS-Header für alle Anfragen setzen
-    setCorsHeaders(res);
-    
-    // OPTIONS-Anfrage für Preflight behandeln
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
-    
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
+module.exports = async (req, res) => {
+  // CORS-Header setzen
+  setCorsHeaders(res);
+
+  // OPTIONS-Request für CORS-Preflight behandeln
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  // Nur POST-Requests erlauben
+  if (req.method !== 'POST') {
+    res.status(405).json({
+      success: false,
+      error: 'Method not allowed. Use POST.'
+    });
+    return;
+  }
+
+  try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      res.status(400).json({
+        success: false,
+        error: 'Benutzername und Passwort sind erforderlich'
+      });
+      return;
     }
 
-    // Prüfe Umgebungsvariablen
+    // Supabase-Umgebungsvariablen prüfen
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
     if (!supabaseUrl || !supabaseServiceKey) {
-        console.error('Missing environment variables');
-        return res.status(500).json({
-            error: 'Server configuration error',
-            details: 'Missing Supabase credentials'
-        });
+      console.error('❌ Supabase-Umgebungsvariablen fehlen');
+      res.status(500).json({
+        success: false,
+        error: 'Server-Konfiguration fehlt'
+      });
+      return;
     }
 
-    try {
-        const { username, password } = req.body;
+    // Supabase-Client erstellen
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-        if (!username || !password) {
-            return res.status(400).json({ error: 'Benutzername und Passwort sind erforderlich' });
-        }
+    // Website-User aus der Datenbank abrufen
+    const { data: websiteUser, error: userError } = await supabase
+      .from('website_users')
+      .select('*')
+      .eq('username', username)
+      .single();
 
-        // Prüfe Website-Benutzer
-        const { data: user, error: userError } = await supabase
-            .from('website_users')
-            .select('*')
-            .eq('username', username)
-            .eq('is_active', true)
-            .single();
-
-        if (userError) {
-            console.error('Database error:', userError);
-            return res.status(500).json({ 
-                error: 'Datenbankfehler',
-                details: userError.message 
-            });
-        }
-
-        if (!user) {
-            return res.status(401).json({ error: 'Ungültige Anmeldedaten' });
-        }
-
-        // Passwort mit bcrypt überprüfen
-        const passwordMatch = await bcrypt.compare(password, user.password_hash);
-        if (!passwordMatch) {
-            return res.status(401).json({ error: 'Ungültige Anmeldedaten' });
-        }
-
-        // Generiere Session-Token (vereinfacht für Demo)
-        const sessionToken = user.id; // In Produktion: crypto.randomBytes(32).toString('hex')
-
-        // Setze HTTP-Only Cookie
-        res.setHeader('Set-Cookie', cookie.serialize('session_token', sessionToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 60 * 60 * 24 * 7, // 1 Woche
-            path: '/',
-        }));
-
-        return res.status(200).json({
-            success: true,
-            user: {
-                id: user.id,
-                username: user.username,
-                full_name: user.full_name,
-                admin_user_id: user.admin_user_id
-            }
-        });
-
-    } catch (error) {
-        console.error('Login error:', error);
-        return res.status(500).json({ error: 'Interner Serverfehler' });
+    if (userError) {
+      console.error('❌ Fehler beim Abrufen des Users:', userError);
+      res.status(500).json({
+        success: false,
+        error: 'Datenbankfehler'
+      });
+      return;
     }
-}
+
+    if (!websiteUser) {
+      res.status(401).json({
+        success: false,
+        error: 'Ungültige Anmeldedaten'
+      });
+      return;
+    }
+
+    // Passwort überprüfen
+    const passwordMatch = await bcrypt.compare(password, websiteUser.password_hash);
+    
+    if (!passwordMatch) {
+      res.status(401).json({
+        success: false,
+        error: 'Ungültige Anmeldedaten'
+      });
+      return;
+    }
+
+    // Session-Token generieren
+    const sessionToken = require('crypto').randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 Stunden
+
+    // Session in der Datenbank speichern
+    const { error: sessionError } = await supabase
+      .from('website_sessions')
+      .insert({
+        session_token: sessionToken,
+        admin_user_id: websiteUser.admin_user_id,
+        expires_at: expiresAt.toISOString()
+      });
+
+    if (sessionError) {
+      console.error('❌ Fehler beim Speichern der Session:', sessionError);
+      res.status(500).json({
+        success: false,
+        error: 'Fehler beim Erstellen der Session'
+      });
+      return;
+    }
+
+    // Session-Cookie setzen
+    const sessionCookie = cookie.serialize('session_token', sessionToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60, // 24 Stunden
+      path: '/'
+    });
+
+    res.setHeader('Set-Cookie', sessionCookie);
+
+    res.status(200).json({
+      success: true,
+      message: 'Login erfolgreich',
+      user: {
+        username: websiteUser.username,
+        admin_user_id: websiteUser.admin_user_id
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Unerwarteter Fehler im Login:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Interner Serverfehler'
+    });
+  }
+};
