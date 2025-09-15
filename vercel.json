@@ -4,6 +4,30 @@
     {
       "src": "api/**/*.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "*.css",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "*.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "*.png",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "*.jpg",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "*.ico",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -12,10 +36,43 @@
       "dest": "/api/$1"
     },
     {
+      "src": "/dashboard",
+      "dest": "/dashboard.html"
+    },
+    {
+      "src": "/login",
+      "dest": "/login.html"
+    },
+    {
+      "src": "/info",
+      "dest": "/info.html"
+    },
+    {
+      "src": "/impressum",
+      "dest": "/impressum.html"
+    },
+    {
+      "src": "/datenschutz",
+      "dest": "/datenschutz.html"
+    },
+    {
+      "src": "/passwortverlust",
+      "dest": "/passwortverlust.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "/$1"
     }
   ],
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/index.html"
+    }
+  ],
+  "errorPages": {
+    "404": "/404.html"
+  },
   "env": {
     "NODE_ENV": "production"
   }
