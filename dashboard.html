@@ -694,28 +694,47 @@
         // Dashboard laden
         async function loadDashboard() {
             try {
+                // Debug: Session-Informationen abrufen
+                console.log('🔍 Debug: Lade Session-Informationen...');
+                const debugResponse = await fetch('/api/debug-session', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (debugResponse.ok) {
+                    const debugData = await debugResponse.json();
+                    console.log('🔍 Debug Session Info:', debugData.debug);
+                }
+                
                 // Erst prüfen, ob wir eine gültige Session haben
                 const sessionResponse = await fetch('/api/auth/verify-session', {
                     method: 'GET',
                     credentials: 'include'
                 });
                 
+                console.log('🔍 Session-Verifikation Status:', sessionResponse.status);
+                
                 if (sessionResponse.status === 401) {
-                    console.log('Keine gültige Session gefunden, weiterleitung zur Login-Seite');
+                    console.log('❌ Keine gültige Session gefunden, weiterleitung zur Login-Seite');
                     window.location.href = 'login.html';
                     return;
                 }
                 
                 if (!sessionResponse.ok) {
+                    console.log('❌ Session-Verifikation fehlgeschlagen:', sessionResponse.status);
                     throw new Error('Session-Verifikation fehlgeschlagen');
                 }
                 
                 const sessionData = await sessionResponse.json();
+                console.log('🔍 Session-Daten:', sessionData);
+                
                 if (!sessionData.success) {
-                    console.log('Session ungültig, weiterleitung zur Login-Seite');
+                    console.log('❌ Session ungültig, weiterleitung zur Login-Seite');
                     window.location.href = 'login.html';
                     return;
                 }
+                
+                console.log('✅ Session ist gültig, lade Statistiken...');
                 
                 // Session ist gültig, jetzt Statistiken laden
                 const response = await fetch('/api/statistics/get', {
