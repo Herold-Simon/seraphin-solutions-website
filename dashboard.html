@@ -824,28 +824,42 @@
             const totalRooms = current.total_rooms || total.total_rooms || floors.reduce((sum, floor) => sum + (floor.room_count || 0), 0);
             
             // Aktualisiere die UI-Elemente
-            document.getElementById('totalViews').textContent = totalViews.toLocaleString('de-DE');
-            document.getElementById('videosWithViews').textContent = videosWithViews.toLocaleString('de-DE');
-            
-            // Zusätzliche Statistiken anzeigen, falls Elemente existieren
-            const totalVideosElement = document.getElementById('totalVideos');
-            if (totalVideosElement) {
-                totalVideosElement.textContent = totalVideos.toLocaleString('de-DE');
+            try {
+                const totalViewsElement = document.getElementById('totalViews');
+                if (totalViewsElement) {
+                    totalViewsElement.textContent = totalViews.toLocaleString('de-DE');
+                }
+                
+                const videosWithViewsElement = document.getElementById('videosWithViews');
+                if (videosWithViewsElement) {
+                    videosWithViewsElement.textContent = videosWithViews.toLocaleString('de-DE');
+                }
+                
+                // Zusätzliche Statistiken anzeigen, falls Elemente existieren
+                const totalVideosElement = document.getElementById('totalVideos');
+                if (totalVideosElement) {
+                    totalVideosElement.textContent = totalVideos.toLocaleString('de-DE');
+                }
+                
+                const totalFloorsElement = document.getElementById('totalFloors');
+                if (totalFloorsElement) {
+                    totalFloorsElement.textContent = totalFloors.toLocaleString('de-DE');
+                }
+                
+                const totalRoomsElement = document.getElementById('totalRooms');
+                if (totalRoomsElement) {
+                    totalRoomsElement.textContent = totalRooms.toLocaleString('de-DE');
+                }
+                
+                // Letzte Aktualisierung
+                const now = new Date();
+                const lastUpdatedElement = document.getElementById('lastUpdated');
+                if (lastUpdatedElement) {
+                    lastUpdatedElement.textContent = now.toLocaleString('de-DE');
+                }
+            } catch (error) {
+                console.error('❌ Fehler beim Aktualisieren der UI-Elemente:', error);
             }
-            
-            const totalFloorsElement = document.getElementById('totalFloors');
-            if (totalFloorsElement) {
-                totalFloorsElement.textContent = totalFloors.toLocaleString('de-DE');
-            }
-            
-            const totalRoomsElement = document.getElementById('totalRooms');
-            if (totalRoomsElement) {
-                totalRoomsElement.textContent = totalRooms.toLocaleString('de-DE');
-            }
-            
-            // Letzte Aktualisierung
-            const now = new Date();
-            document.getElementById('lastUpdated').textContent = now.toLocaleString('de-DE');
             
             // Prüfe ob genügend Daten für Charts vorhanden sind
             const hasVideoData = videos.length > 0;
@@ -1415,38 +1429,74 @@
         
         // Loading verstecken
         function hideLoading() {
-            document.getElementById('loadingMessage').style.display = 'none';
-            document.getElementById('dashboardContent').style.display = 'block';
+            try {
+                const loadingMessageElement = document.getElementById('loadingMessage');
+                const dashboardContentElement = document.getElementById('dashboardContent');
+                
+                if (loadingMessageElement) {
+                    loadingMessageElement.style.display = 'none';
+                }
+                
+                if (dashboardContentElement) {
+                    dashboardContentElement.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('❌ Fehler in hideLoading:', error);
+            }
         }
         
         // Fehler anzeigen
         function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
+            try {
+                const errorDiv = document.getElementById('errorMessage');
+                if (errorDiv) {
+                    errorDiv.textContent = message;
+                    errorDiv.style.display = 'block';
+                } else {
+                    console.error('❌ ErrorMessage-Element nicht gefunden');
+                    // Fallback: Zeige Fehler in der Console
+                    console.error('❌ Dashboard-Fehler:', message);
+                }
+            } catch (error) {
+                console.error('❌ Fehler in showError:', error);
+            }
         }
         
         // Keine Daten Nachricht anzeigen
         function showNoDataMessage() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('dashboard').innerHTML = `
-                <div class="no-data">
-                    <i class="fas fa-chart-line"></i>
-                    <h2>Keine Daten verfügbar</h2>
-                    <p>Es sind noch keine Statistiken vorhanden. Verwenden Sie die App, um Daten zu generieren.</p>
-                    <div class="debug-info" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 14px; color: #666;">
-                        <strong>Debug-Informationen:</strong><br>
-                        Statistiken-Objekt: ${statistics ? 'Vorhanden' : 'Nicht vorhanden'}<br>
-                        Videos: ${statistics?.videos?.length || 0}<br>
-                        Videos mit viewHistory: ${statistics?.videos?.filter(v => v.view_history && Object.keys(v.view_history).length > 0).length || 0}<br>
-                        Historie: ${statistics?.history?.length || 0}<br>
-                        Floors: ${statistics?.floors?.length || 0}<br>
-                        <br>
-                        <strong>Video-Details:</strong><br>
-                        ${statistics?.videos?.map(v => `${v.video_title || 'Unbenannt'}: ${v.views || 0} Aufrufe, viewHistory: ${v.view_history ? Object.keys(v.view_history).length : 0} Tage`).join('<br>') || 'Keine Videos'}
-                    </div>
-                </div>
-            `;
+            try {
+                const loadingElement = document.getElementById('loading');
+                const dashboardElement = document.getElementById('dashboard');
+                
+                if (loadingElement) {
+                    loadingElement.style.display = 'none';
+                }
+                
+                if (dashboardElement) {
+                    dashboardElement.innerHTML = `
+                        <div class="no-data">
+                            <i class="fas fa-chart-line"></i>
+                            <h2>Keine Daten verfügbar</h2>
+                            <p>Es sind noch keine Statistiken vorhanden. Verwenden Sie die App, um Daten zu generieren.</p>
+                            <div class="debug-info" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 14px; color: #666;">
+                                <strong>Debug-Informationen:</strong><br>
+                                Statistiken-Objekt: ${statistics ? 'Vorhanden' : 'Nicht vorhanden'}<br>
+                                Videos: ${statistics?.videos?.length || 0}<br>
+                                Videos mit viewHistory: ${statistics?.videos?.filter(v => v.view_history && Object.keys(v.view_history).length > 0).length || 0}<br>
+                                Historie: ${statistics?.history?.length || 0}<br>
+                                Floors: ${statistics?.floors?.length || 0}<br>
+                                <br>
+                                <strong>Video-Details:</strong><br>
+                                ${statistics?.videos?.map(v => `${v.video_title || 'Unbenannt'}: ${v.views || 0} Aufrufe, viewHistory: ${v.view_history ? Object.keys(v.view_history).length : 0} Tage`).join('<br>') || 'Keine Videos'}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    console.error('❌ Dashboard-Element nicht gefunden');
+                }
+            } catch (error) {
+                console.error('❌ Fehler in showNoDataMessage:', error);
+            }
         }
         
         // Auto-Refresh alle 5 Minuten
