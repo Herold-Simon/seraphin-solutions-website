@@ -54,25 +54,48 @@ module.exports = async function handler(req, res) {
         }
 
         // Synchronisiere App-Statistiken
-        const { error: appStatsError } = await supabase
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Erst prüfen, ob bereits ein Eintrag für heute existiert
+        const { data: existingStats } = await supabase
             .from('app_statistics')
-            .upsert({
-                admin_user_id,
-                date: new Date().toISOString().split('T')[0],
-                total_videos: statistics.total_videos || 0,
-                videos_with_views: statistics.videos_with_views || 0,
-                total_views: statistics.total_views || 0,
-                total_floors: statistics.total_floors || 0,
-                total_rooms: statistics.total_rooms || 0,
-                pie_chart_video_count: statistics.pie_chart_video_count || 0,
-                line_chart_video_count: statistics.line_chart_video_count || 0,
-                bar_chart_video_count: statistics.bar_chart_video_count || 0,
-                line_race_video_count: statistics.line_race_video_count || 0,
-                time_range_start: statistics.time_range_start,
-                time_range_end: statistics.time_range_end
-            }, {
-                onConflict: 'admin_user_id,date'
-            });
+            .select('id')
+            .eq('admin_user_id', admin_user_id)
+            .eq('date', today)
+            .single();
+
+        const statsData = {
+            admin_user_id,
+            date: today,
+            total_videos: statistics.total_videos || 0,
+            videos_with_views: statistics.videos_with_views || 0,
+            total_views: statistics.total_views || 0,
+            total_floors: statistics.total_floors || 0,
+            total_rooms: statistics.total_rooms || 0,
+            pie_chart_video_count: statistics.pie_chart_video_count || 0,
+            line_chart_video_count: statistics.line_chart_video_count || 0,
+            bar_chart_video_count: statistics.bar_chart_video_count || 0,
+            line_race_video_count: statistics.line_race_video_count || 0,
+            time_range_start: statistics.time_range_start,
+            time_range_end: statistics.time_range_end,
+            updated_at: new Date().toISOString()
+        };
+
+        let appStatsError;
+        if (existingStats) {
+            // Update existing record
+            const { error } = await supabase
+                .from('app_statistics')
+                .update(statsData)
+                .eq('id', existingStats.id);
+            appStatsError = error;
+        } else {
+            // Insert new record
+            const { error } = await supabase
+                .from('app_statistics')
+                .insert(statsData);
+            appStatsError = error;
+        }
 
         if (appStatsError) {
             console.error('❌ App statistics sync error:', appStatsError);
@@ -84,33 +107,67 @@ module.exports = async function handler(req, res) {
         // Synchronisiere Video-Statistiken
         if (statistics.videos && Array.isArray(statistics.videos)) {
             for (const video of statistics.videos) {
-                await supabase
+                // Erst prüfen, ob bereits ein Eintrag existiert
+                const { data: existingVideo } = await supabase
                     .from('video_statistics')
-                    .upsert({
-                        admin_user_id,
-                        video_id: video.id,
-                        video_title: video.title,
-                        views: video.views || 0,
-                        last_viewed: video.lastViewed
-                    }, {
-                        onConflict: 'admin_user_id,video_id'
-                    });
+                    .select('id')
+                    .eq('admin_user_id', admin_user_id)
+                    .eq('video_id', video.id)
+                    .single();
+
+                const videoData = {
+                    admin_user_id,
+                    video_id: video.id,
+                    video_title: video.title,
+                    views: video.views || 0,
+                    last_viewed: video.lastViewed
+                };
+
+                if (existingVideo) {
+                    // Update existing record
+                    await supabase
+                        .from('video_statistics')
+                        .update(videoData)
+                        .eq('id', existingVideo.id);
+                } else {
+                    // Insert new record
+                    await supabase
+                        .from('video_statistics')
+                        .insert(videoData);
+                }
             }
         }
 
         // Synchronisiere Floor-Statistiken
         if (statistics.floors && Array.isArray(statistics.floors)) {
             for (const floor of statistics.floors) {
-                await supabase
+                // Erst prüfen, ob bereits ein Eintrag existiert
+                const { data: existingFloor } = await supabase
                     .from('floor_statistics')
-                    .upsert({
-                        admin_user_id,
-                        floor_id: floor.id,
-                        floor_name: floor.name,
-                        room_count: floor.objectVideoMappings?.length || 0
-                    }, {
-                        onConflict: 'admin_user_id,floor_id'
-                    });
+                    .select('id')
+                    .eq('admin_user_id', admin_user_id)
+                    .eq('floor_id', floor.id)
+                    .single();
+
+                const floorData = {
+                    admin_user_id,
+                    floor_id: floor.id,
+                    floor_name: floor.name,
+                    room_count: floor.objectVideoMappings?.length || 0
+                };
+
+                if (existingFloor) {
+                    // Update existing record
+                    await supabase
+                        .from('floor_statistics')
+                        .update(floorData)
+                        .eq('id', existingFloor.id);
+                } else {
+                    // Insert new record
+                    await supabase
+                        .from('floor_statistics')
+                        .insert(floorData);
+                }
             }
         }
 
