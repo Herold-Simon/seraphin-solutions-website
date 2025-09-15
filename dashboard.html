@@ -694,15 +694,34 @@
         // Dashboard laden
         async function loadDashboard() {
             try {
-                const response = await fetch('/api/statistics/get', {
+                // Erst prüfen, ob wir eine gültige Session haben
+                const sessionResponse = await fetch('/api/auth/verify-session', {
                     method: 'GET',
                     credentials: 'include'
                 });
                 
-                if (response.status === 401) {
+                if (sessionResponse.status === 401) {
+                    console.log('Keine gültige Session gefunden, weiterleitung zur Login-Seite');
                     window.location.href = 'login.html';
                     return;
                 }
+                
+                if (!sessionResponse.ok) {
+                    throw new Error('Session-Verifikation fehlgeschlagen');
+                }
+                
+                const sessionData = await sessionResponse.json();
+                if (!sessionData.success) {
+                    console.log('Session ungültig, weiterleitung zur Login-Seite');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                // Session ist gültig, jetzt Statistiken laden
+                const response = await fetch('/api/statistics/get', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
                 
                 if (!response.ok) {
                     throw new Error('Fehler beim Laden der Statistiken');

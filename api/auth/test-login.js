@@ -104,6 +104,39 @@ module.exports = async (req, res) => {
 
     console.log('✅ Passwort korrekt für User:', username);
 
+    // Session erstellen
+    console.log('🔍 Erstelle Session...');
+    const { data: session, error: sessionError } = await supabase
+      .from('website_sessions')
+      .insert([
+        { user_id: websiteUser.id, admin_user_id: websiteUser.admin_user_id }
+      ])
+      .select()
+      .single();
+
+    if (sessionError) {
+      console.error('❌ Fehler beim Erstellen der Session:', sessionError);
+      res.status(500).json({
+        success: false,
+        error: `Session-Erstellung fehlgeschlagen: ${sessionError.message}`
+      });
+      return;
+    }
+
+    console.log('✅ Session erstellt:', session.id);
+
+    // Session-Cookie setzen
+    const cookie = require('cookie');
+    const sessionCookie = cookie.serialize('session_token', session.id, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 60 * 60 * 24 * 7, // 1 Woche
+      path: '/',
+      sameSite: 'Lax',
+    });
+
+    res.setHeader('Set-Cookie', sessionCookie);
+
     // Erfolgreicher Login
     res.status(200).json({
       success: true,
