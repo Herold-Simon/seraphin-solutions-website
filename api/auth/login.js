@@ -99,8 +99,8 @@ module.exports = async (req, res) => {
     const { error: sessionError } = await supabase
       .from('website_sessions')
       .insert({
+        user_id: websiteUser.id,
         session_token: sessionToken,
-        admin_user_id: websiteUser.admin_user_id,
         expires_at: expiresAt.toISOString()
       });
 

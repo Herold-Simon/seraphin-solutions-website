@@ -109,7 +109,11 @@ module.exports = async (req, res) => {
     const { data: session, error: sessionError } = await supabase
       .from('website_sessions')
       .insert([
-        { user_id: websiteUser.id, admin_user_id: websiteUser.admin_user_id }
+        { 
+          user_id: websiteUser.id,
+          session_token: require('crypto').randomUUID(),
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 Tage
+        }
       ])
       .select()
       .single();

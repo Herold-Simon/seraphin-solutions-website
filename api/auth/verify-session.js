@@ -47,7 +47,8 @@ module.exports = async function handler(req, res) {
       .select(`
         id,
         user_id,
-        admin_user_id,
+        session_token,
+        expires_at,
         created_at,
         website_users!inner(
           id,
@@ -55,12 +56,21 @@ module.exports = async function handler(req, res) {
           admin_user_id
         )
       `)
-      .eq('id', sessionToken)
+      .eq('session_token', sessionToken)
       .single();
 
     if (sessionError || !session) {
       console.log('Session verification failed:', sessionError?.message || 'Session not found');
       return res.status(401).json({ success: false, error: 'Invalid session' });
+    }
+
+    // Überprüfen, ob Session abgelaufen ist
+    const now = new Date();
+    const expiresAt = new Date(session.expires_at);
+    
+    if (now > expiresAt) {
+      console.log('Session expired');
+      return res.status(401).json({ success: false, error: 'Session expired' });
     }
 
     // Session ist gültig
