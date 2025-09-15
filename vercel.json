@@ -1,67 +1,37 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "*.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.css",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.png",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.jpg",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.ico",
-      "use": "@vercel/static"
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs18.x"
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
     },
     {
-      "src": "/",
-      "dest": "/index.html"
+      "source": "/dashboard",
+      "destination": "/dashboard.html"
     },
     {
-      "src": "/dashboard",
-      "dest": "/dashboard.html"
+      "source": "/login",
+      "destination": "/login.html"
     },
     {
-      "src": "/login",
-      "dest": "/login.html"
+      "source": "/info",
+      "destination": "/info.html"
     },
     {
-      "src": "/info",
-      "dest": "/info.html"
+      "source": "/impressum",
+      "destination": "/impressum.html"
     },
     {
-      "src": "/impressum",
-      "dest": "/impressum.html"
+      "source": "/datenschutz",
+      "destination": "/datenschutz.html"
     },
     {
-      "src": "/datenschutz",
-      "dest": "/datenschutz.html"
-    },
-    {
-      "src": "/passwortverlust",
-      "dest": "/passwortverlust.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/passwortverlust",
+      "destination": "/passwortverlust.html"
     }
   ]
 }
