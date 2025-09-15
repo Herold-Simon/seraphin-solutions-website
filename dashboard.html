@@ -774,12 +774,15 @@
                 }
                 
                 const data = await response.json();
+                console.log('📊 API Response:', data);
                 
                 if (data.success) {
                     statistics = data.statistics;
+                    console.log('✅ Statistiken erfolgreich geladen:', statistics);
                     displayStatistics();
                     hideLoading();
                 } else {
+                    console.error('❌ API Fehler:', data.error);
                     throw new Error(data.error || 'Unbekannter Fehler');
                 }
                 
@@ -792,24 +795,81 @@
         
         // Statistiken anzeigen
         function displayStatistics() {
-            if (!statistics) return;
+            if (!statistics) {
+                console.log('❌ Keine Statistiken verfügbar');
+                showNoDataMessage();
+                return;
+            }
             
-            const current = statistics.current;
-            const total = statistics.total;
+            console.log('📊 Statistiken-Daten:', statistics);
             
-            // Statistiken-Karten aktualisieren
-            document.getElementById('totalViews').textContent = current.total_views || total.total_views || 0;
-            document.getElementById('videosWithViews').textContent = current.videos_with_views || total.videos_with_views || 0;
+            const current = statistics.current || {};
+            const total = statistics.total || {};
+            const videos = statistics.videos || [];
+            const floors = statistics.floors || [];
+            const history = statistics.history || [];
+            
+            // Debug: Zeige verfügbare Daten
+            console.log('📈 Current Stats:', current);
+            console.log('📊 Total Stats:', total);
+            console.log('🎥 Videos:', videos.length);
+            console.log('🏢 Floors:', floors.length);
+            console.log('📅 History:', history.length);
+            
+            // Statistiken-Karten aktualisieren mit Fallback-Werten
+            const totalViews = current.total_views || total.total_views || 0;
+            const videosWithViews = current.videos_with_views || total.videos_with_views || 0;
+            const totalVideos = current.total_videos || total.total_videos || videos.length;
+            const totalFloors = current.total_floors || total.total_floors || floors.length;
+            const totalRooms = current.total_rooms || total.total_rooms || floors.reduce((sum, floor) => sum + (floor.room_count || 0), 0);
+            
+            // Aktualisiere die UI-Elemente
+            document.getElementById('totalViews').textContent = totalViews.toLocaleString('de-DE');
+            document.getElementById('videosWithViews').textContent = videosWithViews.toLocaleString('de-DE');
+            
+            // Zusätzliche Statistiken anzeigen, falls Elemente existieren
+            const totalVideosElement = document.getElementById('totalVideos');
+            if (totalVideosElement) {
+                totalVideosElement.textContent = totalVideos.toLocaleString('de-DE');
+            }
+            
+            const totalFloorsElement = document.getElementById('totalFloors');
+            if (totalFloorsElement) {
+                totalFloorsElement.textContent = totalFloors.toLocaleString('de-DE');
+            }
+            
+            const totalRoomsElement = document.getElementById('totalRooms');
+            if (totalRoomsElement) {
+                totalRoomsElement.textContent = totalRooms.toLocaleString('de-DE');
+            }
             
             // Letzte Aktualisierung
             const now = new Date();
             document.getElementById('lastUpdated').textContent = now.toLocaleString('de-DE');
             
+            // Prüfe ob genügend Daten für Charts vorhanden sind
+            const hasVideoData = videos.length > 0;
+            const hasHistoryData = history.length > 0;
+            
+            console.log('📊 Chart-Daten verfügbar:', { hasVideoData, hasHistoryData });
+            
+            if (!hasVideoData && !hasHistoryData) {
+                console.log('⚠️ Keine Daten für Charts verfügbar');
+                showNoDataMessage();
+                return;
+            }
+            
             // Charts erstellen
-            createLineChart();
-            createBarChart();
-            createPieChart();
-            createAreaChart();
+            try {
+                createLineChart();
+                createBarChart();
+                createPieChart();
+                createAreaChart();
+                console.log('✅ Alle Charts erfolgreich erstellt');
+            } catch (error) {
+                console.error('❌ Fehler beim Erstellen der Charts:', error);
+                showError('Fehler beim Erstellen der Diagramme: ' + error.message);
+            }
         }
         
         // Liniendiagramm erstellen (ECharts)
@@ -822,6 +882,13 @@
             }
             
             const filteredData = getFilteredHistoryData();
+            console.log('📈 Line Chart - Gefilterte Daten:', filteredData);
+            
+            if (!filteredData || filteredData.length === 0) {
+                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Historie-Daten verfügbar</div>';
+                return;
+            }
+            
             const labels = filteredData.map(item => 
                 new Date(item.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })
             );
@@ -916,13 +983,16 @@
                 charts.barChart.dispose();
             }
             
-            if (!statistics.videos || statistics.videos.length === 0) {
+            const videos = statistics?.videos || [];
+            console.log('📊 Bar Chart - Video-Daten:', videos);
+            
+            if (!videos || videos.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
                 return;
             }
             
             // Sortiere Videos nach Aufrufen und nimm die Top 10
-            const topVideos = statistics.videos
+            const topVideos = videos
                 .sort((a, b) => (b.views || 0) - (a.views || 0))
                 .slice(0, 10);
             
@@ -1006,13 +1076,16 @@
                 charts.pieChart.destroy();
             }
             
-            if (!statistics.videos || statistics.videos.length === 0) {
+            const videos = statistics?.videos || [];
+            console.log('🥧 Pie Chart - Video-Daten:', videos);
+            
+            if (!videos || videos.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
                 return;
             }
             
             // Top 8 Videos für Pie Chart
-            const topVideos = statistics.videos
+            const topVideos = videos
                 .filter(video => (video.views || 0) > 0)
                 .sort((a, b) => (b.views || 0) - (a.views || 0))
                 .slice(0, 8);
@@ -1066,7 +1139,9 @@
             }
             
             const filteredData = getFilteredHistoryData();
-            if (filteredData.length === 0) {
+            console.log('📊 Area Chart - Gefilterte Daten:', filteredData);
+            
+            if (!filteredData || filteredData.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Historie-Daten verfügbar</div>';
                 return;
             }
@@ -1143,7 +1218,11 @@
         
         // Gefilterte Historie-Daten basierend auf Zeitraum
         function getFilteredHistoryData() {
-            if (!statistics.history || statistics.history.length === 0) {
+            const history = statistics?.history || [];
+            console.log('📅 Historie-Daten:', history);
+            
+            if (!history || history.length === 0) {
+                console.log('⚠️ Keine Historie-Daten verfügbar');
                 return [];
             }
             
@@ -1160,13 +1239,16 @@
                 startDate.setDate(now.getDate() - 365);
             } else {
                 // Alle Zeit
-                return statistics.history.slice(0, 30).reverse();
+                return history.slice(0, 30).reverse();
             }
             
-            return statistics.history
+            const filtered = history
                 .filter(item => new Date(item.date) >= startDate)
                 .slice(0, 30)
                 .reverse();
+                
+            console.log('📅 Gefilterte Historie-Daten:', filtered);
+            return filtered;
         }
         
         // Charts aktualisieren
@@ -1235,6 +1317,25 @@
             const errorDiv = document.getElementById('errorMessage');
             errorDiv.textContent = message;
             errorDiv.style.display = 'block';
+        }
+        
+        // Keine Daten Nachricht anzeigen
+        function showNoDataMessage() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('dashboard').innerHTML = `
+                <div class="no-data">
+                    <i class="fas fa-chart-line"></i>
+                    <h2>Keine Daten verfügbar</h2>
+                    <p>Es sind noch keine Statistiken vorhanden. Verwenden Sie die App, um Daten zu generieren.</p>
+                    <div class="debug-info" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 14px; color: #666;">
+                        <strong>Debug-Informationen:</strong><br>
+                        Statistiken-Objekt: ${statistics ? 'Vorhanden' : 'Nicht vorhanden'}<br>
+                        Videos: ${statistics?.videos?.length || 0}<br>
+                        Historie: ${statistics?.history?.length || 0}<br>
+                        Floors: ${statistics?.floors?.length || 0}
+                    </div>
+                </div>
+            `;
         }
         
         // Auto-Refresh alle 5 Minuten
