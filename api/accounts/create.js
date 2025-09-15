@@ -5,6 +5,10 @@ import bcrypt from 'bcryptjs';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+// Debug: Log environment variables (remove in production)
+console.log('Supabase URL:', supabaseUrl ? 'Set' : 'Not set');
+console.log('Supabase Key:', supabaseServiceKey ? 'Set' : 'Not set');
+
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // CORS-Header setzen
@@ -25,6 +29,15 @@ export default async function handler(req, res) {
     
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    // Prüfe Umgebungsvariablen
+    if (!supabaseUrl || !supabaseServiceKey) {
+        console.error('Missing environment variables');
+        return res.status(500).json({ 
+            error: 'Server configuration error',
+            details: 'Missing Supabase credentials'
+        });
     }
 
     try {
