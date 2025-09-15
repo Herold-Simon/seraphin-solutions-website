@@ -1,7 +1,7 @@
 // api/auth/login.js - Website Login API
-import { createClient } from '@supabase/supabase-js';
-import bcrypt from 'bcryptjs';
-import cookie from 'cookie';
+const { createClient } = require('@supabase/supabase-js');
+const bcrypt = require('bcryptjs');
+const cookie = require('cookie');
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -15,7 +15,7 @@ function setCorsHeaders(res) {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
     // CORS-Header für alle Anfragen setzen
     setCorsHeaders(res);
     
