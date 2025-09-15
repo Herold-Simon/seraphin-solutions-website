@@ -19,6 +19,7 @@ module.exports = async function handler(req, res) {
       nodeEnv: process.env.NODE_ENV,
       supabaseUrl: supabaseUrl ? 'Set (length: ' + supabaseUrl.length + ')' : 'Not set',
       supabaseKey: supabaseServiceKey ? 'Set (length: ' + supabaseServiceKey.length + ')' : 'Not set',
+      supabaseUrlPreview: supabaseUrl ? supabaseUrl.substring(0, 30) + '...' : 'Not set',
       allEnvVars: Object.keys(process.env).filter(key => key.includes('SUPABASE'))
     },
     timestamp: new Date().toISOString()
