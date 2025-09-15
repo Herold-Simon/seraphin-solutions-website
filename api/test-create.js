@@ -18,6 +18,16 @@ module.exports = async function handler(req, res) {
     return res.status(200).end();
   }
   
+  // Erlaube sowohl GET als auch POST für Tests
+  if (req.method === 'GET') {
+    return res.status(200).json({
+      success: true,
+      message: 'Test-API ist erreichbar. Verwenden Sie POST mit {"username": "test", "password": "test123"}',
+      method: 'GET',
+      timestamp: new Date().toISOString()
+    });
+  }
+  
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
