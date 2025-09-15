@@ -2266,6 +2266,25 @@ body {
     color: var(--primary-blue);
 }
 
+.footer-login-btn {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--gradient-primary) !important;
+    color: var(--white) !important;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.footer-login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 140, 255, 0.3);
+    color: var(--white) !important;
+}
+
 .social-links {
     display: flex;
     gap: 1rem;
