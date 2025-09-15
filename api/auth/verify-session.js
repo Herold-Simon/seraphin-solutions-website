@@ -30,14 +30,21 @@ module.exports = async function handler(req, res) {
     // Session-Cookie aus den Headers extrahieren
     const cookies = req.headers.cookie;
     
+    console.log('🔍 Verify Session - Cookies received:', cookies);
+    
     if (!cookies) {
+      console.log('❌ No cookies found in request');
       return res.status(401).json({ success: false, error: 'No session cookie found' });
     }
 
     const parsedCookies = cookie.parse(cookies);
     const sessionToken = parsedCookies.session_token;
 
+    console.log('🔍 Parsed cookies:', parsedCookies);
+    console.log('🔍 Session token:', sessionToken ? 'Found' : 'Not found');
+
     if (!sessionToken) {
+      console.log('❌ No session token found in cookies');
       return res.status(401).json({ success: false, error: 'No session token found' });
     }
 

@@ -116,13 +116,14 @@ module.exports = async (req, res) => {
     // Session-Cookie setzen
     const sessionCookie = cookie.serialize('session_token', sessionToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      maxAge: 24 * 60 * 60, // 24 Stunden
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Lax',
+      maxAge: 60 * 60 * 24 * 7, // 1 Woche
       path: '/'
     });
 
     res.setHeader('Set-Cookie', sessionCookie);
+    console.log('🍪 Session-Cookie gesetzt:', sessionToken);
 
     res.status(200).json({
       success: true,

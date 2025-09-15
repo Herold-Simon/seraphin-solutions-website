@@ -131,7 +131,7 @@ module.exports = async (req, res) => {
 
     // Session-Cookie setzen
     const cookie = require('cookie');
-    const sessionCookie = cookie.serialize('session_token', session.id, {
+    const sessionCookie = cookie.serialize('session_token', session.session_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: 60 * 60 * 24 * 7, // 1 Woche
@@ -140,6 +140,7 @@ module.exports = async (req, res) => {
     });
 
     res.setHeader('Set-Cookie', sessionCookie);
+    console.log('🍪 Session-Cookie gesetzt:', session.session_token);
 
     // Erfolgreicher Login
     res.status(200).json({
