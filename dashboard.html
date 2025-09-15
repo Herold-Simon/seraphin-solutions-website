@@ -20,9 +20,6 @@
     <!-- ECharts (same as the app) -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     
-    <!-- ApexCharts for enhanced statistics -->
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
-    
     <style>
         /* Navigation Styles */
         .navbar {
@@ -592,10 +589,10 @@
                 
                 <!-- Charts -->
                 <div class="charts-section">
-                    <!-- Liniendiagramm -->
+                    <!-- Liniendiagramm (wie in der App) -->
                     <div class="chart-card">
                         <div class="chart-header" onclick="toggleChart('lineChart')">
-                            <h3 class="chart-title">Video-Aufrufe über Zeit</h3>
+                            <h3 class="chart-title">Top Videos im ausgewählten Zeitraum - Liniendiagramm</h3>
                             <span class="chart-toggle" id="lineChartToggle">▶</span>
                         </div>
                         <div class="chart-container" id="lineChartContainer">
@@ -603,21 +600,10 @@
                         </div>
                     </div>
 
-                    <!-- Balkendiagramm -->
-                    <div class="chart-card">
-                        <div class="chart-header" onclick="toggleChart('barChart')">
-                            <h3 class="chart-title">Video-Aufrufe (Balken)</h3>
-                            <span class="chart-toggle" id="barChartToggle">▶</span>
-                        </div>
-                        <div class="chart-container" id="barChartContainer">
-                            <div id="barChart" style="width: 100%; height: 100%;"></div>
-                        </div>
-                    </div>
-
-                    <!-- ApexCharts Pie Chart -->
+                    <!-- Tortendiagramm (wie in der App) -->
                     <div class="chart-card">
                         <div class="chart-header" onclick="toggleChart('pieChart')">
-                            <h3 class="chart-title">Video-Verteilung (Kreisdiagramm)</h3>
+                            <h3 class="chart-title">Top Videos im ausgewählten Zeitraum - Tortendiagramm</h3>
                             <span class="chart-toggle" id="pieChartToggle">▶</span>
                         </div>
                         <div class="chart-container" id="pieChartContainer">
@@ -625,14 +611,25 @@
                         </div>
                     </div>
 
-                    <!-- ApexCharts Area Chart -->
+                    <!-- Balkendiagramm (wie in der App) -->
                     <div class="chart-card">
-                        <div class="chart-header" onclick="toggleChart('areaChart')">
-                            <h3 class="chart-title">Aufrufe über Zeit (Flächendiagramm)</h3>
-                            <span class="chart-toggle" id="areaChartToggle">▶</span>
+                        <div class="chart-header" onclick="toggleChart('barChart')">
+                            <h3 class="chart-title">Top Videos mit Aufrufen im ausgewählten Zeitraum - Balkendiagramm</h3>
+                            <span class="chart-toggle" id="barChartToggle">▶</span>
                         </div>
-                        <div class="chart-container" id="areaChartContainer">
-                            <div id="areaChart" style="width: 100%; height: 100%;"></div>
+                        <div class="chart-container" id="barChartContainer">
+                            <div id="barChart" style="width: 100%; height: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Line Race (wie in der App) -->
+                    <div class="chart-card">
+                        <div class="chart-header" onclick="toggleChart('lineRaceChart')">
+                            <h3 class="chart-title">Top Videos im ausgewählten Zeitraum - Line Race</h3>
+                            <span class="chart-toggle" id="lineRaceChartToggle">▶</span>
+                        </div>
+                        <div class="chart-container" id="lineRaceChartContainer">
+                            <div id="lineRaceChart" style="width: 100%; height: 100%;"></div>
                         </div>
                     </div>
                 </div>
@@ -654,7 +651,7 @@
             lineChart: true,
             barChart: true,
             pieChart: true,
-            areaChart: true
+            lineRaceChart: true
         };
         
         // Dashboard initialisieren
@@ -878,12 +875,12 @@
                 return;
             }
             
-            // Charts erstellen
+            // Charts erstellen (wie in der App)
             try {
                 createLineChart();
-                createBarChart();
                 createPieChart();
-                createAreaChart();
+                createBarChart();
+                createLineRaceChart();
                 console.log('✅ Alle Charts erfolgreich erstellt');
             } catch (error) {
                 console.error('❌ Fehler beim Erstellen der Charts:', error);
@@ -891,7 +888,7 @@
             }
         }
         
-        // Liniendiagramm erstellen (ECharts)
+        // Liniendiagramm erstellen (wie in der App)
         function createLineChart() {
             const chartElement = document.getElementById('lineChart');
             if (!chartElement) return;
@@ -900,17 +897,33 @@
                 charts.lineChart.dispose();
             }
             
-            // Verwende Video-Daten mit viewHistory für präzise tägliche Aufrufe
             const videos = statistics?.videos || [];
+            const lineChartVideoCount = statistics?.current?.line_chart_video_count || 7;
+            const timeRangeStart = statistics?.current?.time_range_start;
+            const timeRangeEnd = statistics?.current?.time_range_end;
+            
             console.log('📈 Line Chart - Video-Daten:', videos);
+            console.log('📈 Line Chart - Video Count:', lineChartVideoCount);
+            console.log('📈 Line Chart - Zeitraum:', { timeRangeStart, timeRangeEnd });
             
             if (!videos || videos.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
                 return;
             }
             
-            // Erstelle Zeitreihe basierend auf viewHistory
-            const timeSeriesData = createTimeSeriesFromViewHistory(videos);
+            // Filtere Videos mit Aufrufen und sortiere nach Aufrufen (wie in der App)
+            const filteredVideos = videos
+                .filter(video => (video.views || 0) > 0)
+                .sort((a, b) => (b.views || 0) - (a.views || 0))
+                .slice(0, lineChartVideoCount);
+            
+            if (filteredVideos.length === 0) {
+                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Videos mit Aufrufen verfügbar</div>';
+                return;
+            }
+            
+            // Erstelle Zeitreihe basierend auf viewHistory (wie in der App)
+            const timeSeriesData = createTimeSeriesFromViewHistory(filteredVideos, timeRangeStart, timeRangeEnd);
             console.log('📈 Line Chart - Zeitreihen-Daten:', timeSeriesData);
             
             if (!timeSeriesData || timeSeriesData.length === 0) {
@@ -921,7 +934,51 @@
             const labels = timeSeriesData.map(item => 
                 new Date(item.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })
             );
-            const data = timeSeriesData.map(item => item.totalViews || 0);
+            
+            // Erstelle Series für jedes Video (wie in der App)
+            const series = filteredVideos.map((video, idx) => {
+                const data = timeSeriesData.map(item => {
+                    if (video.view_history && video.view_history[item.date]) {
+                        return video.view_history[item.date];
+                    }
+                    return 0;
+                });
+                
+                return {
+                    name: video.video_title || 'Unbenanntes Video',
+                    type: 'line',
+                    data: data,
+                    smooth: true,
+                    lineStyle: {
+                        width: 2
+                    },
+                    itemStyle: {
+                        color: getChartColor(idx)
+                    }
+                };
+            });
+            
+            // Füge Durchschnittslinie hinzu (wie in der App)
+            const averageData = timeSeriesData.map(item => {
+                const totalViews = filteredVideos.reduce((sum, video) => {
+                    return sum + (video.view_history && video.view_history[item.date] ? video.view_history[item.date] : 0);
+                }, 0);
+                return Math.round(totalViews / filteredVideos.length * 10) / 10;
+            });
+            
+            series.push({
+                name: 'Durchschnitt (alle Videos)',
+                type: 'line',
+                data: averageData,
+                smooth: true,
+                lineStyle: {
+                    type: 'dashed',
+                    width: 2
+                },
+                itemStyle: {
+                    color: '#999'
+                }
+            });
             
             const option = {
                 tooltip: {
@@ -1003,7 +1060,7 @@
         }
         
         
-        // Balkendiagramm erstellen (ECharts)
+        // Balkendiagramm erstellen (wie in der App)
         function createBarChart() {
             const chartElement = document.getElementById('barChart');
             if (!chartElement) return;
@@ -1013,33 +1070,36 @@
             }
             
             const videos = statistics?.videos || [];
+            const barChartVideoCount = statistics?.current?.bar_chart_video_count || 7;
+            
             console.log('📊 Bar Chart - Video-Daten:', videos);
+            console.log('📊 Bar Chart - Video Count:', barChartVideoCount);
             
             if (!videos || videos.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
                 return;
             }
             
-            // Filtere Videos mit Aufrufen und sortiere nach Aufrufen
-            const videosWithViews = videos.filter(video => (video.views || 0) > 0);
-            console.log('📊 Videos mit Aufrufen:', videosWithViews);
+            // Filtere Videos mit Aufrufen und sortiere nach Aufrufen (wie in der App)
+            const filteredVideos = videos
+                .filter(video => (video.views || 0) > 0)
+                .sort((a, b) => (b.views || 0) - (a.views || 0))
+                .slice(0, barChartVideoCount);
             
-            if (videosWithViews.length === 0) {
+            if (filteredVideos.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Videos mit Aufrufen verfügbar</div>';
                 return;
             }
             
-            // Sortiere Videos nach Aufrufen und nimm die Top 10
-            const topVideos = videosWithViews
-                .sort((a, b) => (b.views || 0) - (a.views || 0))
-                .slice(0, 10);
-            
-            const labels = topVideos.map(video => 
-                video.video_title ? 
-                    (video.video_title.length > 15 ? video.video_title.substring(0, 15) + '...' : video.video_title) :
-                    'Unbenanntes Video'
+            const labels = filteredVideos.map(video => 
+                video.video_title || 'Unbenanntes Video'
             );
-            const data = topVideos.map(video => video.views || 0);
+            const data = filteredVideos.map((video, idx) => ({
+                value: video.views || 0,
+                itemStyle: {
+                    color: getChartColor(idx)
+                }
+            }));
             
             const option = {
                 tooltip: {
@@ -1093,11 +1153,7 @@
                 series: [{
                     name: 'Aufrufe',
                     type: 'bar',
-                    data: data,
-                    itemStyle: {
-                        color: '#008CFF',
-                        borderRadius: [0, 4, 4, 0]
-                    }
+                    data: data
                 }]
             };
             
@@ -1105,89 +1161,42 @@
             charts.barChart.setOption(option);
         }
         
-        // Pie Chart erstellen (ApexCharts)
-        function createPieChart() {
-            const chartElement = document.getElementById('pieChart');
+        // Line Race Chart erstellen (wie in der App)
+        function createLineRaceChart() {
+            const chartElement = document.getElementById('lineRaceChart');
             if (!chartElement) return;
             
-            if (charts.pieChart) {
-                charts.pieChart.destroy();
+            if (charts.lineRaceChart) {
+                charts.lineRaceChart.dispose();
             }
             
             const videos = statistics?.videos || [];
-            console.log('🥧 Pie Chart - Video-Daten:', videos);
+            const lineRaceVideoCount = statistics?.current?.line_race_video_count || 7;
+            const timeRangeStart = statistics?.current?.time_range_start;
+            const timeRangeEnd = statistics?.current?.time_range_end;
+            
+            console.log('🏁 Line Race Chart - Video-Daten:', videos);
+            console.log('🏁 Line Race Chart - Video Count:', lineRaceVideoCount);
+            console.log('🏁 Line Race Chart - Zeitraum:', { timeRangeStart, timeRangeEnd });
             
             if (!videos || videos.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
                 return;
             }
             
-            // Filtere Videos mit Aufrufen
-            const videosWithViews = videos.filter(video => (video.views || 0) > 0);
-            console.log('🥧 Videos mit Aufrufen:', videosWithViews);
+            // Filtere Videos mit Aufrufen und sortiere nach Aufrufen (wie in der App)
+            const filteredVideos = videos
+                .filter(video => (video.views || 0) > 0)
+                .sort((a, b) => (b.views || 0) - (a.views || 0))
+                .slice(0, lineRaceVideoCount);
             
-            if (videosWithViews.length === 0) {
+            if (filteredVideos.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Videos mit Aufrufen verfügbar</div>';
                 return;
             }
             
-            // Top 8 Videos für Pie Chart
-            const topVideos = videosWithViews
-                .sort((a, b) => (b.views || 0) - (a.views || 0))
-                .slice(0, 8);
-            
-            const labels = topVideos.map(video => 
-                video.video_title ? 
-                    (video.video_title.length > 20 ? video.video_title.substring(0, 20) + '...' : video.video_title) :
-                    'Unbenanntes Video'
-            );
-            const data = topVideos.map(video => video.views || 0);
-            
-            const options = {
-                series: data,
-                chart: {
-                    type: 'pie',
-                    height: '100%',
-                    width: '100%'
-                },
-                labels: labels,
-                colors: ['#008CFF', '#00D4AA', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD'],
-                legend: {
-                    position: 'bottom',
-                    fontSize: '12px'
-                },
-                tooltip: {
-                    y: {
-                        formatter: function (val) {
-                            return val.toLocaleString('de-DE') + ' Aufrufe'
-                        }
-                    }
-                },
-                dataLabels: {
-                    enabled: true,
-                    formatter: function (val, opts) {
-                        return opts.w.config.series[opts.seriesIndex] > 0 ? val.toFixed(1) + '%' : ''
-                    }
-                }
-            };
-            
-            charts.pieChart = new ApexCharts(chartElement, options);
-            charts.pieChart.render();
-        }
-        
-        // Area Chart erstellen (ApexCharts)
-        function createAreaChart() {
-            const chartElement = document.getElementById('areaChart');
-            if (!chartElement) return;
-            
-            if (charts.areaChart) {
-                charts.areaChart.destroy();
-            }
-            
-            // Verwende die gleiche Zeitreihe wie das Liniendiagramm
-            const videos = statistics?.videos || [];
-            const timeSeriesData = createTimeSeriesFromViewHistory(videos);
-            console.log('📊 Area Chart - Zeitreihen-Daten:', timeSeriesData);
+            // Erstelle Zeitreihe basierend auf viewHistory (wie in der App)
+            const timeSeriesData = createTimeSeriesFromViewHistory(filteredVideos, timeRangeStart, timeRangeEnd);
             
             if (!timeSeriesData || timeSeriesData.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Aufruf-Daten verfügbar</div>';
@@ -1197,129 +1206,237 @@
             const labels = timeSeriesData.map(item => 
                 new Date(item.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })
             );
-            const data = timeSeriesData.map(item => item.totalViews || 0);
             
-            const options = {
-                series: [{
-                    name: 'Aufrufe',
-                    data: data
-                }],
-                chart: {
-                    type: 'area',
-                    height: '100%',
-                    width: '100%',
-                    toolbar: {
-                        show: true
-                    }
-                },
-                colors: ['#008CFF'],
-                dataLabels: {
-                    enabled: false
-                },
-                stroke: {
-                    curve: 'smooth',
-                    width: 3
-                },
-                fill: {
-                    type: 'gradient',
-                    gradient: {
-                        shadeIntensity: 1,
-                        opacityFrom: 0.7,
-                        opacityTo: 0.3,
-                        stops: [0, 90, 100]
-                    }
-                },
-                xaxis: {
-                    categories: labels,
-                    labels: {
-                        style: {
-                            colors: '#666'
+            // Erstelle Series für jedes Video mit kumulativen Aufrufen (wie in der App)
+            const series = filteredVideos.map((video, idx) => {
+                const data = timeSeriesData.map((item, dayIndex) => {
+                    let cumulativeViews = 0;
+                    
+                    // Berechne kumulierte Aufrufe bis zu diesem Tag
+                    for (let i = 0; i <= dayIndex; i++) {
+                        const currentDate = timeSeriesData[i].date;
+                        if (video.view_history && video.view_history[currentDate]) {
+                            cumulativeViews += video.view_history[currentDate];
                         }
                     }
-                },
-                yaxis: {
-                    labels: {
-                        style: {
-                            colors: '#666'
-                        },
-                        formatter: function (val) {
-                            return val.toLocaleString('de-DE')
-                        }
+                    
+                    return cumulativeViews;
+                });
+                
+                return {
+                    name: video.video_title || 'Unbenanntes Video',
+                    type: 'line',
+                    data: data,
+                    smooth: true,
+                    lineStyle: {
+                        width: 2
+                    },
+                    itemStyle: {
+                        color: getChartColor(idx)
                     }
-                },
+                };
+            });
+            
+            const option = {
                 tooltip: {
-                    y: {
-                        formatter: function (val) {
-                            return val.toLocaleString('de-DE') + ' Aufrufe'
-                        }
+                    trigger: 'axis',
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    borderColor: '#008CFF',
+                    borderWidth: 1,
+                    textStyle: {
+                        color: '#fff'
+                    }
+                },
+                legend: {
+                    data: series.map(s => s.name),
+                    top: 'top',
+                    textStyle: {
+                        fontSize: 12
                     }
                 },
                 grid: {
-                    borderColor: '#f1f1f1'
-                }
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    top: '15%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: labels,
+                    axisLine: {
+                        lineStyle: {
+                            color: '#666'
+                        }
+                    },
+                    axisTick: {
+                        show: false
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLine: {
+                        show: false
+                    },
+                    axisTick: {
+                        show: false
+                    },
+                    axisLabel: {
+                        color: '#666'
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    }
+                },
+                series: series
             };
             
-            charts.areaChart = new ApexCharts(chartElement, options);
-            charts.areaChart.render();
+            charts.lineRaceChart = echarts.init(chartElement);
+            charts.lineRaceChart.setOption(option);
+        }
+        
+        // Tortendiagramm erstellen (wie in der App)
+        function createPieChart() {
+            const chartElement = document.getElementById('pieChart');
+            if (!chartElement) return;
+            
+            if (charts.pieChart) {
+                charts.pieChart.dispose();
+            }
+            
+            const videos = statistics?.videos || [];
+            const pieChartVideoCount = statistics?.current?.pie_chart_video_count || 7;
+            
+            console.log('🥧 Pie Chart - Video-Daten:', videos);
+            console.log('🥧 Pie Chart - Video Count:', pieChartVideoCount);
+            
+            if (!videos || videos.length === 0) {
+                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
+                return;
+            }
+            
+            // Filtere Videos mit Aufrufen und sortiere nach Aufrufen (wie in der App)
+            const filteredVideos = videos
+                .filter(video => (video.views || 0) > 0)
+                .sort((a, b) => (b.views || 0) - (a.views || 0))
+                .slice(0, pieChartVideoCount);
+            
+            if (filteredVideos.length === 0) {
+                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Videos mit Aufrufen verfügbar</div>';
+                return;
+            }
+            
+            const data = filteredVideos.map((video, idx) => ({
+                name: video.video_title || 'Unbenanntes Video',
+                value: video.views || 0,
+                itemStyle: {
+                    color: getChartColor(idx)
+                }
+            }));
+            
+            const option = {
+                tooltip: {
+                    trigger: 'item',
+                    formatter: '{a} <br/>{b}: {c} ({d}%)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    borderColor: '#008CFF',
+                    borderWidth: 1,
+                    textStyle: {
+                        color: '#fff'
+                    }
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 'left',
+                    top: 'middle',
+                    textStyle: {
+                        fontSize: 12
+                    }
+                },
+                series: [{
+                    name: 'Aufrufe',
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    center: ['60%', '50%'],
+                    avoidLabelOverlap: false,
+                    label: {
+                        show: false,
+                        position: 'center'
+                    },
+                    emphasis: {
+                        label: {
+                            show: true,
+                            fontSize: '18',
+                            fontWeight: 'bold'
+                        }
+                    },
+                    labelLine: {
+                        show: false
+                    },
+                    data: data
+                }]
+            };
+            
+            charts.pieChart = echarts.init(chartElement);
+            charts.pieChart.setOption(option);
         }
         
         
-        // Erstelle Zeitreihe aus Video viewHistory-Daten
-        function createTimeSeriesFromViewHistory(videos) {
+        
+        // Erstelle Zeitreihe aus Video viewHistory-Daten (wie in der App)
+        function createTimeSeriesFromViewHistory(videos, timeRangeStart, timeRangeEnd) {
             console.log('📅 Erstelle Zeitreihe aus viewHistory:', videos);
+            console.log('📅 Zeitraum:', { timeRangeStart, timeRangeEnd });
             
             if (!videos || videos.length === 0) {
                 return [];
             }
             
-            // Sammle alle einzigartigen Daten aus viewHistory
-            const allDates = new Set();
-            videos.forEach(video => {
-                if (video.view_history) {
-                    Object.keys(video.view_history).forEach(date => {
-                        allDates.add(date);
-                    });
-                }
-            });
+            // Verwende Zeitraum aus Statistiken oder berechne basierend auf Daten
+            let startDate, endDate;
             
-            console.log('📅 Alle gefundenen Daten:', Array.from(allDates));
-            
-            if (allDates.size === 0) {
-                console.log('⚠️ Keine viewHistory-Daten gefunden');
-                return [];
-            }
-            
-            // Konvertiere zu Array und sortiere
-            const sortedDates = Array.from(allDates).sort();
-            console.log('📅 Sortierte Daten:', sortedDates);
-            
-            // Erstelle Zeitreihe mit gefilterten Daten basierend auf currentTimeRange
-            const now = new Date();
-            let startDate = new Date();
-            
-            if (currentTimeRange === '7') {
-                startDate.setDate(now.getDate() - 7);
-            } else if (currentTimeRange === '30') {
-                startDate.setDate(now.getDate() - 30);
-            } else if (currentTimeRange === '90') {
-                startDate.setDate(now.getDate() - 90);
-            } else if (currentTimeRange === '365') {
-                startDate.setDate(now.getDate() - 365);
+            if (timeRangeStart && timeRangeEnd) {
+                startDate = new Date(timeRangeStart);
+                endDate = new Date(timeRangeEnd);
             } else {
-                // Alle Zeit - verwende alle Daten
-                startDate = new Date('2020-01-01');
+                // Fallback: Sammle alle einzigartigen Daten aus viewHistory
+                const allDates = new Set();
+                videos.forEach(video => {
+                    if (video.view_history) {
+                        Object.keys(video.view_history).forEach(date => {
+                            allDates.add(date);
+                        });
+                    }
+                });
+                
+                if (allDates.size === 0) {
+                    console.log('⚠️ Keine viewHistory-Daten gefunden');
+                    return [];
+                }
+                
+                const sortedDates = Array.from(allDates).sort();
+                startDate = new Date(sortedDates[0]);
+                endDate = new Date(sortedDates[sortedDates.length - 1]);
             }
             
-            // Filtere Daten basierend auf Zeitraum
-            const filteredDates = sortedDates.filter(date => {
-                const dateObj = new Date(date);
-                return dateObj >= startDate;
-            });
+            console.log('📅 Berechneter Zeitraum:', { startDate, endDate });
             
-            console.log('📅 Gefilterte Daten:', filteredDates);
+            // Erstelle alle Daten zwischen Start und Ende
+            const timePoints = [];
+            const currentDate = new Date(startDate);
+            
+            while (currentDate <= endDate) {
+                timePoints.push(currentDate.toISOString().split('T')[0]);
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            console.log('📅 Zeitpunkte erstellt:', timePoints);
             
             // Erstelle Zeitreihe mit Gesamtaufrufen pro Tag
-            const timeSeries = filteredDates.map(date => {
+            const timeSeries = timePoints.map(date => {
                 let totalViews = 0;
                 videos.forEach(video => {
                     if (video.view_history && video.view_history[date]) {
@@ -1335,6 +1452,15 @@
             
             console.log('📅 Zeitreihe erstellt:', timeSeries);
             return timeSeries;
+        }
+        
+        // Chart-Farben (wie in der App)
+        function getChartColor(index) {
+            const colors = [
+                '#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', 
+                '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc', '#ff9f7f'
+            ];
+            return colors[index % colors.length];
         }
         
         // Gefilterte Historie-Daten basierend auf Zeitraum

@@ -121,6 +121,8 @@ module.exports = async function handler(req, res) {
                     video_title: video.title,
                     views: video.views || 0,
                     last_viewed: video.lastViewed,
+                    created_at: video.createdAt,
+                    updated_at: video.updatedAt,
                     view_history: video.viewHistory || {} // Wichtig: viewHistory für tägliche Aufrufe
                 };
 
