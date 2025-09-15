@@ -21,81 +21,154 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        .dashboard-container {
-            min-height: 100vh;
-            background: var(--light-gray);
-            padding-top: 80px;
+        /* Navigation Styles */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 1rem 0;
+            transition: all 0.3s ease, transform 0.4s ease;
+            transform: translateY(-100%);
         }
-        
-        .dashboard-header {
-            background: var(--white);
-            padding: 2rem 0;
-            box-shadow: var(--shadow);
-            margin-bottom: 2rem;
+
+        .navbar.visible {
+            transform: translateY(0);
         }
-        
-        .dashboard-nav {
+
+        .nav-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 2rem;
+            padding: 0 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            width: 100%;
+            box-sizing: border-box;
         }
-        
-        .dashboard-logo {
+
+        .nav-logo {
             display: flex;
             align-items: center;
-            gap: 1rem;
-        }
-        
-        .dashboard-logo img {
-            height: 40px;
-            width: auto;
-        }
-        
-        .dashboard-logo .logo-text {
+            gap: 0.8rem;
             font-size: 1.5rem;
             font-weight: 700;
+        }
+
+        .nav-logo a {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .logo-image {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .logo-text {
             background: var(--gradient-primary);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            font-weight: 700;
         }
-        
-        .dashboard-user {
+
+        .nav-menu {
             display: flex;
-            align-items: center;
-            gap: 1rem;
+            list-style: none;
+            gap: 2rem;
         }
-        
-        .user-info {
-            text-align: right;
-        }
-        
-        .user-name {
-            font-weight: 600;
+
+        .nav-menu a {
+            text-decoration: none;
             color: var(--text-dark);
+            font-weight: 500;
+            transition: color 0.3s ease;
         }
-        
-        .user-role {
-            font-size: 0.9rem;
-            color: var(--text-light);
+
+        .nav-menu a:hover {
+            color: var(--primary-blue);
         }
-        
-        .logout-btn {
+
+        .nav-menu .btn-nav {
             background: var(--gradient-primary);
-            color: var(--white);
-            border: none;
-            padding: 0.5rem 1rem;
+            color: #ffffff !important;
+            padding: 0.5rem 1.5rem;
             border-radius: 25px;
-            cursor: pointer;
+            text-decoration: none;
             font-weight: 600;
-            transition: transform 0.3s ease;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
         }
-        
-        .logout-btn:hover {
+
+        .nav-menu .btn-nav:hover {
             transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            color: #ffffff !important;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: var(--text-dark);
+            margin: 3px 0;
+            transition: 0.3s;
+        }
+
+        /* Responsive Navigation */
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 15px;
+                max-width: 100%;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .nav-menu {
+                position: fixed;
+                left: -100%;
+                top: 70px;
+                flex-direction: column;
+                background-color: var(--white);
+                width: 100%;
+                text-align: center;
+                transition: 0.3s;
+                box-shadow: var(--shadow);
+                padding: 2rem 0;
+            }
+
+            .nav-menu.active {
+                left: 0;
+            }
+
+            .logo-image {
+                height: 35px;
+            }
+
+            .nav-logo .logo-text {
+                display: none;
+            }
+        }
+
+        .dashboard-container {
+            min-height: 100vh;
+            background: var(--light-gray);
+            padding-top: 80px;
         }
         
         .dashboard-content {
@@ -103,30 +176,32 @@
             margin: 0 auto;
             padding: 0 2rem 4rem;
         }
-        
-        .stats-grid {
+
+        /* Statistiken-Karten im AdminPanel-Stil */
+        .stats-overview {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
         
         .stat-card {
             background: var(--white);
-            padding: 2rem;
-            border-radius: 15px;
+            padding: 1.5rem;
+            border-radius: 12px;
             box-shadow: var(--shadow);
             text-align: center;
             transition: transform 0.3s ease;
+            border-left: 4px solid var(--primary-blue);
         }
         
         .stat-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
         }
         
         .stat-icon {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             background: var(--gradient-primary);
             border-radius: 50%;
             display: flex;
@@ -134,11 +209,11 @@
             justify-content: center;
             margin: 0 auto 1rem;
             color: var(--white);
-            font-size: 1.5rem;
+            font-size: 1.2rem;
         }
         
         .stat-number {
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: 700;
             color: var(--primary-blue);
             margin-bottom: 0.5rem;
@@ -147,11 +222,54 @@
         .stat-label {
             color: var(--text-light);
             font-weight: 500;
+            font-size: 0.9rem;
         }
-        
+
+        /* Zeitraum-Auswahl */
+        .time-range-selector {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .time-range-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .time-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--primary-blue);
+            background: transparent;
+            color: var(--primary-blue);
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .time-btn.active {
+            background: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .time-btn:hover {
+            background: var(--primary-blue);
+            color: var(--white);
+        }
+
+        /* Charts-Sektion */
         .charts-section {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 2rem;
             margin-bottom: 3rem;
         }
@@ -163,17 +281,125 @@
             box-shadow: var(--shadow);
         }
         
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .chart-header:hover {
+            background-color: var(--light-gray);
+        }
+        
         .chart-title {
             font-size: 1.3rem;
             font-weight: 600;
             color: var(--text-dark);
-            margin-bottom: 1.5rem;
-            text-align: center;
+            margin: 0;
+        }
+
+        .chart-toggle {
+            font-size: 1.2rem;
+            color: var(--text-light);
+            transition: transform 0.3s ease;
+        }
+
+        .chart-toggle.expanded {
+            transform: rotate(90deg);
         }
         
         .chart-container {
             position: relative;
-            height: 300px;
+            height: 400px;
+            transition: all 0.3s ease;
+        }
+
+        .chart-container.collapsed {
+            height: 0;
+            overflow: hidden;
+        }
+
+        /* Video-Liste */
+        .video-list-section {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .video-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .video-list-header:hover {
+            background-color: var(--light-gray);
+        }
+
+        .video-list {
+            display: grid;
+            gap: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .video-list.collapsed {
+            display: none;
+        }
+
+        .video-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--light-gray);
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .video-item:hover {
+            background: #e2e8f0;
+        }
+
+        .video-info {
+            flex: 1;
+        }
+
+        .video-title {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .video-subtitle {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .video-stats {
+            text-align: right;
+        }
+
+        .video-views {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .video-last-viewed {
+            color: var(--text-light);
+            font-size: 0.8rem;
         }
         
         .loading-spinner {
@@ -213,7 +439,8 @@
             font-size: 0.9rem;
             margin-top: 2rem;
         }
-        
+
+        /* Mobile Optimierungen */
         @media (max-width: 768px) {
             .dashboard-nav {
                 flex-direction: column;
@@ -230,38 +457,94 @@
                 text-align: center;
             }
             
-            .charts-section {
-                grid-template-columns: 1fr;
+            .stats-overview {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 1rem;
             }
-            
-            .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+
+            .time-range-selector {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .time-range-buttons {
+                justify-content: center;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+
+            .video-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.5rem;
+            }
+
+            .video-stats {
+                text-align: left;
+                display: flex;
+                justify-content: space-between;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard-content {
+                padding: 0 1rem 4rem;
+            }
+
+            .stats-overview {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-number {
+                font-size: 1.5rem;
+            }
+
+            .chart-card {
+                padding: 1rem;
+            }
+
+            .chart-container {
+                height: 250px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <!-- Header -->
-        <div class="dashboard-header">
-            <div class="dashboard-nav">
-                <div class="dashboard-logo">
-                    <img src="/favicon.ico" alt="Seraphin Solutions Logo">
-                    <span class="logo-text">Gebäudenavi Dashboard</span>
-                </div>
-                
-                <div class="dashboard-user">
-                    <div class="user-info">
-                        <div class="user-name" id="userName">Lädt...</div>
-                        <div class="user-role">Statistiken-Zugang</div>
-                    </div>
-                    <button class="logout-btn" onclick="logout()">
-                        <i class="fas fa-sign-out-alt"></i>
-                        Abmelden
-                    </button>
-                </div>
+    <!-- Navigation -->
+    <nav class="navbar visible">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html">
+                    <img src="/favicon.ico" alt="Seraphin Solutions Logo" class="logo-image">
+                    <span class="logo-text">Seraphin Solutions</span>
+                </a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html">Start</a></li>
+                <li><a href="index.html#references">Referenzen</a></li>
+                <li><a href="index.html#pricing">Preise</a></li>
+                <li><a href="index.html#contact">Kontakt</a></li>
+                <li><a href="info.html" class="btn-nav">Mehr Informationen</a></li>
+                <li><button class="btn-nav" onclick="logout()" style="background: var(--gradient-red);">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Abmelden
+                </button></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
         </div>
+    </nav>
+
+    <div class="dashboard-container">
         
         <!-- Content -->
         <div class="dashboard-content">
@@ -273,16 +556,8 @@
             <div id="errorMessage" class="error-message" style="display: none;"></div>
             
             <div id="dashboardContent" style="display: none;">
-                <!-- Statistiken-Karten -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-video"></i>
-                        </div>
-                        <div class="stat-number" id="totalVideos">0</div>
-                        <div class="stat-label">Gesamte Videos</div>
-                    </div>
-                    
+                <!-- Statistiken-Übersicht -->
+                <div class="stats-overview">
                     <div class="stat-card">
                         <div class="stat-icon">
                             <i class="fas fa-eye"></i>
@@ -298,37 +573,41 @@
                         <div class="stat-number" id="videosWithViews">0</div>
                         <div class="stat-label">Videos mit Aufrufen</div>
                     </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-building"></i>
-                        </div>
-                        <div class="stat-number" id="totalFloors">0</div>
-                        <div class="stat-label">Stockwerke</div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-door-open"></i>
-                        </div>
-                        <div class="stat-number" id="totalRooms">0</div>
-                        <div class="stat-label">Räume</div>
+                </div>
+
+                <!-- Zeitraum-Auswahl -->
+                <div class="time-range-selector">
+                    <h3 style="margin: 0; color: var(--text-dark);">Zeitraum:</h3>
+                    <div class="time-range-buttons">
+                        <button class="time-btn active" data-range="7">Letzte 7 Tage</button>
+                        <button class="time-btn" data-range="30">Letzte 30 Tage</button>
+                        <button class="time-btn" data-range="90">Letzte 3 Monate</button>
+                        <button class="time-btn" data-range="365">Letztes Jahr</button>
+                        <button class="time-btn" data-range="all">Alle Zeit</button>
                     </div>
                 </div>
                 
                 <!-- Charts -->
                 <div class="charts-section">
+                    <!-- Liniendiagramm -->
                     <div class="chart-card">
-                        <h3 class="chart-title">Video-Aufrufe</h3>
-                        <div class="chart-container">
-                            <canvas id="viewsChart"></canvas>
+                        <div class="chart-header" onclick="toggleChart('lineChart')">
+                            <h3 class="chart-title">Video-Aufrufe über Zeit</h3>
+                            <span class="chart-toggle" id="lineChartToggle">▶</span>
+                        </div>
+                        <div class="chart-container" id="lineChartContainer">
+                            <canvas id="lineChart"></canvas>
                         </div>
                     </div>
-                    
+
+                    <!-- Balkendiagramm -->
                     <div class="chart-card">
-                        <h3 class="chart-title">Beliebte Videos</h3>
-                        <div class="chart-container">
-                            <canvas id="popularVideosChart"></canvas>
+                        <div class="chart-header" onclick="toggleChart('barChart')">
+                            <h3 class="chart-title">Video-Aufrufe (Balken)</h3>
+                            <span class="chart-toggle" id="barChartToggle">▶</span>
+                        </div>
+                        <div class="chart-container" id="barChartContainer">
+                            <canvas id="barChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -344,11 +623,73 @@
     <script>
         let currentUser = null;
         let statistics = null;
+        let currentTimeRange = '7';
+        let charts = {};
+        let chartStates = {
+            lineChart: true,
+            barChart: true
+        };
         
         // Dashboard initialisieren
         document.addEventListener('DOMContentLoaded', async function() {
             await loadDashboard();
+            setupEventListeners();
+            setupNavigation();
         });
+        
+        // Navigation einrichten
+        function setupNavigation() {
+            const hamburger = document.querySelector('.hamburger');
+            const navMenu = document.querySelector('.nav-menu');
+            const navbar = document.querySelector('.navbar');
+            
+            if (hamburger && navMenu) {
+                hamburger.addEventListener('click', function() {
+                    navMenu.classList.toggle('active');
+                });
+            }
+            
+            // Auto-hide Navigation beim Scrollen
+            let lastScrollTop = 0;
+            let ticking = false;
+            
+            function updateNavbar() {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                if (scrollTop > lastScrollTop && scrollTop > 100) {
+                    // Nach unten scrollen - Header verstecken
+                    navbar.classList.remove('visible');
+                } else {
+                    // Nach oben scrollen - Header anzeigen
+                    navbar.classList.add('visible');
+                }
+                
+                lastScrollTop = scrollTop;
+                ticking = false;
+            }
+            
+            function requestTick() {
+                if (!ticking) {
+                    requestAnimationFrame(updateNavbar);
+                    ticking = true;
+                }
+            }
+            
+            window.addEventListener('scroll', requestTick);
+        }
+        
+        // Event Listeners einrichten
+        function setupEventListeners() {
+            // Zeitraum-Buttons
+            document.querySelectorAll('.time-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentTimeRange = this.dataset.range;
+                    updateCharts();
+                });
+            });
+        }
         
         // Dashboard laden
         async function loadDashboard() {
@@ -391,52 +732,34 @@
             const current = statistics.current;
             const total = statistics.total;
             
-            // Benutzername setzen (aus Session oder Standard)
-            document.getElementById('userName').textContent = 'Statistiken-Dashboard';
-            
             // Statistiken-Karten aktualisieren
-            document.getElementById('totalVideos').textContent = current.total_videos || total.total_videos || 0;
             document.getElementById('totalViews').textContent = current.total_views || total.total_views || 0;
             document.getElementById('videosWithViews').textContent = current.videos_with_views || total.videos_with_views || 0;
-            document.getElementById('totalFloors').textContent = current.total_floors || total.total_floors || 0;
-            document.getElementById('totalRooms').textContent = current.total_rooms || total.total_rooms || 0;
             
             // Letzte Aktualisierung
             const now = new Date();
             document.getElementById('lastUpdated').textContent = now.toLocaleString('de-DE');
             
             // Charts erstellen
-            createViewsChart();
-            createPopularVideosChart();
+            createLineChart();
+            createBarChart();
         }
         
-        // Views-Chart erstellen
-        function createViewsChart() {
-            const ctx = document.getElementById('viewsChart').getContext('2d');
+        // Liniendiagramm erstellen
+        function createLineChart() {
+            const ctx = document.getElementById('lineChart').getContext('2d');
             
-            // Bereite Daten für die letzten 7 Tage vor
-            const labels = [];
-            const data = [];
-            
-            if (statistics.history && statistics.history.length > 0) {
-                // Nimm die letzten 7 Einträge
-                const recentHistory = statistics.history.slice(0, 7).reverse();
-                recentHistory.forEach(stat => {
-                    const date = new Date(stat.date);
-                    labels.push(date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }));
-                    data.push(stat.total_views || 0);
-                });
-            } else {
-                // Fallback: 7 Tage mit aktuellen Daten
-                for (let i = 6; i >= 0; i--) {
-                    const date = new Date();
-                    date.setDate(date.getDate() - i);
-                    labels.push(date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }));
-                    data.push(i === 0 ? (statistics.current?.total_views || 0) : 0);
-                }
+            if (charts.lineChart) {
+                charts.lineChart.destroy();
             }
             
-            new Chart(ctx, {
+            const filteredData = getFilteredHistoryData();
+            const labels = filteredData.map(item => 
+                new Date(item.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })
+            );
+            const data = filteredData.map(item => item.total_views || 0);
+            
+            charts.lineChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
@@ -447,7 +770,11 @@
                         backgroundColor: 'rgba(0, 140, 255, 0.1)',
                         borderWidth: 3,
                         fill: true,
-                        tension: 0.4
+                        tension: 0.4,
+                        pointBackgroundColor: '#008CFF',
+                        pointBorderColor: '#008CFF',
+                        pointRadius: 6,
+                        pointHoverRadius: 8
                     }]
                 },
                 options: {
@@ -456,6 +783,13 @@
                     plugins: {
                         legend: {
                             display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#008CFF',
+                            borderWidth: 1
                         }
                     },
                     scales: {
@@ -463,11 +797,17 @@
                             beginAtZero: true,
                             grid: {
                                 color: 'rgba(0,0,0,0.1)'
+                            },
+                            ticks: {
+                                color: '#666'
                             }
                         },
                         x: {
                             grid: {
                                 display: false
+                            },
+                            ticks: {
+                                color: '#666'
                             }
                         }
                     }
@@ -475,12 +815,16 @@
             });
         }
         
-        // Beliebte Videos-Chart erstellen
-        function createPopularVideosChart() {
-            const ctx = document.getElementById('popularVideosChart').getContext('2d');
+        
+        // Balkendiagramm erstellen
+        function createBarChart() {
+            const ctx = document.getElementById('barChart').getContext('2d');
+            
+            if (charts.barChart) {
+                charts.barChart.destroy();
+            }
             
             if (!statistics.videos || statistics.videos.length === 0) {
-                // Keine Daten
                 ctx.fillStyle = '#7F8C8D';
                 ctx.font = '16px Inter';
                 ctx.textAlign = 'center';
@@ -488,10 +832,10 @@
                 return;
             }
             
-            // Sortiere Videos nach Aufrufen und nimm die Top 5
+            // Sortiere Videos nach Aufrufen und nimm die Top 10
             const topVideos = statistics.videos
                 .sort((a, b) => (b.views || 0) - (a.views || 0))
-                .slice(0, 5);
+                .slice(0, 10);
             
             const labels = topVideos.map(video => 
                 video.video_title ? 
@@ -499,39 +843,109 @@
                     'Unbenanntes Video'
             );
             const data = topVideos.map(video => video.views || 0);
-            const colors = [
-                '#008CFF',
-                '#32A71A',
-                '#FF6B35',
-                '#FFD23F',
-                '#7209B7'
-            ];
             
-            new Chart(ctx, {
-                type: 'doughnut',
+            charts.barChart = new Chart(ctx, {
+                type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
+                        label: 'Aufrufe',
                         data: data,
-                        backgroundColor: colors,
-                        borderWidth: 0
+                        backgroundColor: '#008CFF',
+                        borderColor: '#008CFF',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        borderSkipped: false
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    indexAxis: 'y',
                     plugins: {
                         legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 20,
-                                usePointStyle: true
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            },
+                            ticks: {
+                                color: '#666'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#666'
                             }
                         }
                     }
                 }
             });
         }
+        
+        
+        // Gefilterte Historie-Daten basierend auf Zeitraum
+        function getFilteredHistoryData() {
+            if (!statistics.history || statistics.history.length === 0) {
+                return [];
+            }
+            
+            const now = new Date();
+            let startDate = new Date();
+            
+            if (currentTimeRange === '7') {
+                startDate.setDate(now.getDate() - 7);
+            } else if (currentTimeRange === '30') {
+                startDate.setDate(now.getDate() - 30);
+            } else if (currentTimeRange === '90') {
+                startDate.setDate(now.getDate() - 90);
+            } else if (currentTimeRange === '365') {
+                startDate.setDate(now.getDate() - 365);
+            } else {
+                // Alle Zeit
+                return statistics.history.slice(0, 30).reverse();
+            }
+            
+            return statistics.history
+                .filter(item => new Date(item.date) >= startDate)
+                .slice(0, 30)
+                .reverse();
+        }
+        
+        // Charts aktualisieren
+        function updateCharts() {
+            if (chartStates.lineChart) createLineChart();
+            if (chartStates.barChart) createBarChart();
+        }
+        
+        // Chart ein-/ausklappen
+        function toggleChart(chartName) {
+            const container = document.getElementById(chartName + 'Container');
+            const toggle = document.getElementById(chartName + 'Toggle');
+            
+            chartStates[chartName] = !chartStates[chartName];
+            
+            if (chartStates[chartName]) {
+                container.classList.remove('collapsed');
+                toggle.classList.add('expanded');
+            } else {
+                container.classList.add('collapsed');
+                toggle.classList.remove('expanded');
+            }
+        }
+        
         
         // Abmelden
         async function logout() {
