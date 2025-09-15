@@ -34,9 +34,15 @@ module.exports = async function handler(req, res) {
     // Prüfe Umgebungsvariablen
     if (!supabaseUrl || !supabaseServiceKey) {
         console.error('Missing environment variables');
+        console.error('Supabase URL:', supabaseUrl ? 'Set' : 'Not set');
+        console.error('Supabase Key:', supabaseServiceKey ? 'Set' : 'Not set');
         return res.status(500).json({ 
             error: 'Server configuration error',
-            details: 'Missing Supabase credentials'
+            details: 'Missing Supabase credentials',
+            debug: {
+                urlSet: !!supabaseUrl,
+                keySet: !!supabaseServiceKey
+            }
         });
     }
 
@@ -48,11 +54,19 @@ module.exports = async function handler(req, res) {
         }
 
         // Prüfe ob Benutzername bereits existiert
-        const { data: existingUser } = await supabase
+        const { data: existingUser, error: checkError } = await supabase
             .from('admin_users')
             .select('id')
             .eq('username', username)
             .single();
+
+        if (checkError && checkError.code !== 'PGRST116') {
+            console.error('Error checking existing user:', checkError);
+            return res.status(500).json({ 
+                error: 'Database error',
+                details: 'Failed to check existing username'
+            });
+        }
 
         if (existingUser) {
             return res.status(409).json({ error: 'Benutzername bereits vergeben' });
