@@ -1150,33 +1150,7 @@
                         }
                     }
                 },
-                series: [{
-                    name: 'Aufrufe',
-                    type: 'line',
-                    data: data,
-                    smooth: true,
-                    lineStyle: {
-                        color: '#008CFF',
-                        width: 3
-                    },
-                    itemStyle: {
-                        color: '#008CFF'
-                    },
-                    areaStyle: {
-                        color: {
-                            type: 'linear',
-                            x: 0,
-                            y: 0,
-                            x2: 0,
-                            y2: 1,
-                            colorStops: [{
-                                offset: 0, color: 'rgba(0, 140, 255, 0.3)'
-                            }, {
-                                offset: 1, color: 'rgba(0, 140, 255, 0.05)'
-                            }]
-                        }
-                    }
-                }]
+                series: series
             };
             
             charts.lineChart = echarts.init(chartElement);
@@ -1788,7 +1762,12 @@
                 }
                 
                 const sessionData = await sessionResponse.json();
-                const adminUserId = sessionData.admin_user_id;
+                let adminUserId = sessionData.admin_user_id;
+                
+                // Fallback: Admin-User-ID aus Statistiken verwenden
+                if (!adminUserId && statistics && statistics.current) {
+                    adminUserId = statistics.current.admin_user_id;
+                }
                 
                 if (!adminUserId) {
                     throw new Error('Keine Admin-User-ID gefunden');
