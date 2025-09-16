@@ -612,14 +612,6 @@
                     </div>
                 </div>
 
-                <!-- CSV-Download Button -->
-                <div class="csv-download-section" style="margin: 2rem 0; text-align: center;">
-                    <button id="csvDownloadBtn" class="btn btn-primary" onclick="downloadCSV()" style="display: none;">
-                        <i class="fas fa-download"></i>
-                        Video-Statistiken als CSV herunterladen
-                    </button>
-                    <div id="csvDownloadStatus" style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-light);"></div>
-                </div>
 
                 <!-- Zeitraum-Auswahl -->
                 <div class="time-range-selector">
@@ -977,15 +969,6 @@
             
             console.log('📊 Chart-Daten verfügbar:', { hasVideoData, hasViewHistoryData });
             
-            // Zeige CSV-Download-Button an, wenn Video-Daten vorhanden sind
-            const csvDownloadBtn = document.getElementById('csvDownloadBtn');
-            if (csvDownloadBtn) {
-                if (hasVideoData) {
-                    csvDownloadBtn.style.display = 'inline-flex';
-                } else {
-                    csvDownloadBtn.style.display = 'none';
-                }
-            }
             console.log('📊 Video viewHistory Details:', videos.map(v => ({ 
                 title: v.title || v.video_title, 
                 hasViewHistory: !!(v.viewHistory || v.view_history), 
@@ -1156,6 +1139,13 @@
             
             charts.lineChart = echarts.init(chartElement);
             charts.lineChart.setOption(option);
+            
+            // Chart nach Initialisierung neu zeichnen
+            setTimeout(() => {
+                if (charts.lineChart) {
+                    charts.lineChart.resize();
+                }
+            }, 100);
         }
         
         
@@ -1179,10 +1169,10 @@
                 return;
             }
             
-            // Filtere Videos mit Aufrufen und sortiere nach Aufrufen (wie in der App)
+            // Filtere Videos mit Aufrufen und sortiere nach Aufrufen (niedrigste zuerst für Balkendiagramm)
             const filteredVideos = videos
                 .filter(video => (video.views || 0) > 0)
-                .sort((a, b) => (b.views || 0) - (a.views || 0))
+                .sort((a, b) => (a.views || 0) - (b.views || 0))
                 .slice(0, barChartVideoCount);
             
             if (filteredVideos.length === 0) {
@@ -1190,10 +1180,15 @@
                 return;
             }
             
-            const labels = filteredVideos.map(video => 
+            // Zeige nur die ersten 5 Videos standardmäßig, restliche können ausgeklappt werden
+            const maxVisible = 5;
+            const visibleVideos = filteredVideos.slice(0, maxVisible);
+            const hiddenVideos = filteredVideos.slice(maxVisible);
+            
+            const labels = visibleVideos.map(video => 
                 video.title || video.video_title || 'Unbenanntes Video'
             );
-            const data = filteredVideos.map((video, idx) => ({
+            const data = visibleVideos.map((video, idx) => ({
                 value: video.views || 0,
                 itemStyle: {
                     color: getChartColor(idx)
@@ -1258,6 +1253,55 @@
             
             charts.barChart = echarts.init(chartElement);
             charts.barChart.setOption(option);
+            
+            // Füge "Mehr anzeigen" Button hinzu, wenn es mehr als 5 Videos gibt
+            if (hiddenVideos.length > 0) {
+                const expandButton = document.createElement('button');
+                expandButton.textContent = `+${hiddenVideos.length} weitere anzeigen`;
+                expandButton.style.cssText = `
+                    position: absolute;
+                    top: 10px;
+                    right: 10px;
+                    background: #008CFF;
+                    color: white;
+                    border: none;
+                    padding: 5px 10px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    cursor: pointer;
+                    z-index: 1000;
+                `;
+                expandButton.onclick = () => {
+                    // Erstelle erweiterte Version mit allen Videos
+                    const allLabels = filteredVideos.map(video => 
+                        video.title || video.video_title || 'Unbenanntes Video'
+                    );
+                    const allData = filteredVideos.map((video, idx) => ({
+                        value: video.views || 0,
+                        itemStyle: {
+                            color: getChartColor(idx)
+                        }
+                    }));
+                    
+                    const expandedOption = {
+                        ...option,
+                        xAxis: {
+                            ...option.xAxis,
+                            data: allLabels
+                        },
+                        series: [{
+                            ...option.series[0],
+                            data: allData
+                        }]
+                    };
+                    
+                    charts.barChart.setOption(expandedOption);
+                    expandButton.remove();
+                };
+                
+                chartElement.style.position = 'relative';
+                chartElement.appendChild(expandButton);
+            }
         }
         
         // Line Race Chart erstellen (wie in der App)
@@ -1396,6 +1440,13 @@
             
             charts.lineRaceChart = echarts.init(chartElement);
             charts.lineRaceChart.setOption(option);
+            
+            // Chart nach Initialisierung neu zeichnen
+            setTimeout(() => {
+                if (charts.lineRaceChart) {
+                    charts.lineRaceChart.resize();
+                }
+            }, 100);
         }
         
         // Tortendiagramm erstellen (wie in der App)
