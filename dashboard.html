@@ -894,6 +894,14 @@
                               statistics.history?.length > 0 ||
                               (statistics.current && Object.values(statistics.current).some(val => val > 0));
             
+            console.log('📊 Data check:', {
+                hasVideos: statistics.videos?.length > 0,
+                hasFloors: statistics.floors?.length > 0,
+                hasHistory: statistics.history?.length > 0,
+                hasCurrent: statistics.current && Object.values(statistics.current).some(val => val > 0),
+                hasAnyData: hasAnyData
+            });
+            
             if (!hasAnyData) {
                 console.log('❌ Keine Daten in den Statistiken');
                 showNoDataMessage();
