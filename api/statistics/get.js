@@ -7,6 +7,98 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+// CSV-Parsing-Funktion
+function parseCSVToVideoStats(csvData) {
+    if (!csvData || typeof csvData !== 'string') {
+        return [];
+    }
+
+    const lines = csvData.trim().split('\n');
+    if (lines.length < 2) {
+        return [];
+    }
+
+    const headers = lines[0].split(',');
+    const videoStats = [];
+
+    // Finde die Indizes der relevanten Spalten
+    const idIndex = headers.findIndex(h => h.includes('Video ID'));
+    const titleIndex = headers.findIndex(h => h.includes('Video Titel'));
+    const viewsIndex = headers.findIndex(h => h.includes('Gesamtaufrufe'));
+    const lastViewedIndex = headers.findIndex(h => h.includes('Letzter Aufruf'));
+    const createdAtIndex = headers.findIndex(h => h.includes('Erstellt am'));
+    const updatedAtIndex = headers.findIndex(h => h.includes('Geändert am'));
+
+    // Finde alle Datumsspalten (Aufrufe am ...)
+    const dateColumns = headers
+        .map((header, index) => ({ header, index }))
+        .filter(({ header }) => header.includes('Aufrufe am'))
+        .map(({ header, index }) => ({
+            date: header.replace('Aufrufe am ', ''),
+            index
+        }));
+
+    // Parse jede Zeile (außer Header)
+    for (let i = 1; i < lines.length; i++) {
+        const values = parseCSVLine(lines[i]);
+        
+        if (values.length < headers.length) continue;
+
+        // Erstelle viewHistory-Objekt
+        const viewHistory = {};
+        dateColumns.forEach(({ date, index }) => {
+            const views = parseInt(values[index]) || 0;
+            if (views > 0) {
+                viewHistory[date] = views;
+            }
+        });
+
+        const video = {
+            video_id: values[idIndex] || '',
+            video_title: values[titleIndex] || 'Unbenannt',
+            views: parseInt(values[viewsIndex]) || 0,
+            last_viewed: values[lastViewedIndex] ? new Date(values[lastViewedIndex]).toISOString() : null,
+            created_at: values[createdAtIndex] ? new Date(values[createdAtIndex]).toISOString() : null,
+            updated_at: values[updatedAtIndex] ? new Date(values[updatedAtIndex]).toISOString() : null,
+            view_history: viewHistory
+        };
+
+        videoStats.push(video);
+    }
+
+    return videoStats;
+}
+
+// Hilfsfunktion zum Parsen einer CSV-Zeile (berücksichtigt Anführungszeichen)
+function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+            if (inQuotes && line[i + 1] === '"') {
+                // Escaped quote
+                current += '"';
+                i++; // Skip next quote
+            } else {
+                // Toggle quote state
+                inQuotes = !inQuotes;
+            }
+        } else if (char === ',' && !inQuotes) {
+            result.push(current);
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    
+    result.push(current);
+    return result;
+}
+
 // CORS-Header setzen
 function setCorsHeaders(res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -76,14 +168,33 @@ module.exports = async function handler(req, res) {
             .order('date', { ascending: false })
             .limit(30);
 
-        // Hole Video-Statistiken
-        const { data: videoStats } = await supabase
-            .from('video_statistics')
+        // Hole Video-Statistiken aus CSV-Daten (die von der App erstellt wurden)
+        const { data: csvData } = await supabase
+            .from('csv_statistics')
             .select('*')
             .eq('admin_user_id', adminUserId)
-            .order('views', { ascending: false });
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .single();
 
-        console.log('📊 Video Stats from DB:', videoStats?.length || 0, 'videos');
+        console.log('📊 CSV Data found:', !!csvData);
+
+        // Parse CSV-Daten zu Video-Statistiken
+        let videoStats = [];
+        if (csvData && csvData.csv_data) {
+            videoStats = parseCSVToVideoStats(csvData.csv_data);
+            console.log('📊 Parsed Video Stats from CSV:', videoStats.length, 'videos');
+        } else {
+            // Fallback: Hole Video-Statistiken aus Datenbank
+            const { data: dbVideoStats } = await supabase
+                .from('video_statistics')
+                .select('*')
+                .eq('admin_user_id', adminUserId)
+                .order('views', { ascending: false });
+            
+            videoStats = dbVideoStats || [];
+            console.log('📊 Fallback: Video Stats from DB:', videoStats.length, 'videos');
+        }
 
         // Hole Floor-Statistiken
         const { data: floorStats } = await supabase
