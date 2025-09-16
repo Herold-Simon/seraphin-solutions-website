@@ -1067,8 +1067,10 @@
                 } else if (currentTimeRange === '365') {
                     startDate.setDate(today.getDate() - 365);
                 } else {
-                    // Alle Zeit - verwende alle verfügbaren Daten
+                    // Alle Zeit - verwende alle verfügbaren Daten mit Offset
                     startDate = new Date(sortedDates[0]);
+                    // Füge 2 Tage Offset vor dem ersten Datum hinzu
+                    startDate.setDate(startDate.getDate() - 2);
                 }
                 
                 // Filtere Daten basierend auf Zeitraum
@@ -1076,6 +1078,13 @@
                     const dateObj = new Date(date);
                     return dateObj >= startDate;
                 });
+                
+                // Für "Alle Zeit" füge auch Offset nach dem letzten Datum hinzu
+                if (currentTimeRange === 'all' && timePoints.length > 0) {
+                    const lastDate = new Date(timePoints[timePoints.length - 1]);
+                    lastDate.setDate(lastDate.getDate() + 2);
+                    timePoints.push(lastDate.toISOString().split('T')[0]);
+                }
                 
                 // Erstelle Series für jedes Video mit echten Daten
                 videoData = filteredVideos.map((video, idx) => {
@@ -1334,6 +1343,11 @@
                 return;
             }
             
+            // Zeige nur die ersten 5 Videos standardmäßig, restliche können ausgeklappt werden
+            const maxVisible = 5;
+            const visibleVideos = filteredVideos.slice(0, maxVisible);
+            const hiddenVideos = filteredVideos.slice(maxVisible);
+            
             const option = {
                 xAxis: {
                     type: 'value',
@@ -1341,16 +1355,17 @@
                 },
                 yAxis: {
                     type: 'category',
-                    data: filteredVideos.map(v => v.title || v.video_title || 'Unbenanntes Video'),
+                    data: visibleVideos.map(v => v.title || v.video_title || 'Unbenanntes Video'),
                     axisLabel: { color: '#666', fontSize: 16 },
                     inverse: true
                 },
                 series: [{
                     type: 'bar',
-                    data: filteredVideos.map((v, idx) => ({
+                    data: visibleVideos.map((v, idx) => ({
                         value: v.views || 0,
                         itemStyle: { color: getChartColor(idx) }
                     })),
+                    barWidth: '60%' // Feste Balkenbreite
                 }],
                 tooltip: {
                     trigger: 'axis',
@@ -1360,12 +1375,90 @@
                         return `${param.name}<br/>Aufrufe: ${param.value}`;
                     }
                 },
+                legend: {
+                    data: visibleVideos.map((v, idx) => ({
+                        name: v.title || v.video_title || 'Unbenanntes Video',
+                        icon: 'rect',
+                        textStyle: { color: getChartColor(idx) }
+                    })),
+                    orient: 'vertical',
+                    right: 'right',
+                    top: 'middle',
+                    textStyle: { fontSize: 12 }
+                },
                 color: getChartColors(),
                 zoom: false
             };
             
             charts.barChart = echarts.init(chartElement);
             charts.barChart.setOption(option);
+            
+            // Füge "Mehr anzeigen" Button hinzu, wenn es mehr als 5 Videos gibt
+            if (hiddenVideos.length > 0) {
+                const expandButton = document.createElement('button');
+                expandButton.textContent = `+${hiddenVideos.length} weitere anzeigen`;
+                expandButton.style.cssText = `
+                    position: absolute;
+                    top: 10px;
+                    right: 10px;
+                    background: #008CFF;
+                    color: white;
+                    border: none;
+                    padding: 5px 10px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    cursor: pointer;
+                    z-index: 1000;
+                `;
+                expandButton.onclick = () => {
+                    // Erstelle erweiterte Version mit allen Videos
+                    const allLabels = filteredVideos.map(video => 
+                        video.title || video.video_title || 'Unbenanntes Video'
+                    );
+                    const allData = filteredVideos.map((video, idx) => ({
+                        value: video.views || 0,
+                        itemStyle: {
+                            color: getChartColor(idx)
+                        }
+                    }));
+                    
+                    // Erstelle neue Option mit allen Videos
+                    const expandedOption = {
+                        xAxis: option.xAxis,
+                        yAxis: {
+                            type: 'category',
+                            data: allLabels,
+                            axisLabel: { color: '#666', fontSize: 16 },
+                            inverse: true
+                        },
+                        series: [{
+                            type: 'bar',
+                            data: allData,
+                            barWidth: '60%'
+                        }],
+                        tooltip: option.tooltip,
+                        legend: {
+                            data: allLabels.map((label, idx) => ({
+                                name: label,
+                                icon: 'rect',
+                                textStyle: { color: getChartColor(idx) }
+                            })),
+                            orient: 'vertical',
+                            right: 'right',
+                            top: 'middle',
+                            textStyle: { fontSize: 12 }
+                        },
+                        color: getChartColors(),
+                        zoom: false
+                    };
+                    
+                    charts.barChart.setOption(expandedOption);
+                    expandButton.remove();
+                };
+                
+                chartElement.style.position = 'relative';
+                chartElement.appendChild(expandButton);
+            }
         }
         
         // Line Race Chart erstellen (wie in der App)
@@ -1439,8 +1532,10 @@
                 } else if (currentTimeRange === '365') {
                     startDate.setDate(today.getDate() - 365);
                 } else {
-                    // Alle Zeit - verwende alle verfügbaren Daten
+                    // Alle Zeit - verwende alle verfügbaren Daten mit Offset
                     startDate = new Date(sortedDates[0]);
+                    // Füge 2 Tage Offset vor dem ersten Datum hinzu
+                    startDate.setDate(startDate.getDate() - 2);
                 }
                 
                 // Filtere Daten basierend auf Zeitraum
@@ -1448,6 +1543,13 @@
                     const dateObj = new Date(date);
                     return dateObj >= startDate;
                 });
+                
+                // Für "Alle Zeit" füge auch Offset nach dem letzten Datum hinzu
+                if (currentTimeRange === 'all' && timePoints.length > 0) {
+                    const lastDate = new Date(timePoints[timePoints.length - 1]);
+                    lastDate.setDate(lastDate.getDate() + 2);
+                    timePoints.push(lastDate.toISOString().split('T')[0]);
+                }
                 
                 // Für jedes Video: Kumulierte Aufrufe pro Tag mit echten Daten
                 series = filteredVideos.map((video, idx) => {
@@ -1704,14 +1806,23 @@
                         }
                     },
                     label: {
-                        show: true,
-                        formatter: '{b}: {c} Aufrufe\n({d}%)',
-                        fontSize: 12
+                        show: false // Entferne Labels vom Pie Chart
                     },
                     labelLine: {
-                        show: true
+                        show: false
                     }
                 }],
+                legend: {
+                    data: filteredVideos.map((video, index) => ({
+                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        icon: 'circle',
+                        textStyle: { color: getChartColor(index) }
+                    })),
+                    orient: 'vertical',
+                    left: 'left',
+                    top: 'middle',
+                    textStyle: { fontSize: 12 }
+                },
                 tooltip: {
                     trigger: 'item',
                     formatter: function(params) {
