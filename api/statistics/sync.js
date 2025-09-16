@@ -107,39 +107,76 @@ module.exports = async function handler(req, res) {
 
         // Synchronisiere Video-Statistiken
         if (statistics.videos && Array.isArray(statistics.videos)) {
+            console.log('📊 Syncing videos:', statistics.videos.length, 'videos');
+            
             for (const video of statistics.videos) {
-                // Erst prüfen, ob bereits ein Eintrag existiert
-                const { data: existingVideo } = await supabase
-                    .from('video_statistics')
-                    .select('id')
-                    .eq('admin_user_id', admin_user_id)
-                    .eq('video_id', video.id)
-                    .single();
+                try {
+                    console.log('📊 Processing video:', {
+                        id: video.id,
+                        title: video.title,
+                        views: video.views,
+                        hasViewHistory: !!video.viewHistory,
+                        viewHistoryKeys: video.viewHistory ? Object.keys(video.viewHistory).length : 0
+                    });
 
-                const videoData = {
-                    admin_user_id,
-                    video_id: video.id,
-                    video_title: video.title,
-                    views: video.views || 0,
-                    last_viewed: video.lastViewed,
-                    created_at: video.createdAt,
-                    updated_at: video.updatedAt,
-                    view_history: video.viewHistory || {} // Wichtig: viewHistory für tägliche Aufrufe
-                };
+                    // Erst prüfen, ob bereits ein Eintrag existiert
+                    const { data: existingVideo, error: checkError } = await supabase
+                        .from('video_statistics')
+                        .select('id')
+                        .eq('admin_user_id', admin_user_id)
+                        .eq('video_id', video.id)
+                        .single();
 
-                if (existingVideo) {
-                    // Update existing record
-                    await supabase
-                        .from('video_statistics')
-                        .update(videoData)
-                        .eq('id', existingVideo.id);
-                } else {
-                    // Insert new record
-                    await supabase
-                        .from('video_statistics')
-                        .insert(videoData);
+                    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows found
+                        console.error('❌ Error checking existing video:', checkError);
+                        continue;
+                    }
+
+                    const videoData = {
+                        admin_user_id,
+                        video_id: video.id,
+                        video_title: video.title,
+                        views: video.views || 0,
+                        last_viewed: video.lastViewed,
+                        created_at: video.createdAt,
+                        updated_at: video.updatedAt,
+                        view_history: video.viewHistory || {} // Wichtig: viewHistory für tägliche Aufrufe
+                    };
+
+                    if (existingVideo) {
+                        // Update existing record
+                        const { error: updateError } = await supabase
+                            .from('video_statistics')
+                            .update(videoData)
+                            .eq('id', existingVideo.id);
+                        
+                        if (updateError) {
+                            console.error('❌ Error updating video:', updateError);
+                        } else {
+                            console.log('✅ Video updated:', video.id);
+                        }
+                    } else {
+                        // Insert new record
+                        const { error: insertError } = await supabase
+                            .from('video_statistics')
+                            .insert(videoData);
+                        
+                        if (insertError) {
+                            console.error('❌ Error inserting video:', insertError);
+                        } else {
+                            console.log('✅ Video inserted:', video.id);
+                        }
+                    }
+                } catch (videoError) {
+                    console.error('❌ Video sync error for video', video.id, ':', videoError);
                 }
             }
+        } else {
+            console.log('📊 No videos to sync or invalid format:', {
+                hasVideos: !!statistics.videos,
+                isArray: Array.isArray(statistics.videos),
+                length: statistics.videos?.length
+            });
         }
 
         // Synchronisiere Floor-Statistiken

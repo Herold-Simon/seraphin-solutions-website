@@ -80,6 +80,8 @@ module.exports = async function handler(req, res) {
 
         // Hole Video-Statistiken direkt aus der Datenbank
         console.log('📊 Loading video statistics from database...');
+        console.log('📊 Querying for admin_user_id:', adminUserId);
+        
         const { data: videoStats, error: videoError } = await supabase
             .from('video_statistics')
             .select('*')
@@ -92,6 +94,16 @@ module.exports = async function handler(req, res) {
             console.log('📊 Video statistics loaded:', videoStats?.length || 0, 'videos');
             if (videoStats && videoStats.length > 0) {
                 console.log('📊 First video example:', videoStats[0]);
+            } else {
+                console.log('📊 No videos found in database for admin_user_id:', adminUserId);
+                
+                // Debug: Prüfe alle Video-Statistiken in der DB
+                const { data: allVideos } = await supabase
+                    .from('video_statistics')
+                    .select('admin_user_id, video_id, video_title, views')
+                    .limit(10);
+                
+                console.log('📊 All videos in database (first 10):', allVideos);
             }
         }
 
