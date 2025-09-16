@@ -1029,54 +1029,112 @@
                 return;
             }
             
-            // Erstelle einfache Zeitpunkte für die letzten 7 Tage (da viewHistory möglicherweise nicht verfügbar ist)
-            const timePoints = [];
-            const today = new Date();
-            for (let i = 6; i >= 0; i--) {
-                const date = new Date(today);
-                date.setDate(date.getDate() - i);
-                const day = date.getDate().toString().padStart(2, '0');
-                const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                const year = date.getFullYear();
-                timePoints.push(`${day}/${month}/${year}`);
-            }
+            // Prüfe ob viewHistory-Daten verfügbar sind
+            const hasViewHistory = filteredVideos.some(video => 
+                (video.viewHistory && Object.keys(video.viewHistory).length > 0) ||
+                (video.view_history && Object.keys(video.view_history).length > 0)
+            );
             
-            // Erstelle Series für jedes Video (vereinfacht für Website-Daten)
-            const videoData = filteredVideos.map((video, idx) => {
-                // Da viewHistory möglicherweise nicht verfügbar ist, erstelle gleichmäßig verteilte Daten
-                const totalViews = video.views || 0;
-                const dailyViews = Math.round(totalViews / 7); // Gleichmäßig auf 7 Tage verteilen
-                const data = timePoints.map((date, dayIndex) => {
-                    // Simuliere leichte Variation in den täglichen Aufrufen
-                    const variation = Math.random() * 0.4 + 0.8; // 80-120% der Durchschnittsaufrufe
-                    return Math.round(dailyViews * variation);
+            let timePoints = [];
+            let videoData = [];
+            let averageData = [];
+            
+            if (hasViewHistory) {
+                // Verwende echte viewHistory-Daten
+                console.log('📈 Using real viewHistory data');
+                
+                // Sammle alle verfügbaren Daten aus viewHistory
+                const allDates = new Set();
+                filteredVideos.forEach(video => {
+                    const viewHistory = video.viewHistory || video.view_history;
+                    if (viewHistory) {
+                        Object.keys(viewHistory).forEach(date => allDates.add(date));
+                    }
                 });
                 
-                return {
-                    name: video.title || video.video_title || 'Unbenanntes Video',
-                    type: 'line',
-                    data: data,
-                    smooth: true,
-                    lineStyle: {
-                        width: 2
-                    },
-                    itemStyle: {
-                        color: getChartColor(idx)
-                    },
-                    emphasis: { focus: 'series' }
-                };
-            });
-            
-            // Füge Durchschnittslinie hinzu
-            const averageData = timePoints.map((date, idx) => {
-                const totalViews = filteredVideos.reduce((sum, video) => {
+                // Sortiere Daten und erstelle Zeitpunkte
+                timePoints = Array.from(allDates).sort().slice(-7); // Letzte 7 Tage
+                
+                // Erstelle Series für jedes Video mit echten Daten
+                videoData = filteredVideos.map((video, idx) => {
+                    const viewHistory = video.viewHistory || video.view_history;
+                    const data = timePoints.map(date => {
+                        return viewHistory && viewHistory[date] ? viewHistory[date] : 0;
+                    });
+                    
+                    return {
+                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        type: 'line',
+                        data: data,
+                        smooth: true,
+                        lineStyle: {
+                            width: 2
+                        },
+                        itemStyle: {
+                            color: getChartColor(idx)
+                        },
+                        emphasis: { focus: 'series' }
+                    };
+                });
+                
+                // Berechne Durchschnittslinie mit echten Daten
+                averageData = timePoints.map(date => {
+                    const totalViews = filteredVideos.reduce((sum, video) => {
+                        const viewHistory = video.viewHistory || video.view_history;
+                        return sum + (viewHistory && viewHistory[date] ? viewHistory[date] : 0);
+                    }, 0);
+                    return Math.round(totalViews / filteredVideos.length * 10) / 10;
+                });
+            } else {
+                // Fallback: Verwende simulierte Daten basierend auf Gesamtaufrufen
+                console.log('📈 Using simulated data (no viewHistory available)');
+                
+                // Erstelle Zeitpunkte für die letzten 7 Tage
+                const today = new Date();
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    const day = date.getDate().toString().padStart(2, '0');
+                    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                    const year = date.getFullYear();
+                    timePoints.push(`${day}/${month}/${year}`);
+                }
+                
+                // Erstelle Series mit simulierten Daten
+                videoData = filteredVideos.map((video, idx) => {
                     const totalViews = video.views || 0;
                     const dailyViews = Math.round(totalViews / 7);
-                    const variation = Math.random() * 0.4 + 0.8;
-                    return sum + Math.round(dailyViews * variation);
-                }, 0);
-                return Math.round(totalViews / filteredVideos.length * 10) / 10;
-            });
+                    const data = timePoints.map((date, dayIndex) => {
+                        const variation = Math.random() * 0.4 + 0.8; // 80-120% der Durchschnittsaufrufe
+                        return Math.round(dailyViews * variation);
+                    });
+                    
+                    return {
+                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        type: 'line',
+                        data: data,
+                        smooth: true,
+                        lineStyle: {
+                            width: 2
+                        },
+                        itemStyle: {
+                            color: getChartColor(idx)
+                        },
+                        emphasis: { focus: 'series' }
+                    };
+                });
+                
+                // Berechne Durchschnittslinie mit simulierten Daten
+                averageData = timePoints.map((date, idx) => {
+                    const totalViews = filteredVideos.reduce((sum, video) => {
+                        const totalViews = video.views || 0;
+                        const dailyViews = Math.round(totalViews / 7);
+                        const variation = Math.random() * 0.4 + 0.8;
+                        return sum + Math.round(dailyViews * variation);
+                    }, 0);
+                    return Math.round(totalViews / filteredVideos.length * 10) / 10;
+                });
+            }
             
             const series = [
                 ...videoData,
@@ -1270,50 +1328,112 @@
                 return;
             }
             
-            // Erstelle einfache Zeitpunkte für die letzten 7 Tage
-            const timePoints = [];
-            const today = new Date();
-            for (let i = 6; i >= 0; i--) {
-                const date = new Date(today);
-                date.setDate(date.getDate() - i);
-                const day = date.getDate().toString().padStart(2, '0');
-                const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                const year = date.getFullYear();
-                timePoints.push(`${day}/${month}/${year}`);
-            }
+            // Prüfe ob viewHistory-Daten verfügbar sind
+            const hasViewHistory = filteredVideos.some(video => 
+                (video.viewHistory && Object.keys(video.viewHistory).length > 0) ||
+                (video.view_history && Object.keys(video.view_history).length > 0)
+            );
             
-            // Für jedes Video: Kumulierte Aufrufe pro Tag (vereinfacht für Website-Daten)
-            const series = filteredVideos.map((video, idx) => {
-                const totalViews = video.views || 0;
-                const dailyViews = Math.round(totalViews / 7);
+            let timePoints = [];
+            let series = [];
+            
+            if (hasViewHistory) {
+                // Verwende echte viewHistory-Daten
+                console.log('🏁 Using real viewHistory data for Line Race');
                 
-                // Erstelle die Daten: Kumulierte Aufrufe pro Tag
-                const data = timePoints.map((date, dayIndex) => {
-                    let cumulativeViews = 0;
-                    
-                    // Berechne kumulierte Aufrufe bis zu diesem Tag
-                    for (let i = 0; i <= dayIndex; i++) {
-                        const variation = Math.random() * 0.4 + 0.8; // 80-120% der Durchschnittsaufrufe
-                        cumulativeViews += Math.round(dailyViews * variation);
+                // Sammle alle verfügbaren Daten aus viewHistory
+                const allDates = new Set();
+                filteredVideos.forEach(video => {
+                    const viewHistory = video.viewHistory || video.view_history;
+                    if (viewHistory) {
+                        Object.keys(viewHistory).forEach(date => allDates.add(date));
                     }
-                    
-                    return cumulativeViews;
                 });
                 
-                return {
-                    name: video.title || video.video_title || 'Unbenanntes Video',
-                    type: 'line',
-                    data: data,
-                    smooth: true,
-                    lineStyle: {
-                        width: 2
-                    },
-                    itemStyle: {
-                        color: getChartColor(idx)
-                    },
-                    emphasis: { focus: 'series' }
-                };
-            });
+                // Sortiere Daten und erstelle Zeitpunkte
+                timePoints = Array.from(allDates).sort().slice(-7); // Letzte 7 Tage
+                
+                // Für jedes Video: Kumulierte Aufrufe pro Tag mit echten Daten
+                series = filteredVideos.map((video, idx) => {
+                    const viewHistory = video.viewHistory || video.view_history;
+                    
+                    // Erstelle die Daten: Kumulierte Aufrufe pro Tag
+                    const data = timePoints.map((date, dayIndex) => {
+                        let cumulativeViews = 0;
+                        
+                        // Berechne kumulierte Aufrufe bis zu diesem Tag
+                        for (let i = 0; i <= dayIndex; i++) {
+                            const currentDate = timePoints[i];
+                            if (viewHistory && viewHistory[currentDate]) {
+                                cumulativeViews += viewHistory[currentDate];
+                            }
+                        }
+                        
+                        return cumulativeViews;
+                    });
+                    
+                    return {
+                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        type: 'line',
+                        data: data,
+                        smooth: true,
+                        lineStyle: {
+                            width: 2
+                        },
+                        itemStyle: {
+                            color: getChartColor(idx)
+                        },
+                        emphasis: { focus: 'series' }
+                    };
+                });
+            } else {
+                // Fallback: Verwende simulierte Daten
+                console.log('🏁 Using simulated data for Line Race (no viewHistory available)');
+                
+                // Erstelle Zeitpunkte für die letzten 7 Tage
+                const today = new Date();
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    const day = date.getDate().toString().padStart(2, '0');
+                    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                    const year = date.getFullYear();
+                    timePoints.push(`${day}/${month}/${year}`);
+                }
+                
+                // Für jedes Video: Kumulierte Aufrufe pro Tag mit simulierten Daten
+                series = filteredVideos.map((video, idx) => {
+                    const totalViews = video.views || 0;
+                    const dailyViews = Math.round(totalViews / 7);
+                    
+                    // Erstelle die Daten: Kumulierte Aufrufe pro Tag
+                    const data = timePoints.map((date, dayIndex) => {
+                        let cumulativeViews = 0;
+                        
+                        // Berechne kumulierte Aufrufe bis zu diesem Tag
+                        for (let i = 0; i <= dayIndex; i++) {
+                            const variation = Math.random() * 0.4 + 0.8; // 80-120% der Durchschnittsaufrufe
+                            cumulativeViews += Math.round(dailyViews * variation);
+                        }
+                        
+                        return cumulativeViews;
+                    });
+                    
+                    return {
+                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        type: 'line',
+                        data: data,
+                        smooth: true,
+                        lineStyle: {
+                            width: 2
+                        },
+                        itemStyle: {
+                            color: getChartColor(idx)
+                        },
+                        emphasis: { focus: 'series' }
+                    };
+                });
+            }
             
             const option = {
                 xAxis: {
