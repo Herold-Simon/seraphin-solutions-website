@@ -139,9 +139,14 @@ module.exports = async function handler(req, res) {
                         views: video.views || 0,
                         last_viewed: video.lastViewed,
                         created_at: video.createdAt,
-                        updated_at: video.updatedAt,
-                        view_history: video.viewHistory || {} // Wichtig: viewHistory für tägliche Aufrufe
+                        updated_at: video.updatedAt
+                        // view_history wird erst hinzugefügt, wenn die Spalte existiert
                     };
+
+                    // Füge view_history nur hinzu, wenn es existiert
+                    if (video.viewHistory) {
+                        videoData.view_history = video.viewHistory;
+                    }
 
                     if (existingVideo) {
                         // Update existing record
