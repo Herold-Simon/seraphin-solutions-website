@@ -83,6 +83,8 @@ module.exports = async function handler(req, res) {
             .eq('admin_user_id', adminUserId)
             .order('views', { ascending: false });
 
+        console.log('📊 Video Stats from DB:', videoStats?.length || 0, 'videos');
+
         // Hole Floor-Statistiken
         const { data: floorStats } = await supabase
             .from('floor_statistics')
@@ -101,12 +103,25 @@ module.exports = async function handler(req, res) {
         // Hole aktuelle Statistiken
         const currentStats = appStats?.[0] || totalStats;
 
+        // Strukturiere Video-Daten für das Dashboard
+        const structuredVideos = (videoStats || []).map(video => ({
+            id: video.video_id,
+            title: video.video_title,
+            views: video.views || 0,
+            lastViewed: video.last_viewed,
+            createdAt: video.created_at,
+            updatedAt: video.updated_at,
+            viewHistory: video.view_history || {}
+        }));
+
+        console.log('📊 Structured Videos:', structuredVideos.length, 'videos');
+
         return res.status(200).json({
             success: true,
             statistics: {
                 current: currentStats,
                 total: totalStats,
-                videos: videoStats || [],
+                videos: structuredVideos,
                 floors: floorStats || [],
                 history: appStats || []
             }
