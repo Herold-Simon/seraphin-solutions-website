@@ -970,7 +970,10 @@
             
             // Prüfe ob genügend Daten für Charts vorhanden sind
             const hasVideoData = videos.length > 0;
-            const hasViewHistoryData = videos.some(video => video.view_history && Object.keys(video.view_history).length > 0);
+            const hasViewHistoryData = videos.some(video => {
+                const viewHistory = video.viewHistory || video.view_history;
+                return viewHistory && Object.keys(viewHistory).length > 0;
+            });
             
             console.log('📊 Chart-Daten verfügbar:', { hasVideoData, hasViewHistoryData });
             
@@ -984,9 +987,10 @@
                 }
             }
             console.log('📊 Video viewHistory Details:', videos.map(v => ({ 
-                title: v.video_title, 
-                hasViewHistory: !!v.view_history, 
-                viewHistoryKeys: v.view_history ? Object.keys(v.view_history) : [] 
+                title: v.title || v.video_title, 
+                hasViewHistory: !!(v.viewHistory || v.view_history), 
+                viewHistoryKeys: (v.viewHistory || v.view_history) ? Object.keys(v.viewHistory || v.view_history) : [],
+                videoData: v // Debug: Zeige vollständige Video-Daten
             })));
             
             if (!hasVideoData || !hasViewHistoryData) {
