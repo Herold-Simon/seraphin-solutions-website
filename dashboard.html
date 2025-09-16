@@ -813,6 +813,11 @@
                 });
                 
                 if (!response.ok) {
+                    if (response.status === 401) {
+                        console.log('❌ Nicht authentifiziert, weiterleitung zur Login-Seite');
+                        window.location.href = 'login.html';
+                        return;
+                    }
                     throw new Error('Fehler beim Laden der Statistiken');
                 }
                 
@@ -826,6 +831,11 @@
                     hideLoading();
                 } else {
                     console.error('❌ API Fehler:', data.error);
+                    // Zeige eine freundlichere Nachricht für leere Daten
+                    if (data.error && data.error.includes('Nicht authentifiziert')) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
                     throw new Error(data.error || 'Unbekannter Fehler');
                 }
                 
@@ -840,6 +850,18 @@
         function displayStatistics() {
             if (!statistics) {
                 console.log('❌ Keine Statistiken verfügbar');
+                showNoDataMessage();
+                return;
+            }
+            
+            // Prüfe ob überhaupt Daten vorhanden sind
+            const hasAnyData = statistics.videos?.length > 0 || 
+                              statistics.floors?.length > 0 || 
+                              statistics.history?.length > 0 ||
+                              (statistics.current && Object.values(statistics.current).some(val => val > 0));
+            
+            if (!hasAnyData) {
+                console.log('❌ Keine Daten in den Statistiken');
                 showNoDataMessage();
                 return;
             }
@@ -1658,19 +1680,30 @@
                     dashboardContentElement.innerHTML = `
                         <div class="no-data" style="text-align: center; padding: 3rem; color: var(--text-light);">
                             <i class="fas fa-chart-line" style="font-size: 4rem; margin-bottom: 1rem; color: var(--primary-color);"></i>
-                            <h2 style="margin-bottom: 1rem; color: var(--text-primary);">Keine Daten verfügbar</h2>
-                            <p style="margin-bottom: 2rem; font-size: 1.1rem;">Es sind noch keine Statistiken vorhanden. Verwenden Sie die App, um Daten zu generieren.</p>
-                            <div class="debug-info" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 14px; color: #666; text-align: left; max-width: 600px; margin: 2rem auto;">
-                                <strong>Debug-Informationen:</strong><br>
-                                Statistiken-Objekt: ${statistics ? 'Vorhanden' : 'Nicht vorhanden'}<br>
-                                Videos: ${statistics?.videos?.length || 0}<br>
-                                Videos mit viewHistory: ${statistics?.videos?.filter(v => v.view_history && Object.keys(v.view_history).length > 0).length || 0}<br>
-                                Historie: ${statistics?.history?.length || 0}<br>
-                                Floors: ${statistics?.floors?.length || 0}<br>
-                                <br>
-                                <strong>Video-Details:</strong><br>
-                                ${statistics?.videos?.map(v => `${v.video_title || 'Unbenannt'}: ${v.views || 0} Aufrufe, viewHistory: ${v.view_history ? Object.keys(v.view_history).length : 0} Tage`).join('<br>') || 'Keine Videos'}
+                            <h2 style="margin-bottom: 1rem; color: var(--text-primary);">Keine Statistiken verfügbar</h2>
+                            <p style="margin-bottom: 2rem; font-size: 1.1rem;">Es sind noch keine Statistiken vorhanden. Um Statistiken zu sehen:</p>
+                            <div style="margin: 2rem 0; padding: 20px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; max-width: 500px; margin: 2rem auto;">
+                                <h3 style="margin: 0 0 12px 0; color: #1f2937; font-size: 1.1rem;">So erhalten Sie Statistiken:</h3>
+                                <ol style="text-align: left; margin: 0; padding-left: 20px; color: #374151;">
+                                    <li style="margin-bottom: 8px;">Erstellen Sie einen Account in der App (Admin Panel → Datenverwaltung)</li>
+                                    <li style="margin-bottom: 8px;">Synchronisieren Sie Ihre Statistiken in der App</li>
+                                    <li style="margin-bottom: 8px;">Laden Sie diese Seite neu</li>
+                                </ol>
                             </div>
+                            <button onclick="window.location.reload()" style="
+                                padding: 12px 24px; 
+                                background: var(--gradient-primary); 
+                                color: white; 
+                                border: none; 
+                                border-radius: 8px; 
+                                cursor: pointer; 
+                                font-size: 14px; 
+                                font-weight: 500;
+                                margin-top: 1rem;
+                            ">
+                                <i class="fas fa-sync-alt" style="margin-right: 8px;"></i>
+                                Seite neu laden
+                            </button>
                         </div>
                     `;
                     dashboardContentElement.style.display = 'block';
