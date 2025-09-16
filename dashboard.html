@@ -774,25 +774,36 @@
                 if (debugResponse.ok) {
                     const debugData = await debugResponse.json();
                     console.log('🔍 Debug Session Info:', debugData.debug);
+                } else {
+                    console.log('🔍 Debug Session Info nicht verfügbar:', debugResponse.status);
                 }
                 
                 // Erst prüfen, ob wir eine gültige Session haben
+                console.log('🔍 Starte Session-Verifikation...');
                 const sessionResponse = await fetch('/api/auth/verify-session', {
                     method: 'GET',
                     credentials: 'include'
                 });
                 
                 console.log('🔍 Session-Verifikation Status:', sessionResponse.status);
+                console.log('🔍 Session-Verifikation Headers:', Object.fromEntries(sessionResponse.headers.entries()));
                 
                 if (sessionResponse.status === 401) {
-                    console.log('❌ Keine gültige Session gefunden, weiterleitung zur Login-Seite');
-                    window.location.href = 'login.html';
+                    console.log('❌ Keine gültige Session gefunden');
+                    // Zeige eine Nachricht anstatt sofort weiterzuleiten
+                    showError('Sie sind nicht angemeldet. Bitte melden Sie sich an, um Ihre Statistiken zu sehen.');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 3000);
+                    hideLoading();
                     return;
                 }
                 
                 if (!sessionResponse.ok) {
                     console.log('❌ Session-Verifikation fehlgeschlagen:', sessionResponse.status);
-                    throw new Error('Session-Verifikation fehlgeschlagen');
+                    const errorText = await sessionResponse.text();
+                    console.log('❌ Session-Verifikation Fehler-Text:', errorText);
+                    throw new Error(`Session-Verifikation fehlgeschlagen (${sessionResponse.status}): ${errorText}`);
                 }
                 
                 const sessionData = await sessionResponse.json();
@@ -807,10 +818,14 @@
                 console.log('✅ Session ist gültig, lade Statistiken...');
                 
                 // Session ist gültig, jetzt Statistiken laden
+                console.log('📊 Lade Statistiken...');
                 const response = await fetch('/api/statistics/get', {
                     method: 'GET',
                     credentials: 'include'
                 });
+                
+                console.log('📊 Statistiken-API Status:', response.status);
+                console.log('📊 Statistiken-API Headers:', Object.fromEntries(response.headers.entries()));
                 
                 if (!response.ok) {
                     if (response.status === 401) {
@@ -818,7 +833,10 @@
                         window.location.href = 'login.html';
                         return;
                     }
-                    throw new Error('Fehler beim Laden der Statistiken');
+                    
+                    const errorText = await response.text();
+                    console.log('❌ Statistiken-API Fehler-Text:', errorText);
+                    throw new Error(`Fehler beim Laden der Statistiken (${response.status}): ${errorText}`);
                 }
                 
                 const data = await response.json();
@@ -841,7 +859,23 @@
                 
             } catch (error) {
                 console.error('Dashboard load error:', error);
-                showError('Fehler beim Laden der Statistiken: ' + error.message);
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
+                
+                // Zeige eine benutzerfreundlichere Fehlermeldung
+                if (error.message.includes('Nicht authentifiziert') || error.message.includes('Session')) {
+                    showError('Sie sind nicht angemeldet. Bitte melden Sie sich an.');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } else if (error.message.includes('Verbindungsfehler') || error.message.includes('fetch')) {
+                    showError('Verbindungsfehler. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.');
+                } else {
+                    showError('Fehler beim Laden der Statistiken. Bitte versuchen Sie es später erneut.');
+                }
                 hideLoading();
             }
         }
