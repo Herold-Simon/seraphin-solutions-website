@@ -7,119 +7,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-// CSV-Parsing-Funktion
-function parseCSVToVideoStats(csvData) {
-    console.log('📊 Starting CSV parsing...');
-    console.log('📊 CSV data type:', typeof csvData);
-    console.log('📊 CSV data length:', csvData?.length);
-    
-    if (!csvData || typeof csvData !== 'string') {
-        console.log('❌ Invalid CSV data');
-        return [];
-    }
-
-    const lines = csvData.trim().split('\n');
-    console.log('📊 CSV lines count:', lines.length);
-    console.log('📊 First line (header):', lines[0]);
-    
-    if (lines.length < 2) {
-        console.log('❌ Not enough lines in CSV');
-        return [];
-    }
-
-    const headers = lines[0].split(',');
-    const videoStats = [];
-
-    // Finde die Indizes der relevanten Spalten
-    const idIndex = headers.findIndex(h => h.includes('Video ID'));
-    const titleIndex = headers.findIndex(h => h.includes('Video Titel'));
-    const viewsIndex = headers.findIndex(h => h.includes('Gesamtaufrufe'));
-    const lastViewedIndex = headers.findIndex(h => h.includes('Letzter Aufruf'));
-    const createdAtIndex = headers.findIndex(h => h.includes('Erstellt am'));
-    const updatedAtIndex = headers.findIndex(h => h.includes('Geändert am'));
-
-    // Finde alle Datumsspalten (Aufrufe am ...)
-    const dateColumns = headers
-        .map((header, index) => ({ header, index }))
-        .filter(({ header }) => header.includes('Aufrufe am'))
-        .map(({ header, index }) => ({
-            date: header.replace('Aufrufe am ', ''),
-            index
-        }));
-
-    // Parse jede Zeile (außer Header)
-    for (let i = 1; i < lines.length; i++) {
-        const values = parseCSVLine(lines[i]);
-        
-        if (values.length < headers.length) continue;
-
-        // Erstelle viewHistory-Objekt
-        const viewHistory = {};
-        dateColumns.forEach(({ date, index }) => {
-            const views = parseInt(values[index]) || 0;
-            if (views > 0) {
-                viewHistory[date] = views;
-            }
-        });
-
-        // Sichere Datums-Parsing-Funktion
-        const parseDate = (dateString) => {
-            if (!dateString || dateString.trim() === '') return null;
-            try {
-                const date = new Date(dateString);
-                return isNaN(date.getTime()) ? null : date.toISOString();
-            } catch (error) {
-                console.log('Invalid date value:', dateString);
-                return null;
-            }
-        };
-
-        const video = {
-            video_id: values[idIndex] || '',
-            video_title: values[titleIndex] || 'Unbenannt',
-            views: parseInt(values[viewsIndex]) || 0,
-            last_viewed: parseDate(values[lastViewedIndex]),
-            created_at: parseDate(values[createdAtIndex]),
-            updated_at: parseDate(values[updatedAtIndex]),
-            view_history: viewHistory
-        };
-
-        videoStats.push(video);
-    }
-
-    console.log('📊 CSV parsing completed. Total videos:', videoStats.length);
-    return videoStats;
-}
-
-// Hilfsfunktion zum Parsen einer CSV-Zeile (berücksichtigt Anführungszeichen)
-function parseCSVLine(line) {
-    const result = [];
-    let current = '';
-    let inQuotes = false;
-    
-    for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        
-        if (char === '"') {
-            if (inQuotes && line[i + 1] === '"') {
-                // Escaped quote
-                current += '"';
-                i++; // Skip next quote
-            } else {
-                // Toggle quote state
-                inQuotes = !inQuotes;
-            }
-        } else if (char === ',' && !inQuotes) {
-            result.push(current);
-            current = '';
-        } else {
-            current += char;
-        }
-    }
-    
-    result.push(current);
-    return result;
-}
+// CSV-Parsing-Funktionen entfernt - verwenden jetzt direkte Datenbankabfragen
 
 // CORS-Header setzen
 function setCorsHeaders(res) {
@@ -190,44 +78,21 @@ module.exports = async function handler(req, res) {
             .order('date', { ascending: false })
             .limit(30);
 
-        // Hole Video-Statistiken aus CSV-Daten (die von der App erstellt wurden)
-        const { data: csvData, error: csvError } = await supabase
-            .from('csv_statistics')
+        // Hole Video-Statistiken direkt aus der Datenbank
+        console.log('📊 Loading video statistics from database...');
+        const { data: videoStats, error: videoError } = await supabase
+            .from('video_statistics')
             .select('*')
             .eq('admin_user_id', adminUserId)
-            .order('updated_at', { ascending: false })
-            .limit(1)
-            .single();
+            .order('views', { ascending: false });
 
-        console.log('📊 CSV Data query result:', { found: !!csvData, error: csvError?.message });
-        console.log('📊 CSV Data details:', csvData ? { filename: csvData.filename, dataLength: csvData.csv_data?.length } : 'No data');
-
-        // Parse CSV-Daten zu Video-Statistiken
-        let videoStats = [];
-        if (csvData && csvData.csv_data) {
-            try {
-                videoStats = parseCSVToVideoStats(csvData.csv_data);
-                console.log('📊 Parsed Video Stats from CSV:', videoStats.length, 'videos');
-                
-                // Debug: Zeige erste paar Videos
-                if (videoStats.length > 0) {
-                    console.log('📊 First video example:', videoStats[0]);
-                }
-            } catch (parseError) {
-                console.error('❌ CSV parsing error:', parseError);
-                videoStats = [];
-            }
+        if (videoError) {
+            console.error('❌ Video statistics query error:', videoError);
         } else {
-            console.log('📊 No CSV data found, trying fallback...');
-            // Fallback: Hole Video-Statistiken aus Datenbank
-            const { data: dbVideoStats } = await supabase
-                .from('video_statistics')
-                .select('*')
-                .eq('admin_user_id', adminUserId)
-                .order('views', { ascending: false });
-            
-            videoStats = dbVideoStats || [];
-            console.log('📊 Fallback: Video Stats from DB:', videoStats.length, 'videos');
+            console.log('📊 Video statistics loaded:', videoStats?.length || 0, 'videos');
+            if (videoStats && videoStats.length > 0) {
+                console.log('📊 First video example:', videoStats[0]);
+            }
         }
 
         // Hole Floor-Statistiken
@@ -256,7 +121,7 @@ module.exports = async function handler(req, res) {
             lastViewed: video.last_viewed || null,
             createdAt: video.created_at || null,
             updatedAt: video.updated_at || null,
-            viewHistory: video.view_history || {}
+            viewHistory: video.view_history || {} // Falls view_history in der DB gespeichert ist
         }));
 
         console.log('📊 Structured Videos:', structuredVideos.length, 'videos');
