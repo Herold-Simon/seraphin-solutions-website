@@ -139,14 +139,28 @@ module.exports = async function handler(req, res) {
                         continue;
                     }
 
+                    // Konvertiere Unix-Timestamps zu ISO-Strings
+                    const convertTimestamp = (timestamp) => {
+                        if (!timestamp) return null;
+                        if (typeof timestamp === 'number' && timestamp > 1000000000000) {
+                            // Unix-Timestamp in Millisekunden
+                            return new Date(timestamp).toISOString();
+                        } else if (typeof timestamp === 'string') {
+                            // Bereits ein String, prüfe ob es ein gültiges Datum ist
+                            const date = new Date(timestamp);
+                            return isNaN(date.getTime()) ? null : date.toISOString();
+                        }
+                        return null;
+                    };
+
                     const videoData = {
                         admin_user_id,
                         video_id: video.id,
                         video_title: video.title,
                         views: video.views || 0,
-                        last_viewed: video.lastViewed,
-                        created_at: video.createdAt,
-                        updated_at: video.updatedAt
+                        last_viewed: convertTimestamp(video.lastViewed),
+                        created_at: convertTimestamp(video.createdAt),
+                        updated_at: convertTimestamp(video.updatedAt)
                         // view_history wird erst hinzugefügt, wenn die Spalte existiert
                     };
 
