@@ -318,6 +318,15 @@
             height: 400px;
             transition: all 0.3s ease;
         }
+        
+        .chart-container.bar-chart {
+            min-width: 100%;
+            overflow-x: auto;
+        }
+        
+        .chart-container.bar-chart .echarts {
+            min-width: 600px; /* Mindestbreite für Bar Chart */
+        }
 
         .chart-container.collapsed {
             height: 0;
@@ -655,7 +664,7 @@
                             <h3 class="chart-title">Top Videos mit Aufrufen im ausgewählten Zeitraum - Balkendiagramm</h3>
                             <span class="chart-toggle" id="barChartToggle">▶</span>
                         </div>
-                        <div class="chart-container" id="barChartContainer">
+                        <div class="chart-container bar-chart" id="barChartContainer">
                             <div id="barChart" style="width: 100%; height: 100%;"></div>
                         </div>
                     </div>
@@ -1054,33 +1063,11 @@
                 
                 // Sortiere Daten und filtere basierend auf ausgewähltem Zeitraum
                 const sortedDates = Array.from(allDates).sort();
-                const today = new Date();
-                let startDate = new Date();
-                
-                // Berechne Startdatum basierend auf ausgewähltem Zeitraum
-                if (currentTimeRange === '7') {
-                    startDate.setDate(today.getDate() - 7);
-                } else if (currentTimeRange === '30') {
-                    startDate.setDate(today.getDate() - 30);
-                } else if (currentTimeRange === '90') {
-                    startDate.setDate(today.getDate() - 90);
-                } else if (currentTimeRange === '365') {
-                    startDate.setDate(today.getDate() - 365);
-                } else {
-                    // Alle Zeit - verwende alle verfügbaren Daten mit Offset
-                    startDate = new Date(sortedDates[0]);
-                    // Füge 2 Tage Offset vor dem ersten Datum hinzu
-                    startDate.setDate(startDate.getDate() - 2);
-                }
-                
-                // Filtere Daten basierend auf Zeitraum
-                timePoints = sortedDates.filter(date => {
-                    const dateObj = new Date(date);
-                    return dateObj >= startDate;
-                });
+                const timeRangeResult = calculateTimeRange(sortedDates, currentTimeRange);
+                timePoints = timeRangeResult.timePoints;
                 
                 // Für "Alle Zeit" füge auch Offset nach dem letzten Datum hinzu
-                if (currentTimeRange === 'all' && timePoints.length > 0) {
+                if (timeRangeResult.addEndOffset && timePoints.length > 0) {
                     const lastDate = new Date(timePoints[timePoints.length - 1]);
                     lastDate.setDate(lastDate.getDate() + 2);
                     timePoints.push(lastDate.toISOString().split('T')[0]);
@@ -1355,7 +1342,7 @@
                 },
                 yAxis: {
                     type: 'category',
-                    data: visibleVideos.map(v => v.title || v.video_title || 'Unbenanntes Video'),
+                    data: visibleVideos.map((v, idx) => `Video ${idx + 1}`), // Verwende generische Labels
                     axisLabel: { color: '#666', fontSize: 16 },
                     inverse: true
                 },
@@ -1365,7 +1352,7 @@
                         value: v.views || 0,
                         itemStyle: { color: getChartColor(idx) }
                     })),
-                    barWidth: '60%' // Feste Balkenbreite
+                    barWidth: 40 // Feste Balkenbreite in Pixeln
                 }],
                 tooltip: {
                     trigger: 'axis',
@@ -1381,9 +1368,8 @@
                         icon: 'rect',
                         textStyle: { color: getChartColor(idx) }
                     })),
-                    orient: 'vertical',
-                    right: 'right',
-                    top: 'middle',
+                    orient: 'horizontal',
+                    bottom: 0,
                     textStyle: { fontSize: 12 }
                 },
                 color: getChartColors(),
@@ -1427,14 +1413,14 @@
                         xAxis: option.xAxis,
                         yAxis: {
                             type: 'category',
-                            data: allLabels,
+                            data: allLabels.map((label, idx) => `Video ${idx + 1}`), // Verwende generische Labels
                             axisLabel: { color: '#666', fontSize: 16 },
                             inverse: true
                         },
                         series: [{
                             type: 'bar',
                             data: allData,
-                            barWidth: '60%'
+                            barWidth: 40
                         }],
                         tooltip: option.tooltip,
                         legend: {
@@ -1443,9 +1429,8 @@
                                 icon: 'rect',
                                 textStyle: { color: getChartColor(idx) }
                             })),
-                            orient: 'vertical',
-                            right: 'right',
-                            top: 'middle',
+                            orient: 'horizontal',
+                            bottom: 0,
                             textStyle: { fontSize: 12 }
                         },
                         color: getChartColors(),
@@ -1519,33 +1504,11 @@
                 
                 // Sortiere Daten und filtere basierend auf ausgewähltem Zeitraum
                 const sortedDates = Array.from(allDates).sort();
-                const today = new Date();
-                let startDate = new Date();
-                
-                // Berechne Startdatum basierend auf ausgewähltem Zeitraum
-                if (currentTimeRange === '7') {
-                    startDate.setDate(today.getDate() - 7);
-                } else if (currentTimeRange === '30') {
-                    startDate.setDate(today.getDate() - 30);
-                } else if (currentTimeRange === '90') {
-                    startDate.setDate(today.getDate() - 90);
-                } else if (currentTimeRange === '365') {
-                    startDate.setDate(today.getDate() - 365);
-                } else {
-                    // Alle Zeit - verwende alle verfügbaren Daten mit Offset
-                    startDate = new Date(sortedDates[0]);
-                    // Füge 2 Tage Offset vor dem ersten Datum hinzu
-                    startDate.setDate(startDate.getDate() - 2);
-                }
-                
-                // Filtere Daten basierend auf Zeitraum
-                timePoints = sortedDates.filter(date => {
-                    const dateObj = new Date(date);
-                    return dateObj >= startDate;
-                });
+                const timeRangeResult = calculateTimeRange(sortedDates, currentTimeRange);
+                timePoints = timeRangeResult.timePoints;
                 
                 // Für "Alle Zeit" füge auch Offset nach dem letzten Datum hinzu
-                if (currentTimeRange === 'all' && timePoints.length > 0) {
+                if (timeRangeResult.addEndOffset && timePoints.length > 0) {
                     const lastDate = new Date(timePoints[timePoints.length - 1]);
                     lastDate.setDate(lastDate.getDate() + 2);
                     timePoints.push(lastDate.toISOString().split('T')[0]);
@@ -1818,9 +1781,8 @@
                         icon: 'circle',
                         textStyle: { color: getChartColor(index) }
                     })),
-                    orient: 'vertical',
-                    left: 'left',
-                    top: 'middle',
+                    orient: 'horizontal',
+                    bottom: 0,
                     textStyle: { fontSize: 12 }
                 },
                 tooltip: {
@@ -1849,6 +1811,43 @@
                 '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc', '#ff9f7f'
             ];
             return colors[index % colors.length];
+        }
+        
+        // Hilfsfunktion für Zeitraum-Berechnung
+        function calculateTimeRange(sortedDates, timeRange) {
+            if (timeRange === 'all') {
+                const startDate = new Date(sortedDates[0]);
+                startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
+                return {
+                    startDate: startDate,
+                    timePoints: sortedDates,
+                    addEndOffset: true
+                };
+            } else {
+                const lastDate = new Date(sortedDates[sortedDates.length - 1]);
+                let startDate = new Date(lastDate);
+                
+                if (timeRange === '7') {
+                    startDate.setDate(lastDate.getDate() - 6); // 7 Tage inklusive letzter Tag
+                } else if (timeRange === '30') {
+                    startDate.setDate(lastDate.getDate() - 29); // 30 Tage inklusive letzter Tag
+                } else if (timeRange === '90') {
+                    startDate.setDate(lastDate.getDate() - 89); // 90 Tage inklusive letzter Tag
+                } else if (timeRange === '365') {
+                    startDate.setDate(lastDate.getDate() - 364); // 365 Tage inklusive letzter Tag
+                }
+                
+                const timePoints = sortedDates.filter(date => {
+                    const dateObj = new Date(date);
+                    return dateObj >= startDate;
+                });
+                
+                return {
+                    startDate: startDate,
+                    timePoints: timePoints,
+                    addEndOffset: false
+                };
+            }
         }
         
         // Chart-Farben Array (wie im Adminpanel)
