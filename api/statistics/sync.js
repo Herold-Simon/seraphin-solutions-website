@@ -180,6 +180,13 @@ module.exports = async function handler(req, res) {
             try {
                 const csvFileName = `video_statistics_${admin_user_id}_${new Date().toISOString().split('T')[0]}.csv`;
                 
+                console.log('📊 Saving CSV data:', {
+                    admin_user_id,
+                    filename: csvFileName,
+                    dataLength: csv_data.length,
+                    firstLine: csv_data.split('\n')[0]
+                });
+                
                 // Speichere CSV-Daten in der Datenbank
                 const { error: csvError } = await supabase
                     .from('csv_statistics')
@@ -203,6 +210,12 @@ module.exports = async function handler(req, res) {
                 console.error('❌ CSV processing error:', csvError);
                 // CSV-Fehler sind nicht kritisch für die Hauptfunktionalität
             }
+        } else {
+            console.log('📊 No CSV data provided or invalid format:', {
+                hasData: !!csv_data,
+                dataType: typeof csv_data,
+                dataLength: csv_data?.length
+            });
         }
 
         return res.status(200).json({

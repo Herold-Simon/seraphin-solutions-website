@@ -9,12 +9,21 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // CSV-Parsing-Funktion
 function parseCSVToVideoStats(csvData) {
+    console.log('📊 Starting CSV parsing...');
+    console.log('📊 CSV data type:', typeof csvData);
+    console.log('📊 CSV data length:', csvData?.length);
+    
     if (!csvData || typeof csvData !== 'string') {
+        console.log('❌ Invalid CSV data');
         return [];
     }
 
     const lines = csvData.trim().split('\n');
+    console.log('📊 CSV lines count:', lines.length);
+    console.log('📊 First line (header):', lines[0]);
+    
     if (lines.length < 2) {
+        console.log('❌ Not enough lines in CSV');
         return [];
     }
 
@@ -78,6 +87,7 @@ function parseCSVToVideoStats(csvData) {
         videoStats.push(video);
     }
 
+    console.log('📊 CSV parsing completed. Total videos:', videoStats.length);
     return videoStats;
 }
 
@@ -181,7 +191,7 @@ module.exports = async function handler(req, res) {
             .limit(30);
 
         // Hole Video-Statistiken aus CSV-Daten (die von der App erstellt wurden)
-        const { data: csvData } = await supabase
+        const { data: csvData, error: csvError } = await supabase
             .from('csv_statistics')
             .select('*')
             .eq('admin_user_id', adminUserId)
@@ -189,14 +199,26 @@ module.exports = async function handler(req, res) {
             .limit(1)
             .single();
 
-        console.log('📊 CSV Data found:', !!csvData);
+        console.log('📊 CSV Data query result:', { found: !!csvData, error: csvError?.message });
+        console.log('📊 CSV Data details:', csvData ? { filename: csvData.filename, dataLength: csvData.csv_data?.length } : 'No data');
 
         // Parse CSV-Daten zu Video-Statistiken
         let videoStats = [];
         if (csvData && csvData.csv_data) {
-            videoStats = parseCSVToVideoStats(csvData.csv_data);
-            console.log('📊 Parsed Video Stats from CSV:', videoStats.length, 'videos');
+            try {
+                videoStats = parseCSVToVideoStats(csvData.csv_data);
+                console.log('📊 Parsed Video Stats from CSV:', videoStats.length, 'videos');
+                
+                // Debug: Zeige erste paar Videos
+                if (videoStats.length > 0) {
+                    console.log('📊 First video example:', videoStats[0]);
+                }
+            } catch (parseError) {
+                console.error('❌ CSV parsing error:', parseError);
+                videoStats = [];
+            }
         } else {
+            console.log('📊 No CSV data found, trying fallback...');
             // Fallback: Hole Video-Statistiken aus Datenbank
             const { data: dbVideoStats } = await supabase
                 .from('video_statistics')
