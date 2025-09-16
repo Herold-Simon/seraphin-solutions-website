@@ -6,7 +6,23 @@
     <title>Anmeldung - Seraphin Solutions</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-blue: #008CFF;
+            --primary-green: #32A71A;
+            --gradient-primary: linear-gradient(135deg, #008CFF 0%, #32A71A 100%);
+            --gradient-blue: linear-gradient(135deg, #008CFF 0%, #0066CC 100%);
+            --gradient-green: linear-gradient(135deg, #32A71A 0%, #2A8F15 100%);
+            --text-dark: #2C3E50;
+            --text-light: #7F8C8D;
+            --white: #FFFFFF;
+            --light-gray: #F8F9FA;
+            --border-color: #E9ECEF;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -14,8 +30,8 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', sans-serif;
+            background: var(--gradient-primary);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -24,9 +40,9 @@
         }
 
         .login-container {
-            background: white;
+            background: var(--white);
             border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-lg);
             padding: 40px;
             width: 100%;
             max-width: 400px;
@@ -41,7 +57,7 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            background: var(--gradient-primary);
         }
 
         .logo-section {
@@ -52,13 +68,13 @@
         .logo {
             width: 80px;
             height: 80px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: var(--gradient-primary);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 20px;
-            color: white;
+            color: var(--white);
             font-size: 32px;
             font-weight: bold;
         }
@@ -66,12 +82,12 @@
         .login-title {
             font-size: 28px;
             font-weight: 600;
-            color: #333;
+            color: var(--text-dark);
             margin-bottom: 8px;
         }
 
         .login-subtitle {
-            color: #666;
+            color: var(--text-light);
             font-size: 14px;
         }
 
@@ -83,7 +99,7 @@
         .form-label {
             display: block;
             margin-bottom: 8px;
-            color: #333;
+            color: var(--text-dark);
             font-weight: 500;
             font-size: 14px;
         }
@@ -95,18 +111,18 @@
         .form-input {
             width: 100%;
             padding: 12px 16px 12px 45px;
-            border: 2px solid #e1e5e9;
+            border: 2px solid var(--border-color);
             border-radius: 10px;
             font-size: 16px;
             transition: all 0.3s ease;
-            background: #f8f9fa;
+            background: var(--light-gray);
         }
 
         .form-input:focus {
             outline: none;
-            border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: var(--primary-blue);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(0, 140, 255, 0.1);
         }
 
         .input-icon {
@@ -114,15 +130,15 @@
             left: 15px;
             top: 50%;
             transform: translateY(-50%);
-            color: #999;
+            color: var(--text-light);
             font-size: 16px;
         }
 
         .login-button {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
+            background: var(--gradient-primary);
+            color: var(--white);
             border: none;
             border-radius: 10px;
             font-size: 16px;
@@ -135,7 +151,7 @@
 
         .login-button:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 20px rgba(0, 140, 255, 0.3);
         }
 
         .login-button:active {
