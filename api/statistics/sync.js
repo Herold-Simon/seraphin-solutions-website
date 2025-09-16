@@ -106,6 +106,13 @@ module.exports = async function handler(req, res) {
         console.log('✅ App statistics synced successfully');
 
         // Synchronisiere Video-Statistiken
+        console.log('📊 Video sync check:', {
+            hasVideos: !!statistics.videos,
+            isArray: Array.isArray(statistics.videos),
+            length: statistics.videos?.length,
+            videos: statistics.videos
+        });
+
         if (statistics.videos && Array.isArray(statistics.videos)) {
             console.log('📊 Syncing videos:', statistics.videos.length, 'videos');
             
