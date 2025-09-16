@@ -30,6 +30,95 @@ module.exports = async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
+    // Debug-Modus: Zeige alle Datenbankinhalte
+    if (req.query.debug === 'true') {
+        try {
+            console.log('🔍 Debug: Checking all statistics data...');
+
+            // Hole alle Admin-User
+            const { data: adminUsers, error: adminError } = await supabase
+                .from('admin_users')
+                .select('id, username');
+
+            if (adminError) {
+                console.error('❌ Admin users query error:', adminError);
+                return res.status(500).json({ error: 'Failed to fetch admin users' });
+            }
+
+            console.log('👥 Admin users:', adminUsers);
+
+            // Hole alle App-Statistiken
+            const { data: appStats, error: appError } = await supabase
+                .from('app_statistics')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(10);
+
+            if (appError) {
+                console.error('❌ App statistics query error:', appError);
+            } else {
+                console.log('📊 App statistics (last 10):', appStats);
+            }
+
+            // Hole alle Video-Statistiken
+            const { data: videoStats, error: videoError } = await supabase
+                .from('video_statistics')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(10);
+
+            if (videoError) {
+                console.error('❌ Video statistics query error:', videoError);
+            } else {
+                console.log('🎥 Video statistics (last 10):', videoStats);
+            }
+
+            // Hole alle Floor-Statistiken
+            const { data: floorStats, error: floorError } = await supabase
+                .from('floor_statistics')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(10);
+
+            if (floorError) {
+                console.error('❌ Floor statistics query error:', floorError);
+            } else {
+                console.log('🏢 Floor statistics (last 10):', floorStats);
+            }
+
+            // Hole alle CSV-Statistiken
+            const { data: csvStats, error: csvError } = await supabase
+                .from('csv_statistics')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(5);
+
+            if (csvError) {
+                console.error('❌ CSV statistics query error:', csvError);
+            } else {
+                console.log('📄 CSV statistics (last 5):', csvStats);
+            }
+
+            return res.status(200).json({
+                success: true,
+                debug: {
+                    adminUsers,
+                    appStatistics: appStats,
+                    videoStatistics: videoStats,
+                    floorStatistics: floorStats,
+                    csvStatistics: csvStats
+                }
+            });
+
+        } catch (error) {
+            console.error('❌ Debug statistics error:', error);
+            return res.status(500).json({ 
+                error: 'Internal server error',
+                details: error.message 
+            });
+        }
+    }
+
     try {
         const cookies = cookie.parse(req.headers.cookie || '');
         const sessionToken = cookies.session_token;
