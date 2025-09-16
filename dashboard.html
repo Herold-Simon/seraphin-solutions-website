@@ -1062,14 +1062,15 @@
             // Erstelle Series für jedes Video (wie in der App)
             const series = filteredVideos.map((video, idx) => {
                 const data = timeSeriesData.map(item => {
-                    if (video.view_history && video.view_history[item.date]) {
-                        return video.view_history[item.date];
+                    const viewHistory = video.viewHistory || video.view_history;
+                    if (viewHistory && viewHistory[item.date]) {
+                        return viewHistory[item.date];
                     }
                     return 0;
                 });
                 
                 return {
-                    name: video.video_title || 'Unbenanntes Video',
+                    name: video.title || video.video_title || 'Unbenanntes Video',
                     type: 'line',
                     data: data,
                     smooth: true,
@@ -1190,7 +1191,7 @@
             }
             
             const labels = filteredVideos.map(video => 
-                video.video_title || 'Unbenanntes Video'
+                video.title || video.video_title || 'Unbenanntes Video'
             );
             const data = filteredVideos.map((video, idx) => ({
                 value: video.views || 0,
@@ -1313,8 +1314,9 @@
                     // Berechne kumulierte Aufrufe bis zu diesem Tag
                     for (let i = 0; i <= dayIndex; i++) {
                         const currentDate = timeSeriesData[i].date;
-                        if (video.view_history && video.view_history[currentDate]) {
-                            cumulativeViews += video.view_history[currentDate];
+                        const viewHistory = video.viewHistory || video.view_history;
+                        if (viewHistory && viewHistory[currentDate]) {
+                            cumulativeViews += viewHistory[currentDate];
                         }
                     }
                     
@@ -1322,7 +1324,7 @@
                 });
                 
                 return {
-                    name: video.video_title || 'Unbenanntes Video',
+                    name: video.title || video.video_title || 'Unbenanntes Video',
                     type: 'line',
                     data: data,
                     smooth: true,
@@ -1428,7 +1430,7 @@
             }
             
             const data = filteredVideos.map((video, idx) => ({
-                name: video.video_title || 'Unbenanntes Video',
+                name: video.title || video.video_title || 'Unbenanntes Video',
                 value: video.views || 0,
                 itemStyle: {
                     color: getChartColor(idx)
