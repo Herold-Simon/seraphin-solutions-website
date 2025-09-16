@@ -1038,16 +1038,26 @@
                 return;
             }
             
-            const labels = timeSeriesData.map(item => 
-                new Date(item.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })
-            );
+            // Erstelle Zeitpunkte im europäischen Format (DD/MM/YYYY) wie im Adminpanel
+            const timePoints = [];
+            const startDate = new Date(timeRangeStart);
+            const endDate = new Date(timeRangeEnd);
+            let currentDate = new Date(startDate);
             
-            // Erstelle Series für jedes Video (wie in der App)
-            const series = filteredVideos.map((video, idx) => {
-                const data = timeSeriesData.map(item => {
+            while (currentDate <= endDate) {
+                const day = currentDate.getDate().toString().padStart(2, '0');
+                const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+                const year = currentDate.getFullYear();
+                timePoints.push(`${day}/${month}/${year}`);
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            // Erstelle Series für jedes Video (wie im Adminpanel)
+            const videoData = filteredVideos.map((video, idx) => {
+                const data = timePoints.map(date => {
                     const viewHistory = video.viewHistory || video.view_history;
-                    if (viewHistory && viewHistory[item.date]) {
-                        return viewHistory[item.date];
+                    if (viewHistory && viewHistory[date]) {
+                        return viewHistory[date];
                     }
                     return 0;
                 });
@@ -1062,114 +1072,99 @@
                     },
                     itemStyle: {
                         color: getChartColor(idx)
-                    }
+                    },
+                    emphasis: { focus: 'series' }
                 };
             });
             
-            // Füge Durchschnittslinie hinzu (wie in der App)
-            const averageData = timeSeriesData.map(item => {
+            // Füge Durchschnittslinie hinzu (wie im Adminpanel)
+            const averageData = timePoints.map((date, idx) => {
                 const totalViews = filteredVideos.reduce((sum, video) => {
-                    return sum + (video.view_history && video.view_history[item.date] ? video.view_history[item.date] : 0);
+                    const viewHistory = video.viewHistory || video.view_history;
+                    return sum + (viewHistory && viewHistory[date] ? viewHistory[date] : 0);
                 }, 0);
                 return Math.round(totalViews / filteredVideos.length * 10) / 10;
             });
             
-            series.push({
-                name: 'Durchschnitt (alle Videos)',
-                type: 'line',
-                data: averageData,
-                smooth: true,
-                lineStyle: {
-                    type: 'dashed',
-                    width: 2
-                },
-                itemStyle: {
-                    color: '#999'
+            const series = [
+                ...videoData,
+                {
+                    name: 'Durchschnitt (alle Videos)',
+                    type: 'line',
+                    data: averageData,
+                    smooth: true,
+                    symbol: 'none',
+                    lineStyle: {
+                        width: 3,
+                        color: '#888',
+                        type: 'dashed'
+                    },
+                    itemStyle: { color: '#888' },
+                    emphasis: { focus: 'series' },
+                    z: 10
                 }
-            });
+            ];
             
             const option = {
+                xAxis: {
+                    type: 'category',
+                    data: timePoints,
+                    axisLabel: { color: '#666', rotate: 45 },
+                    axisTick: { alignWithLabel: true }
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLabel: { color: '#666' },
+                    name: 'Aufrufe',
+                    nameTextStyle: { color: '#666' }
+                },
+                series: series,
                 tooltip: {
                     trigger: 'axis',
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    borderColor: '#008CFF',
-                    borderWidth: 1,
-                    textStyle: {
-                        color: '#fff'
-                    },
                     formatter: function(params) {
-                        if (!params || params.length === 0) return '';
+                        let result = params[0].axisValue + '<br/>';
+                        let hasValidData = false;
                         
-                        const date = params[0].axisValue;
-                        const dateObj = new Date(date);
-                        const formattedDate = dateObj.toLocaleDateString('de-DE', { 
-                            day: '2-digit', 
-                            month: '2-digit', 
-                            year: 'numeric' 
-                        });
-                        
-                        let result = `<div style="margin-bottom: 5px; font-weight: bold;">${formattedDate}</div>`;
-                        
-                        // Zeige nur Videos mit Aufrufen > 0
-                        params.forEach(param => {
-                            if (param.value > 0) {
-                                result += `<div style="margin: 2px 0;">
-                                    <span style="display: inline-block; width: 10px; height: 10px; background-color: ${param.color}; margin-right: 5px;"></span>
-                                    ${param.seriesName}: ${param.value}
-                                </div>`;
+                        params.forEach((param) => {
+                            if (param.value !== undefined && param.value !== null && param.value > 0) {
+                                let value = param.value;
+                                if (typeof value === 'number') {
+                                    value = Number.isInteger(value) ? value : value.toFixed(2);
+                                }
+                                result += `${param.marker} ${param.seriesName}: ${value} Aufrufe<br/>`;
+                                hasValidData = true;
                             }
                         });
                         
-                        return result;
-                    },
-                    // Mobile Optimierung - Tooltip nicht über Bildschirmrand
-                    position: function(point, params, dom, rect, size) {
-                        const obj = { top: 10 };
-                        if (point[0] < size.viewSize[0] / 2) {
-                            obj.left = point[0] + 10;
-                        } else {
-                            obj.right = size.viewSize[0] - point[0] + 10;
-                        }
-                        return obj;
+                        return hasValidData ? result : '';
+                    }
+                },
+                legend: {
+                    data: [
+                        ...filteredVideos.map(v => v.title || v.video_title || 'Unbenanntes Video'),
+                        'Durchschnitt (alle Videos)'
+                    ],
+                    textStyle: { color: '#666' },
+                    type: 'scroll',
+                    bottom: 0,
+                    pageButtonItemGap: 5,
+                    pageButtonGap: 5,
+                    pageButtonPosition: 'end',
+                    pageIconColor: '#2563eb',
+                    pageIconInactiveColor: '#ccc',
+                    pageIconSize: 28,
+                    pageTextStyle: {
+                        color: '#666'
                     }
                 },
                 grid: {
                     left: '3%',
                     right: '4%',
-                    bottom: '3%',
+                    bottom: '15%',
                     containLabel: true
                 },
-                xAxis: {
-                    type: 'category',
-                    boundaryGap: false,
-                    data: labels,
-                    axisLine: {
-                        lineStyle: {
-                            color: '#666'
-                        }
-                    },
-                    axisTick: {
-                        show: false
-                    }
-                },
-                yAxis: {
-                    type: 'value',
-                    axisLine: {
-                        show: false
-                    },
-                    axisTick: {
-                        show: false
-                    },
-                    axisLabel: {
-                        color: '#666'
-                    },
-                    splitLine: {
-                        lineStyle: {
-                            color: 'rgba(0,0,0,0.1)'
-                        }
-                    }
-                },
-                series: series
+                color: getChartColors(),
+                zoom: false
             };
             
             charts.lineChart = echarts.init(chartElement);
@@ -1204,10 +1199,10 @@
                 return;
             }
             
-            // Filtere Videos mit Aufrufen und sortiere nach Aufrufen (niedrigste zuerst für Balkendiagramm)
+            // Filtere Videos mit Aufrufen und sortiere nach Aufrufen (wie im Adminpanel)
             const filteredVideos = videos
                 .filter(video => (video.views || 0) > 0)
-                .sort((a, b) => (a.views || 0) - (b.views || 0))
+                .sort((a, b) => (b.views || 0) - (a.views || 0))
                 .slice(0, barChartVideoCount);
             
             if (filteredVideos.length === 0) {
@@ -1215,142 +1210,38 @@
                 return;
             }
             
-            // Zeige nur die ersten 5 Videos standardmäßig, restliche können ausgeklappt werden
-            const maxVisible = 5;
-            const visibleVideos = filteredVideos.slice(0, maxVisible);
-            const hiddenVideos = filteredVideos.slice(maxVisible);
-            
-            const labels = visibleVideos.map(video => 
-                video.title || video.video_title || 'Unbenanntes Video'
-            );
-            const data = visibleVideos.map((video, idx) => ({
-                value: video.views || 0,
-                itemStyle: {
-                    color: getChartColor(idx)
-                }
-            }));
-            
             const option = {
-                tooltip: {
-                    trigger: 'axis',
-                    axisPointer: {
-                        type: 'shadow'
-                    },
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    borderColor: '#008CFF',
-                    borderWidth: 1,
-                    textStyle: {
-                        color: '#fff'
-                    }
-                },
-                grid: {
-                    left: '3%',
-                    right: '4%',
-                    bottom: '3%',
-                    containLabel: true
-                },
                 xAxis: {
                     type: 'value',
-                    axisLine: {
-                        show: false
-                    },
-                    axisTick: {
-                        show: false
-                    },
-                    axisLabel: {
-                        color: '#666'
-                    },
-                    splitLine: {
-                        lineStyle: {
-                            color: 'rgba(0,0,0,0.1)'
-                        }
-                    }
+                    axisLabel: { color: '#666', fontSize: 16 }
                 },
                 yAxis: {
                     type: 'category',
-                    data: labels,
-                    axisLine: {
-                        show: false
-                    },
-                    axisTick: {
-                        show: false
-                    },
-                    axisLabel: {
-                        color: '#666'
-                    }
+                    data: filteredVideos.map(v => v.title || v.video_title || 'Unbenanntes Video'),
+                    axisLabel: { color: '#666', fontSize: 16 },
+                    inverse: true
                 },
                 series: [{
-                    name: 'Aufrufe',
                     type: 'bar',
-                    data: data
-                }]
+                    data: filteredVideos.map((v, idx) => ({
+                        value: v.views || 0,
+                        itemStyle: { color: getChartColor(idx) }
+                    })),
+                }],
+                tooltip: {
+                    trigger: 'axis',
+                    formatter: function(params) {
+                        if (!params || params.length === 0) return '';
+                        const param = params[0];
+                        return `${param.name}<br/>Aufrufe: ${param.value}`;
+                    }
+                },
+                color: getChartColors(),
+                zoom: false
             };
             
             charts.barChart = echarts.init(chartElement);
             charts.barChart.setOption(option);
-            
-            // Füge "Mehr anzeigen" Button hinzu, wenn es mehr als 5 Videos gibt
-            if (hiddenVideos.length > 0) {
-                const expandButton = document.createElement('button');
-                expandButton.textContent = `+${hiddenVideos.length} weitere anzeigen`;
-                expandButton.style.cssText = `
-                    position: absolute;
-                    top: 10px;
-                    right: 10px;
-                    background: #008CFF;
-                    color: white;
-                    border: none;
-                    padding: 5px 10px;
-                    border-radius: 4px;
-                    font-size: 12px;
-                    cursor: pointer;
-                    z-index: 1000;
-                `;
-                expandButton.onclick = () => {
-                    // Erstelle erweiterte Version mit allen Videos
-                    const allLabels = filteredVideos.map(video => 
-                        video.title || video.video_title || 'Unbenanntes Video'
-                    );
-                    const allData = filteredVideos.map((video, idx) => ({
-                        value: video.views || 0,
-                        itemStyle: {
-                            color: getChartColor(idx)
-                        }
-                    }));
-                    
-                    // Erstelle neue Option mit allen Videos
-                    const expandedOption = {
-                        tooltip: option.tooltip,
-                        grid: option.grid,
-                        xAxis: {
-                            type: 'category',
-                            data: allLabels,
-                            axisLine: {
-                                show: false
-                            },
-                            axisTick: {
-                                show: false
-                            },
-                            axisLabel: {
-                                color: '#666',
-                                rotate: allLabels.length > 5 ? 45 : 0
-                            }
-                        },
-                        yAxis: option.yAxis,
-                        series: [{
-                            name: 'Aufrufe',
-                            type: 'bar',
-                            data: allData
-                        }]
-                    };
-                    
-                    charts.barChart.setOption(expandedOption);
-                    expandButton.remove();
-                };
-                
-                chartElement.style.position = 'relative';
-                chartElement.appendChild(expandButton);
-            }
         }
         
         // Line Race Chart erstellen (wie in der App)
@@ -1387,26 +1278,29 @@
                 return;
             }
             
-            // Erstelle Zeitreihe basierend auf viewHistory (wie in der App)
-            const timeSeriesData = createTimeSeriesFromViewHistory(filteredVideos, timeRangeStart, timeRangeEnd);
+            // Erstelle Zeitpunkte im europäischen Format (DD/MM/YYYY) wie im Adminpanel
+            const timePoints = [];
+            const startDate = new Date(timeRangeStart);
+            const endDate = new Date(timeRangeEnd);
+            let currentDate = new Date(startDate);
             
-            if (!timeSeriesData || timeSeriesData.length === 0) {
-                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Aufruf-Daten verfügbar</div>';
-                return;
+            while (currentDate <= endDate) {
+                const day = currentDate.getDate().toString().padStart(2, '0');
+                const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+                const year = currentDate.getFullYear();
+                timePoints.push(`${day}/${month}/${year}`);
+                currentDate.setDate(currentDate.getDate() + 1);
             }
             
-            const labels = timeSeriesData.map(item => 
-                new Date(item.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })
-            );
-            
-            // Erstelle Series für jedes Video mit kumulativen Aufrufen (wie in der App)
+            // Für jedes Video: Kumulierte Aufrufe pro Tag (basierend auf viewHistory)
             const series = filteredVideos.map((video, idx) => {
-                const data = timeSeriesData.map((item, dayIndex) => {
+                // Erstelle die Daten: Kumulierte Aufrufe pro Tag
+                const data = timePoints.map((date, dayIndex) => {
                     let cumulativeViews = 0;
                     
                     // Berechne kumulierte Aufrufe bis zu diesem Tag
                     for (let i = 0; i <= dayIndex; i++) {
-                        const currentDate = timeSeriesData[i].date;
+                        const currentDate = timePoints[i];
                         const viewHistory = video.viewHistory || video.view_history;
                         if (viewHistory && viewHistory[currentDate]) {
                             cumulativeViews += viewHistory[currentDate];
@@ -1426,100 +1320,68 @@
                     },
                     itemStyle: {
                         color: getChartColor(idx)
-                    }
+                    },
+                    emphasis: { focus: 'series' }
                 };
             });
             
             const option = {
+                xAxis: {
+                    type: 'category',
+                    data: timePoints,
+                    axisLabel: { color: '#666', rotate: 45, fontSize: 12 },
+                    axisTick: { alignWithLabel: true }
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLabel: { color: '#666', fontSize: 12 },
+                    name: 'Kumulierte Aufrufe',
+                    nameTextStyle: { color: '#666' }
+                },
+                series,
                 tooltip: {
                     trigger: 'axis',
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    borderColor: '#008CFF',
-                    borderWidth: 1,
-                    textStyle: {
-                        color: '#fff'
-                    },
                     formatter: function(params) {
-                        if (!params || params.length === 0) return '';
+                        let result = params[0].axisValue + '<br/>';
+                        let hasValidData = false;
                         
-                        const date = params[0].axisValue;
-                        const dateObj = new Date(date);
-                        const formattedDate = dateObj.toLocaleDateString('de-DE', { 
-                            day: '2-digit', 
-                            month: '2-digit', 
-                            year: 'numeric' 
-                        });
-                        
-                        let result = `<div style="margin-bottom: 5px; font-weight: bold;">${formattedDate}</div>`;
-                        
-                        // Zeige nur Videos mit Aufrufen > 0
-                        params.forEach(param => {
-                            if (param.value > 0) {
-                                result += `<div style="margin: 2px 0;">
-                                    <span style="display: inline-block; width: 10px; height: 10px; background-color: ${param.color}; margin-right: 5px;"></span>
-                                    ${param.seriesName}: ${param.value}
-                                </div>`;
+                        params.forEach((param) => {
+                            if (param.value !== undefined && param.value !== null && param.value > 0) {
+                                let value = param.value;
+                                if (typeof value === 'number') {
+                                    value = Number.isInteger(value) ? value : value.toFixed(2);
+                                }
+                                result += `${param.marker} ${param.seriesName}: ${value} Aufrufe<br/>`;
+                                hasValidData = true;
                             }
                         });
                         
-                        return result;
-                    },
-                    // Mobile Optimierung - Tooltip nicht über Bildschirmrand
-                    position: function(point, params, dom, rect, size) {
-                        const obj = { top: 10 };
-                        if (point[0] < size.viewSize[0] / 2) {
-                            obj.left = point[0] + 10;
-                        } else {
-                            obj.right = size.viewSize[0] - point[0] + 10;
-                        }
-                        return obj;
+                        return hasValidData ? result : '';
                     }
                 },
                 legend: {
                     data: series.map(s => s.name),
-                    top: 'top',
-                    textStyle: {
-                        fontSize: 12
+                    textStyle: { color: '#666' },
+                    type: 'scroll',
+                    bottom: 0,
+                    pageButtonItemGap: 5,
+                    pageButtonGap: 5,
+                    pageButtonPosition: 'end',
+                    pageIconColor: '#2563eb',
+                    pageIconInactiveColor: '#ccc',
+                    pageIconSize: 28,
+                    pageTextStyle: {
+                        color: '#666'
                     }
                 },
                 grid: {
                     left: '3%',
                     right: '4%',
-                    bottom: '3%',
-                    top: '15%',
+                    bottom: '15%',
                     containLabel: true
                 },
-                xAxis: {
-                    type: 'category',
-                    boundaryGap: false,
-                    data: labels,
-                    axisLine: {
-                        lineStyle: {
-                            color: '#666'
-                        }
-                    },
-                    axisTick: {
-                        show: false
-                    }
-                },
-                yAxis: {
-                    type: 'value',
-                    axisLine: {
-                        show: false
-                    },
-                    axisTick: {
-                        show: false
-                    },
-                    axisLabel: {
-                        color: '#666'
-                    },
-                    splitLine: {
-                        lineStyle: {
-                            color: 'rgba(0,0,0,0.1)'
-                        }
-                    }
-                },
-                series: series
+                color: getChartColors(),
+                zoom: false
             };
             
             charts.lineRaceChart = echarts.init(chartElement);
@@ -1564,55 +1426,44 @@
                 return;
             }
             
-            const data = filteredVideos.map((video, idx) => ({
-                name: video.title || video.video_title || 'Unbenanntes Video',
-                value: video.views || 0,
-                itemStyle: {
-                    color: getChartColor(idx)
-                }
-            }));
-            
             const option = {
-                tooltip: {
-                    trigger: 'item',
-                    formatter: '{a} <br/>{b}: {c} ({d}%)',
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    borderColor: '#008CFF',
-                    borderWidth: 1,
-                    textStyle: {
-                        color: '#fff'
-                    }
-                },
-                legend: {
-                    orient: 'vertical',
-                    left: 'left',
-                    top: 'middle',
-                    textStyle: {
-                        fontSize: 12
-                    }
-                },
                 series: [{
-                    name: 'Aufrufe',
                     type: 'pie',
                     radius: ['40%', '70%'],
-                    center: ['60%', '50%'],
-                    avoidLabelOverlap: false,
-                    label: {
-                        show: false,
-                        position: 'center'
-                    },
+                    center: ['50%', '50%'],
+                    data: filteredVideos.map((video, index) => ({
+                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        value: video.views || 0,
+                        itemStyle: {
+                            color: getChartColor(index)
+                        }
+                    })),
                     emphasis: {
-                        label: {
-                            show: true,
-                            fontSize: '18',
-                            fontWeight: 'bold'
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
                         }
                     },
-                    labelLine: {
-                        show: false
+                    label: {
+                        show: true,
+                        formatter: '{b}: {c} Aufrufe\n({d}%)',
+                        fontSize: 12
                     },
-                    data: data
-                }]
+                    labelLine: {
+                        show: true
+                    }
+                }],
+                tooltip: {
+                    trigger: 'item',
+                    formatter: function(params) {
+                        const total = filteredVideos.reduce((sum, v) => sum + (v.views || 0), 0);
+                        const percentage = total > 0 ? ((params.value / total) * 100).toFixed(1) : '0';
+                        return `${params.name}<br/>Aufrufe: ${params.value}<br/>Anteil: ${percentage}%`;
+                    }
+                },
+                color: getChartColors(),
+                zoom: false
             };
             
             charts.pieChart = echarts.init(chartElement);
@@ -1698,6 +1549,14 @@
             return colors[index % colors.length];
         }
         
+        // Chart-Farben Array (wie im Adminpanel)
+        function getChartColors() {
+            return [
+                '#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', 
+                '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc', '#ff9f7f'
+            ];
+        }
+        
         // Gefilterte Historie-Daten basierend auf Zeitraum
         function getFilteredHistoryData() {
             const history = statistics?.history || [];
@@ -1738,7 +1597,7 @@
             if (chartStates.lineChart) createLineChart();
             if (chartStates.barChart) createBarChart();
             if (chartStates.pieChart) createPieChart();
-            if (chartStates.areaChart) createAreaChart();
+            if (chartStates.lineRaceChart) createLineRaceChart();
         }
         
         // Chart-Größe bei Fenster-Resize anpassen
@@ -1752,8 +1611,8 @@
             if (charts.pieChart) {
                 charts.pieChart.resize();
             }
-            if (charts.areaChart) {
-                charts.areaChart.resize();
+            if (charts.lineRaceChart) {
+                charts.lineRaceChart.resize();
             }
         });
         
@@ -1957,6 +1816,46 @@
         // Auto-Refresh alle 5 Minuten
         setInterval(loadDashboard, 5 * 60 * 1000);
     </script>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <img src="favicon.png" alt="Seraphin Solutions Logo" class="logo-image">
+                        <span class="logo-text">Seraphin Solutions</span>
+                    </div>
+                    <p>Die intelligente Lösung für die Navigation in großen Gebäuden, entwickelt von Seraphin Solutions.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Produkt</h4>
+                    <ul>
+                        <li><a href="index.html#features">Features</a></li>
+                        <li><a href="index.html#admin">Admin-Panel</a></li>
+                        <li><a href="index.html#solution">Lösung</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Unternehmen</h4>
+                    <ul>
+                        <li><a href="index.html#pricing">Preise</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Rechtliches</h4>
+                    <ul>
+                        <li><a href="impressum.html">Impressum</a></li>
+                        <li><a href="datenschutz.html">Datenschutz</a></li>
+                    </ul>
+                </div>
+
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Seraphin Solutions. Alle Rechte vorbehalten.</p>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>
 
