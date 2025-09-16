@@ -32,7 +32,8 @@ module.exports = async function handler(req, res) {
         
         const {
             admin_user_id,
-            statistics
+            statistics,
+            csv_data
         } = req.body;
 
         console.log('📊 Sync data:', { admin_user_id, statisticsKeys: Object.keys(statistics || {}) });
@@ -171,6 +172,36 @@ module.exports = async function handler(req, res) {
                         .from('floor_statistics')
                         .insert(floorData);
                 }
+            }
+        }
+
+        // Speichere CSV-Daten, falls vorhanden
+        if (csv_data && typeof csv_data === 'string') {
+            try {
+                const csvFileName = `video_statistics_${admin_user_id}_${new Date().toISOString().split('T')[0]}.csv`;
+                
+                // Speichere CSV-Daten in der Datenbank
+                const { error: csvError } = await supabase
+                    .from('csv_statistics')
+                    .upsert({
+                        admin_user_id,
+                        filename: csvFileName,
+                        csv_data: csv_data,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    }, {
+                        onConflict: 'admin_user_id,filename'
+                    });
+
+                if (csvError) {
+                    console.error('❌ CSV save error:', csvError);
+                    // CSV-Fehler sind nicht kritisch, wir loggen sie nur
+                } else {
+                    console.log('✅ CSV data saved successfully:', csvFileName);
+                }
+            } catch (csvError) {
+                console.error('❌ CSV processing error:', csvError);
+                // CSV-Fehler sind nicht kritisch für die Hauptfunktionalität
             }
         }
 

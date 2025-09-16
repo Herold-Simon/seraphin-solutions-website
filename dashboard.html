@@ -513,6 +513,43 @@
                 height: 250px;
             }
         }
+
+        /* CSV Download Button Styles */
+        .csv-download-section {
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .csv-download-section .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .csv-download-section .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+
+        .csv-download-section .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .csv-download-section .btn i {
+            font-size: 1.1rem;
+        }
     </style>
 </head>
 <body>
@@ -573,6 +610,15 @@
                         <div class="stat-number" id="videosWithViews">0</div>
                         <div class="stat-label">Videos mit Aufrufen</div>
                     </div>
+                </div>
+
+                <!-- CSV-Download Button -->
+                <div class="csv-download-section" style="margin: 2rem 0; text-align: center;">
+                    <button id="csvDownloadBtn" class="btn btn-primary" onclick="downloadCSV()" style="display: none;">
+                        <i class="fas fa-download"></i>
+                        Video-Statistiken als CSV herunterladen
+                    </button>
+                    <div id="csvDownloadStatus" style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-light);"></div>
                 </div>
 
                 <!-- Zeitraum-Auswahl -->
@@ -863,6 +909,16 @@
             const hasViewHistoryData = videos.some(video => video.view_history && Object.keys(video.view_history).length > 0);
             
             console.log('📊 Chart-Daten verfügbar:', { hasVideoData, hasViewHistoryData });
+            
+            // Zeige CSV-Download-Button an, wenn Video-Daten vorhanden sind
+            const csvDownloadBtn = document.getElementById('csvDownloadBtn');
+            if (csvDownloadBtn) {
+                if (hasVideoData) {
+                    csvDownloadBtn.style.display = 'inline-flex';
+                } else {
+                    csvDownloadBtn.style.display = 'none';
+                }
+            }
             console.log('📊 Video viewHistory Details:', videos.map(v => ({ 
                 title: v.video_title, 
                 hasViewHistory: !!v.view_history, 
@@ -1623,6 +1679,83 @@
                 }
             } catch (error) {
                 console.error('❌ Fehler in showNoDataMessage:', error);
+            }
+        }
+        
+        // CSV-Download Funktion
+        async function downloadCSV() {
+            try {
+                const csvDownloadBtn = document.getElementById('csvDownloadBtn');
+                const csvDownloadStatus = document.getElementById('csvDownloadStatus');
+                
+                if (csvDownloadBtn) {
+                    csvDownloadBtn.disabled = true;
+                    csvDownloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Lade CSV...';
+                }
+                
+                if (csvDownloadStatus) {
+                    csvDownloadStatus.textContent = 'CSV wird vorbereitet...';
+                    csvDownloadStatus.style.color = 'var(--primary-blue)';
+                }
+                
+                // Hole Admin-User-ID aus der Session
+                const sessionResponse = await fetch('/api/debug-session', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (!sessionResponse.ok) {
+                    throw new Error('Session nicht verfügbar');
+                }
+                
+                const sessionData = await sessionResponse.json();
+                const adminUserId = sessionData.admin_user_id;
+                
+                if (!adminUserId) {
+                    throw new Error('Keine Admin-User-ID gefunden');
+                }
+                
+                // Lade CSV-Daten
+                const csvResponse = await fetch(`/api/statistics/csv?admin_user_id=${adminUserId}`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (!csvResponse.ok) {
+                    const errorData = await csvResponse.json();
+                    throw new Error(errorData.error || 'Fehler beim Laden der CSV-Daten');
+                }
+                
+                // Erstelle Download-Link
+                const csvBlob = await csvResponse.blob();
+                const url = window.URL.createObjectURL(csvBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `video_statistics_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                if (csvDownloadStatus) {
+                    csvDownloadStatus.textContent = 'CSV erfolgreich heruntergeladen!';
+                    csvDownloadStatus.style.color = 'var(--success-color)';
+                }
+                
+            } catch (error) {
+                console.error('❌ CSV Download Error:', error);
+                
+                const csvDownloadStatus = document.getElementById('csvDownloadStatus');
+                if (csvDownloadStatus) {
+                    csvDownloadStatus.textContent = `Fehler: ${error.message}`;
+                    csvDownloadStatus.style.color = 'var(--error-color)';
+                }
+            } finally {
+                const csvDownloadBtn = document.getElementById('csvDownloadBtn');
+                if (csvDownloadBtn) {
+                    csvDownloadBtn.disabled = false;
+                    csvDownloadBtn.innerHTML = '<i class="fas fa-download"></i> Video-Statistiken als CSV herunterladen';
+                }
             }
         }
         
