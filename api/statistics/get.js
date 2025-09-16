@@ -53,13 +53,25 @@ function parseCSVToVideoStats(csvData) {
             }
         });
 
+        // Sichere Datums-Parsing-Funktion
+        const parseDate = (dateString) => {
+            if (!dateString || dateString.trim() === '') return null;
+            try {
+                const date = new Date(dateString);
+                return isNaN(date.getTime()) ? null : date.toISOString();
+            } catch (error) {
+                console.log('Invalid date value:', dateString);
+                return null;
+            }
+        };
+
         const video = {
             video_id: values[idIndex] || '',
             video_title: values[titleIndex] || 'Unbenannt',
             views: parseInt(values[viewsIndex]) || 0,
-            last_viewed: values[lastViewedIndex] ? new Date(values[lastViewedIndex]).toISOString() : null,
-            created_at: values[createdAtIndex] ? new Date(values[createdAtIndex]).toISOString() : null,
-            updated_at: values[updatedAtIndex] ? new Date(values[updatedAtIndex]).toISOString() : null,
+            last_viewed: parseDate(values[lastViewedIndex]),
+            created_at: parseDate(values[createdAtIndex]),
+            updated_at: parseDate(values[updatedAtIndex]),
             view_history: viewHistory
         };
 
@@ -204,8 +216,8 @@ module.exports = async function handler(req, res) {
 
         // Berechne Gesamtstatistiken
         const totalStats = {
-            total_videos: videoStats?.reduce((sum, video) => sum + (video.views || 0), 0) || 0,
-            videos_with_views: videoStats?.filter(video => video.views > 0).length || 0,
+            total_videos: videoStats?.length || 0,
+            videos_with_views: videoStats?.filter(video => (video.views || 0) > 0).length || 0,
             total_views: videoStats?.reduce((sum, video) => sum + (video.views || 0), 0) || 0,
             total_floors: floorStats?.length || 0,
             total_rooms: floorStats?.reduce((sum, floor) => sum + (floor.room_count || 0), 0) || 0
@@ -216,16 +228,28 @@ module.exports = async function handler(req, res) {
 
         // Strukturiere Video-Daten für das Dashboard
         const structuredVideos = (videoStats || []).map(video => ({
-            id: video.video_id,
-            title: video.video_title,
-            views: video.views || 0,
-            lastViewed: video.last_viewed,
-            createdAt: video.created_at,
-            updatedAt: video.updated_at,
+            id: video.video_id || '',
+            title: video.video_title || 'Unbenanntes Video',
+            views: parseInt(video.views) || 0,
+            lastViewed: video.last_viewed || null,
+            createdAt: video.created_at || null,
+            updatedAt: video.updated_at || null,
             viewHistory: video.view_history || {}
         }));
 
         console.log('📊 Structured Videos:', structuredVideos.length, 'videos');
+        console.log('📊 Total Stats:', totalStats);
+        console.log('📊 Current Stats:', currentStats);
+
+        // Prüfe ob überhaupt Daten vorhanden sind
+        const hasAnyData = structuredVideos.length > 0 || 
+                          (floorStats && floorStats.length > 0) || 
+                          (appStats && appStats.length > 0) ||
+                          Object.values(totalStats).some(val => val > 0);
+
+        if (!hasAnyData) {
+            console.log('📊 Keine Daten vorhanden, sende leere Statistiken');
+        }
 
         return res.status(200).json({
             success: true,
