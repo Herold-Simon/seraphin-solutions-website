@@ -1096,6 +1096,41 @@
                     borderWidth: 1,
                     textStyle: {
                         color: '#fff'
+                    },
+                    formatter: function(params) {
+                        if (!params || params.length === 0) return '';
+                        
+                        const date = params[0].axisValue;
+                        const dateObj = new Date(date);
+                        const formattedDate = dateObj.toLocaleDateString('de-DE', { 
+                            day: '2-digit', 
+                            month: '2-digit', 
+                            year: 'numeric' 
+                        });
+                        
+                        let result = `<div style="margin-bottom: 5px; font-weight: bold;">${formattedDate}</div>`;
+                        
+                        // Zeige nur Videos mit Aufrufen > 0
+                        params.forEach(param => {
+                            if (param.value > 0) {
+                                result += `<div style="margin: 2px 0;">
+                                    <span style="display: inline-block; width: 10px; height: 10px; background-color: ${param.color}; margin-right: 5px;"></span>
+                                    ${param.seriesName}: ${param.value}
+                                </div>`;
+                            }
+                        });
+                        
+                        return result;
+                    },
+                    // Mobile Optimierung - Tooltip nicht über Bildschirmrand
+                    position: function(point, params, dom, rect, size) {
+                        const obj = { top: 10 };
+                        if (point[0] < size.viewSize[0] / 2) {
+                            obj.left = point[0] + 10;
+                        } else {
+                            obj.right = size.viewSize[0] - point[0] + 10;
+                        }
+                        return obj;
                     }
                 },
                 grid: {
@@ -1283,14 +1318,28 @@
                         }
                     }));
                     
+                    // Erstelle neue Option mit allen Videos
                     const expandedOption = {
-                        ...option,
+                        tooltip: option.tooltip,
+                        grid: option.grid,
                         xAxis: {
-                            ...option.xAxis,
-                            data: allLabels
+                            type: 'category',
+                            data: allLabels,
+                            axisLine: {
+                                show: false
+                            },
+                            axisTick: {
+                                show: false
+                            },
+                            axisLabel: {
+                                color: '#666',
+                                rotate: allLabels.length > 5 ? 45 : 0
+                            }
                         },
+                        yAxis: option.yAxis,
                         series: [{
-                            ...option.series[0],
+                            name: 'Aufrufe',
+                            type: 'bar',
                             data: allData
                         }]
                     };
@@ -1389,6 +1438,41 @@
                     borderWidth: 1,
                     textStyle: {
                         color: '#fff'
+                    },
+                    formatter: function(params) {
+                        if (!params || params.length === 0) return '';
+                        
+                        const date = params[0].axisValue;
+                        const dateObj = new Date(date);
+                        const formattedDate = dateObj.toLocaleDateString('de-DE', { 
+                            day: '2-digit', 
+                            month: '2-digit', 
+                            year: 'numeric' 
+                        });
+                        
+                        let result = `<div style="margin-bottom: 5px; font-weight: bold;">${formattedDate}</div>`;
+                        
+                        // Zeige nur Videos mit Aufrufen > 0
+                        params.forEach(param => {
+                            if (param.value > 0) {
+                                result += `<div style="margin: 2px 0;">
+                                    <span style="display: inline-block; width: 10px; height: 10px; background-color: ${param.color}; margin-right: 5px;"></span>
+                                    ${param.seriesName}: ${param.value}
+                                </div>`;
+                            }
+                        });
+                        
+                        return result;
+                    },
+                    // Mobile Optimierung - Tooltip nicht über Bildschirmrand
+                    position: function(point, params, dom, rect, size) {
+                        const obj = { top: 10 };
+                        if (point[0] < size.viewSize[0] / 2) {
+                            obj.left = point[0] + 10;
+                        } else {
+                            obj.right = size.viewSize[0] - point[0] + 10;
+                        }
+                        return obj;
                     }
                 },
                 legend: {
