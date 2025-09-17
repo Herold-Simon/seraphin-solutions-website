@@ -1199,7 +1199,7 @@
                     const day = date.getDate().toString().padStart(2, '0');
                     const month = (date.getMonth() + 1).toString().padStart(2, '0');
                     const year = date.getFullYear();
-                    timePoints.push(`${day}/${month}/${year}`);
+                    timePoints.push(`${day}.${month}.${year}`);
                 }
                 
                 // Erstelle Series mit simulierten Daten
@@ -1274,33 +1274,31 @@
                 },
                 series: series,
                 tooltip: {
-                    trigger: 'axis',
+                    trigger: 'item',
                     show: true,
                     confine: true, // Begrenzt Tooltip auf Chart-Bereich
                     extraCssText: 'word-wrap: break-word; white-space: nowrap;',
                     formatter: function(params) {
-                        let result = params[0].axisValue + '<br/>';
-                        let hasValidData = false;
+                        if (!params || params.length === 0) return '';
                         
-                        params.forEach((param) => {
-                            if (param.value !== undefined && param.value !== null && param.value > 0) {
-                                let value = param.value;
-                                if (typeof value === 'number') {
-                                    value = Number.isInteger(value) ? value : value.toFixed(2);
-                                }
-                                
-                                // Vereinfache Durchschnittslinie-Beschriftung
-                                let seriesName = param.seriesName;
-                                if (seriesName && seriesName.includes('Durchschnitt')) {
-                                    seriesName = 'Durchschnitt';
-                                }
-                                
-                                result += `${param.marker} ${seriesName}: ${value} Aufrufe<br/>`;
-                                hasValidData = true;
+                        let result = params.axisValue + '<br/>';
+                        
+                        if (params.value !== undefined && params.value !== null && params.value > 0) {
+                            let value = params.value;
+                            if (typeof value === 'number') {
+                                value = Number.isInteger(value) ? value : value.toFixed(2);
                             }
-                        });
+                            
+                            // Vereinfache Durchschnittslinie-Beschriftung
+                            let seriesName = params.seriesName;
+                            if (seriesName && seriesName.includes('Durchschnitt')) {
+                                seriesName = 'Durchschnitt';
+                            }
+                            
+                            result += `${params.marker} ${seriesName}: ${value} Aufrufe`;
+                        }
                         
-                        return hasValidData ? result : '';
+                        return result;
                     }
                 },
                 legend: {
@@ -1446,19 +1444,18 @@
                     }))
                 }],
                 tooltip: {
-                    trigger: 'axis',
+                    trigger: 'item',
                     show: true,
                     confine: true, // Begrenzt Tooltip auf Chart-Bereich
                     extraCssText: 'word-wrap: break-word; white-space: nowrap;',
                     formatter: function(params) {
-                        if (!params || params.length === 0) return '';
-                        const param = params[0];
+                        if (!params) return '';
                         
                         // Finde die vollständige Videobeschreibung für das Tooltip
-                        const videoIndex = param.dataIndex;
+                        const videoIndex = params.dataIndex;
                         const fullVideoTitle = visibleVideos[videoIndex]?.title || visibleVideos[videoIndex]?.video_title || `Video ${videoIndex + 1}`;
                         
-                        return `${fullVideoTitle}: ${param.value} Aufrufe`;
+                        return `${fullVideoTitle}<br/>Aufrufe: ${params.value}`;
                     }
                 },
                 grid: {
@@ -1467,7 +1464,6 @@
                     bottom: '5%',
                     containLabel: true
                 },
-                barWidth: 30,
                 color: getChartColors(),
                 zoom: false
             };
@@ -1690,7 +1686,7 @@
                     const day = date.getDate().toString().padStart(2, '0');
                     const month = (date.getMonth() + 1).toString().padStart(2, '0');
                     const year = date.getFullYear();
-                    timePoints.push(`${day}/${month}/${year}`);
+                    timePoints.push(`${day}.${month}.${year}`);
                 }
                 
                 // Für jedes Video: Kumulierte Aufrufe pro Tag mit simulierten Daten
@@ -1743,33 +1739,31 @@
                 },
                 series,
                 tooltip: {
-                    trigger: 'axis',
+                    trigger: 'item',
                     show: true,
                     confine: true, // Begrenzt Tooltip auf Chart-Bereich
                     extraCssText: 'word-wrap: break-word; white-space: nowrap;',
                     formatter: function(params) {
-                        let result = params[0].axisValue + '<br/>';
-                        let hasValidData = false;
+                        if (!params || params.length === 0) return '';
                         
-                        params.forEach((param) => {
-                            if (param.value !== undefined && param.value !== null && param.value > 0) {
-                                let value = param.value;
-                                if (typeof value === 'number') {
-                                    value = Number.isInteger(value) ? value : value.toFixed(2);
-                                }
-                                
-                                // Vereinfache Durchschnittslinie-Beschriftung
-                                let seriesName = param.seriesName;
-                                if (seriesName && seriesName.includes('Durchschnitt')) {
-                                    seriesName = 'Durchschnitt';
-                                }
-                                
-                                result += `${param.marker} ${seriesName}: ${value} Aufrufe<br/>`;
-                                hasValidData = true;
+                        let result = params.axisValue + '<br/>';
+                        
+                        if (params.value !== undefined && params.value !== null && params.value > 0) {
+                            let value = params.value;
+                            if (typeof value === 'number') {
+                                value = Number.isInteger(value) ? value : value.toFixed(2);
                             }
-                        });
+                            
+                            // Vereinfache Durchschnittslinie-Beschriftung
+                            let seriesName = params.seriesName;
+                            if (seriesName && seriesName.includes('Durchschnitt')) {
+                                seriesName = 'Durchschnitt';
+                            }
+                            
+                            result += `${params.marker} ${seriesName}: ${value} Aufrufe`;
+                        }
                         
-                        return hasValidData ? result : '';
+                        return result;
                     }
                 },
                 legend: {
