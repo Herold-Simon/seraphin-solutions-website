@@ -1352,19 +1352,12 @@
             const visibleVideos = filteredVideos.slice(0, maxVisible);
             const hiddenVideos = filteredVideos.slice(maxVisible);
             
-            // Berechne dynamische Breite basierend auf Anzahl der Balken
-            const calculateChartWidth = (videoCount) => {
-                const minWidth = 600; // Mindestbreite
-                const barWidth = 40; // Feste Balkenbreite
-                const barSpacing = 20; // Abstand zwischen Balken
-                const padding = 100; // Padding links und rechts
-                return Math.max(minWidth, (videoCount * (barWidth + barSpacing)) + padding);
-            };
+            // Berechne dynamische Höhe basierend auf Anzahl der Balken (wie im AdminPanel)
+            const barHeight = 60 * visibleVideos.length + 200;
             
-            // Setze dynamische Breite für den Chart-Container
+            // Setze dynamische Höhe für den Chart-Container
             const chartContainer = document.getElementById('barChartContainer');
-            const currentWidth = calculateChartWidth(visibleVideos.length);
-            chartContainer.style.width = currentWidth + 'px';
+            chartContainer.style.height = barHeight + 'px';
             
             const option = {
                 xAxis: {
@@ -1382,18 +1375,21 @@
                     data: visibleVideos.map((v, idx) => ({
                         value: v.views || 0,
                         itemStyle: { color: getChartColor(idx) }
-                    })),
-                    barWidth: 40, // Feste Balkenbreite in Pixeln
-                    barCategoryGap: '20%', // Fester Abstand zwischen Kategorien
-                    barGap: '20%' // Fester Abstand zwischen Balken
+                    }))
                 }],
                 tooltip: {
                     trigger: 'axis',
                     formatter: function(params) {
                         if (!params || params.length === 0) return '';
                         const param = params[0];
-                        return `${param.name}<br/>Aufrufe: ${param.value}`;
+                        return `${param.name}: ${param.value} Aufrufe`;
                     }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '20%',
+                    containLabel: true
                 },
                 legend: {
                     data: visibleVideos.map((v, idx) => ({
@@ -1437,9 +1433,9 @@
                     z-index: 1000;
                 `;
                 expandButton.onclick = () => {
-                    // Berechne neue Breite für alle Videos
-                    const newWidth = calculateChartWidth(filteredVideos.length);
-                    chartContainer.style.width = newWidth + 'px';
+                    // Berechne neue Höhe für alle Videos (wie im AdminPanel)
+                    const newHeight = 60 * filteredVideos.length + 200;
+                    chartContainer.style.height = newHeight + 'px';
                     
                     // Erstelle erweiterte Version mit allen Videos
                     const allLabels = filteredVideos.map(video => 
@@ -1463,12 +1459,15 @@
                         },
                         series: [{
                             type: 'bar',
-                            data: allData,
-                            barWidth: 40, // Feste Balkenbreite in Pixeln
-                            barCategoryGap: '20%', // Fester Abstand zwischen Kategorien
-                            barGap: '20%' // Fester Abstand zwischen Balken
+                            data: allData
                         }],
                         tooltip: option.tooltip,
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '20%',
+                            containLabel: true
+                        },
                         legend: {
                             data: allLabels.map((label, idx) => ({
                                 name: label,
