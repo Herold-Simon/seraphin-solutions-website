@@ -1352,8 +1352,8 @@
             const visibleVideos = filteredVideos.slice(0, maxVisible);
             const hiddenVideos = filteredVideos.slice(maxVisible);
             
-            // Berechne dynamische Höhe basierend auf Anzahl der Balken (wie im AdminPanel)
-            const barHeight = 60 * visibleVideos.length + 200;
+            // Berechne dynamische Höhe basierend auf Anzahl der Balken - nur für den Inhalt
+            const barHeight = 50 * visibleVideos.length + 120; // Reduzierte Höhe pro Balken und weniger Padding
             
             // Setze dynamische Höhe für den Chart-Container
             const chartContainer = document.getElementById('barChartContainer');
@@ -1388,7 +1388,7 @@
                 grid: {
                     left: '3%',
                     right: '4%',
-                    bottom: '20%',
+                    bottom: '15%',
                     containLabel: true
                 },
                 legend: {
@@ -1433,8 +1433,8 @@
                     z-index: 1000;
                 `;
                 expandButton.onclick = () => {
-                    // Berechne neue Höhe für alle Videos (wie im AdminPanel)
-                    const newHeight = 60 * filteredVideos.length + 200;
+                    // Berechne neue Höhe für alle Videos - nur für den Inhalt
+                    const newHeight = 50 * filteredVideos.length + 120; // Reduzierte Höhe pro Balken und weniger Padding
                     chartContainer.style.height = newHeight + 'px';
                     
                     // Erstelle erweiterte Version mit allen Videos
@@ -1465,7 +1465,7 @@
                         grid: {
                             left: '3%',
                             right: '4%',
-                            bottom: '20%',
+                            bottom: '15%',
                             containLabel: true
                         },
                         legend: {
