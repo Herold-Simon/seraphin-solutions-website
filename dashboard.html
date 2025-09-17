@@ -1288,7 +1288,14 @@
                                 if (typeof value === 'number') {
                                     value = Number.isInteger(value) ? value : value.toFixed(2);
                                 }
-                                result += `${param.marker} ${param.seriesName}: ${value} Aufrufe<br/>`;
+                                
+                                // Vereinfache Durchschnittslinie-Beschriftung
+                                let seriesName = param.seriesName;
+                                if (seriesName && seriesName.includes('Durchschnitt')) {
+                                    seriesName = 'Durchschnitt';
+                                }
+                                
+                                result += `${param.marker} ${seriesName}: ${value} Aufrufe<br/>`;
                                 hasValidData = true;
                             }
                         });
@@ -1446,7 +1453,12 @@
                     formatter: function(params) {
                         if (!params || params.length === 0) return '';
                         const param = params[0];
-                        return `${param.name}: ${param.value} Aufrufe`;
+                        
+                        // Finde die vollständige Videobeschreibung für das Tooltip
+                        const videoIndex = param.dataIndex;
+                        const fullVideoTitle = visibleVideos[videoIndex]?.title || visibleVideos[videoIndex]?.video_title || `Video ${videoIndex + 1}`;
+                        
+                        return `${fullVideoTitle}: ${param.value} Aufrufe`;
                     }
                 },
                 grid: {
@@ -1455,6 +1467,7 @@
                     bottom: '5%',
                     containLabel: true
                 },
+                barWidth: 60,
                 color: getChartColors(),
                 zoom: false
             };
@@ -1744,7 +1757,14 @@
                                 if (typeof value === 'number') {
                                     value = Number.isInteger(value) ? value : value.toFixed(2);
                                 }
-                                result += `${param.marker} ${param.seriesName}: ${value} Aufrufe<br/>`;
+                                
+                                // Vereinfache Durchschnittslinie-Beschriftung
+                                let seriesName = param.seriesName;
+                                if (seriesName && seriesName.includes('Durchschnitt')) {
+                                    seriesName = 'Durchschnitt';
+                                }
+                                
+                                result += `${param.marker} ${seriesName}: ${value} Aufrufe<br/>`;
                                 hasValidData = true;
                             }
                         });
