@@ -1352,6 +1352,20 @@
             const visibleVideos = filteredVideos.slice(0, maxVisible);
             const hiddenVideos = filteredVideos.slice(maxVisible);
             
+            // Berechne dynamische Höhe basierend auf Anzahl der Balken
+            const calculateChartHeight = (videoCount) => {
+                const minHeight = 200; // Mindesthöhe
+                const barHeight = 50; // Höhe pro Balken
+                const legendHeight = 80; // Platz für Legende
+                const padding = 40; // Zusätzlicher Padding
+                return Math.max(minHeight, (videoCount * barHeight) + legendHeight + padding);
+            };
+            
+            // Setze dynamische Höhe für den Chart-Container
+            const chartContainer = document.getElementById('barChartContainer');
+            const currentHeight = calculateChartHeight(visibleVideos.length);
+            chartContainer.style.height = currentHeight + 'px';
+            
             const option = {
                 xAxis: {
                     type: 'value',
@@ -1369,7 +1383,7 @@
                         value: v.views || 0,
                         itemStyle: { color: getChartColor(idx) }
                     })),
-                    barWidth: 40 // Feste Balkenbreite in Pixeln
+                    barWidth: Math.max(20, Math.min(50, 300 / visibleVideos.length)) // Dynamische Balkenbreite
                 }],
                 tooltip: {
                     trigger: 'axis',
@@ -1414,6 +1428,10 @@
                     z-index: 1000;
                 `;
                 expandButton.onclick = () => {
+                    // Berechne neue Höhe für alle Videos
+                    const newHeight = calculateChartHeight(filteredVideos.length);
+                    chartContainer.style.height = newHeight + 'px';
+                    
                     // Erstelle erweiterte Version mit allen Videos
                     const allLabels = filteredVideos.map(video => 
                         video.title || video.video_title || 'Unbenanntes Video'
@@ -1437,7 +1455,7 @@
                         series: [{
                             type: 'bar',
                             data: allData,
-                            barWidth: 40
+                            barWidth: Math.max(20, Math.min(50, 300 / filteredVideos.length)) // Dynamische Balkenbreite
                         }],
                         tooltip: option.tooltip,
                         legend: {
