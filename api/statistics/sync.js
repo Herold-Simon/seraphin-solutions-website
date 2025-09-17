@@ -33,7 +33,8 @@ module.exports = async function handler(req, res) {
         const {
             admin_user_id,
             statistics,
-            csv_data
+            csv_data,
+            device_id
         } = req.body;
 
         console.log('📊 Sync data:', { admin_user_id, statisticsKeys: Object.keys(statistics || {}) });
@@ -43,7 +44,7 @@ module.exports = async function handler(req, res) {
             return res.status(400).json({ success: false, error: 'Admin-Benutzer-ID und Statistiken sind erforderlich' });
         }
 
-        // Prüfe ob Admin-Benutzer existiert
+        // Prüfe ob Admin-Benutzer existiert und aktualisiere Geräte-ID
         const { data: adminUser } = await supabase
             .from('admin_users')
             .select('id')
@@ -52,6 +53,21 @@ module.exports = async function handler(req, res) {
 
         if (!adminUser) {
             return res.status(404).json({ error: 'Admin-Benutzer nicht gefunden' });
+        }
+
+        // Aktualisiere Geräte-ID falls vorhanden
+        if (device_id) {
+            console.log('📱 Updating device ID for admin user:', admin_user_id, 'to:', device_id);
+            const { error: deviceUpdateError } = await supabase
+                .from('admin_users')
+                .update({ device_id: device_id })
+                .eq('id', admin_user_id);
+
+            if (deviceUpdateError) {
+                console.error('❌ Error updating device ID:', deviceUpdateError);
+            } else {
+                console.log('✅ Device ID updated successfully');
+            }
         }
 
         // Synchronisiere App-Statistiken

@@ -675,6 +675,9 @@
                         </div>
                         <div class="stat-number" id="totalViews">0</div>
                         <div class="stat-label">Gesamte Aufrufe</div>
+                        <div class="device-id-display" id="deviceIdDisplay1" style="display: none;">
+                            <small style="color: var(--text-light); font-size: 0.8rem;">Geräte-ID: <span id="deviceId1"></span></small>
+                        </div>
                     </div>
                     
                     <div class="stat-card">
@@ -683,6 +686,9 @@
                         </div>
                         <div class="stat-number" id="videosWithViews">0</div>
                         <div class="stat-label">Videos mit Aufrufen</div>
+                        <div class="device-id-display" id="deviceIdDisplay2" style="display: none;">
+                            <small style="color: var(--text-light); font-size: 0.8rem;">Geräte-ID: <span id="deviceId2"></span></small>
+                        </div>
                     </div>
                 </div>
 
@@ -1007,6 +1013,32 @@
                 const videosWithViewsElement = document.getElementById('videosWithViews');
                 if (videosWithViewsElement) {
                     videosWithViewsElement.textContent = videosWithViews.toLocaleString('de-DE');
+                }
+                
+                // Zeige Geräte-ID an, falls verfügbar
+                const deviceId = statistics.device_id;
+                if (deviceId) {
+                    const deviceIdDisplay1 = document.getElementById('deviceIdDisplay1');
+                    const deviceIdDisplay2 = document.getElementById('deviceIdDisplay2');
+                    const deviceId1 = document.getElementById('deviceId1');
+                    const deviceId2 = document.getElementById('deviceId2');
+                    
+                    if (deviceIdDisplay1 && deviceId1) {
+                        deviceId1.textContent = deviceId;
+                        deviceIdDisplay1.style.display = 'block';
+                    }
+                    
+                    if (deviceIdDisplay2 && deviceId2) {
+                        deviceId2.textContent = deviceId;
+                        deviceIdDisplay2.style.display = 'block';
+                    }
+                } else {
+                    // Verstecke Geräte-ID-Anzeige, falls nicht verfügbar
+                    const deviceIdDisplay1 = document.getElementById('deviceIdDisplay1');
+                    const deviceIdDisplay2 = document.getElementById('deviceIdDisplay2');
+                    
+                    if (deviceIdDisplay1) deviceIdDisplay1.style.display = 'none';
+                    if (deviceIdDisplay2) deviceIdDisplay2.style.display = 'none';
                 }
                 
                 // Zusätzliche Statistiken anzeigen, falls Elemente existieren

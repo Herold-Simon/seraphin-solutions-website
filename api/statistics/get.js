@@ -159,6 +159,19 @@ module.exports = async function handler(req, res) {
         const adminUserId = session.website_users.admin_user_id;
         console.log('Statistics API - Loading data for admin_user_id:', adminUserId);
 
+        // Hole Admin-User-Daten für Geräte-ID
+        const { data: adminUser, error: adminUserError } = await supabase
+            .from('admin_users')
+            .select('device_id')
+            .eq('id', adminUserId)
+            .single();
+
+        if (adminUserError) {
+            console.error('❌ Admin user query error:', adminUserError);
+        } else {
+            console.log('📱 Device ID for admin user:', adminUser?.device_id);
+        }
+
         // Hole App-Statistiken
         const { data: appStats } = await supabase
             .from('app_statistics')
@@ -246,7 +259,8 @@ module.exports = async function handler(req, res) {
                 total: totalStats,
                 videos: structuredVideos,
                 floors: floorStats || [],
-                history: appStats || []
+                history: appStats || [],
+                device_id: adminUser?.device_id || null
             }
         });
 
