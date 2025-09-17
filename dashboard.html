@@ -1119,7 +1119,7 @@
                 // Fallback: Verwende simulierte Daten basierend auf Gesamtaufrufen
                 console.log('📈 Using simulated data (no viewHistory available)');
                 
-                // Erstelle Zeitpunkte basierend auf ausgewähltem Zeitraum
+                // Erstelle Zeitpunkte basierend auf ausgewähltem Zeitraum mit Offset
                 const today = new Date();
                 let daysToShow = 7; // Standard
                 
@@ -1136,9 +1136,13 @@
                     daysToShow = 365;
                 }
                 
-                for (let i = daysToShow - 1; i >= 0; i--) {
+                // Füge Offset-Tage hinzu (2 Tage auf beiden Seiten)
+                const offsetDays = 2;
+                const totalDays = daysToShow + (offsetDays * 2);
+                
+                for (let i = totalDays - 1; i >= 0; i--) {
                     const date = new Date(today);
-                    date.setDate(date.getDate() - i);
+                    date.setDate(date.getDate() - i + offsetDays); // Verschiebe um Offset nach rechts
                     const day = date.getDate().toString().padStart(2, '0');
                     const month = (date.getMonth() + 1).toString().padStart(2, '0');
                     const year = date.getFullYear();
@@ -1150,6 +1154,10 @@
                     const totalViews = video.views || 0;
                     const dailyViews = Math.round(totalViews / daysToShow);
                     const data = timePoints.map((date, dayIndex) => {
+                        // In den Offset-Bereichen (erste und letzte 2 Tage) keine Aufrufe
+                        if (dayIndex < offsetDays || dayIndex >= timePoints.length - offsetDays) {
+                            return 0;
+                        }
                         const variation = Math.random() * 0.4 + 0.8; // 80-120% der Durchschnittsaufrufe
                         return Math.round(dailyViews * variation);
                     });
@@ -1171,6 +1179,10 @@
                 
                 // Berechne Durchschnittslinie mit simulierten Daten
                 averageData = timePoints.map((date, idx) => {
+                    // In den Offset-Bereichen (erste und letzte 2 Tage) keine Aufrufe
+                    if (idx < offsetDays || idx >= timePoints.length - offsetDays) {
+                        return 0;
+                    }
                     const totalViews = filteredVideos.reduce((sum, video) => {
                         const totalViews = video.views || 0;
                         const dailyViews = Math.round(totalViews / daysToShow);
@@ -1577,7 +1589,7 @@
                 // Fallback: Verwende simulierte Daten
                 console.log('🏁 Using simulated data for Line Race (no viewHistory available)');
                 
-                // Erstelle Zeitpunkte basierend auf ausgewähltem Zeitraum
+                // Erstelle Zeitpunkte basierend auf ausgewähltem Zeitraum mit Offset
                 const today = new Date();
                 let daysToShow = 7; // Standard
                 
@@ -1594,9 +1606,13 @@
                     daysToShow = 365;
                 }
                 
-                for (let i = daysToShow - 1; i >= 0; i--) {
+                // Füge Offset-Tage hinzu (2 Tage auf beiden Seiten)
+                const offsetDays = 2;
+                const totalDays = daysToShow + (offsetDays * 2);
+                
+                for (let i = totalDays - 1; i >= 0; i--) {
                     const date = new Date(today);
-                    date.setDate(date.getDate() - i);
+                    date.setDate(date.getDate() - i + offsetDays); // Verschiebe um Offset nach rechts
                     const day = date.getDate().toString().padStart(2, '0');
                     const month = (date.getMonth() + 1).toString().padStart(2, '0');
                     const year = date.getFullYear();
@@ -1614,6 +1630,10 @@
                         
                         // Berechne kumulierte Aufrufe bis zu diesem Tag
                         for (let i = 0; i <= dayIndex; i++) {
+                            // In den Offset-Bereichen (erste und letzte 2 Tage) keine Aufrufe
+                            if (i < offsetDays || i >= timePoints.length - offsetDays) {
+                                continue; // Überspringe Offset-Tage
+                            }
                             const variation = Math.random() * 0.4 + 0.8; // 80-120% der Durchschnittsaufrufe
                             cumulativeViews += Math.round(dailyViews * variation);
                         }
@@ -1875,14 +1895,27 @@
                     startDate.setDate(lastDate.getDate() - 364); // 365 Tage inklusive letzter Tag
                 }
                 
-                const timePoints = sortedDates.filter(date => {
-                    const dateObj = new Date(date);
-                    return dateObj >= startDate;
-                });
+                // Erweitere den Zeitraum um Offset-Tage links und rechts
+                const offsetDays = 2; // 2 Tage Offset auf beiden Seiten
+                const extendedStartDate = new Date(startDate);
+                extendedStartDate.setDate(extendedStartDate.getDate() - offsetDays);
+                
+                const extendedEndDate = new Date(lastDate);
+                extendedEndDate.setDate(extendedEndDate.getDate() + offsetDays);
+                
+                // Erstelle erweiterte Zeitpunkte mit Offset
+                const extendedTimePoints = [];
+                const currentDate = new Date(extendedStartDate);
+                
+                while (currentDate <= extendedEndDate) {
+                    const dateString = currentDate.toISOString().split('T')[0];
+                    extendedTimePoints.push(dateString);
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
                 
                 return {
-                    startDate: startDate,
-                    timePoints: timePoints,
+                    startDate: extendedStartDate,
+                    timePoints: extendedTimePoints,
                     addEndOffset: false
                 };
             }
