@@ -1383,7 +1383,9 @@
                         value: v.views || 0,
                         itemStyle: { color: getChartColor(idx) }
                     })),
-                    barWidth: 40 // Feste Balkenbreite in Pixeln
+                    barWidth: 40, // Feste Balkenbreite in Pixeln
+                    barCategoryGap: '20%', // Fester Abstand zwischen Kategorien
+                    barGap: '20%' // Fester Abstand zwischen Balken
                 }],
                 tooltip: {
                     trigger: 'axis',
@@ -1462,7 +1464,9 @@
                         series: [{
                             type: 'bar',
                             data: allData,
-                            barWidth: 40 // Feste Balkenbreite in Pixeln
+                            barWidth: 40, // Feste Balkenbreite in Pixeln
+                            barCategoryGap: '20%', // Fester Abstand zwischen Kategorien
+                            barGap: '20%' // Fester Abstand zwischen Balken
                         }],
                         tooltip: option.tooltip,
                         legend: {
