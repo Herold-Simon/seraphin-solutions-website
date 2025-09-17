@@ -835,19 +835,6 @@
         // Dashboard laden
         async function loadDashboard() {
             try {
-                // Debug: Session-Informationen abrufen
-                console.log('🔍 Debug: Lade Session-Informationen...');
-                const debugResponse = await fetch('/api/debug-session', {
-                    method: 'GET',
-                    credentials: 'include'
-                });
-                
-                if (debugResponse.ok) {
-                    const debugData = await debugResponse.json();
-                    console.log('🔍 Debug Session Info:', debugData.debug);
-                } else {
-                    console.log('🔍 Debug Session Info nicht verfügbar:', debugResponse.status);
-                }
                 
                 // Erst prüfen, ob wir eine gültige Session haben
                 console.log('🔍 Starte Session-Verifikation...');
@@ -2257,18 +2244,8 @@
                     csvDownloadStatus.style.color = 'var(--primary-blue)';
                 }
                 
-                // Hole Admin-User-ID aus der Session
-                const sessionResponse = await fetch('/api/debug-session', {
-                    method: 'GET',
-                    credentials: 'include'
-                });
-                
-                if (!sessionResponse.ok) {
-                    throw new Error('Session nicht verfügbar');
-                }
-                
-                const sessionData = await sessionResponse.json();
-                let adminUserId = sessionData.admin_user_id;
+                // Hole Admin-User-ID aus den Statistiken
+                let adminUserId = null;
                 
                 // Fallback: Admin-User-ID aus Statistiken verwenden
                 if (!adminUserId && statistics && statistics.current) {
