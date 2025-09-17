@@ -82,56 +82,81 @@ module.exports = async function handler(req, res) {
 
         // Username ändern
         if (username) {
+            console.log('🔍 Username-Update gestartet:', { 
+                currentUsername: adminUser.username, 
+                newUsername: username, 
+                adminUserId: adminUserId 
+            });
+
             if (username === adminUser.username) {
                 return res.status(400).json({ error: 'Der neue Benutzername muss sich vom aktuellen unterscheiden' });
             }
 
             // Prüfe ob Username bereits existiert
-            const { data: existingUser } = await supabase
+            const { data: existingUser, error: existingUserError } = await supabase
                 .from('admin_users')
                 .select('id')
                 .eq('username', username)
                 .neq('id', adminUserId)
                 .single();
 
+            if (existingUserError && existingUserError.code !== 'PGRST116') {
+                console.error('❌ Fehler beim Prüfen existierender Username:', existingUserError);
+                return res.status(500).json({ error: 'Fehler beim Prüfen des Benutzernamens' });
+            }
+
             if (existingUser) {
                 return res.status(409).json({ error: 'Benutzername bereits vergeben' });
             }
 
             // Aktualisiere Admin-User
-            const { error: adminUpdateError } = await supabase
+            console.log('🔍 Aktualisiere Admin-User...');
+            const { data: updatedAdminUser, error: adminUpdateError } = await supabase
                 .from('admin_users')
                 .update({ 
                     username: username,
                     full_name: username
                 })
-                .eq('id', adminUserId);
+                .eq('id', adminUserId)
+                .select()
+                .single();
 
             if (adminUpdateError) {
-                console.error('Admin user update error:', adminUpdateError);
-                return res.status(500).json({ error: 'Fehler beim Aktualisieren des Admin-Users' });
+                console.error('❌ Admin user update error:', adminUpdateError);
+                return res.status(500).json({ error: 'Fehler beim Aktualisieren des Admin-Users: ' + adminUpdateError.message });
             }
 
+            console.log('✅ Admin-User aktualisiert:', updatedAdminUser);
+
             // Aktualisiere Website-User
-            const { error: websiteUpdateError } = await supabase
+            console.log('🔍 Aktualisiere Website-User...');
+            const { data: updatedWebsiteUser, error: websiteUpdateError } = await supabase
                 .from('website_users')
                 .update({ 
                     username: username,
                     full_name: username
                 })
-                .eq('admin_user_id', adminUserId);
+                .eq('admin_user_id', adminUserId)
+                .select()
+                .single();
 
             if (websiteUpdateError) {
-                console.error('Website user update error:', websiteUpdateError);
-                return res.status(500).json({ error: 'Fehler beim Aktualisieren des Website-Users' });
+                console.error('❌ Website user update error:', websiteUpdateError);
+                return res.status(500).json({ error: 'Fehler beim Aktualisieren des Website-Users: ' + websiteUpdateError.message });
             }
 
+            console.log('✅ Website-User aktualisiert:', updatedWebsiteUser);
             console.log('✅ Username erfolgreich geändert für Admin-User-ID:', adminUserId);
 
             return res.status(200).json({
                 success: true,
                 message: 'Benutzername erfolgreich geändert',
-                username: username
+                username: username,
+                debug: {
+                    adminUserId: adminUserId,
+                    updatedAdminUser: updatedAdminUser,
+                    updatedWebsiteUser: updatedWebsiteUser
+                }
             });
         }
 
