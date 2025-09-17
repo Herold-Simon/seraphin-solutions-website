@@ -573,7 +573,7 @@
 
         /* Fester Tooltip-Container */
         .fixed-tooltip {
-            position: fixed;
+            position: absolute;
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
@@ -582,7 +582,7 @@
             padding: 12px 16px;
             border-radius: 8px;
             font-size: 14px;
-            z-index: 10000;
+            z-index: 1000;
             max-width: 300px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             pointer-events: none;
@@ -670,12 +670,11 @@
             
             <div id="errorMessage" class="error-message" style="display: none;"></div>
             
-            <!-- Fester Tooltip-Container -->
-            <div id="fixedTooltip" class="fixed-tooltip" style="display: none;">
-                <div class="tooltip-content"></div>
-            </div>
-            
-            <div id="dashboardContent" style="display: none;">
+            <div id="dashboardContent" style="display: none; position: relative;">
+                <!-- Fester Tooltip-Container -->
+                <div id="fixedTooltip" class="fixed-tooltip" style="display: none;">
+                    <div class="tooltip-content"></div>
+                </div>
                 <!-- Statistiken-Übersicht -->
                 <div class="stats-overview">
                     <div class="stat-card">
@@ -1283,7 +1282,7 @@
                 series: series,
                 tooltip: {
                     trigger: 'axis',
-                    show: false, // Deaktiviere Standard-Tooltip
+                    show: true, // Aktiviere Standard-Tooltip für Events
                     formatter: function(params) {
                         let result = params[0].axisValue + '<br/>';
                         let hasValidData = false;
@@ -1334,7 +1333,7 @@
             charts.lineChart.setOption(option);
             
             // Event-Listener für festen Tooltip (Desktop und Mobile)
-            charts.lineChart.on('mouseover', function(params) {
+            charts.lineChart.on('showTip', function(params) {
                 let content = params.axisValue + '<br/>';
                 if (params.value !== undefined && params.value !== null && params.value > 0) {
                     let value = params.value;
@@ -1346,24 +1345,7 @@
                 showFixedTooltip(content);
             });
             
-            charts.lineChart.on('mouseout', function() {
-                hideFixedTooltip();
-            });
-            
-            // Touch-Events für Mobile
-            charts.lineChart.on('touchstart', function(params) {
-                let content = params.axisValue + '<br/>';
-                if (params.value !== undefined && params.value !== null && params.value > 0) {
-                    let value = params.value;
-                    if (typeof value === 'number') {
-                        value = Number.isInteger(value) ? value : value.toFixed(2);
-                    }
-                    content += `${params.marker} ${params.seriesName}: ${value} Aufrufe`;
-                }
-                showFixedTooltip(content);
-            });
-            
-            charts.lineChart.on('touchend', function() {
+            charts.lineChart.on('hideTip', function() {
                 hideFixedTooltip();
             });
             
@@ -1479,7 +1461,7 @@
                 }],
                 tooltip: {
                     trigger: 'axis',
-                    show: false, // Deaktiviere Standard-Tooltip
+                    show: true, // Aktiviere Standard-Tooltip für Events
                     formatter: function(params) {
                         if (!params || params.length === 0) return '';
                         const param = params[0];
@@ -1500,22 +1482,12 @@
             charts.barChart.setOption(option);
             
             // Event-Listener für festen Tooltip (Desktop und Mobile)
-            charts.barChart.on('mouseover', function(params) {
+            charts.barChart.on('showTip', function(params) {
                 const content = `${params.name}: ${params.value} Aufrufe`;
                 showFixedTooltip(content);
             });
             
-            charts.barChart.on('mouseout', function() {
-                hideFixedTooltip();
-            });
-            
-            // Touch-Events für Mobile
-            charts.barChart.on('touchstart', function(params) {
-                const content = `${params.name}: ${params.value} Aufrufe`;
-                showFixedTooltip(content);
-            });
-            
-            charts.barChart.on('touchend', function() {
+            charts.barChart.on('hideTip', function() {
                 hideFixedTooltip();
             });
             
@@ -1587,22 +1559,13 @@
                     charts.barChart.setOption(expandedOption);
                     
                     // Event-Listener für festen Tooltip (erweiterte Version)
-                    charts.barChart.off('mouseover');
-                    charts.barChart.off('mouseout');
-                    charts.barChart.off('touchstart');
-                    charts.barChart.off('touchend');
-                    charts.barChart.on('mouseover', function(params) {
+                    charts.barChart.off('showTip');
+                    charts.barChart.off('hideTip');
+                    charts.barChart.on('showTip', function(params) {
                         const content = `${params.name}: ${params.value} Aufrufe`;
                         showFixedTooltip(content);
                     });
-                    charts.barChart.on('mouseout', function() {
-                        hideFixedTooltip();
-                    });
-                    charts.barChart.on('touchstart', function(params) {
-                        const content = `${params.name}: ${params.value} Aufrufe`;
-                        showFixedTooltip(content);
-                    });
-                    charts.barChart.on('touchend', function() {
+                    charts.barChart.on('hideTip', function() {
                         hideFixedTooltip();
                     });
                     
@@ -1806,7 +1769,7 @@
                 series,
                 tooltip: {
                     trigger: 'axis',
-                    show: false, // Deaktiviere Standard-Tooltip
+                    show: true, // Aktiviere Standard-Tooltip für Events
                     formatter: function(params) {
                         let result = params[0].axisValue + '<br/>';
                         let hasValidData = false;
@@ -1854,7 +1817,7 @@
             charts.lineRaceChart.setOption(option);
             
             // Event-Listener für festen Tooltip (Desktop und Mobile)
-            charts.lineRaceChart.on('mouseover', function(params) {
+            charts.lineRaceChart.on('showTip', function(params) {
                 let content = params.axisValue + '<br/>';
                 if (params.value !== undefined && params.value !== null && params.value > 0) {
                     let value = params.value;
@@ -1866,24 +1829,7 @@
                 showFixedTooltip(content);
             });
             
-            charts.lineRaceChart.on('mouseout', function() {
-                hideFixedTooltip();
-            });
-            
-            // Touch-Events für Mobile
-            charts.lineRaceChart.on('touchstart', function(params) {
-                let content = params.axisValue + '<br/>';
-                if (params.value !== undefined && params.value !== null && params.value > 0) {
-                    let value = params.value;
-                    if (typeof value === 'number') {
-                        value = Number.isInteger(value) ? value : value.toFixed(2);
-                    }
-                    content += `${params.marker} ${params.seriesName}: ${value} Aufrufe`;
-                }
-                showFixedTooltip(content);
-            });
-            
-            charts.lineRaceChart.on('touchend', function() {
+            charts.lineRaceChart.on('hideTip', function() {
                 hideFixedTooltip();
             });
             
@@ -2013,7 +1959,7 @@
                 },
                 tooltip: {
                     trigger: 'item',
-                    show: false, // Deaktiviere Standard-Tooltip
+                    show: true, // Aktiviere Standard-Tooltip für Events
                     formatter: function(params) {
                         const total = filteredVideos.reduce((sum, v) => sum + (v.views || 0), 0);
                         const percentage = total > 0 ? ((params.value / total) * 100).toFixed(1) : '0';
@@ -2028,26 +1974,14 @@
             charts.pieChart.setOption(option);
             
             // Event-Listener für festen Tooltip (mit vollständigen Video-Titeln)
-            charts.pieChart.on('mouseover', function(params) {
+            charts.pieChart.on('showTip', function(params) {
                 const total = filteredVideos.reduce((sum, v) => sum + (v.views || 0), 0);
                 const percentage = total > 0 ? ((params.value / total) * 100).toFixed(1) : '0';
                 const content = `${params.name}<br/>Aufrufe: ${params.value}<br/>Anteil: ${percentage}%`;
                 showFixedTooltip(content);
             });
             
-            charts.pieChart.on('mouseout', function() {
-                hideFixedTooltip();
-            });
-            
-            // Touch-Events für Mobile
-            charts.pieChart.on('touchstart', function(params) {
-                const total = filteredVideos.reduce((sum, v) => sum + (v.views || 0), 0);
-                const percentage = total > 0 ? ((params.value / total) * 100).toFixed(1) : '0';
-                const content = `${params.name}<br/>Aufrufe: ${params.value}<br/>Anteil: ${percentage}%`;
-                showFixedTooltip(content);
-            });
-            
-            charts.pieChart.on('touchend', function() {
+            charts.pieChart.on('hideTip', function() {
                 hideFixedTooltip();
             });
         }
