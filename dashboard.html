@@ -1119,9 +1119,10 @@
                 // Fallback: Verwende simulierte Daten basierend auf Gesamtaufrufen
                 console.log('📈 Using simulated data (no viewHistory available)');
                 
-                // Erstelle Zeitpunkte basierend auf ausgewähltem Zeitraum mit Offset
+                // Erstelle Zeitpunkte basierend auf ausgewähltem Zeitraum
                 const today = new Date();
                 let daysToShow = 7; // Standard
+                let offsetDays = 0; // Kein Offset für spezifische Zeiträume
                 
                 if (currentTimeRange === '7') {
                     daysToShow = 7;
@@ -1132,12 +1133,11 @@
                 } else if (currentTimeRange === '365') {
                     daysToShow = 365;
                 } else {
-                    // Alle Zeit - zeige 365 Tage als Maximum
+                    // Alle Zeit - zeige 365 Tage als Maximum mit Offset
                     daysToShow = 365;
+                    offsetDays = 2; // Offset nur bei "Alle Zeit"
                 }
                 
-                // Füge Offset-Tage hinzu (2 Tage auf beiden Seiten)
-                const offsetDays = 2;
                 const totalDays = daysToShow + (offsetDays * 2);
                 
                 for (let i = totalDays - 1; i >= 0; i--) {
@@ -1575,9 +1575,10 @@
                 // Fallback: Verwende simulierte Daten
                 console.log('🏁 Using simulated data for Line Race (no viewHistory available)');
                 
-                // Erstelle Zeitpunkte basierend auf ausgewähltem Zeitraum mit Offset
+                // Erstelle Zeitpunkte basierend auf ausgewähltem Zeitraum
                 const today = new Date();
                 let daysToShow = 7; // Standard
+                let offsetDays = 0; // Kein Offset für spezifische Zeiträume
                 
                 if (currentTimeRange === '7') {
                     daysToShow = 7;
@@ -1588,12 +1589,11 @@
                 } else if (currentTimeRange === '365') {
                     daysToShow = 365;
                 } else {
-                    // Alle Zeit - zeige 365 Tage als Maximum
+                    // Alle Zeit - zeige 365 Tage als Maximum mit Offset
                     daysToShow = 365;
+                    offsetDays = 2; // Offset nur bei "Alle Zeit"
                 }
                 
-                // Füge Offset-Tage hinzu (2 Tage auf beiden Seiten)
-                const offsetDays = 2;
                 const totalDays = daysToShow + (offsetDays * 2);
                 
                 for (let i = totalDays - 1; i >= 0; i--) {
@@ -1881,27 +1881,15 @@
                     startDate.setDate(lastDate.getDate() - 364); // 365 Tage inklusive letzter Tag
                 }
                 
-                // Erweitere den Zeitraum um Offset-Tage links und rechts
-                const offsetDays = 2; // 2 Tage Offset auf beiden Seiten
-                const extendedStartDate = new Date(startDate);
-                extendedStartDate.setDate(extendedStartDate.getDate() - offsetDays);
-                
-                const extendedEndDate = new Date(lastDate);
-                extendedEndDate.setDate(extendedEndDate.getDate() + offsetDays);
-                
-                // Erstelle erweiterte Zeitpunkte mit Offset
-                const extendedTimePoints = [];
-                const currentDate = new Date(extendedStartDate);
-                
-                while (currentDate <= extendedEndDate) {
-                    const dateString = currentDate.toISOString().split('T')[0];
-                    extendedTimePoints.push(dateString);
-                    currentDate.setDate(currentDate.getDate() + 1);
-                }
+                // Kein Offset für spezifische Zeiträume - nur die exakten Daten
+                const timePoints = sortedDates.filter(date => {
+                    const dateObj = new Date(date);
+                    return dateObj >= startDate;
+                });
                 
                 return {
-                    startDate: extendedStartDate,
-                    timePoints: extendedTimePoints,
+                    startDate: startDate,
+                    timePoints: timePoints,
                     addEndOffset: false
                 };
             }
