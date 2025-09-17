@@ -1366,15 +1366,8 @@
                 },
                 yAxis: {
                     type: 'category',
-                    data: visibleVideos.map(v => v.title || v.video_title || 'Unbenanntes Video'), // Verwende echte Video-Namen
-                    axisLabel: { 
-                        color: '#666', 
-                        fontSize: 14,
-                        formatter: function(value) {
-                            // Kürze lange Namen für bessere Lesbarkeit
-                            return value.length > 20 ? value.substring(0, 17) + '...' : value;
-                        }
-                    },
+                    data: visibleVideos.map((v, idx) => `Video ${idx + 1}`), // Verwende generische Labels
+                    axisLabel: { color: '#666', fontSize: 16 },
                     inverse: true
                 },
                 series: [{
@@ -1383,7 +1376,7 @@
                         value: v.views || 0,
                         itemStyle: { color: getChartColor(idx) }
                     })),
-                    barWidth: Math.max(20, Math.min(60, 400 / visibleVideos.length)) // Dynamische Balkenbreite basierend auf Anzahl der Videos
+                    barWidth: 40 // Feste Balkenbreite in Pixeln
                 }],
                 tooltip: {
                     trigger: 'axis',
@@ -1444,21 +1437,14 @@
                         xAxis: option.xAxis,
                         yAxis: {
                             type: 'category',
-                            data: allLabels, // Verwende echte Video-Namen
-                            axisLabel: { 
-                                color: '#666', 
-                                fontSize: 12,
-                                formatter: function(value) {
-                                    // Kürze lange Namen für bessere Lesbarkeit
-                                    return value.length > 25 ? value.substring(0, 22) + '...' : value;
-                                }
-                            },
+                            data: allLabels.map((label, idx) => `Video ${idx + 1}`), // Verwende generische Labels
+                            axisLabel: { color: '#666', fontSize: 16 },
                             inverse: true
                         },
                         series: [{
                             type: 'bar',
                             data: allData,
-                            barWidth: Math.max(15, Math.min(50, 400 / allData.length)) // Dynamische Balkenbreite für erweiterte Ansicht
+                            barWidth: 40
                         }],
                         tooltip: option.tooltip,
                         legend: {
