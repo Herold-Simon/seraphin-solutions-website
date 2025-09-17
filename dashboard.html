@@ -570,27 +570,24 @@
                 margin-bottom: 0.5rem;
             }
         }
-
-        /* Fester Tooltip-Container */
-        .fixed-tooltip {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            z-index: 1000;
-            max-width: 300px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            pointer-events: none;
+        
+        /* Tooltip-Optimierungen für mobile Geräte */
+        @media (max-width: 768px) {
+            .echarts-tooltip {
+                max-width: 200px !important;
+                font-size: 12px !important;
+                padding: 8px !important;
+            }
         }
         
-        .tooltip-content {
-            text-align: center;
+        @media (max-width: 480px) {
+            .echarts-tooltip {
+                max-width: 150px !important;
+                font-size: 11px !important;
+                padding: 6px !important;
+            }
         }
+
         
         /* CSV Download Button Styles */
         .csv-download-section {
@@ -670,11 +667,7 @@
             
             <div id="errorMessage" class="error-message" style="display: none;"></div>
             
-            <div id="dashboardContent" style="display: none; position: relative;">
-                <!-- Fester Tooltip-Container -->
-                <div id="fixedTooltip" class="fixed-tooltip" style="display: none;">
-                    <div class="tooltip-content"></div>
-                </div>
+            <div id="dashboardContent" style="display: none;">
                 <!-- Statistiken-Übersicht -->
                 <div class="stats-overview">
                     <div class="stat-card">
@@ -734,7 +727,7 @@
                     <!-- Balkendiagramm (wie in der App) -->
                     <div class="chart-card">
                         <div class="chart-header" onclick="toggleChart('barChart')">
-                            <h3 class="chart-title">Top Videos mit Aufrufen im ausgewählten Zeitraum - Balkendiagramm</h3>
+                            <h3 class="chart-title">Balkendiagramm</h3>
                             <span class="chart-toggle" id="barChartToggle">▶</span>
                         </div>
                         <div class="chart-container bar-chart" id="barChartContainer">
@@ -1282,7 +1275,9 @@
                 series: series,
                 tooltip: {
                     trigger: 'axis',
-                    show: true, // Aktiviere Standard-Tooltip für Events
+                    show: true,
+                    confine: true, // Begrenzt Tooltip auf Chart-Bereich
+                    extraCssText: 'max-width: 250px; word-wrap: break-word;',
                     formatter: function(params) {
                         let result = params[0].axisValue + '<br/>';
                         let hasValidData = false;
@@ -1332,22 +1327,6 @@
             charts.lineChart = echarts.init(chartElement);
             charts.lineChart.setOption(option);
             
-            // Event-Listener für festen Tooltip (Desktop und Mobile)
-            charts.lineChart.on('showTip', function(params) {
-                let content = params.axisValue + '<br/>';
-                if (params.value !== undefined && params.value !== null && params.value > 0) {
-                    let value = params.value;
-                    if (typeof value === 'number') {
-                        value = Number.isInteger(value) ? value : value.toFixed(2);
-                    }
-                    content += `${params.marker} ${params.seriesName}: ${value} Aufrufe`;
-                }
-                showFixedTooltip(content);
-            });
-            
-            charts.lineChart.on('hideTip', function() {
-                hideFixedTooltip();
-            });
             
             // Chart nach Initialisierung neu zeichnen
             setTimeout(() => {
@@ -1461,7 +1440,9 @@
                 }],
                 tooltip: {
                     trigger: 'axis',
-                    show: true, // Aktiviere Standard-Tooltip für Events
+                    show: true,
+                    confine: true, // Begrenzt Tooltip auf Chart-Bereich
+                    extraCssText: 'max-width: 250px; word-wrap: break-word;',
                     formatter: function(params) {
                         if (!params || params.length === 0) return '';
                         const param = params[0];
@@ -1481,15 +1462,6 @@
             charts.barChart = echarts.init(chartElement);
             charts.barChart.setOption(option);
             
-            // Event-Listener für festen Tooltip (Desktop und Mobile)
-            charts.barChart.on('showTip', function(params) {
-                const content = `${params.name}: ${params.value} Aufrufe`;
-                showFixedTooltip(content);
-            });
-            
-            charts.barChart.on('hideTip', function() {
-                hideFixedTooltip();
-            });
             
             // Resize das Chart, um die neue Breite zu berücksichtigen
             setTimeout(() => {
@@ -1558,16 +1530,6 @@
                     
                     charts.barChart.setOption(expandedOption);
                     
-                    // Event-Listener für festen Tooltip (erweiterte Version)
-                    charts.barChart.off('showTip');
-                    charts.barChart.off('hideTip');
-                    charts.barChart.on('showTip', function(params) {
-                        const content = `${params.name}: ${params.value} Aufrufe`;
-                        showFixedTooltip(content);
-                    });
-                    charts.barChart.on('hideTip', function() {
-                        hideFixedTooltip();
-                    });
                     
                     // Resize das Chart, um die neue Breite zu berücksichtigen
                     setTimeout(() => {
@@ -1769,7 +1731,9 @@
                 series,
                 tooltip: {
                     trigger: 'axis',
-                    show: true, // Aktiviere Standard-Tooltip für Events
+                    show: true,
+                    confine: true, // Begrenzt Tooltip auf Chart-Bereich
+                    extraCssText: 'max-width: 250px; word-wrap: break-word;',
                     formatter: function(params) {
                         let result = params[0].axisValue + '<br/>';
                         let hasValidData = false;
@@ -1816,22 +1780,6 @@
             charts.lineRaceChart = echarts.init(chartElement);
             charts.lineRaceChart.setOption(option);
             
-            // Event-Listener für festen Tooltip (Desktop und Mobile)
-            charts.lineRaceChart.on('showTip', function(params) {
-                let content = params.axisValue + '<br/>';
-                if (params.value !== undefined && params.value !== null && params.value > 0) {
-                    let value = params.value;
-                    if (typeof value === 'number') {
-                        value = Number.isInteger(value) ? value : value.toFixed(2);
-                    }
-                    content += `${params.marker} ${params.seriesName}: ${value} Aufrufe`;
-                }
-                showFixedTooltip(content);
-            });
-            
-            charts.lineRaceChart.on('hideTip', function() {
-                hideFixedTooltip();
-            });
             
             // Chart nach Initialisierung neu zeichnen
             setTimeout(() => {
@@ -1959,7 +1907,9 @@
                 },
                 tooltip: {
                     trigger: 'item',
-                    show: true, // Aktiviere Standard-Tooltip für Events
+                    show: true,
+                    confine: true, // Begrenzt Tooltip auf Chart-Bereich
+                    extraCssText: 'max-width: 250px; word-wrap: break-word;',
                     formatter: function(params) {
                         const total = filteredVideos.reduce((sum, v) => sum + (v.views || 0), 0);
                         const percentage = total > 0 ? ((params.value / total) * 100).toFixed(1) : '0';
@@ -1973,17 +1923,6 @@
             charts.pieChart = echarts.init(chartElement);
             charts.pieChart.setOption(option);
             
-            // Event-Listener für festen Tooltip (mit vollständigen Video-Titeln)
-            charts.pieChart.on('showTip', function(params) {
-                const total = filteredVideos.reduce((sum, v) => sum + (v.views || 0), 0);
-                const percentage = total > 0 ? ((params.value / total) * 100).toFixed(1) : '0';
-                const content = `${params.name}<br/>Aufrufe: ${params.value}<br/>Anteil: ${percentage}%`;
-                showFixedTooltip(content);
-            });
-            
-            charts.pieChart.on('hideTip', function() {
-                hideFixedTooltip();
-            });
         }
         
         
@@ -1998,18 +1937,6 @@
             return colors[index % colors.length];
         }
         
-        // Fester Tooltip-Funktionen
-        function showFixedTooltip(content) {
-            const tooltip = document.getElementById('fixedTooltip');
-            const tooltipContent = tooltip.querySelector('.tooltip-content');
-            tooltipContent.innerHTML = content;
-            tooltip.style.display = 'block';
-        }
-        
-        function hideFixedTooltip() {
-            const tooltip = document.getElementById('fixedTooltip');
-            tooltip.style.display = 'none';
-        }
         
         // Hilfsfunktion für Zeitraum-Berechnung
         function calculateTimeRange(sortedDates, timeRange) {
