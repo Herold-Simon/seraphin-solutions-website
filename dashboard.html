@@ -1355,9 +1355,9 @@
             // Berechne dynamische Höhe basierend auf Anzahl der Balken
             const calculateChartHeight = (videoCount) => {
                 const minHeight = 200; // Mindesthöhe
-                const barHeight = 50; // Höhe pro Balken
+                const barHeight = 60; // Mehr Höhe pro Balken für bessere Sichtbarkeit
                 const legendHeight = 80; // Platz für Legende
-                const padding = 40; // Zusätzlicher Padding
+                const padding = 60; // Mehr Padding für bessere Abstände
                 return Math.max(minHeight, (videoCount * barHeight) + legendHeight + padding);
             };
             
@@ -1383,7 +1383,7 @@
                         value: v.views || 0,
                         itemStyle: { color: getChartColor(idx) }
                     })),
-                    barWidth: Math.max(20, Math.min(50, 300 / visibleVideos.length)) // Dynamische Balkenbreite
+                    barWidth: 40 // Feste Balkenbreite in Pixeln
                 }],
                 tooltip: {
                     trigger: 'axis',
@@ -1455,7 +1455,7 @@
                         series: [{
                             type: 'bar',
                             data: allData,
-                            barWidth: Math.max(20, Math.min(50, 300 / filteredVideos.length)) // Dynamische Balkenbreite
+                            barWidth: 40 // Feste Balkenbreite in Pixeln
                         }],
                         tooltip: option.tooltip,
                         legend: {
