@@ -1017,36 +1017,22 @@
                 
                 // Zeige Geräte-ID an, falls verfügbar
                 const deviceId = statistics.device_id;
-                console.log('📱 Device ID from statistics:', deviceId);
-                console.log('📱 Statistics object:', statistics);
-                
                 if (deviceId) {
-                    console.log('📱 Showing device ID:', deviceId);
                     const deviceIdDisplay1 = document.getElementById('deviceIdDisplay1');
                     const deviceIdDisplay2 = document.getElementById('deviceIdDisplay2');
                     const deviceId1 = document.getElementById('deviceId1');
                     const deviceId2 = document.getElementById('deviceId2');
                     
-                    console.log('📱 Device ID elements found:', {
-                        deviceIdDisplay1: !!deviceIdDisplay1,
-                        deviceIdDisplay2: !!deviceIdDisplay2,
-                        deviceId1: !!deviceId1,
-                        deviceId2: !!deviceId2
-                    });
-                    
                     if (deviceIdDisplay1 && deviceId1) {
                         deviceId1.textContent = deviceId;
                         deviceIdDisplay1.style.display = 'block';
-                        console.log('📱 Device ID 1 displayed');
                     }
                     
                     if (deviceIdDisplay2 && deviceId2) {
                         deviceId2.textContent = deviceId;
                         deviceIdDisplay2.style.display = 'block';
-                        console.log('📱 Device ID 2 displayed');
                     }
                 } else {
-                    console.log('📱 No device ID available, hiding displays');
                     // Verstecke Geräte-ID-Anzeige, falls nicht verfügbar
                     const deviceIdDisplay1 = document.getElementById('deviceIdDisplay1');
                     const deviceIdDisplay2 = document.getElementById('deviceIdDisplay2');
