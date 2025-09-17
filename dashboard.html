@@ -1352,8 +1352,8 @@
             const visibleVideos = filteredVideos.slice(0, maxVisible);
             const hiddenVideos = filteredVideos.slice(maxVisible);
             
-            // Berechne dynamische Höhe basierend auf Anzahl der Balken - nur für den Inhalt
-            const barHeight = 50 * visibleVideos.length + 120; // Reduzierte Höhe pro Balken und weniger Padding
+            // Berechne dynamische Höhe basierend auf Anzahl der Balken - ohne Legende
+            const barHeight = 50 * visibleVideos.length + 80; // Reduzierte Höhe pro Balken und weniger Padding ohne Legende
             
             // Setze dynamische Höhe für den Chart-Container
             const chartContainer = document.getElementById('barChartContainer');
@@ -1366,7 +1366,7 @@
                 },
                 yAxis: {
                     type: 'category',
-                    data: visibleVideos.map((v, idx) => `Video ${idx + 1}`), // Verwende generische Labels
+                    data: visibleVideos.map((v, idx) => v.title || v.video_title || `Video ${idx + 1}`), // Verwende echte Video-Titel
                     axisLabel: { color: '#666', fontSize: 16 },
                     inverse: true
                 },
@@ -1388,18 +1388,8 @@
                 grid: {
                     left: '3%',
                     right: '4%',
-                    bottom: '15%',
+                    bottom: '5%',
                     containLabel: true
-                },
-                legend: {
-                    data: visibleVideos.map((v, idx) => ({
-                        name: v.title || v.video_title || 'Unbenanntes Video',
-                        icon: 'rect',
-                        textStyle: { color: getChartColor(idx) }
-                    })),
-                    orient: 'horizontal',
-                    bottom: 0,
-                    textStyle: { fontSize: 12 }
                 },
                 color: getChartColors(),
                 zoom: false
@@ -1433,8 +1423,8 @@
                     z-index: 1000;
                 `;
                 expandButton.onclick = () => {
-                    // Berechne neue Höhe für alle Videos - nur für den Inhalt
-                    const newHeight = 50 * filteredVideos.length + 120; // Reduzierte Höhe pro Balken und weniger Padding
+                    // Berechne neue Höhe für alle Videos - ohne Legende
+                    const newHeight = 50 * filteredVideos.length + 80; // Reduzierte Höhe pro Balken und weniger Padding ohne Legende
                     chartContainer.style.height = newHeight + 'px';
                     
                     // Erstelle erweiterte Version mit allen Videos
@@ -1453,7 +1443,7 @@
                         xAxis: option.xAxis,
                         yAxis: {
                             type: 'category',
-                            data: allLabels.map((label, idx) => `Video ${idx + 1}`), // Verwende generische Labels
+                            data: allLabels, // Verwende echte Video-Titel
                             axisLabel: { color: '#666', fontSize: 16 },
                             inverse: true
                         },
@@ -1465,18 +1455,8 @@
                         grid: {
                             left: '3%',
                             right: '4%',
-                            bottom: '15%',
+                            bottom: '5%',
                             containLabel: true
-                        },
-                        legend: {
-                            data: allLabels.map((label, idx) => ({
-                                name: label,
-                                icon: 'rect',
-                                textStyle: { color: getChartColor(idx) }
-                            })),
-                            orient: 'horizontal',
-                            bottom: 0,
-                            textStyle: { fontSize: 12 }
                         },
                         color: getChartColors(),
                         zoom: false
