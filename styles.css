@@ -9,6 +9,8 @@
     --primary-blue: #008CFF;
     --primary-green: #32A71A;
     --gradient-primary: linear-gradient(135deg, #008CFF 0%, #32A71A 100%);
+    --gradient-secondary: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 100%);
+    --gradient-red: linear-gradient(135deg, #E74C3C 0%, #C0392B 100%);
     --gradient-blue: linear-gradient(135deg, #008CFF 0%, #0066CC 100%);
     --gradient-green: linear-gradient(135deg, #32A71A 0%, #2A8F15 100%);
     --text-dark: #2C3E50;
