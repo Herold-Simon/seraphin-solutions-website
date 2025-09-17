@@ -1366,7 +1366,10 @@
                 },
                 yAxis: {
                     type: 'category',
-                    data: visibleVideos.map((v, idx) => v.title || v.video_title || `Video ${idx + 1}`), // Verwende echte Video-Titel
+                    data: visibleVideos.map((v, idx) => {
+                        const title = v.title || v.video_title || `Video ${idx + 1}`;
+                        return title.length > 10 ? title.substring(0, 10) + '...' : title;
+                    }), // Begrenze Video-Titel auf 10 Zeichen mit ...
                     axisLabel: { color: '#666', fontSize: 16 },
                     inverse: true
                 },
@@ -1428,9 +1431,10 @@
                     chartContainer.style.height = newHeight + 'px';
                     
                     // Erstelle erweiterte Version mit allen Videos
-                    const allLabels = filteredVideos.map(video => 
-                        video.title || video.video_title || 'Unbenanntes Video'
-                    );
+                    const allLabels = filteredVideos.map(video => {
+                        const title = video.title || video.video_title || 'Unbenanntes Video';
+                        return title.length > 10 ? title.substring(0, 10) + '...' : title;
+                    });
                     const allData = filteredVideos.map((video, idx) => ({
                         value: video.views || 0,
                         itemStyle: {
