@@ -1110,6 +1110,14 @@
                 (video.view_history && Object.keys(video.view_history).length > 0)
             );
             
+            // Debug: Zeige viewHistory-Daten
+            console.log('🔍 Debug viewHistory (Line Chart):', filteredVideos.map(v => ({
+                title: v.title || v.video_title,
+                viewHistory: v.viewHistory,
+                view_history: v.view_history,
+                hasViewHistory: !!(v.viewHistory || v.view_history)
+            })));
+            
             let timePoints = [];
             let videoData = [];
             let averageData = [];
@@ -1130,7 +1138,7 @@
                 // Sortiere Daten und filtere basierend auf ausgewähltem Zeitraum
                 const sortedDates = Array.from(allDates).sort();
                 const timeRangeResult = calculateTimeRange(sortedDates, currentTimeRange);
-                timePoints = timeRangeResult.timePoints;
+                timePoints = timeRangeResult.timePoints.map(date => formatDateToGerman(date));
                 
                 // Für "Alle Zeit" füge auch Offset nach dem letzten Datum hinzu
                 if (timeRangeResult.addEndOffset && timePoints.length > 0) {
@@ -1143,7 +1151,8 @@
                 videoData = filteredVideos.map((video, idx) => {
                     const viewHistory = video.viewHistory || video.view_history;
                     const data = timePoints.map(date => {
-                        return viewHistory && viewHistory[date] ? viewHistory[date] : 0;
+                        const apiDate = formatDateToAPI(date);
+                        return viewHistory && viewHistory[apiDate] ? viewHistory[apiDate] : 0;
                     });
                     
                     return {
@@ -1163,9 +1172,10 @@
                 
                 // Berechne Durchschnittslinie mit echten Daten
                 averageData = timePoints.map(date => {
+                    const apiDate = formatDateToAPI(date);
                     const totalViews = filteredVideos.reduce((sum, video) => {
                         const viewHistory = video.viewHistory || video.view_history;
-                        return sum + (viewHistory && viewHistory[date] ? viewHistory[date] : 0);
+                        return sum + (viewHistory && viewHistory[apiDate] ? viewHistory[apiDate] : 0);
                     }, 0);
                     return Math.round(totalViews / filteredVideos.length * 10) / 10;
                 });
@@ -1595,6 +1605,14 @@
                 (video.view_history && Object.keys(video.view_history).length > 0)
             );
             
+            // Debug: Zeige viewHistory-Daten
+            console.log('🔍 Debug viewHistory (Line Race):', filteredVideos.map(v => ({
+                title: v.title || v.video_title,
+                viewHistory: v.viewHistory,
+                view_history: v.view_history,
+                hasViewHistory: !!(v.viewHistory || v.view_history)
+            })));
+            
             let timePoints = [];
             let series = [];
             
@@ -1614,7 +1632,7 @@
                 // Sortiere Daten und filtere basierend auf ausgewähltem Zeitraum
                 const sortedDates = Array.from(allDates).sort();
                 const timeRangeResult = calculateTimeRange(sortedDates, currentTimeRange);
-                timePoints = timeRangeResult.timePoints;
+                timePoints = timeRangeResult.timePoints.map(date => formatDateToGerman(date));
                 
                 // Für "Alle Zeit" füge auch Offset nach dem letzten Datum hinzu
                 if (timeRangeResult.addEndOffset && timePoints.length > 0) {
@@ -1634,8 +1652,9 @@
                         // Berechne kumulierte Aufrufe bis zu diesem Tag
                         for (let i = 0; i <= dayIndex; i++) {
                             const currentDate = timePoints[i];
-                            if (viewHistory && viewHistory[currentDate]) {
-                                cumulativeViews += viewHistory[currentDate];
+                            const apiDate = formatDateToAPI(currentDate);
+                            if (viewHistory && viewHistory[apiDate]) {
+                                cumulativeViews += viewHistory[apiDate];
                             }
                         }
                         
@@ -1939,8 +1958,27 @@
             
         }
         
+        // Hilfsfunktion für Datumsformatierung
+        function formatDateToGerman(dateString) {
+            // Konvertiert "2025-08-30" zu "30.08.2025"
+            const date = new Date(dateString);
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}.${month}.${year}`;
+        }
         
-        
+        function formatDateToAPI(germanDateString) {
+            // Konvertiert "30.08.2025" zu "2025-08-30"
+            const parts = germanDateString.split('.');
+            if (parts.length === 3) {
+                const day = parts[0].padStart(2, '0');
+                const month = parts[1].padStart(2, '0');
+                const year = parts[2];
+                return `${year}-${month}-${day}`;
+            }
+            return germanDateString; // Fallback falls Format nicht erkannt wird
+        }
         
         // Chart-Farben (wie in der App)
         function getChartColor(index) {
@@ -1959,7 +1997,7 @@
                 startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
                 return {
                     startDate: startDate,
-                    timePoints: sortedDates,
+                    timePoints: sortedDates.map(date => formatDateToGerman(date)),
                     addEndOffset: true
                 };
             } else {
@@ -1986,7 +2024,7 @@
                 
                 while (currentDate <= extendedEndDate) {
                     const dateString = currentDate.toISOString().split('T')[0];
-                    extendedTimePoints.push(dateString);
+                    extendedTimePoints.push(formatDateToGerman(dateString));
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
                 
