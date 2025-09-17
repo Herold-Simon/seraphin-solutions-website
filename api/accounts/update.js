@@ -195,18 +195,7 @@ module.exports = async function handler(req, res) {
                 return res.status(401).json({ error: 'Aktuelles Passwort ist falsch' });
             }
 
-            // Validiere neues Passwort
-            if (!validatePassword(newPassword)) {
-                return res.status(400).json({ 
-                    error: 'Passwort erfüllt nicht alle Anforderungen',
-                    requirements: [
-                        'Mindestens 8 Zeichen lang',
-                        'Mindestens einen Großbuchstaben',
-                        'Mindestens einen Kleinbuchstaben',
-                        'Mindestens eine Zahl'
-                    ]
-                });
-            }
+            // Passwort-Anforderungen wurden entfernt
 
             // Hash neues Passwort
             const hashedNewPassword = await bcrypt.hash(newPassword, 10);
@@ -249,12 +238,4 @@ module.exports = async function handler(req, res) {
     }
 };
 
-// Passwort validieren
-function validatePassword(password) {
-    const minLength = 8;
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-
-    return password.length >= minLength && hasUpperCase && hasLowerCase && hasNumbers;
-}
+// Passwort-Validierung wurde entfernt

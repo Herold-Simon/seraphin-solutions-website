@@ -508,15 +508,7 @@
                     <div class="form-group">
                         <label for="newPassword" class="form-label">Neues Passwort</label>
                         <input type="password" id="newPassword" class="form-input" placeholder="Neues Passwort eingeben" required>
-                        <div class="password-requirements">
-                            <strong>Passwort-Anforderungen:</strong>
-                            <ul>
-                                <li>Mindestens 8 Zeichen lang</li>
-                                <li>Mindestens einen Großbuchstaben</li>
-                                <li>Mindestens einen Kleinbuchstaben</li>
-                                <li>Mindestens eine Zahl</li>
-                            </ul>
-                        </div>
+                        <!-- Passwort-Anforderungen wurden entfernt -->
                     </div>
                     <div class="form-group">
                         <label for="confirmPassword" class="form-label">Passwort bestätigen</label>
@@ -553,10 +545,36 @@
 
         // Dashboard initialisieren
         document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🔍 DOM Content Loaded - Initialisiere Account-Seite...');
+            await testApiConnectivity();
             await loadAccountData();
             setupEventListeners();
             setupNavigation();
+            console.log('✅ Account-Seite initialisiert');
         });
+        
+        // API-Verbindung testen
+        async function testApiConnectivity() {
+            try {
+                console.log('🔍 Teste API-Verbindung...');
+                const response = await fetch('/api/auth/verify-session', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                console.log('🔍 API-Verbindungstest Status:', response.status);
+                
+                if (response.status === 401) {
+                    console.log('✅ API erreichbar, aber keine gültige Session (erwartet)');
+                } else if (response.ok) {
+                    console.log('✅ API erreichbar und Session gültig');
+                } else {
+                    console.warn('⚠️ API erreichbar, aber unerwarteter Status:', response.status);
+                }
+            } catch (error) {
+                console.error('❌ API-Verbindungstest fehlgeschlagen:', error);
+                showError('Warnung: API-Endpunkte sind möglicherweise nicht erreichbar. Einige Funktionen funktionieren möglicherweise nicht. Öffnen Sie die Browser-Konsole (F12) für weitere Details.');
+            }
+        }
 
         // Navigation einrichten
         function setupNavigation() {
@@ -601,11 +619,25 @@
 
         // Event Listeners einrichten
         function setupEventListeners() {
+            console.log('🔍 Richte Event Listeners ein...');
+            
             // Username Form
-            document.getElementById('usernameForm').addEventListener('submit', handleUsernameChange);
+            const usernameForm = document.getElementById('usernameForm');
+            if (usernameForm) {
+                usernameForm.addEventListener('submit', handleUsernameChange);
+                console.log('✅ Username Form Event Listener hinzugefügt');
+            } else {
+                console.error('❌ Username Form nicht gefunden');
+            }
             
             // Password Form
-            document.getElementById('passwordForm').addEventListener('submit', handlePasswordChange);
+            const passwordForm = document.getElementById('passwordForm');
+            if (passwordForm) {
+                passwordForm.addEventListener('submit', handlePasswordChange);
+                console.log('✅ Password Form Event Listener hinzugefügt');
+            } else {
+                console.error('❌ Password Form nicht gefunden');
+            }
         }
 
         // Account-Daten laden
@@ -719,11 +751,18 @@
         // Passwort ändern
         async function handlePasswordChange(e) {
             e.preventDefault();
+            console.log('🔍 Passwort-Änderung gestartet');
             
             const currentPassword = document.getElementById('currentPassword').value;
             const newPassword = document.getElementById('newPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             const submitBtn = document.getElementById('passwordSubmitBtn');
+            
+            console.log('🔍 Formular-Daten:', {
+                currentPasswordLength: currentPassword.length,
+                newPasswordLength: newPassword.length,
+                confirmPasswordLength: confirmPassword.length
+            });
             
             // Validierung
             if (!currentPassword || !newPassword || !confirmPassword) {
@@ -736,14 +775,13 @@
                 return;
             }
 
-            if (!validatePassword(newPassword)) {
-                showError('Das Passwort erfüllt nicht alle Anforderungen');
-                return;
-            }
+            // Passwort-Anforderungen wurden entfernt
 
             try {
                 setButtonLoading(submitBtn, true);
                 hideAlerts();
+                
+                console.log('🔍 Sende API-Anfrage an /api/accounts/update');
 
                 const response = await fetch('/api/accounts/update', {
                     method: 'PUT',
@@ -757,9 +795,18 @@
                     })
                 });
 
+                console.log('🔍 API-Antwort Status:', response.status);
+                
+                if (!response.ok) {
+                    console.error('❌ API-Antwort nicht OK:', response.status, response.statusText);
+                    showError(`API-Fehler: ${response.status} ${response.statusText}. Öffnen Sie die Browser-Konsole (F12) für weitere Details.`);
+                    return;
+                }
+                
                 const data = await response.json();
+                console.log('🔍 API-Antwort Daten:', data);
 
-                if (response.ok && data.success) {
+                if (data.success) {
                     showSuccess('Passwort erfolgreich geändert');
                     document.getElementById('currentPassword').value = '';
                     document.getElementById('newPassword').value = '';
@@ -769,22 +816,21 @@
                 }
 
             } catch (error) {
-                console.error('Error updating password:', error);
-                showError('Fehler beim Ändern des Passworts: ' + error.message);
+                console.error('❌ Fehler beim Passwort-Update:', error);
+                
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    showError('Netzwerkfehler: API-Endpunkt nicht erreichbar. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es später erneut. Falls das Problem weiterhin besteht, kontaktieren Sie den Administrator. Öffnen Sie die Browser-Konsole (F12) für weitere Details.');
+                } else if (error.name === 'SyntaxError') {
+                    showError('Fehler beim Verarbeiten der Server-Antwort. Bitte versuchen Sie es erneut.');
+                } else {
+                    showError('Fehler beim Ändern des Passworts: ' + error.message);
+                }
             } finally {
                 setButtonLoading(submitBtn, false);
             }
         }
 
-        // Passwort validieren
-        function validatePassword(password) {
-            const minLength = 8;
-            const hasUpperCase = /[A-Z]/.test(password);
-            const hasLowerCase = /[a-z]/.test(password);
-            const hasNumbers = /\d/.test(password);
-
-            return password.length >= minLength && hasUpperCase && hasLowerCase && hasNumbers;
-        }
+        // Passwort-Validierung wurde entfernt
 
         // Account löschen bestätigen
         function confirmDeleteAccount() {
