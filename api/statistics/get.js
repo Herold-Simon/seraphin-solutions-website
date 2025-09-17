@@ -241,6 +241,7 @@ module.exports = async function handler(req, res) {
         console.log('📊 Structured Videos:', structuredVideos.length, 'videos');
         console.log('📊 Total Stats:', totalStats);
         console.log('📊 Current Stats:', currentStats);
+        console.log('📱 Device ID from admin user:', adminUser?.device_id);
 
         // Prüfe ob überhaupt Daten vorhanden sind
         const hasAnyData = structuredVideos.length > 0 || 
@@ -252,7 +253,7 @@ module.exports = async function handler(req, res) {
             console.log('📊 Keine Daten vorhanden, sende leere Statistiken');
         }
 
-        return res.status(200).json({
+        const responseData = {
             success: true,
             statistics: {
                 current: currentStats,
@@ -262,7 +263,12 @@ module.exports = async function handler(req, res) {
                 history: appStats || [],
                 device_id: adminUser?.device_id || null
             }
-        });
+        };
+        
+        console.log('📱 API Response with device_id:', responseData.statistics.device_id);
+        console.log('📱 Full API response:', JSON.stringify(responseData, null, 2));
+        
+        return res.status(200).json(responseData);
 
     } catch (error) {
         console.error('Statistics fetch error:', error);
