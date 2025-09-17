@@ -1136,13 +1136,12 @@
                     daysToShow = 365;
                 }
                 
-                // Füge Offset-Tage hinzu (2 Tage auf beiden Seiten)
-                const offsetDays = 2;
-                const totalDays = daysToShow + (offsetDays * 2);
+                // Erstelle Zeitpunkte ohne Offset
+                const totalDays = daysToShow;
                 
                 for (let i = totalDays - 1; i >= 0; i--) {
                     const date = new Date(today);
-                    date.setDate(date.getDate() - i + offsetDays); // Verschiebe um Offset nach rechts
+                    date.setDate(date.getDate() - i);
                     const day = date.getDate().toString().padStart(2, '0');
                     const month = (date.getMonth() + 1).toString().padStart(2, '0');
                     const year = date.getFullYear();
@@ -1154,10 +1153,7 @@
                     const totalViews = video.views || 0;
                     const dailyViews = Math.round(totalViews / daysToShow);
                     const data = timePoints.map((date, dayIndex) => {
-                        // In den Offset-Bereichen (erste und letzte 2 Tage) keine Aufrufe
-                        if (dayIndex < offsetDays || dayIndex >= timePoints.length - offsetDays) {
-                            return 0;
-                        }
+                        // Keine Offset-Bereiche mehr - alle Tage haben Daten
                         const variation = Math.random() * 0.4 + 0.8; // 80-120% der Durchschnittsaufrufe
                         return Math.round(dailyViews * variation);
                     });
@@ -1179,10 +1175,7 @@
                 
                 // Berechne Durchschnittslinie mit simulierten Daten
                 averageData = timePoints.map((date, idx) => {
-                    // In den Offset-Bereichen (erste und letzte 2 Tage) keine Aufrufe
-                    if (idx < offsetDays || idx >= timePoints.length - offsetDays) {
-                        return 0;
-                    }
+                    // Keine Offset-Bereiche mehr - alle Tage haben Daten
                     const totalViews = filteredVideos.reduce((sum, video) => {
                         const totalViews = video.views || 0;
                         const dailyViews = Math.round(totalViews / daysToShow);
@@ -1592,13 +1585,12 @@
                     daysToShow = 365;
                 }
                 
-                // Füge Offset-Tage hinzu (2 Tage auf beiden Seiten)
-                const offsetDays = 2;
-                const totalDays = daysToShow + (offsetDays * 2);
+                // Erstelle Zeitpunkte ohne Offset
+                const totalDays = daysToShow;
                 
                 for (let i = totalDays - 1; i >= 0; i--) {
                     const date = new Date(today);
-                    date.setDate(date.getDate() - i + offsetDays); // Verschiebe um Offset nach rechts
+                    date.setDate(date.getDate() - i);
                     const day = date.getDate().toString().padStart(2, '0');
                     const month = (date.getMonth() + 1).toString().padStart(2, '0');
                     const year = date.getFullYear();
@@ -1616,10 +1608,7 @@
                         
                         // Berechne kumulierte Aufrufe bis zu diesem Tag
                         for (let i = 0; i <= dayIndex; i++) {
-                            // In den Offset-Bereichen (erste und letzte 2 Tage) keine Aufrufe
-                            if (i < offsetDays || i >= timePoints.length - offsetDays) {
-                                continue; // Überspringe Offset-Tage
-                            }
+                            // Keine Offset-Bereiche mehr - alle Tage haben Daten
                             const variation = Math.random() * 0.4 + 0.8; // 80-120% der Durchschnittsaufrufe
                             cumulativeViews += Math.round(dailyViews * variation);
                         }
@@ -1881,15 +1870,11 @@
                     startDate.setDate(lastDate.getDate() - 364); // 365 Tage inklusive letzter Tag
                 }
                 
-                // Erweitere den Zeitraum um Offset-Tage links und rechts
-                const offsetDays = 2; // 2 Tage Offset auf beiden Seiten
+                // Verwende den ursprünglichen Zeitraum ohne Offset
                 const extendedStartDate = new Date(startDate);
-                extendedStartDate.setDate(extendedStartDate.getDate() - offsetDays);
-                
                 const extendedEndDate = new Date(lastDate);
-                extendedEndDate.setDate(extendedEndDate.getDate() + offsetDays);
                 
-                // Erstelle erweiterte Zeitpunkte mit Offset
+                // Erstelle Zeitpunkte ohne Offset
                 const extendedTimePoints = [];
                 const currentDate = new Date(extendedStartDate);
                 
