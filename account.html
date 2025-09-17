@@ -341,34 +341,104 @@
             transform: translateY(-10px);
         }
 
-        .alert-success {
-            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-            color: #155724;
-            border: 2px solid #28a745;
-            border-left: 5px solid #28a745;
-            animation: successPulse 0.6s ease-out;
-        }
-        
-        @keyframes successPulse {
-            0% {
-                transform: scale(1) translateY(-10px);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            }
-            50% {
-                transform: scale(1.02) translateY(-5px);
-                box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
-            }
-            100% {
-                transform: scale(1) translateY(0);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            }
-        }
-
         .alert-error {
             background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
             color: #721c24;
             border: 2px solid #dc3545;
             border-left: 5px solid #dc3545;
+        }
+
+        /* Success Overlay */
+        .success-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .success-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .success-modal {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            border: 2px solid #28a745;
+            border-radius: 15px;
+            padding: 2rem 3rem;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transform: scale(0.8) translateY(50px);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .success-overlay.show .success-modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: #28a745;
+            margin-bottom: 1rem;
+            animation: successBounce 0.6s ease-out;
+        }
+
+        .success-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #155724;
+        }
+
+        .success-message {
+            font-size: 1.1rem;
+            color: #155724;
+            margin-bottom: 1.5rem;
+        }
+
+        .success-close {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .success-close:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        @keyframes successBounce {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         .account-info {
@@ -478,8 +548,19 @@
             </div>
 
             <!-- Alerts -->
-            <div id="successAlert" class="alert alert-success"></div>
             <div id="errorAlert" class="alert alert-error"></div>
+            
+            <!-- Success Overlay -->
+            <div id="successOverlay" class="success-overlay">
+                <div class="success-modal">
+                    <div class="success-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="success-title">Erfolgreich!</div>
+                    <div class="success-message" id="successMessage"></div>
+                    <button class="success-close" onclick="closeSuccessOverlay()">Verstanden</button>
+                </div>
+            </div>
 
             <!-- Account-Informationen -->
             <div class="account-card">
@@ -573,8 +654,19 @@
             await loadAccountData();
             setupEventListeners();
             setupNavigation();
+            setupKeyboardShortcuts();
             console.log('✅ Account-Seite initialisiert');
         });
+        
+        // Keyboard shortcuts
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', function(e) {
+                // Escape key closes success overlay
+                if (e.key === 'Escape') {
+                    closeSuccessOverlay();
+                }
+            });
+        }
         
         // API-Verbindung testen
         async function testApiConnectivity() {
@@ -918,22 +1010,21 @@
 
         // Alerts anzeigen/verstecken
         function showSuccess(message) {
-            const alert = document.getElementById('successAlert');
-            alert.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
-            alert.style.display = 'block';
-            alert.style.opacity = '1';
-            alert.style.transform = 'translateY(0)';
+            const overlay = document.getElementById('successOverlay');
+            const messageElement = document.getElementById('successMessage');
             
-            // Scroll to alert
-            alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            messageElement.textContent = message;
+            overlay.classList.add('show');
             
+            // Auto-close after 5 seconds
             setTimeout(() => {
-                alert.style.opacity = '0';
-                alert.style.transform = 'translateY(-10px)';
-                setTimeout(() => {
-                    alert.style.display = 'none';
-                }, 300);
-            }, 8000); // Länger anzeigen (8 Sekunden)
+                closeSuccessOverlay();
+            }, 5000);
+        }
+        
+        function closeSuccessOverlay() {
+            const overlay = document.getElementById('successOverlay');
+            overlay.classList.remove('show');
         }
 
         function showError(message) {
@@ -956,17 +1047,11 @@
         }
 
         function hideAlerts() {
-            const successAlert = document.getElementById('successAlert');
+            // Hide success overlay
+            closeSuccessOverlay();
+            
+            // Hide error alert
             const errorAlert = document.getElementById('errorAlert');
-            
-            if (successAlert.style.display === 'block') {
-                successAlert.style.opacity = '0';
-                successAlert.style.transform = 'translateY(-10px)';
-                setTimeout(() => {
-                    successAlert.style.display = 'none';
-                }, 300);
-            }
-            
             if (errorAlert.style.display === 'block') {
                 errorAlert.style.opacity = '0';
                 errorAlert.style.transform = 'translateY(-10px)';
