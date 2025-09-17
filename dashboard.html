@@ -1275,16 +1275,15 @@
                 },
                 series: series,
                 tooltip: {
-                    trigger: 'item',
+                    trigger: 'axis',
                     show: true,
                     confine: true, // Begrenzt Tooltip auf Chart-Bereich
                     extraCssText: 'word-wrap: break-word; white-space: nowrap;',
                     formatter: function(params) {
                         if (!params || params.length === 0) return '';
                         
-                        // Konvertiere das Datum für die Anzeige
-                        const displayDate = formatDateToGerman(params.axisValue);
-                        let result = displayDate + '<br/>';
+                        // params.axisValue enthält bereits das formatierte Datum
+                        let result = params.axisValue + '<br/>';
                         
                         if (params.value !== undefined && params.value !== null && params.value > 0) {
                             let value = params.value;
@@ -1743,16 +1742,15 @@
                 },
                 series,
                 tooltip: {
-                    trigger: 'item',
+                    trigger: 'axis',
                     show: true,
                     confine: true, // Begrenzt Tooltip auf Chart-Bereich
                     extraCssText: 'word-wrap: break-word; white-space: nowrap;',
                     formatter: function(params) {
                         if (!params || params.length === 0) return '';
                         
-                        // Konvertiere das Datum für die Anzeige
-                        const displayDate = formatDateToGerman(params.axisValue);
-                        let result = displayDate + '<br/>';
+                        // params.axisValue enthält bereits das formatierte Datum
+                        let result = params.axisValue + '<br/>';
                         
                         if (params.value !== undefined && params.value !== null && params.value > 0) {
                             let value = params.value;
