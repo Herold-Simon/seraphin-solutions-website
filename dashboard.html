@@ -1333,7 +1333,7 @@
             charts.lineChart = echarts.init(chartElement);
             charts.lineChart.setOption(option);
             
-            // Event-Listener für festen Tooltip
+            // Event-Listener für festen Tooltip (Desktop und Mobile)
             charts.lineChart.on('mouseover', function(params) {
                 let content = params.axisValue + '<br/>';
                 if (params.value !== undefined && params.value !== null && params.value > 0) {
@@ -1347,6 +1347,23 @@
             });
             
             charts.lineChart.on('mouseout', function() {
+                hideFixedTooltip();
+            });
+            
+            // Touch-Events für Mobile
+            charts.lineChart.on('touchstart', function(params) {
+                let content = params.axisValue + '<br/>';
+                if (params.value !== undefined && params.value !== null && params.value > 0) {
+                    let value = params.value;
+                    if (typeof value === 'number') {
+                        value = Number.isInteger(value) ? value : value.toFixed(2);
+                    }
+                    content += `${params.marker} ${params.seriesName}: ${value} Aufrufe`;
+                }
+                showFixedTooltip(content);
+            });
+            
+            charts.lineChart.on('touchend', function() {
                 hideFixedTooltip();
             });
             
@@ -1482,13 +1499,23 @@
             charts.barChart = echarts.init(chartElement);
             charts.barChart.setOption(option);
             
-            // Event-Listener für festen Tooltip
+            // Event-Listener für festen Tooltip (Desktop und Mobile)
             charts.barChart.on('mouseover', function(params) {
                 const content = `${params.name}: ${params.value} Aufrufe`;
                 showFixedTooltip(content);
             });
             
             charts.barChart.on('mouseout', function() {
+                hideFixedTooltip();
+            });
+            
+            // Touch-Events für Mobile
+            charts.barChart.on('touchstart', function(params) {
+                const content = `${params.name}: ${params.value} Aufrufe`;
+                showFixedTooltip(content);
+            });
+            
+            charts.barChart.on('touchend', function() {
                 hideFixedTooltip();
             });
             
@@ -1562,11 +1589,20 @@
                     // Event-Listener für festen Tooltip (erweiterte Version)
                     charts.barChart.off('mouseover');
                     charts.barChart.off('mouseout');
+                    charts.barChart.off('touchstart');
+                    charts.barChart.off('touchend');
                     charts.barChart.on('mouseover', function(params) {
                         const content = `${params.name}: ${params.value} Aufrufe`;
                         showFixedTooltip(content);
                     });
                     charts.barChart.on('mouseout', function() {
+                        hideFixedTooltip();
+                    });
+                    charts.barChart.on('touchstart', function(params) {
+                        const content = `${params.name}: ${params.value} Aufrufe`;
+                        showFixedTooltip(content);
+                    });
+                    charts.barChart.on('touchend', function() {
                         hideFixedTooltip();
                     });
                     
@@ -1817,7 +1853,7 @@
             charts.lineRaceChart = echarts.init(chartElement);
             charts.lineRaceChart.setOption(option);
             
-            // Event-Listener für festen Tooltip
+            // Event-Listener für festen Tooltip (Desktop und Mobile)
             charts.lineRaceChart.on('mouseover', function(params) {
                 let content = params.axisValue + '<br/>';
                 if (params.value !== undefined && params.value !== null && params.value > 0) {
@@ -1831,6 +1867,23 @@
             });
             
             charts.lineRaceChart.on('mouseout', function() {
+                hideFixedTooltip();
+            });
+            
+            // Touch-Events für Mobile
+            charts.lineRaceChart.on('touchstart', function(params) {
+                let content = params.axisValue + '<br/>';
+                if (params.value !== undefined && params.value !== null && params.value > 0) {
+                    let value = params.value;
+                    if (typeof value === 'number') {
+                        value = Number.isInteger(value) ? value : value.toFixed(2);
+                    }
+                    content += `${params.marker} ${params.seriesName}: ${value} Aufrufe`;
+                }
+                showFixedTooltip(content);
+            });
+            
+            charts.lineRaceChart.on('touchend', function() {
                 hideFixedTooltip();
             });
             
@@ -1983,6 +2036,18 @@
             });
             
             charts.pieChart.on('mouseout', function() {
+                hideFixedTooltip();
+            });
+            
+            // Touch-Events für Mobile
+            charts.pieChart.on('touchstart', function(params) {
+                const total = filteredVideos.reduce((sum, v) => sum + (v.views || 0), 0);
+                const percentage = total > 0 ? ((params.value / total) * 100).toFixed(1) : '0';
+                const content = `${params.name}<br/>Aufrufe: ${params.value}<br/>Anteil: ${percentage}%`;
+                showFixedTooltip(content);
+            });
+            
+            charts.pieChart.on('touchend', function() {
                 hideFixedTooltip();
             });
         }
