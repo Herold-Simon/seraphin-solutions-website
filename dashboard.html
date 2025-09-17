@@ -1282,25 +1282,32 @@
                     formatter: function(params) {
                         if (!params || params.length === 0) return '';
                         
-                        // params.axisValue enthält bereits das formatierte Datum
-                        let result = params.axisValue + '<br/>';
+                        // Bei axis trigger ist params ein Array
+                        const firstParam = params[0];
+                        if (!firstParam) return '';
                         
-                        if (params.value !== undefined && params.value !== null && params.value > 0) {
-                            let value = params.value;
-                            if (typeof value === 'number') {
-                                value = Number.isInteger(value) ? value : value.toFixed(2);
-                            }
-                            
-                            // Vereinfache Durchschnittslinie-Beschriftung
-                            let seriesName = params.seriesName;
-                            if (seriesName && seriesName.includes('Durchschnitt')) {
-                                seriesName = 'Durchschnitt';
-                            }
-                            
-                            result += `${params.marker} ${seriesName}: ${value} Aufrufe`;
-                        }
+                        let result = firstParam.axisValue + '<br/>';
+                        let hasValidData = false;
                         
-                        return result;
+                        params.forEach((param) => {
+                            if (param.value !== undefined && param.value !== null && param.value > 0) {
+                                let value = param.value;
+                                if (typeof value === 'number') {
+                                    value = Number.isInteger(value) ? value : value.toFixed(2);
+                                }
+                                
+                                // Vereinfache Durchschnittslinie-Beschriftung
+                                let seriesName = param.seriesName;
+                                if (seriesName && seriesName.includes('Durchschnitt')) {
+                                    seriesName = 'Durchschnitt';
+                                }
+                                
+                                result += `${param.marker} ${seriesName}: ${value} Aufrufe<br/>`;
+                                hasValidData = true;
+                            }
+                        });
+                        
+                        return hasValidData ? result : '';
                     }
                 },
                 legend: {
@@ -1749,25 +1756,32 @@
                     formatter: function(params) {
                         if (!params || params.length === 0) return '';
                         
-                        // params.axisValue enthält bereits das formatierte Datum
-                        let result = params.axisValue + '<br/>';
+                        // Bei axis trigger ist params ein Array
+                        const firstParam = params[0];
+                        if (!firstParam) return '';
                         
-                        if (params.value !== undefined && params.value !== null && params.value > 0) {
-                            let value = params.value;
-                            if (typeof value === 'number') {
-                                value = Number.isInteger(value) ? value : value.toFixed(2);
-                            }
-                            
-                            // Vereinfache Durchschnittslinie-Beschriftung
-                            let seriesName = params.seriesName;
-                            if (seriesName && seriesName.includes('Durchschnitt')) {
-                                seriesName = 'Durchschnitt';
-                            }
-                            
-                            result += `${params.marker} ${seriesName}: ${value} Aufrufe`;
-                        }
+                        let result = firstParam.axisValue + '<br/>';
+                        let hasValidData = false;
                         
-                        return result;
+                        params.forEach((param) => {
+                            if (param.value !== undefined && param.value !== null && param.value > 0) {
+                                let value = param.value;
+                                if (typeof value === 'number') {
+                                    value = Number.isInteger(value) ? value : value.toFixed(2);
+                                }
+                                
+                                // Vereinfache Durchschnittslinie-Beschriftung
+                                let seriesName = param.seriesName;
+                                if (seriesName && seriesName.includes('Durchschnitt')) {
+                                    seriesName = 'Durchschnitt';
+                                }
+                                
+                                result += `${param.marker} ${seriesName}: ${value} Aufrufe<br/>`;
+                                hasValidData = true;
+                            }
+                        });
+                        
+                        return hasValidData ? result : '';
                     }
                 },
                 legend: {
