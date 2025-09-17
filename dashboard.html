@@ -1493,72 +1493,118 @@
             // Füge "Mehr anzeigen" Button hinzu, wenn es mehr als 5 Videos gibt
             if (hiddenVideos.length > 0) {
                 const expandButton = document.createElement('button');
-                expandButton.textContent = `+${hiddenVideos.length} weitere anzeigen`;
+                expandButton.innerHTML = `
+                    <i class="fas fa-expand-arrows-alt"></i>
+                    <span>+${hiddenVideos.length} weitere anzeigen</span>
+                `;
+                expandButton.className = 'chart-expand-button';
                 expandButton.style.cssText = `
                     position: absolute;
-                    top: 10px;
-                    right: 10px;
-                    background: #008CFF;
+                    top: 15px;
+                    right: 15px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                     color: white;
                     border: none;
-                    padding: 5px 10px;
-                    border-radius: 4px;
-                    font-size: 12px;
+                    padding: 12px 20px;
+                    border-radius: 25px;
                     cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 600;
                     z-index: 1000;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
                 `;
+                
+                // Hover-Effekte
+                expandButton.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px) scale(1.05)';
+                    this.style.boxShadow = '0 8px 25px rgba(102, 126, 234, 0.6)';
+                    this.style.background = 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)';
+                });
+                
+                expandButton.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                    this.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+                    this.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                });
+                
+                // Click-Animation
+                expandButton.addEventListener('mousedown', function() {
+                    this.style.transform = 'translateY(0) scale(0.95)';
+                });
+                
+                expandButton.addEventListener('mouseup', function() {
+                    this.style.transform = 'translateY(-2px) scale(1.05)';
+                });
                 expandButton.onclick = () => {
-                    // Berechne neue Höhe für alle Videos - ohne Legende
-                    const newHeight = 50 * filteredVideos.length + 80; // Reduzierte Höhe pro Balken und weniger Padding ohne Legende
-                    chartContainer.style.height = newHeight + 'px';
+                    // Button-Animation beim Klicken
+                    expandButton.style.transform = 'scale(0.9)';
+                    expandButton.style.opacity = '0.7';
                     
-                    // Erstelle erweiterte Version mit allen Videos
-                    const allLabels = filteredVideos.map(video => {
-                        const title = video.title || video.video_title || 'Unbenanntes Video';
-                        return title.length > 10 ? title.substring(0, 10) + '...' : title;
-                    });
-                    const allData = filteredVideos.map((video, idx) => ({
-                        value: video.views || 0,
-                        itemStyle: {
-                            color: getChartColor(idx)
-                        }
-                    }));
-                    
-                    // Erstelle neue Option mit allen Videos
-                    const expandedOption = {
-                        xAxis: option.xAxis,
-                        yAxis: {
-                            type: 'category',
-                            data: allLabels, // Verwende echte Video-Titel
-                            axisLabel: { color: '#666', fontSize: 16 },
-                            inverse: true
-                        },
-                        series: [{
-                            type: 'bar',
-                            data: allData
-                        }],
-                        tooltip: option.tooltip,
-                        grid: {
-                            left: '3%',
-                            right: '4%',
-                            bottom: '5%',
-                            containLabel: true
-                        },
-                        color: getChartColors(),
-                        zoom: false
-                    };
-                    
-                    charts.barChart.setOption(expandedOption);
-                    
-                    
-                    // Resize das Chart, um die neue Breite zu berücksichtigen
                     setTimeout(() => {
-                        if (charts.barChart) {
-                            charts.barChart.resize();
-                        }
-                    }, 100);
-                    
-                    expandButton.remove();
+                        // Berechne neue Höhe für alle Videos - ohne Legende
+                        const newHeight = 50 * filteredVideos.length + 80; // Reduzierte Höhe pro Balken und weniger Padding ohne Legende
+                        chartContainer.style.height = newHeight + 'px';
+                        
+                        // Erstelle erweiterte Version mit allen Videos
+                        const allLabels = filteredVideos.map(video => {
+                            const title = video.title || video.video_title || 'Unbenanntes Video';
+                            return title.length > 10 ? title.substring(0, 10) + '...' : title;
+                        });
+                        const allData = filteredVideos.map((video, idx) => ({
+                            value: video.views || 0,
+                            itemStyle: {
+                                color: getChartColor(idx)
+                            }
+                        }));
+                        
+                        // Erstelle neue Option mit allen Videos
+                        const expandedOption = {
+                            xAxis: option.xAxis,
+                            yAxis: {
+                                type: 'category',
+                                data: allLabels, // Verwende echte Video-Titel
+                                axisLabel: { color: '#666', fontSize: 16 },
+                                inverse: true
+                            },
+                            series: [{
+                                type: 'bar',
+                                data: allData
+                            }],
+                            tooltip: option.tooltip,
+                            grid: {
+                                left: '3%',
+                                right: '4%',
+                                bottom: '5%',
+                                containLabel: true
+                            },
+                            color: getChartColors(),
+                            zoom: false
+                        };
+                        
+                        charts.barChart.setOption(expandedOption);
+                        
+                        // Resize das Chart, um die neue Breite zu berücksichtigen
+                        setTimeout(() => {
+                            if (charts.barChart) {
+                                charts.barChart.resize();
+                            }
+                        }, 100);
+                        
+                        // Button mit Animation entfernen
+                        expandButton.style.transition = 'all 0.3s ease';
+                        expandButton.style.transform = 'scale(0) rotate(180deg)';
+                        expandButton.style.opacity = '0';
+                        
+                        setTimeout(() => {
+                            expandButton.remove();
+                        }, 300);
+                    }, 150);
                 };
                 
                 chartElement.style.position = 'relative';
