@@ -1064,6 +1064,20 @@
                 createBarChart();
                 createLineRaceChart();
                 console.log('✅ Alle Charts erfolgreich erstellt');
+                
+                // Automatisch zu "Alle Zeit" wechseln nach kurzer Verzögerung
+                setTimeout(() => {
+                    currentTimeRange = 'all';
+                    // Aktualisiere die Button-Auswahl
+                    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+                    const allTimeBtn = document.querySelector('.time-btn[data-range="all"]');
+                    if (allTimeBtn) {
+                        allTimeBtn.classList.add('active');
+                    }
+                    updateCharts();
+                    console.log('🔄 Automatisch zu "Alle Zeit" gewechselt');
+                }, 200); // 200ms Verzögerung
+                
             } catch (error) {
                 console.error('❌ Fehler beim Erstellen der Charts:', error);
                 showError('Fehler beim Erstellen der Diagramme: ' + error.message);
