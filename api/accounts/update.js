@@ -44,7 +44,11 @@ module.exports = async function handler(req, res) {
             .find(c => c.trim().startsWith('session_token='))
             ?.split('=')[1];
 
+        console.log('🔍 Session-Token aus Cookie:', sessionToken ? 'Found' : 'Not found');
+        console.log('🔍 Cookies:', req.headers.cookie);
+
         if (!sessionToken) {
+            console.error('❌ No session token found in cookies');
             return res.status(401).json({ error: 'Keine gültige Session gefunden' });
         }
 
@@ -53,17 +57,39 @@ module.exports = async function handler(req, res) {
             .from('website_sessions')
             .select('*, website_users!inner(*)')
             .eq('session_token', sessionToken)
-            .eq('expires_at', new Date().toISOString(), { operator: 'gt' })
+            .gt('expires_at', new Date().toISOString())
             .single();
 
-        if (sessionError || !session) {
-            return res.status(401).json({ error: 'Ungültige oder abgelaufene Session' });
+        if (sessionError) {
+            console.error('❌ Session validation error:', sessionError);
+            return res.status(401).json({ 
+                error: 'Ungültige oder abgelaufene Session',
+                debug: sessionError.message 
+            });
         }
+
+        if (!session) {
+            console.error('❌ No session found for token:', sessionToken);
+            return res.status(401).json({ error: 'Keine Session gefunden' });
+        }
+
+        console.log('✅ Session validiert:', {
+            sessionId: session.id,
+            userId: session.user_id,
+            expiresAt: session.expires_at
+        });
 
         const websiteUser = session.website_users;
         const adminUserId = websiteUser.admin_user_id;
 
+        console.log('🔍 Website User:', {
+            id: websiteUser.id,
+            username: websiteUser.username,
+            adminUserId: adminUserId
+        });
+
         if (!adminUserId) {
+            console.error('❌ No admin_user_id found in website_user');
             return res.status(400).json({ error: 'Keine Admin-User-ID gefunden' });
         }
 
