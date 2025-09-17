@@ -574,17 +574,17 @@
         /* Tooltip-Optimierungen für mobile Geräte */
         @media (max-width: 768px) {
             .echarts-tooltip {
-                max-width: 200px !important;
                 font-size: 12px !important;
                 padding: 8px !important;
+                min-width: fit-content !important;
             }
         }
         
         @media (max-width: 480px) {
             .echarts-tooltip {
-                max-width: 150px !important;
                 font-size: 11px !important;
                 padding: 6px !important;
+                min-width: fit-content !important;
             }
         }
 
@@ -1277,7 +1277,7 @@
                     trigger: 'axis',
                     show: true,
                     confine: true, // Begrenzt Tooltip auf Chart-Bereich
-                    extraCssText: 'max-width: 250px; word-wrap: break-word;',
+                    extraCssText: 'word-wrap: break-word; white-space: nowrap;',
                     formatter: function(params) {
                         let result = params[0].axisValue + '<br/>';
                         let hasValidData = false;
@@ -1449,7 +1449,7 @@
                     trigger: 'axis',
                     show: true,
                     confine: true, // Begrenzt Tooltip auf Chart-Bereich
-                    extraCssText: 'max-width: 250px; word-wrap: break-word;',
+                    extraCssText: 'word-wrap: break-word; white-space: nowrap;',
                     formatter: function(params) {
                         if (!params || params.length === 0) return '';
                         const param = params[0];
@@ -1467,7 +1467,7 @@
                     bottom: '5%',
                     containLabel: true
                 },
-                barWidth: 60,
+                barWidth: 30,
                 color: getChartColors(),
                 zoom: false
             };
@@ -1746,7 +1746,7 @@
                     trigger: 'axis',
                     show: true,
                     confine: true, // Begrenzt Tooltip auf Chart-Bereich
-                    extraCssText: 'max-width: 250px; word-wrap: break-word;',
+                    extraCssText: 'word-wrap: break-word; white-space: nowrap;',
                     formatter: function(params) {
                         let result = params[0].axisValue + '<br/>';
                         let hasValidData = false;
@@ -1929,7 +1929,7 @@
                     trigger: 'item',
                     show: true,
                     confine: true, // Begrenzt Tooltip auf Chart-Bereich
-                    extraCssText: 'max-width: 250px; word-wrap: break-word;',
+                    extraCssText: 'word-wrap: break-word; white-space: nowrap;',
                     formatter: function(params) {
                         const total = filteredVideos.reduce((sum, v) => sum + (v.views || 0), 0);
                         const percentage = total > 0 ? ((params.value / total) * 100).toFixed(1) : '0';
