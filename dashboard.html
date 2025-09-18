@@ -216,6 +216,11 @@
             transform: translateY(-3px);
         }
         
+        .stat-card[onclick]:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 140, 255, 0.15);
+        }
+        
         .stat-icon {
             width: 50px;
             height: 50px;
@@ -706,7 +711,7 @@
 
                 <!-- Statistiken-Übersicht -->
                 <div class="stats-overview">
-                    <div class="stat-card">
+                    <div class="stat-card" onclick="scrollToCharts()" style="cursor: pointer;">
                         <div class="stat-icon">
                             <i class="fas fa-eye"></i>
                         </div>
@@ -714,7 +719,7 @@
                         <div class="stat-label">Gesamte Aufrufe</div>
                     </div>
                     
-                    <div class="stat-card">
+                    <div class="stat-card" onclick="scrollToCharts()" style="cursor: pointer;">
                         <div class="stat-icon">
                             <i class="fas fa-play-circle"></i>
                         </div>
@@ -2149,10 +2154,45 @@
         
         // Charts aktualisieren
         function updateCharts() {
-            if (chartStates.lineChart) createLineChart();
-            if (chartStates.barChart) createBarChart();
-            if (chartStates.pieChart) createPieChart();
-            if (chartStates.lineRaceChart) createLineRaceChart();
+            if (chartStates.lineChart) {
+                createLineChart();
+            } else {
+                // Chart ist eingeklappt, stelle sicher dass es versteckt ist
+                const container = document.getElementById('lineChartContainer');
+                const toggle = document.getElementById('lineChartToggle');
+                if (container) container.classList.add('collapsed');
+                if (toggle) toggle.classList.remove('expanded');
+            }
+            
+            if (chartStates.barChart) {
+                createBarChart();
+            } else {
+                // Chart ist eingeklappt, stelle sicher dass es versteckt ist
+                const container = document.getElementById('barChartContainer');
+                const toggle = document.getElementById('barChartToggle');
+                if (container) container.classList.add('collapsed');
+                if (toggle) toggle.classList.remove('expanded');
+            }
+            
+            if (chartStates.pieChart) {
+                createPieChart();
+            } else {
+                // Chart ist eingeklappt, stelle sicher dass es versteckt ist
+                const container = document.getElementById('pieChartContainer');
+                const toggle = document.getElementById('pieChartToggle');
+                if (container) container.classList.add('collapsed');
+                if (toggle) toggle.classList.remove('expanded');
+            }
+            
+            if (chartStates.lineRaceChart) {
+                createLineRaceChart();
+            } else {
+                // Chart ist eingeklappt, stelle sicher dass es versteckt ist
+                const container = document.getElementById('lineRaceChartContainer');
+                const toggle = document.getElementById('lineRaceChartToggle');
+                if (container) container.classList.add('collapsed');
+                if (toggle) toggle.classList.remove('expanded');
+            }
         }
         
         // Chart-Größe bei Fenster-Resize anpassen
@@ -2184,6 +2224,17 @@
             } else {
                 container.classList.add('collapsed');
                 toggle.classList.remove('expanded');
+            }
+        }
+        
+        // Zu den Charts scrollen
+        function scrollToCharts() {
+            const chartsSection = document.querySelector('.charts-section');
+            if (chartsSection) {
+                chartsSection.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                });
             }
         }
         
