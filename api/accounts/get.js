@@ -36,7 +36,7 @@ module.exports = async function handler(req, res) {
     }
 
     try {
-        // Hole alle Admin-Benutzer (sollte nur einen geben)
+        // Hole alle Admin-Benutzer
         const { data: adminUsers, error: adminError } = await supabase
             .from('admin_users')
             .select('id, username, created_at')
@@ -58,17 +58,20 @@ module.exports = async function handler(req, res) {
             });
         }
 
-        // Es sollte nur einen Account geben
-        const adminUser = adminUsers[0];
-
+        // Gib alle Accounts zurück (für Kompatibilität mit bestehender App wird der erste Account als "account" zurückgegeben)
         return res.status(200).json({
             success: true,
             hasAccount: true,
             account: {
-                id: adminUser.id,
-                username: adminUser.username,
-                created_at: adminUser.created_at
-            }
+                id: adminUsers[0].id,
+                username: adminUsers[0].username,
+                created_at: adminUsers[0].created_at
+            },
+            accounts: adminUsers.map(user => ({
+                id: user.id,
+                username: user.username,
+                created_at: user.created_at
+            }))
         });
 
     } catch (error) {

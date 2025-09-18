@@ -330,22 +330,115 @@
         }
 
         .alert {
-            padding: 1rem;
+            padding: 1rem 1.5rem;
             border-radius: 8px;
             margin-bottom: 1rem;
             display: none;
-        }
-
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(-10px);
         }
 
         .alert-error {
-            background: #f8d7da;
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
             color: #721c24;
-            border: 1px solid #f5c6cb;
+            border: 2px solid #dc3545;
+            border-left: 5px solid #dc3545;
+        }
+
+        /* Success Overlay */
+        .success-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .success-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .success-modal {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            border: 2px solid #28a745;
+            border-radius: 15px;
+            padding: 2rem 3rem;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transform: scale(0.8) translateY(50px);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .success-overlay.show .success-modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: #28a745;
+            margin-bottom: 1rem;
+            animation: successBounce 0.6s ease-out;
+        }
+
+        .success-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #155724;
+        }
+
+        .success-message {
+            font-size: 1.1rem;
+            color: #155724;
+            margin-bottom: 1.5rem;
+        }
+
+        .success-close {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .success-close:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        @keyframes successBounce {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         .account-info {
@@ -455,8 +548,19 @@
             </div>
 
             <!-- Alerts -->
-            <div id="successAlert" class="alert alert-success"></div>
             <div id="errorAlert" class="alert alert-error"></div>
+            
+            <!-- Success Overlay -->
+            <div id="successOverlay" class="success-overlay">
+                <div class="success-modal">
+                    <div class="success-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="success-title">Erfolgreich!</div>
+                    <div class="success-message" id="successMessage"></div>
+                    <button class="success-close" onclick="closeSuccessOverlay()">Verstanden</button>
+                </div>
+            </div>
 
             <!-- Account-Informationen -->
             <div class="account-card">
@@ -508,15 +612,7 @@
                     <div class="form-group">
                         <label for="newPassword" class="form-label">Neues Passwort</label>
                         <input type="password" id="newPassword" class="form-input" placeholder="Neues Passwort eingeben" required>
-                        <div class="password-requirements">
-                            <strong>Passwort-Anforderungen:</strong>
-                            <ul>
-                                <li>Mindestens 8 Zeichen lang</li>
-                                <li>Mindestens einen Großbuchstaben</li>
-                                <li>Mindestens einen Kleinbuchstaben</li>
-                                <li>Mindestens eine Zahl</li>
-                            </ul>
-                        </div>
+                        <!-- Passwort-Anforderungen wurden entfernt -->
                     </div>
                     <div class="form-group">
                         <label for="confirmPassword" class="form-label">Passwort bestätigen</label>
@@ -553,10 +649,47 @@
 
         // Dashboard initialisieren
         document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🔍 DOM Content Loaded - Initialisiere Account-Seite...');
+            await testApiConnectivity();
             await loadAccountData();
             setupEventListeners();
             setupNavigation();
+            setupKeyboardShortcuts();
+            console.log('✅ Account-Seite initialisiert');
         });
+        
+        // Keyboard shortcuts
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', function(e) {
+                // Escape key closes success overlay
+                if (e.key === 'Escape') {
+                    closeSuccessOverlay();
+                }
+            });
+        }
+        
+        // API-Verbindung testen
+        async function testApiConnectivity() {
+            try {
+                console.log('🔍 Teste API-Verbindung...');
+                const response = await fetch('/api/auth/verify-session', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                console.log('🔍 API-Verbindungstest Status:', response.status);
+                
+                if (response.status === 401) {
+                    console.log('✅ API erreichbar, aber keine gültige Session (erwartet)');
+                } else if (response.ok) {
+                    console.log('✅ API erreichbar und Session gültig');
+                } else {
+                    console.warn('⚠️ API erreichbar, aber unerwarteter Status:', response.status);
+                }
+            } catch (error) {
+                console.error('❌ API-Verbindungstest fehlgeschlagen:', error);
+                showError('Warnung: API-Endpunkte sind möglicherweise nicht erreichbar. Einige Funktionen funktionieren möglicherweise nicht. Öffnen Sie die Browser-Konsole (F12) für weitere Details.');
+            }
+        }
 
         // Navigation einrichten
         function setupNavigation() {
@@ -601,11 +734,25 @@
 
         // Event Listeners einrichten
         function setupEventListeners() {
+            console.log('🔍 Richte Event Listeners ein...');
+            
             // Username Form
-            document.getElementById('usernameForm').addEventListener('submit', handleUsernameChange);
+            const usernameForm = document.getElementById('usernameForm');
+            if (usernameForm) {
+                usernameForm.addEventListener('submit', handleUsernameChange);
+                console.log('✅ Username Form Event Listener hinzugefügt');
+            } else {
+                console.error('❌ Username Form nicht gefunden');
+            }
             
             // Password Form
-            document.getElementById('passwordForm').addEventListener('submit', handlePasswordChange);
+            const passwordForm = document.getElementById('passwordForm');
+            if (passwordForm) {
+                passwordForm.addEventListener('submit', handlePasswordChange);
+                console.log('✅ Password Form Event Listener hinzugefügt');
+            } else {
+                console.error('❌ Password Form nicht gefunden');
+            }
         }
 
         // Account-Daten laden
@@ -719,11 +866,18 @@
         // Passwort ändern
         async function handlePasswordChange(e) {
             e.preventDefault();
+            console.log('🔍 Passwort-Änderung gestartet');
             
             const currentPassword = document.getElementById('currentPassword').value;
             const newPassword = document.getElementById('newPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             const submitBtn = document.getElementById('passwordSubmitBtn');
+            
+            console.log('🔍 Formular-Daten:', {
+                currentPasswordLength: currentPassword.length,
+                newPasswordLength: newPassword.length,
+                confirmPasswordLength: confirmPassword.length
+            });
             
             // Validierung
             if (!currentPassword || !newPassword || !confirmPassword) {
@@ -736,14 +890,13 @@
                 return;
             }
 
-            if (!validatePassword(newPassword)) {
-                showError('Das Passwort erfüllt nicht alle Anforderungen');
-                return;
-            }
+            // Passwort-Anforderungen wurden entfernt
 
             try {
                 setButtonLoading(submitBtn, true);
                 hideAlerts();
+                
+                console.log('🔍 Sende API-Anfrage an /api/accounts/update');
 
                 const response = await fetch('/api/accounts/update', {
                     method: 'PUT',
@@ -757,9 +910,18 @@
                     })
                 });
 
+                console.log('🔍 API-Antwort Status:', response.status);
+                
+                if (!response.ok) {
+                    console.error('❌ API-Antwort nicht OK:', response.status, response.statusText);
+                    showError(`API-Fehler: ${response.status} ${response.statusText}. Öffnen Sie die Browser-Konsole (F12) für weitere Details.`);
+                    return;
+                }
+                
                 const data = await response.json();
+                console.log('🔍 API-Antwort Daten:', data);
 
-                if (response.ok && data.success) {
+                if (data.success) {
                     showSuccess('Passwort erfolgreich geändert');
                     document.getElementById('currentPassword').value = '';
                     document.getElementById('newPassword').value = '';
@@ -769,22 +931,21 @@
                 }
 
             } catch (error) {
-                console.error('Error updating password:', error);
-                showError('Fehler beim Ändern des Passworts: ' + error.message);
+                console.error('❌ Fehler beim Passwort-Update:', error);
+                
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    showError('Netzwerkfehler: API-Endpunkt nicht erreichbar. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es später erneut. Falls das Problem weiterhin besteht, kontaktieren Sie den Administrator. Öffnen Sie die Browser-Konsole (F12) für weitere Details.');
+                } else if (error.name === 'SyntaxError') {
+                    showError('Fehler beim Verarbeiten der Server-Antwort. Bitte versuchen Sie es erneut.');
+                } else {
+                    showError('Fehler beim Ändern des Passworts: ' + error.message);
+                }
             } finally {
                 setButtonLoading(submitBtn, false);
             }
         }
 
-        // Passwort validieren
-        function validatePassword(password) {
-            const minLength = 8;
-            const hasUpperCase = /[A-Z]/.test(password);
-            const hasLowerCase = /[a-z]/.test(password);
-            const hasNumbers = /\d/.test(password);
-
-            return password.length >= minLength && hasUpperCase && hasLowerCase && hasNumbers;
-        }
+        // Passwort-Validierung wurde entfernt
 
         // Account löschen bestätigen
         function confirmDeleteAccount() {
@@ -849,26 +1010,55 @@
 
         // Alerts anzeigen/verstecken
         function showSuccess(message) {
-            const alert = document.getElementById('successAlert');
-            alert.textContent = message;
-            alert.style.display = 'block';
+            const overlay = document.getElementById('successOverlay');
+            const messageElement = document.getElementById('successMessage');
+            
+            messageElement.textContent = message;
+            overlay.classList.add('show');
+            
+            // Auto-close after 5 seconds
             setTimeout(() => {
-                alert.style.display = 'none';
+                closeSuccessOverlay();
             }, 5000);
+        }
+        
+        function closeSuccessOverlay() {
+            const overlay = document.getElementById('successOverlay');
+            overlay.classList.remove('show');
         }
 
         function showError(message) {
             const alert = document.getElementById('errorAlert');
-            alert.textContent = message;
+            alert.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
             alert.style.display = 'block';
+            alert.style.opacity = '1';
+            alert.style.transform = 'translateY(0)';
+            
+            // Scroll to alert
+            alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
             setTimeout(() => {
-                alert.style.display = 'none';
-            }, 5000);
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 300);
+            }, 8000); // Länger anzeigen (8 Sekunden)
         }
 
         function hideAlerts() {
-            document.getElementById('successAlert').style.display = 'none';
-            document.getElementById('errorAlert').style.display = 'none';
+            // Hide success overlay
+            closeSuccessOverlay();
+            
+            // Hide error alert
+            const errorAlert = document.getElementById('errorAlert');
+            if (errorAlert.style.display === 'block') {
+                errorAlert.style.opacity = '0';
+                errorAlert.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    errorAlert.style.display = 'none';
+                }, 300);
+            }
         }
 
         // Abmelden

@@ -1,4 +1,4 @@
-// api/accounts/create.js - Account-Erstellung aus App
+// api/auth/reset-password.js - Passwort-Reset ohne aktuelles Passwort
 const { createClient } = require('@supabase/supabase-js');
 const bcrypt = require('bcryptjs');
 
@@ -47,16 +47,20 @@ module.exports = async function handler(req, res) {
     }
 
     try {
-        const { username, password } = req.body;
+        const { username, newPassword } = req.body;
 
-        if (!username || !password) {
-            return res.status(400).json({ error: 'Benutzername und Passwort sind erforderlich' });
+        if (!username || !newPassword) {
+            return res.status(400).json({ error: 'Benutzername und neues Passwort sind erforderlich' });
         }
 
-        // Prüfe ob Benutzername bereits existiert
+        if (newPassword.length < 6) {
+            return res.status(400).json({ error: 'Das Passwort muss mindestens 6 Zeichen lang sein' });
+        }
+
+        // Prüfe ob der Benutzer existiert
         const { data: existingUser, error: checkError } = await supabase
             .from('admin_users')
-            .select('id')
+            .select('id, username')
             .eq('username', username)
             .single();
 
@@ -64,50 +68,58 @@ module.exports = async function handler(req, res) {
             console.error('Error checking existing user:', checkError);
             return res.status(500).json({ 
                 error: 'Database error',
-                details: 'Failed to check existing account'
+                details: 'Failed to check user existence'
             });
         }
 
-        if (existingUser) {
-            return res.status(409).json({ error: 'Benutzername bereits vergeben' });
+        if (!existingUser) {
+            return res.status(404).json({ error: 'Benutzer nicht gefunden' });
         }
 
-        // Hash das Passwort
-        const hashedPassword = await bcrypt.hash(password, 10);
+        // Hash das neue Passwort
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
         
-        // Erstelle Admin-Benutzer (Trigger erstellt automatisch Website-Benutzer)
-        const { data: adminUser, error: adminError } = await supabase
+        // Aktualisiere das Passwort
+        const { data: updatedUser, error: updateError } = await supabase
             .from('admin_users')
-            .insert({
-                username,
+            .update({
                 password_hash: hashedPassword,
-                full_name: username
+                updated_at: new Date().toISOString()
             })
-            .select()
+            .eq('id', existingUser.id)
+            .select('id, username')
             .single();
 
-        if (adminError) {
-            console.error('Admin user creation error:', adminError);
-            return res.status(500).json({ error: 'Fehler beim Erstellen des Accounts' });
+        if (updateError) {
+            console.error('Password update error:', updateError);
+            return res.status(500).json({ error: 'Fehler beim Aktualisieren des Passworts' });
         }
 
-        // Hole den erstellten Website-Benutzer
-        const { data: websiteUser } = await supabase
+        // Aktualisiere auch das Website-Benutzer-Passwort (falls vorhanden)
+        const { error: websiteUpdateError } = await supabase
             .from('website_users')
-            .select('id, username')
-            .eq('admin_user_id', adminUser.id)
-            .single();
+            .update({
+                password_hash: hashedPassword,
+                updated_at: new Date().toISOString()
+            })
+            .eq('admin_user_id', existingUser.id);
 
-        return res.status(201).json({
+        if (websiteUpdateError) {
+            console.error('Website user password update error:', websiteUpdateError);
+            // Nicht kritisch, da der Admin-User bereits aktualisiert wurde
+        }
+
+        return res.status(200).json({
             success: true,
-            message: 'Account erfolgreich erstellt',
-            admin_user_id: adminUser.id,
-            website_user_id: websiteUser.id,
-            username: username
+            message: 'Passwort erfolgreich zurückgesetzt',
+            user: {
+                id: updatedUser.id,
+                username: updatedUser.username
+            }
         });
 
     } catch (error) {
-        console.error('Account creation error:', error);
+        console.error('Password reset error:', error);
         return res.status(500).json({ error: 'Interner Serverfehler' });
     }
 }

@@ -177,6 +177,23 @@
             padding: 0 2rem 4rem;
         }
 
+        /* Geräte-ID-Header */
+        .device-id-header {
+            background: var(--white);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .device-id-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
         /* Statistiken-Karten im AdminPanel-Stil */
         .stats-overview {
             display: grid;
@@ -470,6 +487,17 @@
                 text-align: center;
             }
             
+            .device-id-header {
+                padding: 0.8rem 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .device-id-container {
+                font-size: 0.8rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
             .stats-overview {
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
                 gap: 1rem;
@@ -667,6 +695,15 @@
             <div id="errorMessage" class="error-message" style="display: none;"></div>
             
             <div id="dashboardContent" style="display: none;">
+                <!-- Geräte-ID-Anzeige -->
+                <div class="device-id-header" id="deviceIdHeader" style="display: none;">
+                    <div class="device-id-container">
+                        <i class="fas fa-mobile-alt" style="margin-right: 8px; color: var(--primary-color);"></i>
+                        <span style="font-weight: 500; color: var(--text-color);">Geräte-ID:</span>
+                        <span id="deviceIdValue" style="font-family: monospace; background: var(--card-bg); padding: 2px 8px; border-radius: 4px; margin-left: 8px; color: var(--primary-color);"></span>
+                    </div>
+                </div>
+
                 <!-- Statistiken-Übersicht -->
                 <div class="stats-overview">
                     <div class="stat-card">
@@ -695,7 +732,7 @@
                         <button class="time-btn" data-range="30">Letzte 30 Tage</button>
                         <button class="time-btn" data-range="90">Letzte 3 Monate</button>
                         <button class="time-btn" data-range="365">Letztes Jahr</button>
-                        <button class="time-btn" data-range="all">Alle Zeit</button>
+                        <button class="time-btn" data-range="all">Insgesamter Zeitraum</button>
                     </div>
                 </div>
                 
@@ -1007,6 +1044,18 @@
                 const videosWithViewsElement = document.getElementById('videosWithViews');
                 if (videosWithViewsElement) {
                     videosWithViewsElement.textContent = videosWithViews.toLocaleString('de-DE');
+                }
+                
+                // Zeige Geräte-ID an, falls verfügbar
+                const deviceId = statistics.device_id;
+                const deviceIdHeader = document.getElementById('deviceIdHeader');
+                const deviceIdValue = document.getElementById('deviceIdValue');
+                
+                if (deviceId && deviceIdHeader && deviceIdValue) {
+                    deviceIdValue.textContent = deviceId;
+                    deviceIdHeader.style.display = 'block';
+                } else if (deviceIdHeader) {
+                    deviceIdHeader.style.display = 'none';
                 }
                 
                 // Zusätzliche Statistiken anzeigen, falls Elemente existieren
@@ -1498,15 +1547,29 @@
                     position: absolute;
                     top: 10px;
                     right: 10px;
-                    background: #008CFF;
-                    color: white;
+                    background: var(--gradient-primary);
+                    color: var(--white);
                     border: none;
-                    padding: 5px 10px;
-                    border-radius: 4px;
-                    font-size: 12px;
+                    padding: 6px 12px;
+                    border-radius: 8px;
+                    font-size: 11px;
+                    font-weight: 500;
                     cursor: pointer;
                     z-index: 1000;
+                    box-shadow: 0 2px 8px rgba(0, 140, 255, 0.3);
+                    transition: all 0.3s ease;
                 `;
+                // Hover-Effekt hinzufügen
+                expandButton.addEventListener('mouseenter', () => {
+                    expandButton.style.transform = 'translateY(-1px)';
+                    expandButton.style.boxShadow = '0 4px 12px rgba(0, 140, 255, 0.4)';
+                });
+                
+                expandButton.addEventListener('mouseleave', () => {
+                    expandButton.style.transform = 'translateY(0)';
+                    expandButton.style.boxShadow = '0 2px 8px rgba(0, 140, 255, 0.3)';
+                });
+                
                 expandButton.onclick = () => {
                     // Berechne neue Höhe für alle Videos - ohne Legende
                     const newHeight = 50 * filteredVideos.length + 80; // Reduzierte Höhe pro Balken und weniger Padding ohne Legende
