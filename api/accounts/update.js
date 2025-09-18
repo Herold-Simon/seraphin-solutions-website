@@ -24,8 +24,7 @@ module.exports = async function handler(req, res) {
         return res.status(200).end();
     }
     
-    // Accept both POST and PUT methods for compatibility
-    if (req.method !== 'POST' && req.method !== 'PUT') {
+    if (req.method !== 'PUT') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 

@@ -337,7 +337,8 @@
         .chart-container {
             position: relative;
             height: 400px;
-            transition: all 0.3s ease;
+            transition: height 0.3s ease, padding 0.3s ease, margin 0.3s ease;
+            overflow: hidden;
         }
         
         .chart-container.bar-chart {
@@ -350,8 +351,10 @@
         }
 
         .chart-container.collapsed {
-            height: 0;
+            height: 0 !important;
             overflow: hidden;
+            padding: 0;
+            margin: 0;
         }
 
         /* Video-Liste */
@@ -806,7 +809,6 @@
         // Dashboard initialisieren
         document.addEventListener('DOMContentLoaded', async function() {
             await loadDashboard();
-            setupEventListeners();
             setupNavigation();
         });
         
@@ -861,6 +863,39 @@
                     currentTimeRange = this.dataset.range;
                     updateCharts();
                 });
+            });
+            
+            // Chart-Toggle Event Listeners (zusätzliche Sicherheit)
+            document.querySelectorAll('.chart-header').forEach(header => {
+                header.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Finde den Chart-Namen aus dem onclick-Attribut
+                    const onclickAttr = this.getAttribute('onclick');
+                    if (onclickAttr && onclickAttr.includes('toggleChart')) {
+                        const match = onclickAttr.match(/toggleChart\('([^']+)'\)/);
+                        if (match && match[1]) {
+                            const chartName = match[1];
+                            console.log('🖱️ Chart Header geklickt:', chartName);
+                            toggleChart(chartName);
+                        }
+                    }
+                });
+            });
+            
+            // Direkte Event Listener für jeden Chart-Toggle
+            const chartNames = ['lineChart', 'pieChart', 'barChart', 'lineRaceChart'];
+            chartNames.forEach(chartName => {
+                const toggle = document.getElementById(chartName + 'Toggle');
+                if (toggle) {
+                    toggle.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('🖱️ Toggle Button geklickt:', chartName);
+                        toggleChart(chartName);
+                    });
+                }
             });
         }
         
@@ -937,6 +972,9 @@
                     console.log('✅ Statistiken erfolgreich geladen:', statistics);
                     displayStatistics();
                     hideLoading();
+                    
+                    // Event Listeners nach dem Laden der Statistiken einrichten
+                    setupEventListeners();
                     
                     // Automatisch zu "Alle Zeit" wechseln nach dem Laden der Statistiken
                     setTimeout(() => {
@@ -2173,18 +2211,58 @@
         
         // Chart ein-/ausklappen
         function toggleChart(chartName) {
+            console.log('🔄 Toggle Chart:', chartName);
+            
             const container = document.getElementById(chartName + 'Container');
             const toggle = document.getElementById(chartName + 'Toggle');
             
+            if (!container) {
+                console.error('❌ Container nicht gefunden:', chartName + 'Container');
+                return;
+            }
+            
+            if (!toggle) {
+                console.error('❌ Toggle nicht gefunden:', chartName + 'Toggle');
+                return;
+            }
+            
+            // Toggle den Zustand
             chartStates[chartName] = !chartStates[chartName];
+            console.log('📊 Chart State:', chartName, '=', chartStates[chartName]);
             
             if (chartStates[chartName]) {
+                // Chart ausklappen
                 container.classList.remove('collapsed');
                 toggle.classList.add('expanded');
+                console.log('✅ Chart ausgeklappt:', chartName);
+                
+                // Stelle sicher, dass der Container eine Höhe hat
+                if (chartName === 'barChart') {
+                    // Für Bar Chart: dynamische Höhe basierend auf Videos
+                    const videos = statistics?.videos || [];
+                    const barChartVideoCount = statistics?.current?.bar_chart_video_count || 7;
+                    const filteredVideos = videos.filter(video => (video.views || 0) > 0).slice(0, barChartVideoCount);
+                    const maxVisible = 5;
+                    const visibleVideos = filteredVideos.slice(0, maxVisible);
+                    const barHeight = 50 * visibleVideos.length + 80;
+                    container.style.height = barHeight + 'px';
+                } else {
+                    // Für andere Charts: Standard-Höhe
+                    container.style.height = '400px';
+                }
             } else {
+                // Chart einklappen
                 container.classList.add('collapsed');
                 toggle.classList.remove('expanded');
+                console.log('✅ Chart eingeklappt:', chartName);
             }
+            
+            // Resize Charts nach Toggle
+            setTimeout(() => {
+                if (charts[chartName]) {
+                    charts[chartName].resize();
+                }
+            }, 300); // Warte auf CSS-Transition
         }
         
         
@@ -2360,6 +2438,13 @@
         
         // Auto-Refresh alle 5 Minuten
         setInterval(loadDashboard, 5 * 60 * 1000);
+        
+        // Globale Funktionen für externe Aufrufe
+        window.toggleChart = toggleChart;
+        window.toggleBarChart = () => toggleChart('barChart');
+        window.toggleLineChart = () => toggleChart('lineChart');
+        window.togglePieChart = () => toggleChart('pieChart');
+        window.toggleLineRaceChart = () => toggleChart('lineRaceChart');
     </script>
 
     <!-- Footer -->
