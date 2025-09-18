@@ -433,7 +433,7 @@
                 <span id="loginButtonText">Anmelden</span>
             </button>
 
-            <div class="message-container" id="messageContainer"></div>
+            <div class="message-container" id="messageContainer" style="display: none;"></div>
         </form>
 
         <div class="back-link">
@@ -524,6 +524,7 @@
             loginButton.disabled = true;
             loginButtonText.innerHTML = '<div class="loading-spinner"></div> Anmeldung läuft...';
             messageContainer.innerHTML = '';
+            messageContainer.style.display = 'none';
             
             try {
                 const response = await fetch('/api/auth/login', {
@@ -577,6 +578,7 @@
                     ${message}
                 </div>
             `;
+            messageContainer.style.display = 'block';
         }
 
         // Enter Key Handling
