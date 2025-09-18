@@ -76,6 +76,31 @@ module.exports = async function handler(req, res) {
             return res.status(404).json({ error: 'Benutzer nicht gefunden' });
         }
 
+        // Prüfe ob ein bestätigter Reset-Request existiert
+        const { data: resetRequest, error: resetCheckError } = await supabase
+            .from('password_reset_requests')
+            .select('*')
+            .eq('username', username)
+            .eq('status', 'confirmed')
+            .gte('expires_at', new Date().toISOString())
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+        if (resetCheckError && resetCheckError.code !== 'PGRST116') {
+            console.error('Error checking reset request:', resetCheckError);
+            return res.status(500).json({ 
+                error: 'Database error',
+                details: 'Failed to check reset request'
+            });
+        }
+
+        if (!resetRequest) {
+            return res.status(403).json({ 
+                error: 'Kein bestätigter Reset-Request gefunden. Bitte bestätigen Sie den Reset im AdminPanel.' 
+            });
+        }
+
         // Hash das neue Passwort
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         
@@ -108,6 +133,12 @@ module.exports = async function handler(req, res) {
             console.error('Website user password update error:', websiteUpdateError);
             // Nicht kritisch, da der Admin-User bereits aktualisiert wurde
         }
+
+        // Lösche den Reset-Request nach erfolgreichem Passwort-Reset
+        await supabase
+            .from('password_reset_requests')
+            .delete()
+            .eq('id', resetRequest.id);
 
         return res.status(200).json({
             success: true,
