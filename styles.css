@@ -2833,24 +2833,4 @@ section {
     }
 }
 
-/* Password Reset Page Styles */
-.placeholder-content {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 2rem;
-    border-radius: 15px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    margin-top: 2rem;
-}
-
-.placeholder-content p {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 1.1rem;
-    line-height: 1.6;
-    margin-bottom: 1rem;
-}
-
-.placeholder-content p:last-child {
-    margin-bottom: 0;
-}
 

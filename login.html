@@ -428,17 +428,12 @@
                 <label for="rememberMe" class="remember-me-label">Angemeldet bleiben</label>
             </div>
 
-            <div class="forgot-password-container">
-                <a href="password-reset.html" class="forgot-password-link">
-                    <i class="fas fa-key"></i> Passwort vergessen?
-                </a>
-            </div>
 
             <button type="submit" class="login-button" id="loginButton">
                 <span id="loginButtonText">Anmelden</span>
             </button>
 
-            <div class="message-container" id="messageContainer"></div>
+            <div class="message-container" id="messageContainer" style="display: none;"></div>
         </form>
 
         <div class="back-link">
@@ -529,6 +524,7 @@
             loginButton.disabled = true;
             loginButtonText.innerHTML = '<div class="loading-spinner"></div> Anmeldung läuft...';
             messageContainer.innerHTML = '';
+            messageContainer.style.display = 'none';
             
             try {
                 const response = await fetch('/api/auth/login', {
@@ -582,6 +578,7 @@
                     ${message}
                 </div>
             `;
+            messageContainer.style.display = 'block';
         }
 
         // Enter Key Handling
