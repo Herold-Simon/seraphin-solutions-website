@@ -258,6 +258,75 @@
             color: #667eea;
         }
 
+        .remember-me-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .remember-me-checkbox {
+            position: relative;
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+        }
+
+        .remember-me-checkbox input[type="checkbox"] {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .checkmark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 20px;
+            width: 20px;
+            background-color: var(--light-gray);
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .remember-me-checkbox:hover .checkmark {
+            border-color: var(--primary-blue);
+        }
+
+        .remember-me-checkbox input:checked ~ .checkmark {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+
+        .remember-me-checkbox input:checked ~ .checkmark:after {
+            display: block;
+        }
+
+        .remember-me-checkbox .checkmark:after {
+            left: 6px;
+            top: 2px;
+            width: 6px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .remember-me-label {
+            color: var(--text-dark);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+        }
+
         /* Responsive Design */
         @media (max-width: 480px) {
             .login-container {
@@ -330,6 +399,14 @@
                 </div>
             </div>
 
+            <div class="remember-me-container">
+                <label class="remember-me-checkbox">
+                    <input type="checkbox" id="rememberMe" name="rememberMe">
+                    <span class="checkmark"></span>
+                </label>
+                <label for="rememberMe" class="remember-me-label">Angemeldet bleiben</label>
+            </div>
+
             <button type="submit" class="login-button" id="loginButton">
                 <span id="loginButtonText">Anmelden</span>
             </button>
@@ -345,6 +422,49 @@
     </div>
 
     <script>
+        // LocalStorage Functions for Remember Me
+        function saveCredentials(username, password) {
+            try {
+                const credentials = {
+                    username: username,
+                    password: password,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('rememberedCredentials', JSON.stringify(credentials));
+            } catch (error) {
+                console.error('Error saving credentials:', error);
+            }
+        }
+
+        function loadCredentials() {
+            try {
+                const saved = localStorage.getItem('rememberedCredentials');
+                if (saved) {
+                    const credentials = JSON.parse(saved);
+                    // Check if credentials are not older than 30 days
+                    const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+                    if (Date.now() - credentials.timestamp < thirtyDaysInMs) {
+                        return credentials;
+                    } else {
+                        // Remove expired credentials
+                        localStorage.removeItem('rememberedCredentials');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading credentials:', error);
+                localStorage.removeItem('rememberedCredentials');
+            }
+            return null;
+        }
+
+        function clearCredentials() {
+            try {
+                localStorage.removeItem('rememberedCredentials');
+            } catch (error) {
+                console.error('Error clearing credentials:', error);
+            }
+        }
+
         // Password Toggle Function
         function togglePassword() {
             const passwordInput = document.getElementById('password');
@@ -367,6 +487,7 @@
             
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
             const loginButton = document.getElementById('loginButton');
             const loginButtonText = document.getElementById('loginButtonText');
             const messageContainer = document.getElementById('messageContainer');
@@ -394,6 +515,14 @@
                 const data = await response.json();
                 
                 if (response.ok && data.success) {
+                    // Save credentials if "Remember Me" is checked
+                    if (rememberMe) {
+                        saveCredentials(username, password);
+                    } else {
+                        // Clear saved credentials if "Remember Me" is unchecked
+                        clearCredentials();
+                    }
+                    
                     showMessage('Anmeldung erfolgreich! Weiterleitung zum Dashboard...', 'success');
                     
                     // Redirect to dashboard after success
@@ -438,25 +567,40 @@
             }
         });
 
-        // Auto-focus on username field
+        // Auto-focus on username field and load saved credentials
         document.addEventListener('DOMContentLoaded', function() {
             const usernameField = document.getElementById('username');
-            if (usernameField) {
+            const passwordField = document.getElementById('password');
+            const rememberMeCheckbox = document.getElementById('rememberMe');
+            
+            // Load saved credentials
+            const savedCredentials = loadCredentials();
+            if (savedCredentials) {
+                usernameField.value = savedCredentials.username;
+                passwordField.value = savedCredentials.password;
+                rememberMeCheckbox.checked = true;
+                // Focus on password field if credentials are loaded
+                passwordField.focus();
+            } else {
+                // Focus on username field if no saved credentials
                 usernameField.focus();
             }
         });
 
-        // URL Parameter Handling (for pre-filled forms)
+        // URL Parameter Handling (for pre-filled forms) - only if no saved credentials
         document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const username = urlParams.get('username');
-            const password = urlParams.get('password');
-            
-            if (username) {
-                document.getElementById('username').value = decodeURIComponent(username);
-            }
-            if (password) {
-                document.getElementById('password').value = decodeURIComponent(password);
+            const savedCredentials = loadCredentials();
+            if (!savedCredentials) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const username = urlParams.get('username');
+                const password = urlParams.get('password');
+                
+                if (username) {
+                    document.getElementById('username').value = decodeURIComponent(username);
+                }
+                if (password) {
+                    document.getElementById('password').value = decodeURIComponent(password);
+                }
             }
         });
     </script>
