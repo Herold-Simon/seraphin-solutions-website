@@ -53,21 +53,23 @@ module.exports = async function handler(req, res) {
             return res.status(400).json({ error: 'Benutzername und Passwort sind erforderlich' });
         }
 
-        // Prüfe ob bereits ein Account existiert (nur ein Account erlaubt)
-        const { data: existingUsers, error: checkError } = await supabase
+        // Prüfe ob Benutzername bereits existiert
+        const { data: existingUser, error: checkError } = await supabase
             .from('admin_users')
-            .select('id, username');
+            .select('id')
+            .eq('username', username)
+            .single();
 
-        if (checkError) {
-            console.error('Error checking existing users:', checkError);
+        if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows found
+            console.error('Error checking existing user:', checkError);
             return res.status(500).json({ 
                 error: 'Database error',
-                details: 'Failed to check existing accounts'
+                details: 'Failed to check existing account'
             });
         }
 
-        if (existingUsers && existingUsers.length > 0) {
-            return res.status(409).json({ error: 'Es kann nur ein Account erstellt werden. Bitte löschen Sie den bestehenden Account, um einen neuen zu erstellen.' });
+        if (existingUser) {
+            return res.status(409).json({ error: 'Benutzername bereits vergeben' });
         }
 
         // Hash das Passwort
