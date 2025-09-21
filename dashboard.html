@@ -184,7 +184,6 @@
             border-radius: 12px;
             box-shadow: var(--shadow);
             margin-bottom: 1.5rem;
-            border-left: 4px solid var(--primary-color);
         }
         
         .device-id-container {
@@ -207,35 +206,6 @@
             position: relative;
         }
         
-        .stats-overview:hover {
-            background-color: rgba(0, 123, 255, 0.05);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
-        }
-        
-        .stats-overview::after {
-            content: "📊 Klicken für detaillierte Statistiken";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--gradient-primary);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-            white-space: nowrap;
-            z-index: 10;
-            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-        }
-        
-        .stats-overview:hover::after {
-            opacity: 1;
-        }
         
         .stat-card {
             background: var(--white);
@@ -244,7 +214,6 @@
             box-shadow: var(--shadow);
             text-align: center;
             transition: transform 0.3s ease;
-            border-left: 4px solid var(--primary-blue);
         }
         
         .stat-card:hover {
@@ -321,6 +290,124 @@
             background: var(--primary-blue);
             color: var(--white);
         }
+
+        /* Benutzerdefinierte Datumsauswahl */
+        .custom-date-range {
+            width: 100%;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--light-gray);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .date-inputs {
+            display: flex;
+            gap: 2rem;
+            align-items: end;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .date-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 200px;
+        }
+
+        .date-input-group label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            text-align: center;
+        }
+
+        .date-input-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--white);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.25rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .date-input-container:focus-within {
+            border-color: var(--primary-blue);
+        }
+
+        .date-input {
+            padding: 0.75rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            background: transparent;
+            color: var(--text-dark);
+            flex: 1;
+            min-width: 0;
+        }
+
+        .date-input:focus {
+            outline: none;
+        }
+
+        .date-nav-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: var(--light-gray);
+            color: var(--text-dark);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+
+        .date-nav-btn:hover {
+            background: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .date-nav-btn:active {
+            transform: scale(0.95);
+        }
+
+        .reset-button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .reset-date-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--light-gray);
+            color: var(--text-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .reset-date-btn:hover {
+            background: var(--text-light);
+            border-color: var(--text-light);
+            color: var(--white);
+        }
+
+        .reset-date-btn:active {
+            transform: scale(0.98);
+        }
+
 
         /* Charts-Sektion */
         .charts-section {
@@ -516,11 +603,6 @@
                 text-align: center;
             }
             
-            .stats-overview::after {
-                content: "📊 Tippen für Statistiken";
-                font-size: 0.8rem;
-                padding: 0.4rem 0.8rem;
-            }
             
             .dashboard-user {
                 flex-direction: column;
@@ -635,6 +717,45 @@
                 padding: 0.875rem 1rem;
                 font-size: 15px;
             }
+            
+            /* Benutzerdefinierte Datumsauswahl für mobile Geräte */
+            .custom-date-range {
+                margin-top: 1rem;
+                padding: 0.75rem;
+            }
+            
+            .date-inputs {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .date-input-group {
+                min-width: 100%;
+            }
+            
+            .date-input-container {
+                width: 100%;
+                padding: 0.5rem;
+            }
+            
+            .date-input {
+                padding: 0.875rem;
+                font-size: 16px; /* Verhindert Zoom auf iOS */
+            }
+            
+            .date-nav-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 14px;
+            }
+            
+            .reset-date-btn {
+                width: 100%;
+                padding: 1rem;
+                font-size: 16px;
+                justify-content: center;
+            }
+            
             
             .time-range-selector h3 {
                 font-size: 18px;
@@ -789,10 +910,44 @@
                     <h3 style="margin: 0; color: var(--text-dark);">Zeitraum:</h3>
                     <div class="time-range-buttons">
                         <button class="time-btn active" data-range="7">Letzte 7 Tage</button>
-                        <button class="time-btn" data-range="30">Letzte 30 Tage</button>
-                        <button class="time-btn" data-range="90">Letzte 3 Monate</button>
-                        <button class="time-btn" data-range="365">Letztes Jahr</button>
-                        <button class="time-btn" data-range="all">Insgesamter Zeitraum</button>
+                        <button class="time-btn" data-range="all">Gesamter Zeitraum</button>
+                        <button class="time-btn" data-range="custom" id="customRangeBtn">Benutzerdefiniert</button>
+                    </div>
+                    
+                    <!-- Benutzerdefinierte Datumsauswahl -->
+                    <div class="custom-date-range" id="customDateRange" style="display: none;">
+                        <div class="date-inputs">
+                            <div class="date-input-group">
+                                <label for="startDate">Von:</label>
+                                <div class="date-input-container">
+                                    <button class="date-nav-btn" id="startDatePrev" type="button">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <input type="date" id="startDate" class="date-input">
+                                    <button class="date-nav-btn" id="startDateNext" type="button">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="date-input-group">
+                                <label for="endDate">Bis:</label>
+                                <div class="date-input-container">
+                                    <button class="date-nav-btn" id="endDatePrev" type="button">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <input type="date" id="endDate" class="date-input">
+                                    <button class="date-nav-btn" id="endDateNext" type="button">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="reset-button-container">
+                            <button class="reset-date-btn" id="resetDateBtn" type="button">
+                                <i class="fas fa-undo"></i>
+                                Zurücksetzen
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
@@ -855,6 +1010,10 @@
         let currentUser = null;
         let statistics = null;
         let currentTimeRange = '7';
+        let customDateRange = {
+            startDate: null,
+            endDate: null
+        };
         let charts = {};
         let chartStates = {
             lineChart: true,
@@ -918,9 +1077,113 @@
                     document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     currentTimeRange = this.dataset.range;
+                    
+                    // Zeige/verstecke benutzerdefinierte Datumsauswahl
+                    const customDateRange = document.getElementById('customDateRange');
+                    if (currentTimeRange === 'custom') {
+                        customDateRange.style.display = 'block';
+                        // Setze Standard-Datumswerte
+                        const today = new Date();
+                        const thirtyDaysAgo = new Date();
+                        thirtyDaysAgo.setDate(today.getDate() - 30);
+                        
+                        document.getElementById('endDate').value = today.toISOString().split('T')[0];
+                        document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+                    } else {
+                        customDateRange.style.display = 'none';
+                    }
+                    
                     updateCharts();
                 });
             });
+            
+            // Benutzerdefinierte Datumsauswahl - automatische Anwendung bei Datumsauswahl
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            
+            function applyCustomDateRange() {
+                const startDate = startDateInput.value;
+                const endDate = endDateInput.value;
+                
+                // Nur anwenden wenn beide Daten ausgewählt sind
+                if (startDate && endDate) {
+                    if (new Date(startDate) > new Date(endDate)) {
+                        alert('Das Startdatum darf nicht nach dem Enddatum liegen.');
+                        return;
+                    }
+                    
+                    customDateRange.startDate = startDate;
+                    customDateRange.endDate = endDate;
+                    updateCharts();
+                }
+            }
+            
+            if (startDateInput) {
+                startDateInput.addEventListener('change', applyCustomDateRange);
+            }
+            
+            if (endDateInput) {
+                endDateInput.addEventListener('change', applyCustomDateRange);
+            }
+            
+            // Navigation-Buttons für Datumsauswahl
+            const startDatePrev = document.getElementById('startDatePrev');
+            const startDateNext = document.getElementById('startDateNext');
+            const endDatePrev = document.getElementById('endDatePrev');
+            const endDateNext = document.getElementById('endDateNext');
+            
+            function navigateDate(inputId, direction) {
+                const input = document.getElementById(inputId);
+                if (!input.value) {
+                    // Wenn kein Datum ausgewählt ist, setze heute als Standard
+                    const today = new Date();
+                    input.value = today.toISOString().split('T')[0];
+                } else {
+                    const currentDate = new Date(input.value);
+                    currentDate.setDate(currentDate.getDate() + direction);
+                    input.value = currentDate.toISOString().split('T')[0];
+                }
+                // Trigger change event um die Charts zu aktualisieren
+                input.dispatchEvent(new Event('change'));
+            }
+            
+            if (startDatePrev) {
+                startDatePrev.addEventListener('click', () => navigateDate('startDate', -1));
+            }
+            
+            if (startDateNext) {
+                startDateNext.addEventListener('click', () => navigateDate('startDate', 1));
+            }
+            
+            if (endDatePrev) {
+                endDatePrev.addEventListener('click', () => navigateDate('endDate', -1));
+            }
+            
+            if (endDateNext) {
+                endDateNext.addEventListener('click', () => navigateDate('endDate', 1));
+            }
+            
+            // Reset-Button für benutzerdefinierte Datumsauswahl
+            const resetDateBtn = document.getElementById('resetDateBtn');
+            if (resetDateBtn) {
+                resetDateBtn.addEventListener('click', function() {
+                    // Setze Standard-Zeitraum (letzte 30 Tage)
+                    const today = new Date();
+                    const thirtyDaysAgo = new Date();
+                    thirtyDaysAgo.setDate(today.getDate() - 30);
+                    
+                    // Aktualisiere die Eingabefelder
+                    startDateInput.value = thirtyDaysAgo.toISOString().split('T')[0];
+                    endDateInput.value = today.toISOString().split('T')[0];
+                    
+                    // Aktualisiere die benutzerdefinierten Datumsbereiche
+                    customDateRange.startDate = startDateInput.value;
+                    customDateRange.endDate = endDateInput.value;
+                    
+                    // Aktualisiere die Charts
+                    updateCharts();
+                });
+            }
             
             // Stats-Overview Click Handler für automatisches Scrollen
             const statsOverview = document.querySelector('.stats-overview');
@@ -1335,12 +1598,15 @@
                 
                 if (currentTimeRange === '7') {
                     daysToShow = 7;
-                } else if (currentTimeRange === '30') {
-                    daysToShow = 30;
-                } else if (currentTimeRange === '90') {
-                    daysToShow = 90;
-                } else if (currentTimeRange === '365') {
-                    daysToShow = 365;
+                } else if (currentTimeRange === 'custom') {
+                    // Benutzerdefinierter Zeitraum
+                    if (customDateRange.startDate && customDateRange.endDate) {
+                        const startDate = new Date(customDateRange.startDate);
+                        const endDate = new Date(customDateRange.endDate);
+                        daysToShow = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                    } else {
+                        daysToShow = 30; // Fallback
+                    }
                 } else {
                     // Alle Zeit - zeige 365 Tage als Maximum
                     daysToShow = 365;
@@ -1543,12 +1809,13 @@
                 // Berechne Startdatum basierend auf ausgewähltem Zeitraum
                 if (currentTimeRange === '7') {
                     startDate.setDate(today.getDate() - 7);
-                } else if (currentTimeRange === '30') {
-                    startDate.setDate(today.getDate() - 30);
-                } else if (currentTimeRange === '90') {
-                    startDate.setDate(today.getDate() - 90);
-                } else if (currentTimeRange === '365') {
-                    startDate.setDate(today.getDate() - 365);
+                } else if (currentTimeRange === 'custom') {
+                    // Benutzerdefinierter Zeitraum
+                    if (customDateRange.startDate) {
+                        startDate = new Date(customDateRange.startDate);
+                    } else {
+                        startDate.setDate(today.getDate() - 30); // Fallback
+                    }
                 }
                 
                 // Filtere Videos basierend auf Zeitraum
@@ -1845,12 +2112,15 @@
                 
                 if (currentTimeRange === '7') {
                     daysToShow = 7;
-                } else if (currentTimeRange === '30') {
-                    daysToShow = 30;
-                } else if (currentTimeRange === '90') {
-                    daysToShow = 90;
-                } else if (currentTimeRange === '365') {
-                    daysToShow = 365;
+                } else if (currentTimeRange === 'custom') {
+                    // Benutzerdefinierter Zeitraum
+                    if (customDateRange.startDate && customDateRange.endDate) {
+                        const startDate = new Date(customDateRange.startDate);
+                        const endDate = new Date(customDateRange.endDate);
+                        daysToShow = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                    } else {
+                        daysToShow = 30; // Fallback
+                    }
                 } else {
                     // Alle Zeit - zeige 365 Tage als Maximum
                     daysToShow = 365;
@@ -2027,12 +2297,13 @@
                 // Berechne Startdatum basierend auf ausgewähltem Zeitraum
                 if (currentTimeRange === '7') {
                     startDate.setDate(today.getDate() - 7);
-                } else if (currentTimeRange === '30') {
-                    startDate.setDate(today.getDate() - 30);
-                } else if (currentTimeRange === '90') {
-                    startDate.setDate(today.getDate() - 90);
-                } else if (currentTimeRange === '365') {
-                    startDate.setDate(today.getDate() - 365);
+                } else if (currentTimeRange === 'custom') {
+                    // Benutzerdefinierter Zeitraum
+                    if (customDateRange.startDate) {
+                        startDate = new Date(customDateRange.startDate);
+                    } else {
+                        startDate.setDate(today.getDate() - 30); // Fallback
+                    }
                 }
                 
                 // Filtere Videos basierend auf Zeitraum
@@ -2172,18 +2443,53 @@
                     timePoints: sortedDates,
                     addEndOffset: true
                 };
+            } else if (timeRange === 'custom') {
+                // Benutzerdefinierter Zeitraum
+                if (!customDateRange.startDate || !customDateRange.endDate) {
+                    // Fallback zu 30 Tagen wenn keine benutzerdefinierten Daten
+                    const lastDate = new Date(sortedDates[sortedDates.length - 1]);
+                    const startDate = new Date(lastDate);
+                    startDate.setDate(lastDate.getDate() - 29);
+                    
+                    const extendedTimePoints = [];
+                    const currentDate = new Date(startDate);
+                    while (currentDate <= lastDate) {
+                        const dateString = currentDate.toISOString().split('T')[0];
+                        extendedTimePoints.push(dateString);
+                        currentDate.setDate(currentDate.getDate() + 1);
+                    }
+                    
+                    return {
+                        startDate: startDate,
+                        timePoints: extendedTimePoints,
+                        addEndOffset: false
+                    };
+                }
+                
+                const customStartDate = new Date(customDateRange.startDate);
+                const customEndDate = new Date(customDateRange.endDate);
+                
+                // Erstelle Zeitpunkte für den benutzerdefinierten Zeitraum
+                const customTimePoints = [];
+                const currentDate = new Date(customStartDate);
+                
+                while (currentDate <= customEndDate) {
+                    const dateString = currentDate.toISOString().split('T')[0];
+                    customTimePoints.push(dateString);
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+                
+                return {
+                    startDate: customStartDate,
+                    timePoints: customTimePoints,
+                    addEndOffset: false
+                };
             } else {
                 const lastDate = new Date(sortedDates[sortedDates.length - 1]);
                 let startDate = new Date(lastDate);
                 
                 if (timeRange === '7') {
                     startDate.setDate(lastDate.getDate() - 6); // 7 Tage inklusive letzter Tag
-                } else if (timeRange === '30') {
-                    startDate.setDate(lastDate.getDate() - 29); // 30 Tage inklusive letzter Tag
-                } else if (timeRange === '90') {
-                    startDate.setDate(lastDate.getDate() - 89); // 90 Tage inklusive letzter Tag
-                } else if (timeRange === '365') {
-                    startDate.setDate(lastDate.getDate() - 364); // 365 Tage inklusive letzter Tag
                 }
                 
                 // Verwende den ursprünglichen Zeitraum ohne Offset
@@ -2231,12 +2537,13 @@
             
             if (currentTimeRange === '7') {
                 startDate.setDate(now.getDate() - 7);
-            } else if (currentTimeRange === '30') {
-                startDate.setDate(now.getDate() - 30);
-            } else if (currentTimeRange === '90') {
-                startDate.setDate(now.getDate() - 90);
-            } else if (currentTimeRange === '365') {
-                startDate.setDate(now.getDate() - 365);
+            } else if (currentTimeRange === 'custom') {
+                // Benutzerdefinierter Zeitraum
+                if (customDateRange.startDate) {
+                    startDate = new Date(customDateRange.startDate);
+                } else {
+                    startDate.setDate(now.getDate() - 30); // Fallback
+                }
             } else {
                 // Alle Zeit
                 return history.slice(0, 30).reverse();
