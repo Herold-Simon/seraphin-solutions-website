@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account verwalten - Gebäudenavi | Seraphin Solutions</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Verwalten Sie Ihren Gebäudenavi-Account">
+    <meta name="robots" content="noindex, nofollow">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* Navigation Styles */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 1rem 0;
+            transition: all 0.3s ease, transform 0.4s ease;
+            transform: translateY(-100%);
+        }
+
+        .navbar.visible {
+            transform: translateY(0);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .nav-logo a {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .logo-image {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .logo-text {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            color: var(--primary-blue);
+        }
+
+        .nav-menu .btn-nav {
+            background: var(--gradient-primary);
+            color: #ffffff !important;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .nav-menu .btn-nav:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            color: #ffffff !important;
+        }
+
+        .nav-menu .btn-nav.active {
+            background: var(--gradient-secondary);
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: var(--text-dark);
+            margin: 3px 0;
+            transition: 0.3s;
+        }
+
+        /* Responsive Navigation */
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 15px;
+                max-width: 100%;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .nav-menu {
+                position: fixed;
+                left: -100%;
+                top: 70px;
+                flex-direction: column;
+                background-color: var(--white);
+                width: 100%;
+                text-align: center;
+                transition: 0.3s;
+                box-shadow: var(--shadow);
+                padding: 2rem 0;
+            }
+
+            .nav-menu.active {
+                left: 0;
+            }
+
+            .logo-image {
+                height: 35px;
+            }
+
+            .nav-logo .logo-text {
+                display: none;
+            }
+        }
+
+        .account-container {
+            min-height: 100vh;
+            background: var(--light-gray);
+            padding-top: 80px;
+        }
+        
+        .account-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 2rem 4rem;
+        }
+
+        .account-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .account-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .account-header p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .account-card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .account-section {
+            margin-bottom: 2rem;
+        }
+
+        .account-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title i {
+            color: var(--primary-blue);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(0, 140, 255, 0.1);
+        }
+
+        .form-input:disabled {
+            background-color: var(--light-gray);
+            cursor: not-allowed;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-danger {
+            background: var(--gradient-red);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: var(--light-gray);
+            color: var(--text-dark);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--primary-blue);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        .alert-error {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+            border: 2px solid #dc3545;
+            border-left: 5px solid #dc3545;
+        }
+
+        /* Success Overlay */
+        .success-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .success-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .success-modal {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            border: 2px solid #28a745;
+            border-radius: 15px;
+            padding: 2rem 3rem;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transform: scale(0.8) translateY(50px);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .success-overlay.show .success-modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: #28a745;
+            margin-bottom: 1rem;
+            animation: successBounce 0.6s ease-out;
+        }
+
+        .success-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #155724;
+        }
+
+        .success-message {
+            font-size: 1.1rem;
+            color: #155724;
+            margin-bottom: 1.5rem;
+        }
+
+        .success-close {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .success-close:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        @keyframes successBounce {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .account-info {
+            background: var(--light-gray);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .info-value {
+            color: var(--text-light);
+        }
+
+        .password-requirements {
+            background: var(--light-gray);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .password-requirements ul {
+            margin: 0.5rem 0 0 1rem;
+            padding: 0;
+        }
+
+        .password-requirements li {
+            margin-bottom: 0.25rem;
+        }
+
+        /* Mobile Optimierungen */
+        @media (max-width: 768px) {
+            .account-content {
+                padding: 0 1rem 4rem;
+            }
+
+            .account-header h1 {
+                font-size: 2rem;
+            }
+
+            .account-card {
+                padding: 1.5rem;
+            }
+
+            .nav-menu {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .info-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar visible">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html">
+                    <img src="/favicon.ico" alt="Seraphin Solutions Logo" class="logo-image">
+                    <span class="logo-text">Seraphin Solutions</span>
+                </a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="dashboard.html" class="btn-nav">Dashboard</a></li>
+                <li><a href="#" class="btn-nav" onclick="logout(); return false;" style="background: var(--gradient-red);">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Abmelden
+                </a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="account-container">
+        <div class="account-content">
+            <!-- Header -->
+            <div class="account-header">
+                <h1><i class="fas fa-user-cog"></i> Account verwalten</h1>
+                <p>Verwalten Sie Ihre Account-Einstellungen und Passwort</p>
+            </div>
+
+            <!-- Alerts -->
+            <div id="errorAlert" class="alert alert-error"></div>
+            
+            <!-- Success Overlay -->
+            <div id="successOverlay" class="success-overlay">
+                <div class="success-modal">
+                    <div class="success-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="success-title">Erfolgreich!</div>
+                    <div class="success-message" id="successMessage"></div>
+                    <button class="success-close" onclick="closeSuccessOverlay()">Verstanden</button>
+                </div>
+            </div>
+
+            <!-- Account-Informationen -->
+            <div class="account-card">
+                <h2 class="section-title">
+                    <i class="fas fa-info-circle"></i>
+                    Account-Informationen
+                </h2>
+                <div class="account-info" id="accountInfo">
+                    <div class="info-item">
+                        <span class="info-label">Benutzername:</span>
+                        <span class="info-value" id="currentUsername">Lädt...</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Account erstellt:</span>
+                        <span class="info-value" id="accountCreated">Lädt...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Benutzername ändern -->
+            <div class="account-card">
+                <h2 class="section-title">
+                    <i class="fas fa-user-edit"></i>
+                    Benutzername ändern
+                </h2>
+                <form id="usernameForm">
+                    <div class="form-group">
+                        <label for="newUsername" class="form-label">Neuer Benutzername</label>
+                        <input type="text" id="newUsername" class="form-input" placeholder="Neuen Benutzername eingeben" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="usernameSubmitBtn">
+                        <i class="fas fa-save"></i>
+                        Benutzername ändern
+                    </button>
+                </form>
+            </div>
+
+            <!-- Passwort ändern -->
+            <div class="account-card">
+                <h2 class="section-title">
+                    <i class="fas fa-lock"></i>
+                    Passwort ändern
+                </h2>
+                <form id="passwordForm">
+                    <div class="form-group">
+                        <label for="currentPassword" class="form-label">Aktuelles Passwort</label>
+                        <input type="password" id="currentPassword" class="form-input" placeholder="Aktuelles Passwort eingeben" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword" class="form-label">Neues Passwort</label>
+                        <input type="password" id="newPassword" class="form-input" placeholder="Neues Passwort eingeben" required>
+                        <!-- Passwort-Anforderungen wurden entfernt -->
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword" class="form-label">Passwort bestätigen</label>
+                        <input type="password" id="confirmPassword" class="form-input" placeholder="Passwort wiederholen" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="passwordSubmitBtn">
+                        <i class="fas fa-key"></i>
+                        Passwort ändern
+                    </button>
+                </form>
+            </div>
+
+            <!-- Account löschen -->
+            <div class="account-card">
+                <h2 class="section-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Account löschen
+                </h2>
+                <p style="color: var(--text-light); margin-bottom: 1.5rem;">
+                    <strong>Achtung:</strong> Das Löschen Ihres Accounts entfernt alle Ihre Daten unwiderruflich. 
+                    Dies umfasst alle Statistiken, Sessions und zugehörigen Informationen.
+                </p>
+                <button type="button" class="btn btn-danger" onclick="confirmDeleteAccount()">
+                    <i class="fas fa-trash-alt"></i>
+                    Account löschen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let accountData = null;
+
+        // Dashboard initialisieren
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🔍 DOM Content Loaded - Initialisiere Account-Seite...');
+            await testApiConnectivity();
+            await loadAccountData();
+            setupEventListeners();
+            setupNavigation();
+            setupKeyboardShortcuts();
+            console.log('✅ Account-Seite initialisiert');
+        });
+        
+        // Keyboard shortcuts
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', function(e) {
+                // Escape key closes success overlay
+                if (e.key === 'Escape') {
+                    closeSuccessOverlay();
+                }
+            });
+        }
+        
+        // API-Verbindung testen
+        async function testApiConnectivity() {
+            try {
+                console.log('🔍 Teste API-Verbindung...');
+                const response = await fetch('/api/auth/verify-session', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                console.log('🔍 API-Verbindungstest Status:', response.status);
+                
+                if (response.status === 401) {
+                    console.log('✅ API erreichbar, aber keine gültige Session (erwartet)');
+                } else if (response.ok) {
+                    console.log('✅ API erreichbar und Session gültig');
+                } else {
+                    console.warn('⚠️ API erreichbar, aber unerwarteter Status:', response.status);
+                }
+            } catch (error) {
+                console.error('❌ API-Verbindungstest fehlgeschlagen:', error);
+                showError('Warnung: API-Endpunkte sind möglicherweise nicht erreichbar. Einige Funktionen funktionieren möglicherweise nicht. Öffnen Sie die Browser-Konsole (F12) für weitere Details.');
+            }
+        }
+
+        // Navigation einrichten
+        function setupNavigation() {
+            const hamburger = document.querySelector('.hamburger');
+            const navMenu = document.querySelector('.nav-menu');
+            const navbar = document.querySelector('.navbar');
+            
+            if (hamburger && navMenu) {
+                hamburger.addEventListener('click', function() {
+                    navMenu.classList.toggle('active');
+                });
+            }
+            
+            // Auto-hide Navigation beim Scrollen
+            let lastScrollTop = 0;
+            let ticking = false;
+            
+            function updateNavbar() {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                if (scrollTop > lastScrollTop && scrollTop > 100) {
+                    // Nach unten scrollen - Header verstecken
+                    navbar.classList.remove('visible');
+                } else {
+                    // Nach oben scrollen - Header anzeigen
+                    navbar.classList.add('visible');
+                }
+                
+                lastScrollTop = scrollTop;
+                ticking = false;
+            }
+            
+            function requestTick() {
+                if (!ticking) {
+                    requestAnimationFrame(updateNavbar);
+                    ticking = true;
+                }
+            }
+            
+            window.addEventListener('scroll', requestTick);
+        }
+
+        // Event Listeners einrichten
+        function setupEventListeners() {
+            console.log('🔍 Richte Event Listeners ein...');
+            
+            // Username Form
+            const usernameForm = document.getElementById('usernameForm');
+            if (usernameForm) {
+                usernameForm.addEventListener('submit', handleUsernameChange);
+                console.log('✅ Username Form Event Listener hinzugefügt');
+            } else {
+                console.error('❌ Username Form nicht gefunden');
+            }
+            
+            // Password Form
+            const passwordForm = document.getElementById('passwordForm');
+            if (passwordForm) {
+                passwordForm.addEventListener('submit', handlePasswordChange);
+                console.log('✅ Password Form Event Listener hinzugefügt');
+            } else {
+                console.error('❌ Password Form nicht gefunden');
+            }
+        }
+
+        // Account-Daten laden
+        async function loadAccountData() {
+            try {
+                // Prüfe Session
+                const sessionResponse = await fetch('/api/auth/verify-session', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+
+                if (sessionResponse.status === 401) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                if (!sessionResponse.ok) {
+                    throw new Error('Session-Verifikation fehlgeschlagen');
+                }
+
+                const sessionData = await sessionResponse.json();
+                currentUser = sessionData.user;
+
+                // Lade Account-Daten
+                const accountResponse = await fetch('/api/accounts/get', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+
+                if (!accountResponse.ok) {
+                    throw new Error('Fehler beim Laden der Account-Daten');
+                }
+
+                accountData = await accountResponse.json();
+                displayAccountInfo();
+
+            } catch (error) {
+                console.error('Error loading account data:', error);
+                showError('Fehler beim Laden der Account-Daten: ' + error.message);
+            }
+        }
+
+        // Account-Informationen anzeigen
+        function displayAccountInfo() {
+            if (accountData && accountData.hasAccount) {
+                document.getElementById('currentUsername').textContent = accountData.account.username;
+                
+                const createdDate = new Date(accountData.account.created_at);
+                document.getElementById('accountCreated').textContent = createdDate.toLocaleDateString('de-DE');
+            } else {
+                showError('Kein Account gefunden');
+            }
+        }
+
+        // Benutzername ändern
+        async function handleUsernameChange(e) {
+            e.preventDefault();
+            
+            const newUsername = document.getElementById('newUsername').value.trim();
+            const submitBtn = document.getElementById('usernameSubmitBtn');
+            
+            if (!newUsername) {
+                showError('Bitte geben Sie einen neuen Benutzername ein');
+                return;
+            }
+
+            if (newUsername === accountData.account.username) {
+                showError('Der neue Benutzername muss sich vom aktuellen unterscheiden');
+                return;
+            }
+
+            try {
+                setButtonLoading(submitBtn, true);
+                hideAlerts();
+
+                const response = await fetch('/api/accounts/update', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        username: newUsername
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showSuccess('Benutzername erfolgreich geändert');
+                    document.getElementById('newUsername').value = '';
+                    console.log('✅ Username-Update erfolgreich:', data);
+                    // Warte kurz, dann lade Daten neu
+                    setTimeout(async () => {
+                        await loadAccountData();
+                    }, 500);
+                } else {
+                    const errorMsg = data.error || 'Fehler beim Ändern des Benutzernamens';
+                    console.error('❌ Username-Update Fehler:', errorMsg);
+                    showError(errorMsg);
+                }
+
+            } catch (error) {
+                console.error('Error updating username:', error);
+                showError('Fehler beim Ändern des Benutzernamens: ' + error.message);
+            } finally {
+                setButtonLoading(submitBtn, false);
+            }
+        }
+
+        // Passwort ändern
+        async function handlePasswordChange(e) {
+            e.preventDefault();
+            console.log('🔍 Passwort-Änderung gestartet');
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const submitBtn = document.getElementById('passwordSubmitBtn');
+            
+            console.log('🔍 Formular-Daten:', {
+                currentPasswordLength: currentPassword.length,
+                newPasswordLength: newPassword.length,
+                confirmPasswordLength: confirmPassword.length
+            });
+            
+            // Validierung
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                showError('Bitte füllen Sie alle Felder aus');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showError('Die neuen Passwörter stimmen nicht überein');
+                return;
+            }
+
+            // Passwort-Anforderungen wurden entfernt
+
+            try {
+                setButtonLoading(submitBtn, true);
+                hideAlerts();
+                
+                console.log('🔍 Sende API-Anfrage an /api/accounts/update');
+
+                const response = await fetch('/api/accounts/update', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        currentPassword: currentPassword,
+                        newPassword: newPassword
+                    })
+                });
+
+                console.log('🔍 API-Antwort Status:', response.status);
+                
+                if (!response.ok) {
+                    console.error('❌ API-Antwort nicht OK:', response.status, response.statusText);
+                    showError(`API-Fehler: ${response.status} ${response.statusText}. Öffnen Sie die Browser-Konsole (F12) für weitere Details.`);
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('🔍 API-Antwort Daten:', data);
+
+                if (data.success) {
+                    showSuccess('Passwort erfolgreich geändert');
+                    document.getElementById('currentPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                } else {
+                    showError(data.error || 'Fehler beim Ändern des Passworts');
+                }
+
+            } catch (error) {
+                console.error('❌ Fehler beim Passwort-Update:', error);
+                
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    showError('Netzwerkfehler: API-Endpunkt nicht erreichbar. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es später erneut. Falls das Problem weiterhin besteht, kontaktieren Sie den Administrator. Öffnen Sie die Browser-Konsole (F12) für weitere Details.');
+                } else if (error.name === 'SyntaxError') {
+                    showError('Fehler beim Verarbeiten der Server-Antwort. Bitte versuchen Sie es erneut.');
+                } else {
+                    showError('Fehler beim Ändern des Passworts: ' + error.message);
+                }
+            } finally {
+                setButtonLoading(submitBtn, false);
+            }
+        }
+
+        // Passwort-Validierung wurde entfernt
+
+        // Account löschen bestätigen
+        function confirmDeleteAccount() {
+            if (confirm('Sind Sie sicher, dass Sie Ihren Account löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+                if (confirm('Letzte Bestätigung: Möchten Sie wirklich alle Ihre Daten unwiderruflich löschen?')) {
+                    deleteAccount();
+                }
+            }
+        }
+
+        // Account löschen
+        async function deleteAccount() {
+            try {
+                if (!accountData || !accountData.hasAccount) {
+                    showError('Kein Account zum Löschen gefunden');
+                    return;
+                }
+
+                const response = await fetch('/api/accounts/delete', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        admin_user_id: accountData.account.id
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showSuccess('Account erfolgreich gelöscht. Sie werden zur Login-Seite weitergeleitet.');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } else {
+                    showError(data.error || 'Fehler beim Löschen des Accounts');
+                }
+
+            } catch (error) {
+                console.error('Error deleting account:', error);
+                showError('Fehler beim Löschen des Accounts: ' + error.message);
+            }
+        }
+
+        // Button Loading State
+        function setButtonLoading(button, loading) {
+            if (loading) {
+                button.disabled = true;
+                button.innerHTML = '<div class="loading-spinner"></div> Lädt...';
+            } else {
+                button.disabled = false;
+                // Restore original content based on button type
+                if (button.id === 'usernameSubmitBtn') {
+                    button.innerHTML = '<i class="fas fa-save"></i> Benutzername ändern';
+                } else if (button.id === 'passwordSubmitBtn') {
+                    button.innerHTML = '<i class="fas fa-key"></i> Passwort ändern';
+                }
+            }
+        }
+
+        // Alerts anzeigen/verstecken
+        function showSuccess(message) {
+            const overlay = document.getElementById('successOverlay');
+            const messageElement = document.getElementById('successMessage');
+            
+            messageElement.textContent = message;
+            overlay.classList.add('show');
+            
+            // Auto-close after 5 seconds
+            setTimeout(() => {
+                closeSuccessOverlay();
+            }, 5000);
+        }
+        
+        function closeSuccessOverlay() {
+            const overlay = document.getElementById('successOverlay');
+            overlay.classList.remove('show');
+        }
+
+        function showError(message) {
+            const alert = document.getElementById('errorAlert');
+            alert.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+            alert.style.display = 'block';
+            alert.style.opacity = '1';
+            alert.style.transform = 'translateY(0)';
+            
+            // Scroll to alert
+            alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 300);
+            }, 8000); // Länger anzeigen (8 Sekunden)
+        }
+
+        function hideAlerts() {
+            // Hide success overlay
+            closeSuccessOverlay();
+            
+            // Hide error alert
+            const errorAlert = document.getElementById('errorAlert');
+            if (errorAlert.style.display === 'block') {
+                errorAlert.style.opacity = '0';
+                errorAlert.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    errorAlert.style.display = 'none';
+                }, 300);
+            }
+        }
+
+        // Abmelden
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+            
+            window.location.href = 'login.html';
+        }
+    </script>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <img src="favicon.png" alt="Seraphin Solutions Logo" class="logo-image">
+                        <span class="logo-text">Seraphin Solutions</span>
+                    </div>
+                    <p>Die intelligente Lösung für die Navigation in großen Gebäuden, entwickelt von Seraphin Solutions.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Produkt</h4>
+                    <ul>
+                        <li><a href="index.html#features">Features</a></li>
+                        <li><a href="index.html#admin">Admin-Panel</a></li>
+                        <li><a href="index.html#solution">Lösung</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Unternehmen</h4>
+                    <ul>
+                        <li><a href="index.html#pricing">Preise</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Rechtliches</h4>
+                    <ul>
+                        <li><a href="impressum.html">Impressum</a></li>
+                        <li><a href="datenschutz.html">Datenschutz</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Seraphin Solutions. Alle Rechte vorbehalten.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

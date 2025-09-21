@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gebäudenavi - Intelligente Navigation für große Gebäude | Seraphin Solutions</title>
+    
+    <!-- Favicon and App Icons -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/favicon.ico">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Gebäudenavi - Intelligente Navigation für große Gebäude. Digitale Kiosks mit 3D-Grundrissen für eine benutzerfreundliche Gebäudenavigation. Entwickelt von Seraphin Solutions.">
+    <meta name="keywords" content="Gebäudenavi, Gebäudenavigation, digitale Kiosks, 3D-Grundriss, Seraphin Solutions, intelligente Navigation">
+    <meta name="author" content="Seraphin Solutions">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Gebäudenavi - Intelligente Navigation für große Gebäude">
+    <meta property="og:description" content="Digitale Kiosks mit 3D-Grundrissen für eine benutzerfreundliche Gebäudenavigation. Entwickelt von Seraphin Solutions.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://seraphin-solutions.de">
+    <meta property="og:image" content="/favicon.ico">
+    <meta property="og:site_name" content="Seraphin Solutions">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Gebäudenavi - Intelligente Navigation für große Gebäude">
+    <meta name="twitter:description" content="Digitale Kiosks mit 3D-Grundrissen für eine benutzerfreundliche Gebäudenavigation.">
+    <meta name="twitter:image" content="/favicon.ico">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-W5MJXCE4XC"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-W5MJXCE4XC');
+    </script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html">
+                    <img src="/favicon.ico" alt="Seraphin Solutions Logo" class="logo-image">
+                    <span class="logo-text">Seraphin Solutions</span>
+                </a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#home">Start</a></li>
+                <li><a href="#references">Referenzen</a></li>
+                <li><a href="#pricing">Preise</a></li>
+                <li><a href="#contact">Kontakt</a></li>
+                <li><a href="info.html" class="btn-nav">Mehr Informationen</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    Das Gebäudenavi
+                </h1>
+                <p class="hero-subtitle">
+                    Entwickelt von Seraphin Solutions
+                </p>
+                <div class="hero-buttons">
+                    <a href="#teaser" class="btn btn-primary">
+                        <i class="fas fa-play"></i>
+                        Jetzt entdecken
+                    </a>
+                    <a href="#contact" class="btn btn-secondary">
+                        <i class="fas fa-calendar"></i>
+                        Kostenlose Demo
+                    </a>
+                    <a href="info.html" class="btn btn-tertiary">
+                        <i class="fas fa-info-circle"></i>
+                        Mehr Infos
+                    </a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="hero-image">
+                    <img src="Gebäudenavi Programm.png" alt="Gebäudenavi Programm" class="hero-program-image">
+                </div>
+            </div>
+        </div>
+        <div class="hero-wave">
+            <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" class="shape-fill"></path>
+                <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" class="shape-fill"></path>
+                <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" class="shape-fill"></path>
+            </svg>
+        </div>
+    </section>
+
+    <!-- Teaser Section -->
+    <section id="teaser" class="teaser">
+        <div class="container">
+            <div class="teaser-content">
+                <div class="teaser-text">
+                    <h2>Das Gebäudenavi: Ihre Lösung für verwirrende Gebäudekomplexe</h2>
+                    <p class="teaser-intro">
+                        Stellen Sie sich vor: Besucher betreten Ihr Gebäude und finden sofort den Weg zu ihrem Ziel. Keine verwirrten Gesichter, keine verlorene Zeit, keine Frustration. Das ist die Realität mit dem Gebäudenavi.
+                    </p>
+                    <div class="teaser-features">
+                        <div class="teaser-feature">
+                            <i class="fas fa-tv"></i>
+                            <div>
+                                <h4>Digitale Kiosks</h4>
+                                <p>Strategisch platzierte, interaktive Bildschirme führen Besucher intuitiv durch Ihr Gebäude</p>
+                            </div>
+                        </div>
+                        <div class="teaser-feature">
+                            <i class="fas fa-cube"></i>
+                            <div>
+                                <h4>3D-Grundrisse</h4>
+                                <p>Maßgeschneiderte 3D-Visualisierungen zeigen jeden Raum und jeden Weg in Ihrem Gebäude</p>
+                            </div>
+                        </div>
+                        <div class="teaser-feature">
+                            <i class="fas fa-search"></i>
+                            <div>
+                                <h4>Intelligente Suche</h4>
+                                <p>Besucher finden jeden Raum mit der integrierten Suchfunktion - einfach und schnell</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teaser-cta">
+                        <a href="info.html" class="btn btn-primary btn-large">
+                            <i class="fas fa-info-circle"></i>
+                            Mehr Informationen
+                        </a>
+                        <p class="teaser-note">Erfahren Sie alles über Features, Admin-Panel und technische Details</p>
+                    </div>
+                </div>
+                <div class="teaser-visual">
+                    <div class="teaser-image">
+                        <img src="eingangsbereich.png" alt="Digitaler Kiosk im Eingangsbereich" class="teaser-kiosk-image">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- References Section -->
+    <section id="references" class="references">
+        <div class="container">
+            <div class="section-header">
+                <h2>Unsere Referenzen</h2>
+                <p>Vertrauen Sie auf bewährte Lösungen - Sehen Sie, wo das Gebäudenavi bereits erfolgreich im Einsatz ist</p>
+            </div>
+            
+            <div class="references-showcase">
+                <!-- Featured Reference -->
+                <div class="featured-reference">
+                    <div class="reference-hero">
+                        <div class="reference-badge">
+                            <i class="fas fa-star"></i>
+                            <span>Referenzprojekt</span>
+                        </div>
+                        <div class="reference-content">
+                            <div class="reference-info">
+                                <h3>Amtsgericht München</h3>
+                                <p class="reference-subtitle">Deutschlands größtes Amtsgericht</p>
+                                <p class="reference-description">
+                                    Das Amtsgericht München ist mit über 26.000 Quadratmetern Nutzfläche das größte Amtsgericht in Deutschland. Mit dem Gebäudenavi wird der gesamte öffentliche Bereich der Einrichtung abgedeckt. 
+                                </p>
+                                <div class="reference-highlights">
+                                    <div class="highlight-item">
+                                        <i class="fas fa-building"></i>
+                                        <span>26.000+ m² Nutzfläche</span>
+                                    </div>
+                                    <div class="highlight-item">
+                                        <i class="fas fa-map-marked-alt"></i>
+                                        <span>100% Abdeckung</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="reference-visual">
+                                <div class="reference-image-container">
+                                    <img src="amtsgericht.jpg" alt="Amtsgericht München" class="reference-main-image">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Call to Action -->
+                <div class="references-cta">
+                    <div class="cta-content">
+                        <h3>Werden Sie unser nächstes Erfolgsprojekt</h3>
+                        <p>Lassen Sie uns gemeinsam die Navigation in Ihrem Gebäude verbessern</p>
+                        <div class="cta-buttons">
+                            <a href="#contact" class="btn btn-primary">
+                                <i class="fas fa-calendar"></i>
+                                Kostenlose Beratung
+                            </a>
+                            <a href="info.html" class="btn btn-secondary">
+                                <i class="fas fa-info-circle"></i>
+                                Mehr erfahren
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing">
+        <div class="container">
+            <div class="section-header">
+                <h2>Transparente Preise - Keine versteckten Kosten</h2>
+                <p>Seraphin Solutions bietet faire und transparente Preise für Ihr Gebäudenavi-Projekt</p>
+            </div>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <div class="pricing-icon">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <h3>Grundgebühr</h3>
+                        <div class="price">
+                            <span class="amount">300€</span>
+                            <span class="period">einmalig</span>
+                        </div>
+                    </div>
+                    <div class="pricing-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Projektplanung und Beratung</li>
+                            <li><i class="fas fa-check"></i> Integration-Analyse Ihres Gebäudes</li>
+                            <li><i class="fas fa-check"></i> Kostenlose Kiosk-Kaufempfehlung</li>
+                            <li><i class="fas fa-check"></i> Technische Machbarkeitsstudie</li>
+                            <li><i class="fas fa-check"></i> Detailliertes Projektkonzept</li>
+                        </ul>
+                    </div>
+                    <div class="pricing-description">
+                        <p>In dieser Phase analysieren wir Ihr Gebäude und erstellen einen maßgeschneiderten Plan für die Integration des Gebäudenavis. Sie erhalten eine kostenlose Kaufempfehlung für den passenden digitalen Kiosk.</p>
+                    </div>
+                </div>
+
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <div class="pricing-icon">
+                            <i class="fas fa-drafting-compass"></i>
+                        </div>
+                        <h3>3D-Grundriss</h3>
+                        <div class="price">
+                            <span class="amount">0,50€</span>
+                            <span class="period">pro m²</span>
+                        </div>
+                    </div>
+                    <div class="pricing-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Interaktiver 3D-Grundriss</li>
+                            <li><i class="fas fa-check"></i> Jeder Raum wird berücksichtigt</li>
+                            <li><i class="fas fa-check"></i> Maßgeschneidert an Ihre Vorstellungen</li>
+                            <li><i class="fas fa-check"></i> Professionelle 3D-Visualisierung</li>
+                            <li><i class="fas fa-check"></i> Responsive Design für alle Geräte</li>
+                        </ul>
+                    </div>
+                    <div class="pricing-description">
+                        <p>Wir erstellen einen detaillierten, interaktiven 3D-Grundriss Ihres Gebäudes. Jeder Quadratmeter wird professionell erfasst und visualisiert - genau nach Ihren Wünschen und Anforderungen.</p>
+                    </div>
+                    <div class="pricing-example">
+                        <h4>Beispielrechnung:</h4>
+                        <p>Gebäude mit 2.000 m² = 1.000€ für den 3D-Grundriss</p>
+                    </div>
+                </div>
+
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <div class="pricing-icon">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <h3>Installation</h3>
+                        <div class="price">
+                            <span class="amount">50€</span>
+                            <span class="period">pro Kiosk</span>
+                        </div>
+                    </div>
+                    <div class="pricing-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Professionelle Installation</li>
+                            <li><i class="fas fa-check"></i> Systemkonfiguration</li>
+                            <li><i class="fas fa-check"></i> Funktionstest</li>
+                            <li><i class="fas fa-check"></i> Einweisung des Personals</li>
+                            <li><i class="fas fa-check"></i> Technischer Support</li>
+                        </ul>
+                    </div>
+                    <div class="pricing-description">
+                        <p>Unser erfahrenes Team installiert das Gebäudenavi auf Ihrem digitalen Kiosk. Jeder aufgestellte Kiosk wird professionell eingerichtet und getestet.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact-landing">
+        <div class="container">
+            <div class="contact-content">
+                <div class="contact-text">
+                    <h2>Bereit für die Zukunft der Gebäudenavigation?</h2>
+                    <p>
+                        Kontaktieren Sie uns für eine kostenlose Beratung oder melden Sie sich für eine kostenlose Demonstration des Gebäudenavis an. Unser Team steht Ihnen gerne zur Verfügung.
+                    </p>
+                    
+                </div>
+                <div class="contact-form">
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <input type="text" placeholder="Ihr Name" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" placeholder="Ihre E-Mail" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" placeholder="Ihre Einrichtung" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea placeholder="Ihre Nachricht" rows="4" required></textarea>
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="demoCheckbox">
+                                <span class="checkmark"></span>
+                                Ich möchte eine kostenlose Demonstration des Gebäudenavis erhalten
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                            Nachricht senden
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <img src="favicon.png" alt="Seraphin Solutions Logo" class="logo-image">
+                        <span class="logo-text">Seraphin Solutions</span>
+                    </div>
+                    <p>Die intelligente Lösung für die Navigation in großen Gebäuden, entwickelt von Seraphin Solutions.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Produkt</h4>
+                    <ul>
+                        <li><a href="index.html#features">Features</a></li>
+                        <li><a href="index.html#admin">Admin-Panel</a></li>
+                        <li><a href="index.html#solution">Lösung</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Unternehmen</h4>
+                    <ul>
+                        <li><a href="#pricing">Preise</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Rechtliches</h4>
+                    <ul>
+                        <li><a href="impressum.html">Impressum</a></li>
+                        <li><a href="datenschutz.html">Datenschutz</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Zugang</h4>
+                    <ul>
+                        <li><a href="login.html" class="footer-login-btn">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Statistiken Login
+                        </a></li>
+                    </ul>
+                </div>
+
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Seraphin Solutions. Alle Rechte vorbehalten.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Initialize EmailJS
+        (function() {
+            emailjs.init("gjH_P6NbXkIm7GpNh");
+        })();
+
+        // Additional JavaScript for the landing page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Form handling for landing page
+            const contactForm = document.getElementById('contactForm');
+            if (contactForm) {
+                contactForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Get form data
+                    const name = this.querySelector('input[type="text"]').value;
+                    const email = this.querySelector('input[type="email"]').value;
+                    const institution = this.querySelectorAll('input[type="text"]')[1].value;
+                    const message = this.querySelector('textarea').value;
+                    const wantsDemo = this.querySelector('#demoCheckbox').checked;
+                    
+                    // Basic validation
+                    if (!name || !email || !institution || !message) {
+                        showNotification('Bitte füllen Sie alle Pflichtfelder aus.', 'error');
+                        return;
+                    }
+                    
+                    if (!isValidEmail(email)) {
+                        showNotification('Bitte geben Sie eine gültige E-Mail-Adresse ein.', 'error');
+                        return;
+                    }
+                    
+                    // Prepare email template parameters
+                    const templateParams = {
+                        to_email: 'mstorteyt@gmail.com',
+                        from_name: name,
+                        from_email: email,
+                        institution: institution,
+                        message: message,
+                        wants_demo: wantsDemo ? 'Ja' : 'Nein',
+                        demo_request: wantsDemo ? 'Demo gewünscht' : 'Keine Demo gewünscht'
+                    };
+                    
+                    // Show loading state
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wird gesendet...';
+                    submitBtn.disabled = true;
+                    
+                    // Send email using EmailJS
+                    emailjs.send('service_s74xvzx', 'template_iyd746k', templateParams)
+                        .then(function(response) {
+                            console.log('SUCCESS!', response.status, response.text);
+                            
+                            let successMessage = 'Vielen Dank! Ihre Nachricht wurde erfolgreich gesendet.';
+                            if (wantsDemo) {
+                                successMessage += ' Wir werden uns innerhalb von 24 Stunden für die Demo-Anmeldung bei Ihnen melden.';
+                            } else {
+                                successMessage += ' Wir werden uns bald bei Ihnen melden.';
+                            }
+                            
+                            showNotification(successMessage, 'success');
+                            contactForm.reset();
+                        }, function(error) {
+                            console.log('FAILED...', error);
+                            showNotification('Es gab einen Fehler beim Senden Ihrer Nachricht. Bitte versuchen Sie es später erneut.', 'error');
+                        })
+                        .finally(function() {
+                            submitBtn.innerHTML = originalText;
+                            submitBtn.disabled = false;
+                        });
+                });
+            }
+        });
+    </script>
+</body>
+</html> 

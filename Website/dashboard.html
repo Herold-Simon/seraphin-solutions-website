@@ -1,0 +1,2893 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistiken Dashboard - Gebäudenavi | Seraphin Solutions</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Ihre persönlichen Gebäudenavi-Statistiken im Überblick">
+    <meta name="robots" content="noindex, nofollow">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- ECharts (same as the app) -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    
+    <style>
+        /* Navigation Styles */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 1rem 0;
+            transition: all 0.3s ease, transform 0.4s ease;
+            transform: translateY(-100%);
+        }
+
+        .navbar.visible {
+            transform: translateY(0);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .nav-logo a {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .logo-image {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .logo-text {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            color: var(--primary-blue);
+        }
+
+        .nav-menu .btn-nav {
+            background: var(--gradient-primary);
+            color: #ffffff !important;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .nav-menu .btn-nav:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            color: #ffffff !important;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: var(--text-dark);
+            margin: 3px 0;
+            transition: 0.3s;
+        }
+
+        /* Responsive Navigation */
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 15px;
+                max-width: 100%;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .nav-menu {
+                position: fixed;
+                left: -100%;
+                top: 70px;
+                flex-direction: column;
+                background-color: var(--white);
+                width: 100%;
+                text-align: center;
+                transition: 0.3s;
+                box-shadow: var(--shadow);
+                padding: 2rem 0;
+            }
+
+            .nav-menu.active {
+                left: 0;
+            }
+
+            .logo-image {
+                height: 35px;
+            }
+
+            .nav-logo .logo-text {
+                display: none;
+            }
+        }
+
+        .dashboard-container {
+            min-height: 100vh;
+            background: var(--light-gray);
+            padding-top: 80px;
+        }
+        
+        .dashboard-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem 4rem;
+        }
+
+        /* Geräte-ID-Header */
+        .device-id-header {
+            background: var(--white);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+        }
+        
+        .device-id-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        /* Statistiken-Karten im AdminPanel-Stil */
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            padding: 1rem;
+            position: relative;
+        }
+        
+        
+        .stat-card {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: var(--white);
+            font-size: 1.2rem;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: var(--text-light);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        /* Zeitraum-Auswahl */
+        .time-range-selector {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .time-range-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .time-btn {
+            padding: 0.75rem 1.25rem;
+            border: 2px solid var(--primary-blue);
+            background: transparent;
+            color: var(--primary-blue);
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .time-btn.active {
+            background: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .time-btn:hover {
+            background: var(--primary-blue);
+            color: var(--white);
+        }
+
+        /* Benutzerdefinierte Datumsauswahl */
+        .custom-date-range {
+            width: 100%;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--light-gray);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .date-inputs {
+            display: flex;
+            gap: 2rem;
+            align-items: end;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .date-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 200px;
+        }
+
+        .date-input-group label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            text-align: center;
+        }
+
+        .date-input-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--white);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.25rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .date-input-container:focus-within {
+            border-color: var(--primary-blue);
+        }
+
+        .date-input {
+            padding: 0.75rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            background: transparent;
+            color: var(--text-dark);
+            flex: 1;
+            min-width: 0;
+        }
+
+        .date-input:focus {
+            outline: none;
+        }
+
+        .date-nav-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: var(--light-gray);
+            color: var(--text-dark);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+
+        .date-nav-btn:hover {
+            background: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .date-nav-btn:active {
+            transform: scale(0.95);
+        }
+
+        .reset-button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .reset-date-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--light-gray);
+            color: var(--text-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .reset-date-btn:hover {
+            background: var(--text-light);
+            border-color: var(--text-light);
+            color: var(--white);
+        }
+
+        .reset-date-btn:active {
+            transform: scale(0.98);
+        }
+
+
+        /* Charts-Sektion */
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .chart-card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .chart-header:hover {
+            background-color: var(--light-gray);
+        }
+        
+        .chart-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 0;
+        }
+
+        .chart-toggle {
+            font-size: 1.2rem;
+            color: var(--text-light);
+            transition: transform 0.3s ease;
+        }
+
+        .chart-toggle.expanded {
+            transform: rotate(90deg);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            transition: height 0.3s ease, padding 0.3s ease, margin 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .chart-container.bar-chart {
+            min-width: 100%;
+            overflow-x: auto;
+        }
+        
+        .chart-container.bar-chart .echarts {
+            min-width: 600px; /* Mindestbreite für Bar Chart */
+        }
+
+        .chart-container.collapsed {
+            height: 0 !important;
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Video-Liste */
+        .video-list-section {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .video-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .video-list-header:hover {
+            background-color: var(--light-gray);
+        }
+
+        .video-list {
+            display: grid;
+            gap: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .video-list.collapsed {
+            display: none;
+        }
+
+        .video-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--light-gray);
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .video-item:hover {
+            background: #e2e8f0;
+        }
+
+        .video-info {
+            flex: 1;
+        }
+
+        .video-title {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .video-subtitle {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .video-stats {
+            text-align: right;
+        }
+
+        .video-views {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .video-last-viewed {
+            color: var(--text-light);
+            font-size: 0.8rem;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--primary-blue);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background: #FEE;
+            color: #C53030;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border: 1px solid #FED7D7;
+            text-align: center;
+        }
+        
+        .no-data {
+            text-align: center;
+            color: var(--text-light);
+            padding: 3rem;
+            font-style: italic;
+        }
+        
+        .last-updated {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: 2rem;
+        }
+
+        /* Mobile Optimierungen */
+        @media (max-width: 768px) {
+            .dashboard-nav {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            
+            .dashboard-user {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .user-info {
+                text-align: center;
+            }
+            
+            .device-id-header {
+                padding: 0.8rem 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .device-id-container {
+                font-size: 0.8rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .stats-overview {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 1rem;
+            }
+
+            .time-range-selector {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 1rem;
+            }
+
+            .time-range-buttons {
+                justify-content: center;
+                gap: 0.75rem;
+                margin-top: 1rem;
+            }
+            
+            .time-btn {
+                padding: 1rem 1.5rem;
+                font-size: 16px;
+                min-width: 140px;
+                border-radius: 30px;
+                flex: 1;
+                max-width: 200px;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+
+            .video-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.5rem;
+            }
+
+            .video-stats {
+                text-align: left;
+                display: flex;
+                justify-content: space-between;
+            }
+        }
+        
+
+        @media (max-width: 480px) {
+            .dashboard-content {
+                padding: 0 1rem 4rem;
+            }
+
+            .stats-overview {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-number {
+                font-size: 1.5rem;
+            }
+
+            .chart-card {
+                padding: 1rem;
+            }
+
+            .chart-container {
+                height: 250px;
+            }
+
+            /* Pie Chart mobile Optimierungen */
+            .chart-container.pie-chart {
+                height: 300px;
+                padding-bottom: 60px; /* Platz für Legende */
+            }
+
+            /* Balkendiagramm mobile Optimierungen */
+            .chart-container.bar-chart {
+                overflow-x: auto;
+                padding-bottom: 40px; /* Platz für Legende */
+            }
+            
+            /* Zeitraum-Buttons für sehr kleine Bildschirme */
+            .time-range-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .time-btn {
+                min-width: 100%;
+                max-width: 100%;
+                padding: 0.875rem 1rem;
+                font-size: 15px;
+            }
+            
+            /* Benutzerdefinierte Datumsauswahl für mobile Geräte */
+            .custom-date-range {
+                margin-top: 1rem;
+                padding: 0.75rem;
+            }
+            
+            .date-inputs {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .date-input-group {
+                min-width: 100%;
+            }
+            
+            .date-input-container {
+                width: 100%;
+                padding: 0.5rem;
+            }
+            
+            .date-input {
+                padding: 0.875rem;
+                font-size: 16px; /* Verhindert Zoom auf iOS */
+            }
+            
+            .date-nav-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 14px;
+            }
+            
+            .reset-date-btn {
+                width: 100%;
+                padding: 1rem;
+                font-size: 16px;
+                justify-content: center;
+            }
+            
+            
+            .time-range-selector h3 {
+                font-size: 18px;
+                text-align: center;
+                margin-bottom: 0.5rem;
+            }
+        }
+        
+        /* Tooltip-Optimierungen für mobile Geräte */
+        @media (max-width: 768px) {
+            .echarts-tooltip {
+                font-size: 12px !important;
+                padding: 8px !important;
+                min-width: fit-content !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .echarts-tooltip {
+                font-size: 11px !important;
+                padding: 6px !important;
+                min-width: fit-content !important;
+            }
+        }
+
+        
+        /* CSV Download Button Styles */
+        .csv-download-section {
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .csv-download-section .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .csv-download-section .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+
+        .csv-download-section .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .csv-download-section .btn i {
+            font-size: 1.1rem;
+        }
+        
+        /* Highlight-Animation für Charts-Sektion */
+        @keyframes highlight {
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 0 10px rgba(0, 123, 255, 0.3);
+                transform: scale(1.02);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar visible">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html">
+                    <img src="/favicon.ico" alt="Seraphin Solutions Logo" class="logo-image">
+                    <span class="logo-text">Seraphin Solutions</span>
+                </a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="account.html" class="btn-nav" style="background: var(--gradient-secondary);">
+                    <i class="fas fa-user-cog"></i>
+                    Account verwalten
+                </a></li>
+                <li><a href="#" class="btn-nav" onclick="logout(); return false;" style="background: var(--gradient-red);">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Abmelden
+                </a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        
+        <!-- Content -->
+        <div class="dashboard-content">
+            <div id="loadingMessage" style="text-align: center; padding: 2rem;">
+                <div class="loading-spinner"></div>
+                <p style="margin-top: 1rem; color: var(--text-light);">Lade Statistiken...</p>
+            </div>
+            
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+            
+            <div id="dashboardContent" style="display: none;">
+                <!-- Geräte-ID-Anzeige -->
+                <div class="device-id-header" id="deviceIdHeader" style="display: none;">
+                    <div class="device-id-container">
+                        <i class="fas fa-mobile-alt" style="margin-right: 8px; color: var(--primary-color);"></i>
+                        <span style="font-weight: 500; color: var(--text-color);">Geräte-ID:</span>
+                        <span id="deviceIdValue" style="font-family: monospace; background: var(--card-bg); padding: 2px 8px; border-radius: 4px; margin-left: 8px; color: var(--primary-color);"></span>
+                    </div>
+                </div>
+
+                <!-- Statistiken-Übersicht -->
+                <div class="stats-overview">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <div class="stat-number" id="totalViews">0</div>
+                        <div class="stat-label">Gesamte Aufrufe</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-play-circle"></i>
+                        </div>
+                        <div class="stat-number" id="videosWithViews">0</div>
+                        <div class="stat-label">Videos mit Aufrufen</div>
+                    </div>
+                </div>
+
+
+                <!-- Zeitraum-Auswahl -->
+                <div class="time-range-selector">
+                    <h3 style="margin: 0; color: var(--text-dark);">Zeitraum:</h3>
+                    <div class="time-range-buttons">
+                        <button class="time-btn active" data-range="7">Letzte 7 Tage</button>
+                        <button class="time-btn" data-range="all">Gesamter Zeitraum</button>
+                        <button class="time-btn" data-range="custom" id="customRangeBtn">Benutzerdefiniert</button>
+                    </div>
+                    
+                    <!-- Benutzerdefinierte Datumsauswahl -->
+                    <div class="custom-date-range" id="customDateRange" style="display: none;">
+                        <div class="date-inputs">
+                            <div class="date-input-group">
+                                <label for="startDate">Von:</label>
+                                <div class="date-input-container">
+                                    <button class="date-nav-btn" id="startDatePrev" type="button">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <input type="date" id="startDate" class="date-input">
+                                    <button class="date-nav-btn" id="startDateNext" type="button">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="date-input-group">
+                                <label for="endDate">Bis:</label>
+                                <div class="date-input-container">
+                                    <button class="date-nav-btn" id="endDatePrev" type="button">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <input type="date" id="endDate" class="date-input">
+                                    <button class="date-nav-btn" id="endDateNext" type="button">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="reset-button-container">
+                            <button class="reset-date-btn" id="resetDateBtn" type="button">
+                                <i class="fas fa-undo"></i>
+                                Zurücksetzen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Charts -->
+                <div class="charts-section" id="chartsSection">
+                    <!-- Liniendiagramm (wie in der App) -->
+                    <div class="chart-card">
+                        <div class="chart-header" onclick="toggleChart('lineChart')">
+                            <h3 class="chart-title">Liniendiagramm</h3>
+                            <span class="chart-toggle" id="lineChartToggle">▶</span>
+                        </div>
+                        <div class="chart-container" id="lineChartContainer">
+                            <div id="lineChart" style="width: 100%; height: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Tortendiagramm (wie in der App) -->
+                    <div class="chart-card">
+                        <div class="chart-header" onclick="toggleChart('pieChart')">
+                            <h3 class="chart-title">Tortendiagramm</h3>
+                            <span class="chart-toggle" id="pieChartToggle">▶</span>
+                        </div>
+                        <div class="chart-container pie-chart" id="pieChartContainer">
+                            <div id="pieChart" style="width: 100%; height: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Balkendiagramm (wie in der App) -->
+                    <div class="chart-card">
+                        <div class="chart-header" onclick="toggleChart('barChart')">
+                            <h3 class="chart-title">Balkendiagramm</h3>
+                            <span class="chart-toggle" id="barChartToggle">▶</span>
+                        </div>
+                        <div class="chart-container bar-chart" id="barChartContainer">
+                            <div id="barChart" style="width: 100%; height: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Line Race (wie in der App) -->
+                    <div class="chart-card">
+                        <div class="chart-header" onclick="toggleChart('lineRaceChart')">
+                            <h3 class="chart-title">Line Race</h3>
+                            <span class="chart-toggle" id="lineRaceChartToggle">▶</span>
+                        </div>
+                        <div class="chart-container" id="lineRaceChartContainer">
+                            <div id="lineRaceChart" style="width: 100%; height: 100%;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="last-updated">
+                    <i class="fas fa-clock"></i>
+                    Letzte Aktualisierung: <span id="lastUpdated">--</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let statistics = null;
+        let currentTimeRange = '7';
+        let customDateRange = {
+            startDate: null,
+            endDate: null
+        };
+        let charts = {};
+        let chartStates = {
+            lineChart: true,
+            barChart: true,
+            pieChart: true,
+            lineRaceChart: true
+        };
+        
+        // Dashboard initialisieren
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadDashboard();
+            setupNavigation();
+        });
+        
+        // Navigation einrichten
+        function setupNavigation() {
+            const hamburger = document.querySelector('.hamburger');
+            const navMenu = document.querySelector('.nav-menu');
+            const navbar = document.querySelector('.navbar');
+            
+            if (hamburger && navMenu) {
+                hamburger.addEventListener('click', function() {
+                    navMenu.classList.toggle('active');
+                });
+            }
+            
+            // Auto-hide Navigation beim Scrollen
+            let lastScrollTop = 0;
+            let ticking = false;
+            
+            function updateNavbar() {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                if (scrollTop > lastScrollTop && scrollTop > 100) {
+                    // Nach unten scrollen - Header verstecken
+                    navbar.classList.remove('visible');
+                } else {
+                    // Nach oben scrollen - Header anzeigen
+                    navbar.classList.add('visible');
+                }
+                
+                lastScrollTop = scrollTop;
+                ticking = false;
+            }
+            
+            function requestTick() {
+                if (!ticking) {
+                    requestAnimationFrame(updateNavbar);
+                    ticking = true;
+                }
+            }
+            
+            window.addEventListener('scroll', requestTick);
+        }
+        
+        // Event Listeners einrichten
+        function setupEventListeners() {
+            // Zeitraum-Buttons
+            document.querySelectorAll('.time-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentTimeRange = this.dataset.range;
+                    
+                    // Zeige/verstecke benutzerdefinierte Datumsauswahl
+                    const customDateRange = document.getElementById('customDateRange');
+                    if (currentTimeRange === 'custom') {
+                        customDateRange.style.display = 'block';
+                        // Setze Standard-Datumswerte
+                        const today = new Date();
+                        const thirtyDaysAgo = new Date();
+                        thirtyDaysAgo.setDate(today.getDate() - 30);
+                        
+                        document.getElementById('endDate').value = today.toISOString().split('T')[0];
+                        document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+                    } else {
+                        customDateRange.style.display = 'none';
+                    }
+                    
+                    updateCharts();
+                });
+            });
+            
+            // Benutzerdefinierte Datumsauswahl - automatische Anwendung bei Datumsauswahl
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            
+            function applyCustomDateRange() {
+                const startDate = startDateInput.value;
+                const endDate = endDateInput.value;
+                
+                // Nur anwenden wenn beide Daten ausgewählt sind
+                if (startDate && endDate) {
+                    if (new Date(startDate) > new Date(endDate)) {
+                        alert('Das Startdatum darf nicht nach dem Enddatum liegen.');
+                        return;
+                    }
+                    
+                    customDateRange.startDate = startDate;
+                    customDateRange.endDate = endDate;
+                    updateCharts();
+                }
+            }
+            
+            if (startDateInput) {
+                startDateInput.addEventListener('change', applyCustomDateRange);
+            }
+            
+            if (endDateInput) {
+                endDateInput.addEventListener('change', applyCustomDateRange);
+            }
+            
+            // Navigation-Buttons für Datumsauswahl
+            const startDatePrev = document.getElementById('startDatePrev');
+            const startDateNext = document.getElementById('startDateNext');
+            const endDatePrev = document.getElementById('endDatePrev');
+            const endDateNext = document.getElementById('endDateNext');
+            
+            function navigateDate(inputId, direction) {
+                const input = document.getElementById(inputId);
+                if (!input.value) {
+                    // Wenn kein Datum ausgewählt ist, setze heute als Standard
+                    const today = new Date();
+                    input.value = today.toISOString().split('T')[0];
+                } else {
+                    const currentDate = new Date(input.value);
+                    currentDate.setDate(currentDate.getDate() + direction);
+                    input.value = currentDate.toISOString().split('T')[0];
+                }
+                // Trigger change event um die Charts zu aktualisieren
+                input.dispatchEvent(new Event('change'));
+            }
+            
+            if (startDatePrev) {
+                startDatePrev.addEventListener('click', () => navigateDate('startDate', -1));
+            }
+            
+            if (startDateNext) {
+                startDateNext.addEventListener('click', () => navigateDate('startDate', 1));
+            }
+            
+            if (endDatePrev) {
+                endDatePrev.addEventListener('click', () => navigateDate('endDate', -1));
+            }
+            
+            if (endDateNext) {
+                endDateNext.addEventListener('click', () => navigateDate('endDate', 1));
+            }
+            
+            // Reset-Button für benutzerdefinierte Datumsauswahl
+            const resetDateBtn = document.getElementById('resetDateBtn');
+            if (resetDateBtn) {
+                resetDateBtn.addEventListener('click', function() {
+                    // Setze Standard-Zeitraum (letzte 30 Tage)
+                    const today = new Date();
+                    const thirtyDaysAgo = new Date();
+                    thirtyDaysAgo.setDate(today.getDate() - 30);
+                    
+                    // Aktualisiere die Eingabefelder
+                    startDateInput.value = thirtyDaysAgo.toISOString().split('T')[0];
+                    endDateInput.value = today.toISOString().split('T')[0];
+                    
+                    // Aktualisiere die benutzerdefinierten Datumsbereiche
+                    customDateRange.startDate = startDateInput.value;
+                    customDateRange.endDate = endDateInput.value;
+                    
+                    // Aktualisiere die Charts
+                    updateCharts();
+                });
+            }
+            
+            // Stats-Overview Click Handler für automatisches Scrollen
+            const statsOverview = document.querySelector('.stats-overview');
+            if (statsOverview) {
+                statsOverview.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    scrollToCharts();
+                });
+            }
+            
+            // Chart-Toggle Event Listeners (zusätzliche Sicherheit)
+            document.querySelectorAll('.chart-header').forEach(header => {
+                header.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Finde den Chart-Namen aus dem onclick-Attribut
+                    const onclickAttr = this.getAttribute('onclick');
+                    if (onclickAttr && onclickAttr.includes('toggleChart')) {
+                        const match = onclickAttr.match(/toggleChart\('([^']+)'\)/);
+                        if (match && match[1]) {
+                            const chartName = match[1];
+                            console.log('🖱️ Chart Header geklickt:', chartName);
+                            toggleChart(chartName);
+                        }
+                    }
+                });
+            });
+            
+            // Direkte Event Listener für jeden Chart-Toggle
+            const chartNames = ['lineChart', 'pieChart', 'barChart', 'lineRaceChart'];
+            chartNames.forEach(chartName => {
+                const toggle = document.getElementById(chartName + 'Toggle');
+                if (toggle) {
+                    toggle.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('🖱️ Toggle Button geklickt:', chartName);
+                        toggleChart(chartName);
+                    });
+                }
+            });
+        }
+        
+        // Dashboard laden
+        async function loadDashboard() {
+            try {
+                
+                // Erst prüfen, ob wir eine gültige Session haben
+                console.log('🔍 Starte Session-Verifikation...');
+                const sessionResponse = await fetch('/api/auth/verify-session', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                console.log('🔍 Session-Verifikation Status:', sessionResponse.status);
+                console.log('🔍 Session-Verifikation Headers:', Object.fromEntries(sessionResponse.headers.entries()));
+                
+                if (sessionResponse.status === 401) {
+                    console.log('❌ Keine gültige Session gefunden');
+                    // Zeige eine Nachricht anstatt sofort weiterzuleiten
+                    showError('Sie sind nicht angemeldet. Bitte melden Sie sich an, um Ihre Statistiken zu sehen.');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 3000);
+                    hideLoading();
+                    return;
+                }
+                
+                if (!sessionResponse.ok) {
+                    console.log('❌ Session-Verifikation fehlgeschlagen:', sessionResponse.status);
+                    const errorText = await sessionResponse.text();
+                    console.log('❌ Session-Verifikation Fehler-Text:', errorText);
+                    throw new Error(`Session-Verifikation fehlgeschlagen (${sessionResponse.status}): ${errorText}`);
+                }
+                
+                const sessionData = await sessionResponse.json();
+                console.log('🔍 Session-Daten:', sessionData);
+                
+                if (!sessionData.success) {
+                    console.log('❌ Session ungültig, weiterleitung zur Login-Seite');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                console.log('✅ Session ist gültig, lade Statistiken...');
+                
+                // Session ist gültig, jetzt Statistiken laden
+                console.log('📊 Lade Statistiken...');
+                const response = await fetch('/api/statistics/get', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                console.log('📊 Statistiken-API Status:', response.status);
+                console.log('📊 Statistiken-API Headers:', Object.fromEntries(response.headers.entries()));
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        console.log('❌ Nicht authentifiziert, weiterleitung zur Login-Seite');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    
+                    const errorText = await response.text();
+                    console.log('❌ Statistiken-API Fehler-Text:', errorText);
+                    throw new Error(`Fehler beim Laden der Statistiken (${response.status}): ${errorText}`);
+                }
+                
+                const data = await response.json();
+                console.log('📊 API Response:', data);
+                
+                if (data.success) {
+                    statistics = data.statistics;
+                    console.log('✅ Statistiken erfolgreich geladen:', statistics);
+                    displayStatistics();
+                    hideLoading();
+                    
+                    // Event Listeners nach dem Laden der Statistiken einrichten
+                    setupEventListeners();
+                    
+                    // Automatisch zu "Alle Zeit" wechseln nach dem Laden der Statistiken
+                    setTimeout(() => {
+                        currentTimeRange = 'all';
+                        // Aktualisiere die Button-Auswahl
+                        document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+                        const allTimeBtn = document.querySelector('.time-btn[data-range="all"]');
+                        if (allTimeBtn) {
+                            allTimeBtn.classList.add('active');
+                        }
+                        updateCharts();
+                        console.log('🔄 Automatisch zu "Alle Zeit" gewechselt');
+                    }, 200); // 200ms Verzögerung
+                    
+                } else {
+                    console.error('❌ API Fehler:', data.error);
+                    // Zeige eine freundlichere Nachricht für leere Daten
+                    if (data.error && data.error.includes('Nicht authentifiziert')) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    throw new Error(data.error || 'Unbekannter Fehler');
+                }
+                
+            } catch (error) {
+                console.error('Dashboard load error:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
+                
+                // Zeige eine benutzerfreundlichere Fehlermeldung
+                if (error.message.includes('Nicht authentifiziert') || error.message.includes('Session')) {
+                    showError('Sie sind nicht angemeldet. Bitte melden Sie sich an.');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } else if (error.message.includes('Verbindungsfehler') || error.message.includes('fetch')) {
+                    showError('Verbindungsfehler. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.');
+                } else {
+                    showError('Fehler beim Laden der Statistiken. Bitte versuchen Sie es später erneut.');
+                }
+                hideLoading();
+            }
+        }
+        
+        // Statistiken anzeigen
+        function displayStatistics() {
+            if (!statistics) {
+                console.log('❌ Keine Statistiken verfügbar');
+                showNoDataMessage();
+                return;
+            }
+            
+            // Prüfe ob überhaupt Daten vorhanden sind
+            const hasAnyData = statistics.videos?.length > 0 || 
+                              statistics.floors?.length > 0 || 
+                              statistics.history?.length > 0 ||
+                              (statistics.current && Object.values(statistics.current).some(val => val > 0));
+            
+            console.log('📊 Data check:', {
+                hasVideos: statistics.videos?.length > 0,
+                hasFloors: statistics.floors?.length > 0,
+                hasHistory: statistics.history?.length > 0,
+                hasCurrent: statistics.current && Object.values(statistics.current).some(val => val > 0),
+                hasAnyData: hasAnyData
+            });
+            
+            if (!hasAnyData) {
+                console.log('❌ Keine Daten in den Statistiken');
+                showNoDataMessage();
+                return;
+            }
+            
+            console.log('📊 Statistiken-Daten:', statistics);
+            
+            const current = statistics.current || {};
+            const total = statistics.total || {};
+            const videos = statistics.videos || [];
+            const floors = statistics.floors || [];
+            const history = statistics.history || [];
+            
+            // Debug: Zeige verfügbare Daten
+            console.log('📈 Current Stats:', current);
+            console.log('📊 Total Stats:', total);
+            console.log('🎥 Videos:', videos.length);
+            console.log('🏢 Floors:', floors.length);
+            console.log('📅 History:', history.length);
+            
+            // Statistiken-Karten aktualisieren mit Fallback-Werten
+            const totalViews = current.total_views || total.total_views || 0;
+            const videosWithViews = current.videos_with_views || total.videos_with_views || 0;
+            const totalVideos = current.total_videos || total.total_videos || videos.length;
+            const totalFloors = current.total_floors || total.total_floors || floors.length;
+            const totalRooms = current.total_rooms || total.total_rooms || floors.reduce((sum, floor) => sum + (floor.room_count || 0), 0);
+            
+            // Aktualisiere die UI-Elemente
+            try {
+                const totalViewsElement = document.getElementById('totalViews');
+                if (totalViewsElement) {
+                    totalViewsElement.textContent = totalViews.toLocaleString('de-DE');
+                }
+                
+                const videosWithViewsElement = document.getElementById('videosWithViews');
+                if (videosWithViewsElement) {
+                    videosWithViewsElement.textContent = videosWithViews.toLocaleString('de-DE');
+                }
+                
+                // Zeige Geräte-ID an, falls verfügbar
+                const deviceId = statistics.device_id;
+                const deviceIdHeader = document.getElementById('deviceIdHeader');
+                const deviceIdValue = document.getElementById('deviceIdValue');
+                
+                if (deviceId && deviceIdHeader && deviceIdValue) {
+                    deviceIdValue.textContent = deviceId;
+                    deviceIdHeader.style.display = 'block';
+                } else if (deviceIdHeader) {
+                    deviceIdHeader.style.display = 'none';
+                }
+                
+                // Zusätzliche Statistiken anzeigen, falls Elemente existieren
+                const totalVideosElement = document.getElementById('totalVideos');
+                if (totalVideosElement) {
+                    totalVideosElement.textContent = totalVideos.toLocaleString('de-DE');
+                }
+                
+                const totalFloorsElement = document.getElementById('totalFloors');
+                if (totalFloorsElement) {
+                    totalFloorsElement.textContent = totalFloors.toLocaleString('de-DE');
+                }
+                
+                const totalRoomsElement = document.getElementById('totalRooms');
+                if (totalRoomsElement) {
+                    totalRoomsElement.textContent = totalRooms.toLocaleString('de-DE');
+                }
+                
+                // Letzte Aktualisierung
+                const now = new Date();
+                const lastUpdatedElement = document.getElementById('lastUpdated');
+                if (lastUpdatedElement) {
+                    lastUpdatedElement.textContent = now.toLocaleString('de-DE');
+                }
+            } catch (error) {
+                console.error('❌ Fehler beim Aktualisieren der UI-Elemente:', error);
+            }
+            
+            // Prüfe ob genügend Daten für Charts vorhanden sind
+            const hasVideoData = videos.length > 0;
+            const hasViewHistoryData = videos.some(video => {
+                const viewHistory = video.viewHistory || video.view_history;
+                return viewHistory && Object.keys(viewHistory).length > 0;
+            });
+            
+            console.log('📊 Chart-Daten verfügbar:', { hasVideoData, hasViewHistoryData });
+            
+            console.log('📊 Video viewHistory Details:', videos.map(v => ({ 
+                title: v.title || v.video_title, 
+                hasViewHistory: !!(v.viewHistory || v.view_history), 
+                viewHistoryKeys: (v.viewHistory || v.view_history) ? Object.keys(v.viewHistory || v.view_history) : [],
+                videoData: v // Debug: Zeige vollständige Video-Daten
+            })));
+            
+            if (!hasVideoData || !hasViewHistoryData) {
+                console.log('⚠️ Keine ausreichenden Daten für Charts verfügbar');
+                showNoDataMessage();
+                return;
+            }
+            
+            // Charts erstellen (wie in der App)
+            try {
+                createLineChart();
+                createPieChart();
+                createBarChart();
+                createLineRaceChart();
+                console.log('✅ Alle Charts erfolgreich erstellt');
+                
+                
+            } catch (error) {
+                console.error('❌ Fehler beim Erstellen der Charts:', error);
+                showError('Fehler beim Erstellen der Diagramme: ' + error.message);
+            }
+        }
+        
+        // Liniendiagramm erstellen (wie in der App)
+        function createLineChart() {
+            const chartElement = document.getElementById('lineChart');
+            if (!chartElement) return;
+            
+            if (charts.lineChart) {
+                charts.lineChart.dispose();
+            }
+            
+            const videos = statistics?.videos || [];
+            const lineChartVideoCount = statistics?.current?.line_chart_video_count || 7;
+            const timeRangeStart = statistics?.current?.time_range_start;
+            const timeRangeEnd = statistics?.current?.time_range_end;
+            
+            console.log('📈 Line Chart - Video-Daten:', videos);
+            console.log('📈 Line Chart - Video Count:', lineChartVideoCount);
+            console.log('📈 Line Chart - Zeitraum:', { timeRangeStart, timeRangeEnd });
+            
+            if (!videos || videos.length === 0) {
+                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
+                return;
+            }
+            
+            // Filtere Videos mit Aufrufen und sortiere nach Aufrufen (wie in der App)
+            const filteredVideos = videos
+                .filter(video => (video.views || 0) > 0)
+                .sort((a, b) => (b.views || 0) - (a.views || 0))
+                .slice(0, lineChartVideoCount);
+            
+            if (filteredVideos.length === 0) {
+                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Videos mit Aufrufen verfügbar</div>';
+                return;
+            }
+            
+            // Prüfe ob viewHistory-Daten verfügbar sind
+            const hasViewHistory = filteredVideos.some(video => 
+                (video.viewHistory && Object.keys(video.viewHistory).length > 0) ||
+                (video.view_history && Object.keys(video.view_history).length > 0)
+            );
+            
+            
+            let timePoints = [];
+            let videoData = [];
+            let averageData = [];
+            
+            if (hasViewHistory) {
+                // Verwende echte viewHistory-Daten
+                console.log('📈 Using real viewHistory data');
+                
+                // Sammle alle verfügbaren Daten aus viewHistory
+                const allDates = new Set();
+                filteredVideos.forEach(video => {
+                    const viewHistory = video.viewHistory || video.view_history;
+                    if (viewHistory) {
+                        Object.keys(viewHistory).forEach(date => allDates.add(date));
+                    }
+                });
+                
+                // Sortiere Daten und filtere basierend auf ausgewähltem Zeitraum
+                const sortedDates = Array.from(allDates).sort();
+                const timeRangeResult = calculateTimeRange(sortedDates, currentTimeRange);
+                timePoints = timeRangeResult.timePoints;
+                
+                // Für "Alle Zeit" füge auch Offset nach dem letzten Datum hinzu
+                if (timeRangeResult.addEndOffset && timePoints.length > 0) {
+                    const lastDate = new Date(timePoints[timePoints.length - 1]);
+                    lastDate.setDate(lastDate.getDate() + 2);
+                    timePoints.push(lastDate.toISOString().split('T')[0]);
+                }
+                
+                // Erstelle Series für jedes Video mit echten Daten
+                videoData = filteredVideos.map((video, idx) => {
+                    const viewHistory = video.viewHistory || video.view_history;
+                    const data = timePoints.map(date => {
+                        return viewHistory && viewHistory[date] ? viewHistory[date] : 0;
+                    });
+                    
+                    return {
+                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        type: 'line',
+                        data: data,
+                        smooth: true,
+                        lineStyle: {
+                            width: 2
+                        },
+                        itemStyle: {
+                            color: getChartColor(idx)
+                        },
+                        emphasis: { focus: 'series' }
+                    };
+                });
+                
+                // Berechne Durchschnittslinie mit echten Daten
+                averageData = timePoints.map(date => {
+                    const totalViews = filteredVideos.reduce((sum, video) => {
+                        const viewHistory = video.viewHistory || video.view_history;
+                        return sum + (viewHistory && viewHistory[date] ? viewHistory[date] : 0);
+                    }, 0);
+                    return Math.round(totalViews / filteredVideos.length * 10) / 10;
+                });
+            } else {
+                // Fallback: Verwende simulierte Daten basierend auf Gesamtaufrufen
+                console.log('📈 Using simulated data (no viewHistory available)');
+                
+                // Erstelle Zeitpunkte basierend auf ausgewähltem Zeitraum mit Offset
+                const today = new Date();
+                let daysToShow = 7; // Standard
+                
+                if (currentTimeRange === '7') {
+                    daysToShow = 7;
+                } else if (currentTimeRange === 'custom') {
+                    // Benutzerdefinierter Zeitraum
+                    if (customDateRange.startDate && customDateRange.endDate) {
+                        const startDate = new Date(customDateRange.startDate);
+                        const endDate = new Date(customDateRange.endDate);
+                        daysToShow = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                    } else {
+                        daysToShow = 30; // Fallback
+                    }
+                } else {
+                    // Alle Zeit - zeige 365 Tage als Maximum
+                    daysToShow = 365;
+                }
+                
+                // Erstelle Zeitpunkte ohne Offset
+                const totalDays = daysToShow;
+                
+                for (let i = totalDays - 1; i >= 0; i--) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    const day = date.getDate().toString().padStart(2, '0');
+                    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                    const year = date.getFullYear();
+                    timePoints.push(`${day}.${month}.${year}`);
+                }
+                
+                // Erstelle Series mit simulierten Daten
+                videoData = filteredVideos.map((video, idx) => {
+                    const totalViews = video.views || 0;
+                    const dailyViews = Math.round(totalViews / daysToShow);
+                    const data = timePoints.map((date, dayIndex) => {
+                        // Keine Offset-Bereiche mehr - alle Tage haben Daten
+                        const variation = Math.random() * 0.4 + 0.8; // 80-120% der Durchschnittsaufrufe
+                        return Math.round(dailyViews * variation);
+                    });
+                    
+                    return {
+                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        type: 'line',
+                        data: data,
+                        smooth: true,
+                        lineStyle: {
+                            width: 2
+                        },
+                        itemStyle: {
+                            color: getChartColor(idx)
+                        },
+                        emphasis: { focus: 'series' }
+                    };
+                });
+                
+                // Berechne Durchschnittslinie mit simulierten Daten
+                averageData = timePoints.map((date, idx) => {
+                    // Keine Offset-Bereiche mehr - alle Tage haben Daten
+                    const totalViews = filteredVideos.reduce((sum, video) => {
+                        const totalViews = video.views || 0;
+                        const dailyViews = Math.round(totalViews / daysToShow);
+                        const variation = Math.random() * 0.4 + 0.8;
+                        return sum + Math.round(dailyViews * variation);
+                    }, 0);
+                    return Math.round(totalViews / filteredVideos.length * 10) / 10;
+                });
+            }
+            
+            const series = [
+                ...videoData,
+                {
+                    name: 'Durchschnitt (alle Videos)',
+                    type: 'line',
+                    data: averageData,
+                    smooth: true,
+                    symbol: 'none',
+                    lineStyle: {
+                        width: 3,
+                        color: '#888',
+                        type: 'dashed'
+                    },
+                    itemStyle: { color: '#888' },
+                    emphasis: { focus: 'series' },
+                    z: 10
+                }
+            ];
+            
+            const option = {
+                xAxis: {
+                    type: 'category',
+                    data: timePoints.map(date => formatDateToGerman(date)),
+                    axisLabel: { color: '#666', rotate: 45 },
+                    axisTick: { alignWithLabel: true }
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLabel: { color: '#666' },
+                    name: 'Aufrufe',
+                    nameTextStyle: { color: '#666' }
+                },
+                series: series,
+                tooltip: {
+                    trigger: 'axis',
+                    show: true,
+                    confine: true, // Begrenzt Tooltip auf Chart-Bereich
+                    extraCssText: 'word-wrap: break-word; white-space: nowrap;',
+                    formatter: function(params) {
+                        if (!params || params.length === 0) return '';
+                        
+                        // Bei axis trigger ist params ein Array
+                        const firstParam = params[0];
+                        if (!firstParam) return '';
+                        
+                        let result = firstParam.axisValue + '<br/>';
+                        let hasValidData = false;
+                        
+                        params.forEach((param) => {
+                            if (param.value !== undefined && param.value !== null && param.value > 0) {
+                                let value = param.value;
+                                if (typeof value === 'number') {
+                                    value = Number.isInteger(value) ? value : value.toFixed(2);
+                                }
+                                
+                                // Vereinfache Durchschnittslinie-Beschriftung
+                                let seriesName = param.seriesName;
+                                if (seriesName && seriesName.includes('Durchschnitt')) {
+                                    seriesName = 'Durchschnitt';
+                                }
+                                
+                                result += `${param.marker} ${seriesName}: ${value} Aufrufe<br/>`;
+                                hasValidData = true;
+                            }
+                        });
+                        
+                        return hasValidData ? result : '';
+                    }
+                },
+                legend: {
+                    data: [
+                        ...filteredVideos.map(v => v.title || v.video_title || 'Unbenanntes Video'),
+                        'Durchschnitt (alle Videos)'
+                    ],
+                    textStyle: { color: '#666' },
+                    type: 'scroll',
+                    bottom: 0,
+                    pageButtonItemGap: 5,
+                    pageButtonGap: 5,
+                    pageButtonPosition: 'end',
+                    pageIconColor: '#2563eb',
+                    pageIconInactiveColor: '#ccc',
+                    pageIconSize: 28,
+                    pageTextStyle: {
+                        color: '#666'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '15%',
+                    containLabel: true
+                },
+                color: getChartColors(),
+                zoom: false
+            };
+            
+            charts.lineChart = echarts.init(chartElement);
+            charts.lineChart.setOption(option);
+            
+            
+            // Chart nach Initialisierung neu zeichnen
+            setTimeout(() => {
+                if (charts.lineChart) {
+                    charts.lineChart.resize();
+                }
+            }, 100);
+        }
+        
+        
+        // Balkendiagramm erstellen (wie in der App)
+        function createBarChart() {
+            const chartElement = document.getElementById('barChart');
+            if (!chartElement) return;
+            
+            if (charts.barChart) {
+                charts.barChart.dispose();
+            }
+            
+            const videos = statistics?.videos || [];
+            const barChartVideoCount = statistics?.current?.bar_chart_video_count || 7;
+            
+            console.log('📊 Bar Chart - Video-Daten:', videos);
+            console.log('📊 Bar Chart - Video Count:', barChartVideoCount);
+            console.log('📊 Bar Chart - Zeitraum:', currentTimeRange);
+            
+            if (!videos || videos.length === 0) {
+                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
+                return;
+            }
+            
+            // Filtere Videos basierend auf Zeitraum und Aufrufen
+            let filteredVideos = videos.filter(video => (video.views || 0) > 0);
+            
+            // Wenn viewHistory verfügbar ist, filtere basierend auf Zeitraum
+            const hasViewHistory = filteredVideos.some(video => 
+                (video.viewHistory && Object.keys(video.viewHistory).length > 0) ||
+                (video.view_history && Object.keys(video.view_history).length > 0)
+            );
+            
+            if (hasViewHistory && currentTimeRange !== 'all') {
+                const today = new Date();
+                let startDate = new Date();
+                
+                // Berechne Startdatum basierend auf ausgewähltem Zeitraum
+                if (currentTimeRange === '7') {
+                    startDate.setDate(today.getDate() - 7);
+                } else if (currentTimeRange === 'custom') {
+                    // Benutzerdefinierter Zeitraum
+                    if (customDateRange.startDate) {
+                        startDate = new Date(customDateRange.startDate);
+                    } else {
+                        startDate.setDate(today.getDate() - 30); // Fallback
+                    }
+                }
+                
+                // Filtere Videos basierend auf Zeitraum
+                filteredVideos = filteredVideos.filter(video => {
+                    const viewHistory = video.viewHistory || video.view_history;
+                    if (!viewHistory) return false;
+                    
+                    // Prüfe ob Video in dem Zeitraum Aufrufe hatte
+                    return Object.keys(viewHistory).some(date => {
+                        const dateObj = new Date(date);
+                        return dateObj >= startDate;
+                    });
+                });
+            }
+            
+            // Sortiere nach Aufrufen und begrenze Anzahl
+            filteredVideos = filteredVideos
+                .sort((a, b) => (b.views || 0) - (a.views || 0))
+                .slice(0, barChartVideoCount);
+            
+            if (filteredVideos.length === 0) {
+                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Videos mit Aufrufen verfügbar</div>';
+                return;
+            }
+            
+            // Zeige nur die ersten 5 Videos standardmäßig, restliche können ausgeklappt werden
+            const maxVisible = 5;
+            const visibleVideos = filteredVideos.slice(0, maxVisible);
+            const hiddenVideos = filteredVideos.slice(maxVisible);
+            
+            // Berechne dynamische Höhe basierend auf Anzahl der Balken - ohne Legende
+            const barHeight = 50 * visibleVideos.length + 80; // Reduzierte Höhe pro Balken und weniger Padding ohne Legende
+            
+            // Setze dynamische Höhe für den Chart-Container
+            const chartContainer = document.getElementById('barChartContainer');
+            chartContainer.style.height = barHeight + 'px';
+            
+            const option = {
+                xAxis: {
+                    type: 'value',
+                    axisLabel: { color: '#666', fontSize: 16 }
+                },
+                yAxis: {
+                    type: 'category',
+                    data: visibleVideos.map((v, idx) => {
+                        const title = v.title || v.video_title || `Video ${idx + 1}`;
+                        return title.length > 10 ? title.substring(0, 10) + '...' : title;
+                    }), // Begrenze Video-Titel auf 10 Zeichen mit ...
+                    axisLabel: { color: '#666', fontSize: 16 },
+                    inverse: true
+                },
+                series: [{
+                    type: 'bar',
+                    data: visibleVideos.map((v, idx) => ({
+                        value: v.views || 0,
+                        itemStyle: { color: getChartColor(idx) }
+                    }))
+                }],
+                tooltip: {
+                    trigger: 'item',
+                    show: true,
+                    confine: true, // Begrenzt Tooltip auf Chart-Bereich
+                    extraCssText: 'word-wrap: break-word; white-space: nowrap;',
+                    formatter: function(params) {
+                        if (!params) return '';
+                        
+                        // Finde die vollständige Videobeschreibung für das Tooltip
+                        const videoIndex = params.dataIndex;
+                        const fullVideoTitle = visibleVideos[videoIndex]?.title || visibleVideos[videoIndex]?.video_title || `Video ${videoIndex + 1}`;
+                        
+                        return `${fullVideoTitle}<br/>Aufrufe: ${params.value}`;
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '5%',
+                    containLabel: true
+                },
+                color: getChartColors(),
+                zoom: false
+            };
+            
+            charts.barChart = echarts.init(chartElement);
+            charts.barChart.setOption(option);
+            
+            
+            // Resize das Chart, um die neue Breite zu berücksichtigen
+            setTimeout(() => {
+                if (charts.barChart) {
+                    charts.barChart.resize();
+                }
+            }, 100);
+            
+            // Füge "Mehr anzeigen" Button hinzu, wenn es mehr als 5 Videos gibt
+            if (hiddenVideos.length > 0) {
+                const expandButton = document.createElement('button');
+                expandButton.textContent = `+${hiddenVideos.length} weitere anzeigen`;
+                expandButton.style.cssText = `
+                    position: absolute;
+                    top: 10px;
+                    right: 10px;
+                    background: var(--gradient-primary);
+                    color: var(--white);
+                    border: none;
+                    padding: 6px 12px;
+                    border-radius: 8px;
+                    font-size: 11px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    z-index: 1000;
+                    box-shadow: 0 2px 8px rgba(0, 140, 255, 0.3);
+                    transition: all 0.3s ease;
+                `;
+                // Hover-Effekt hinzufügen
+                expandButton.addEventListener('mouseenter', () => {
+                    expandButton.style.transform = 'translateY(-1px)';
+                    expandButton.style.boxShadow = '0 4px 12px rgba(0, 140, 255, 0.4)';
+                });
+                
+                expandButton.addEventListener('mouseleave', () => {
+                    expandButton.style.transform = 'translateY(0)';
+                    expandButton.style.boxShadow = '0 2px 8px rgba(0, 140, 255, 0.3)';
+                });
+                
+                expandButton.onclick = () => {
+                    // Berechne neue Höhe für alle Videos - ohne Legende
+                    const newHeight = 50 * filteredVideos.length + 80; // Reduzierte Höhe pro Balken und weniger Padding ohne Legende
+                    chartContainer.style.height = newHeight + 'px';
+                    
+                    // Erstelle erweiterte Version mit allen Videos
+                    const allLabels = filteredVideos.map(video => {
+                        const title = video.title || video.video_title || 'Unbenanntes Video';
+                        return title.length > 10 ? title.substring(0, 10) + '...' : title;
+                    });
+                    const allData = filteredVideos.map((video, idx) => ({
+                        value: video.views || 0,
+                        itemStyle: {
+                            color: getChartColor(idx)
+                        }
+                    }));
+                    
+                    // Erstelle neue Option mit allen Videos
+                    const expandedOption = {
+                        xAxis: option.xAxis,
+                        yAxis: {
+                            type: 'category',
+                            data: allLabels, // Verwende echte Video-Titel
+                            axisLabel: { color: '#666', fontSize: 16 },
+                            inverse: true
+                        },
+                        series: [{
+                            type: 'bar',
+                            data: allData
+                        }],
+                        tooltip: option.tooltip,
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '5%',
+                            containLabel: true
+                        },
+                        color: getChartColors(),
+                        zoom: false
+                    };
+                    
+                    charts.barChart.setOption(expandedOption);
+                    
+                    
+                    // Resize das Chart, um die neue Breite zu berücksichtigen
+                    setTimeout(() => {
+                        if (charts.barChart) {
+                            charts.barChart.resize();
+                        }
+                    }, 100);
+                    
+                    expandButton.remove();
+                };
+                
+                chartElement.style.position = 'relative';
+                chartElement.appendChild(expandButton);
+            }
+        }
+        
+        // Line Race Chart erstellen (wie in der App)
+        function createLineRaceChart() {
+            const chartElement = document.getElementById('lineRaceChart');
+            if (!chartElement) return;
+            
+            if (charts.lineRaceChart) {
+                charts.lineRaceChart.dispose();
+            }
+            
+            const videos = statistics?.videos || [];
+            const lineRaceVideoCount = statistics?.current?.line_race_video_count || 7;
+            const timeRangeStart = statistics?.current?.time_range_start;
+            const timeRangeEnd = statistics?.current?.time_range_end;
+            
+            console.log('🏁 Line Race Chart - Video-Daten:', videos);
+            console.log('🏁 Line Race Chart - Video Count:', lineRaceVideoCount);
+            console.log('🏁 Line Race Chart - Zeitraum:', { timeRangeStart, timeRangeEnd });
+            
+            if (!videos || videos.length === 0) {
+                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
+                return;
+            }
+            
+            // Filtere Videos mit Aufrufen und sortiere nach Aufrufen (wie in der App)
+            const filteredVideos = videos
+                .filter(video => (video.views || 0) > 0)
+                .sort((a, b) => (b.views || 0) - (a.views || 0))
+                .slice(0, lineRaceVideoCount);
+            
+            if (filteredVideos.length === 0) {
+                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Videos mit Aufrufen verfügbar</div>';
+                return;
+            }
+            
+            // Prüfe ob viewHistory-Daten verfügbar sind
+            const hasViewHistory = filteredVideos.some(video => 
+                (video.viewHistory && Object.keys(video.viewHistory).length > 0) ||
+                (video.view_history && Object.keys(video.view_history).length > 0)
+            );
+            
+            
+            let timePoints = [];
+            let series = [];
+            
+            if (hasViewHistory) {
+                // Verwende echte viewHistory-Daten
+                console.log('🏁 Using real viewHistory data for Line Race');
+                
+                // Sammle alle verfügbaren Daten aus viewHistory
+                const allDates = new Set();
+                filteredVideos.forEach(video => {
+                    const viewHistory = video.viewHistory || video.view_history;
+                    if (viewHistory) {
+                        Object.keys(viewHistory).forEach(date => allDates.add(date));
+                    }
+                });
+                
+                // Sortiere Daten und filtere basierend auf ausgewähltem Zeitraum
+                const sortedDates = Array.from(allDates).sort();
+                const timeRangeResult = calculateTimeRange(sortedDates, currentTimeRange);
+                timePoints = timeRangeResult.timePoints;
+                
+                // Für "Alle Zeit" füge auch Offset nach dem letzten Datum hinzu
+                if (timeRangeResult.addEndOffset && timePoints.length > 0) {
+                    const lastDate = new Date(timePoints[timePoints.length - 1]);
+                    lastDate.setDate(lastDate.getDate() + 2);
+                    timePoints.push(lastDate.toISOString().split('T')[0]);
+                }
+                
+                // Für jedes Video: Kumulierte Aufrufe pro Tag mit echten Daten
+                series = filteredVideos.map((video, idx) => {
+                    const viewHistory = video.viewHistory || video.view_history;
+                    
+                    // Erstelle die Daten: Kumulierte Aufrufe pro Tag
+                    const data = timePoints.map((date, dayIndex) => {
+                        let cumulativeViews = 0;
+                        
+                        // Berechne kumulierte Aufrufe bis zu diesem Tag
+                        for (let i = 0; i <= dayIndex; i++) {
+                            const currentDate = timePoints[i];
+                            if (viewHistory && viewHistory[currentDate]) {
+                                cumulativeViews += viewHistory[currentDate];
+                            }
+                        }
+                        
+                        return cumulativeViews;
+                    });
+                    
+                    return {
+                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        type: 'line',
+                        data: data,
+                        smooth: true,
+                        lineStyle: {
+                            width: 2
+                        },
+                        itemStyle: {
+                            color: getChartColor(idx)
+                        },
+                        emphasis: { focus: 'series' }
+                    };
+                });
+            } else {
+                // Fallback: Verwende simulierte Daten
+                console.log('🏁 Using simulated data for Line Race (no viewHistory available)');
+                
+                // Erstelle Zeitpunkte basierend auf ausgewähltem Zeitraum mit Offset
+                const today = new Date();
+                let daysToShow = 7; // Standard
+                
+                if (currentTimeRange === '7') {
+                    daysToShow = 7;
+                } else if (currentTimeRange === 'custom') {
+                    // Benutzerdefinierter Zeitraum
+                    if (customDateRange.startDate && customDateRange.endDate) {
+                        const startDate = new Date(customDateRange.startDate);
+                        const endDate = new Date(customDateRange.endDate);
+                        daysToShow = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                    } else {
+                        daysToShow = 30; // Fallback
+                    }
+                } else {
+                    // Alle Zeit - zeige 365 Tage als Maximum
+                    daysToShow = 365;
+                }
+                
+                // Erstelle Zeitpunkte ohne Offset
+                const totalDays = daysToShow;
+                
+                for (let i = totalDays - 1; i >= 0; i--) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    const day = date.getDate().toString().padStart(2, '0');
+                    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                    const year = date.getFullYear();
+                    timePoints.push(`${day}.${month}.${year}`);
+                }
+                
+                // Für jedes Video: Kumulierte Aufrufe pro Tag mit simulierten Daten
+                series = filteredVideos.map((video, idx) => {
+                    const totalViews = video.views || 0;
+                    const dailyViews = Math.round(totalViews / daysToShow);
+                    
+                    // Erstelle die Daten: Kumulierte Aufrufe pro Tag
+                    const data = timePoints.map((date, dayIndex) => {
+                        let cumulativeViews = 0;
+                        
+                        // Berechne kumulierte Aufrufe bis zu diesem Tag
+                        for (let i = 0; i <= dayIndex; i++) {
+                            // Keine Offset-Bereiche mehr - alle Tage haben Daten
+                            const variation = Math.random() * 0.4 + 0.8; // 80-120% der Durchschnittsaufrufe
+                            cumulativeViews += Math.round(dailyViews * variation);
+                        }
+                        
+                        return cumulativeViews;
+                    });
+                    
+                    return {
+                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        type: 'line',
+                        data: data,
+                        smooth: true,
+                        lineStyle: {
+                            width: 2
+                        },
+                        itemStyle: {
+                            color: getChartColor(idx)
+                        },
+                        emphasis: { focus: 'series' }
+                    };
+                });
+            }
+            
+            const option = {
+                xAxis: {
+                    type: 'category',
+                    data: timePoints.map(date => formatDateToGerman(date)),
+                    axisLabel: { color: '#666', rotate: 45, fontSize: 12 },
+                    axisTick: { alignWithLabel: true }
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLabel: { color: '#666', fontSize: 12 },
+                    name: 'Kumulierte Aufrufe',
+                    nameTextStyle: { color: '#666' }
+                },
+                series,
+                tooltip: {
+                    trigger: 'axis',
+                    show: true,
+                    confine: true, // Begrenzt Tooltip auf Chart-Bereich
+                    extraCssText: 'word-wrap: break-word; white-space: nowrap;',
+                    formatter: function(params) {
+                        if (!params || params.length === 0) return '';
+                        
+                        // Bei axis trigger ist params ein Array
+                        const firstParam = params[0];
+                        if (!firstParam) return '';
+                        
+                        let result = firstParam.axisValue + '<br/>';
+                        let hasValidData = false;
+                        
+                        params.forEach((param) => {
+                            if (param.value !== undefined && param.value !== null && param.value > 0) {
+                                let value = param.value;
+                                if (typeof value === 'number') {
+                                    value = Number.isInteger(value) ? value : value.toFixed(2);
+                                }
+                                
+                                // Vereinfache Durchschnittslinie-Beschriftung
+                                let seriesName = param.seriesName;
+                                if (seriesName && seriesName.includes('Durchschnitt')) {
+                                    seriesName = 'Durchschnitt';
+                                }
+                                
+                                result += `${param.marker} ${seriesName}: ${value} Aufrufe<br/>`;
+                                hasValidData = true;
+                            }
+                        });
+                        
+                        return hasValidData ? result : '';
+                    }
+                },
+                legend: {
+                    data: series.map(s => s.name),
+                    textStyle: { color: '#666' },
+                    type: 'scroll',
+                    bottom: 0,
+                    pageButtonItemGap: 5,
+                    pageButtonGap: 5,
+                    pageButtonPosition: 'end',
+                    pageIconColor: '#2563eb',
+                    pageIconInactiveColor: '#ccc',
+                    pageIconSize: 28,
+                    pageTextStyle: {
+                        color: '#666'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '15%',
+                    containLabel: true
+                },
+                color: getChartColors(),
+                zoom: false
+            };
+            
+            charts.lineRaceChart = echarts.init(chartElement);
+            charts.lineRaceChart.setOption(option);
+            
+            
+            // Chart nach Initialisierung neu zeichnen
+            setTimeout(() => {
+                if (charts.lineRaceChart) {
+                    charts.lineRaceChart.resize();
+                }
+            }, 100);
+        }
+        
+        // Tortendiagramm erstellen (wie in der App)
+        function createPieChart() {
+            const chartElement = document.getElementById('pieChart');
+            if (!chartElement) return;
+            
+            if (charts.pieChart) {
+                charts.pieChart.dispose();
+            }
+            
+            const videos = statistics?.videos || [];
+            const pieChartVideoCount = statistics?.current?.pie_chart_video_count || 7;
+            
+            console.log('🥧 Pie Chart - Video-Daten:', videos);
+            console.log('🥧 Pie Chart - Video Count:', pieChartVideoCount);
+            console.log('🥧 Pie Chart - Zeitraum:', currentTimeRange);
+            
+            if (!videos || videos.length === 0) {
+                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
+                return;
+            }
+            
+            // Filtere Videos basierend auf Zeitraum und Aufrufen
+            let filteredVideos = videos.filter(video => (video.views || 0) > 0);
+            
+            // Wenn viewHistory verfügbar ist, filtere basierend auf Zeitraum
+            const hasViewHistory = filteredVideos.some(video => 
+                (video.viewHistory && Object.keys(video.viewHistory).length > 0) ||
+                (video.view_history && Object.keys(video.view_history).length > 0)
+            );
+            
+            if (hasViewHistory && currentTimeRange !== 'all') {
+                const today = new Date();
+                let startDate = new Date();
+                
+                // Berechne Startdatum basierend auf ausgewähltem Zeitraum
+                if (currentTimeRange === '7') {
+                    startDate.setDate(today.getDate() - 7);
+                } else if (currentTimeRange === 'custom') {
+                    // Benutzerdefinierter Zeitraum
+                    if (customDateRange.startDate) {
+                        startDate = new Date(customDateRange.startDate);
+                    } else {
+                        startDate.setDate(today.getDate() - 30); // Fallback
+                    }
+                }
+                
+                // Filtere Videos basierend auf Zeitraum
+                filteredVideos = filteredVideos.filter(video => {
+                    const viewHistory = video.viewHistory || video.view_history;
+                    if (!viewHistory) return false;
+                    
+                    // Prüfe ob Video in dem Zeitraum Aufrufe hatte
+                    return Object.keys(viewHistory).some(date => {
+                        const dateObj = new Date(date);
+                        return dateObj >= startDate;
+                    });
+                });
+            }
+            
+            // Sortiere nach Aufrufen und begrenze Anzahl
+            filteredVideos = filteredVideos
+                .sort((a, b) => (b.views || 0) - (a.views || 0))
+                .slice(0, pieChartVideoCount);
+            
+            if (filteredVideos.length === 0) {
+                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Videos mit Aufrufen verfügbar</div>';
+                return;
+            }
+            
+            const option = {
+                series: [{
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    center: ['50%', '50%'],
+                    data: filteredVideos.map((video, index) => ({
+                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        value: video.views || 0,
+                        itemStyle: {
+                            color: getChartColor(index)
+                        }
+                    })),
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    },
+                    label: {
+                        show: false // Entferne Labels vom Pie Chart
+                    },
+                    labelLine: {
+                        show: false
+                    }
+                }],
+                legend: {
+                    data: filteredVideos.map((video, index) => ({
+                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        icon: 'circle',
+                        textStyle: { color: getChartColor(index) }
+                    })),
+                    orient: 'horizontal',
+                    bottom: 0,
+                    left: 'center',
+                    textStyle: { fontSize: 12 },
+                    type: 'scroll',
+                    pageButtonItemGap: 5,
+                    pageButtonGap: 5,
+                    pageButtonPosition: 'end',
+                    pageIconColor: '#2563eb',
+                    pageIconInactiveColor: '#ccc',
+                    pageIconSize: 20,
+                    pageTextStyle: {
+                        color: '#666',
+                        fontSize: 10
+                    }
+                },
+                tooltip: {
+                    trigger: 'item',
+                    show: true,
+                    confine: true, // Begrenzt Tooltip auf Chart-Bereich
+                    extraCssText: 'word-wrap: break-word; white-space: nowrap;',
+                    formatter: function(params) {
+                        const total = filteredVideos.reduce((sum, v) => sum + (v.views || 0), 0);
+                        const percentage = total > 0 ? ((params.value / total) * 100).toFixed(1) : '0';
+                        return `${params.name}<br/>Aufrufe: ${params.value}<br/>Anteil: ${percentage}%`;
+                    }
+                },
+                color: getChartColors(),
+                zoom: false
+            };
+            
+            charts.pieChart = echarts.init(chartElement);
+            charts.pieChart.setOption(option);
+            
+        }
+        
+        // Hilfsfunktion für Datumsformatierung
+        function formatDateToGerman(dateString) {
+            // Konvertiert "2025-08-30" zu "30.08.2025"
+            const date = new Date(dateString);
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}.${month}.${year}`;
+        }
+        
+        function formatDateToAPI(germanDateString) {
+            // Konvertiert "30.08.2025" zu "2025-08-30"
+            const parts = germanDateString.split('.');
+            if (parts.length === 3) {
+                const day = parts[0].padStart(2, '0');
+                const month = parts[1].padStart(2, '0');
+                const year = parts[2];
+                return `${year}-${month}-${day}`;
+            }
+            // Fallback: Falls es bereits im API-Format ist, zurückgeben
+            if (germanDateString.includes('-') && germanDateString.length === 10) {
+                return germanDateString;
+            }
+            return germanDateString; // Fallback falls Format nicht erkannt wird
+        }
+        
+        // Chart-Farben (wie in der App)
+        function getChartColor(index) {
+            const colors = [
+                '#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', 
+                '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc', '#ff9f7f'
+            ];
+            return colors[index % colors.length];
+        }
+        
+        
+        // Hilfsfunktion für Zeitraum-Berechnung
+        function calculateTimeRange(sortedDates, timeRange) {
+            if (timeRange === 'all') {
+                const startDate = new Date(sortedDates[0]);
+                startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
+                return {
+                    startDate: startDate,
+                    timePoints: sortedDates,
+                    addEndOffset: true
+                };
+            } else if (timeRange === 'custom') {
+                // Benutzerdefinierter Zeitraum
+                if (!customDateRange.startDate || !customDateRange.endDate) {
+                    // Fallback zu 30 Tagen wenn keine benutzerdefinierten Daten
+                    const lastDate = new Date(sortedDates[sortedDates.length - 1]);
+                    const startDate = new Date(lastDate);
+                    startDate.setDate(lastDate.getDate() - 29);
+                    
+                    const extendedTimePoints = [];
+                    const currentDate = new Date(startDate);
+                    while (currentDate <= lastDate) {
+                        const dateString = currentDate.toISOString().split('T')[0];
+                        extendedTimePoints.push(dateString);
+                        currentDate.setDate(currentDate.getDate() + 1);
+                    }
+                    
+                    return {
+                        startDate: startDate,
+                        timePoints: extendedTimePoints,
+                        addEndOffset: false
+                    };
+                }
+                
+                const customStartDate = new Date(customDateRange.startDate);
+                const customEndDate = new Date(customDateRange.endDate);
+                
+                // Erstelle Zeitpunkte für den benutzerdefinierten Zeitraum
+                const customTimePoints = [];
+                const currentDate = new Date(customStartDate);
+                
+                while (currentDate <= customEndDate) {
+                    const dateString = currentDate.toISOString().split('T')[0];
+                    customTimePoints.push(dateString);
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+                
+                return {
+                    startDate: customStartDate,
+                    timePoints: customTimePoints,
+                    addEndOffset: false
+                };
+            } else {
+                const lastDate = new Date(sortedDates[sortedDates.length - 1]);
+                let startDate = new Date(lastDate);
+                
+                if (timeRange === '7') {
+                    startDate.setDate(lastDate.getDate() - 6); // 7 Tage inklusive letzter Tag
+                }
+                
+                // Verwende den ursprünglichen Zeitraum ohne Offset
+                const extendedStartDate = new Date(startDate);
+                const extendedEndDate = new Date(lastDate);
+                
+                // Erstelle Zeitpunkte ohne Offset
+                const extendedTimePoints = [];
+                const currentDate = new Date(extendedStartDate);
+                
+                while (currentDate <= extendedEndDate) {
+                    const dateString = currentDate.toISOString().split('T')[0];
+                    extendedTimePoints.push(dateString);
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+                
+                return {
+                    startDate: extendedStartDate,
+                    timePoints: extendedTimePoints,
+                    addEndOffset: false
+                };
+            }
+        }
+        
+        // Chart-Farben Array (wie im Adminpanel)
+        function getChartColors() {
+            return [
+                '#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', 
+                '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc', '#ff9f7f'
+            ];
+        }
+        
+        // Gefilterte Historie-Daten basierend auf Zeitraum
+        function getFilteredHistoryData() {
+            const history = statistics?.history || [];
+            console.log('📅 Historie-Daten:', history);
+            
+            if (!history || history.length === 0) {
+                console.log('⚠️ Keine Historie-Daten verfügbar');
+                return [];
+            }
+            
+            const now = new Date();
+            let startDate = new Date();
+            
+            if (currentTimeRange === '7') {
+                startDate.setDate(now.getDate() - 7);
+            } else if (currentTimeRange === 'custom') {
+                // Benutzerdefinierter Zeitraum
+                if (customDateRange.startDate) {
+                    startDate = new Date(customDateRange.startDate);
+                } else {
+                    startDate.setDate(now.getDate() - 30); // Fallback
+                }
+            } else {
+                // Alle Zeit
+                return history.slice(0, 30).reverse();
+            }
+            
+            const filtered = history
+                .filter(item => new Date(item.date) >= startDate)
+                .slice(0, 30)
+                .reverse();
+                
+            console.log('📅 Gefilterte Historie-Daten:', filtered);
+            return filtered;
+        }
+        
+        // Charts aktualisieren
+        function updateCharts() {
+            if (chartStates.lineChart) createLineChart();
+            if (chartStates.barChart) createBarChart();
+            if (chartStates.pieChart) createPieChart();
+            if (chartStates.lineRaceChart) createLineRaceChart();
+        }
+        
+        // Chart-Größe bei Fenster-Resize anpassen
+        window.addEventListener('resize', function() {
+            if (charts.lineChart) {
+                charts.lineChart.resize();
+            }
+            if (charts.barChart) {
+                charts.barChart.resize();
+            }
+            if (charts.pieChart) {
+                charts.pieChart.resize();
+            }
+            if (charts.lineRaceChart) {
+                charts.lineRaceChart.resize();
+            }
+        });
+        
+        // Chart ein-/ausklappen
+        function toggleChart(chartName) {
+            console.log('🔄 Toggle Chart:', chartName);
+            
+            const container = document.getElementById(chartName + 'Container');
+            const toggle = document.getElementById(chartName + 'Toggle');
+            
+            if (!container) {
+                console.error('❌ Container nicht gefunden:', chartName + 'Container');
+                return;
+            }
+            
+            if (!toggle) {
+                console.error('❌ Toggle nicht gefunden:', chartName + 'Toggle');
+                return;
+            }
+            
+            // Toggle den Zustand
+            chartStates[chartName] = !chartStates[chartName];
+            console.log('📊 Chart State:', chartName, '=', chartStates[chartName]);
+            
+            if (chartStates[chartName]) {
+                // Chart ausklappen
+                container.classList.remove('collapsed');
+                toggle.classList.add('expanded');
+                console.log('✅ Chart ausgeklappt:', chartName);
+                
+                // Stelle sicher, dass der Container eine Höhe hat
+                if (chartName === 'barChart') {
+                    // Für Bar Chart: dynamische Höhe basierend auf Videos
+                    const videos = statistics?.videos || [];
+                    const barChartVideoCount = statistics?.current?.bar_chart_video_count || 7;
+                    const filteredVideos = videos.filter(video => (video.views || 0) > 0).slice(0, barChartVideoCount);
+                    const maxVisible = 5;
+                    const visibleVideos = filteredVideos.slice(0, maxVisible);
+                    const barHeight = 50 * visibleVideos.length + 80;
+                    container.style.height = barHeight + 'px';
+                } else {
+                    // Für andere Charts: Standard-Höhe
+                    container.style.height = '400px';
+                }
+            } else {
+                // Chart einklappen
+                container.classList.add('collapsed');
+                toggle.classList.remove('expanded');
+                console.log('✅ Chart eingeklappt:', chartName);
+            }
+            
+            // Resize Charts nach Toggle
+            setTimeout(() => {
+                if (charts[chartName]) {
+                    charts[chartName].resize();
+                }
+            }, 300); // Warte auf CSS-Transition
+        }
+        
+        
+        // Abmelden
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+            
+            window.location.href = 'login.html';
+        }
+        
+        // Loading verstecken
+        function hideLoading() {
+            try {
+                const loadingMessageElement = document.getElementById('loadingMessage');
+                const dashboardContentElement = document.getElementById('dashboardContent');
+                
+                if (loadingMessageElement) {
+                    loadingMessageElement.style.display = 'none';
+                }
+                
+                if (dashboardContentElement) {
+                    dashboardContentElement.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('❌ Fehler in hideLoading:', error);
+            }
+        }
+        
+        // Fehler anzeigen
+        function showError(message) {
+            try {
+                const errorDiv = document.getElementById('errorMessage');
+                if (errorDiv) {
+                    errorDiv.textContent = message;
+                    errorDiv.style.display = 'block';
+                } else {
+                    console.error('❌ ErrorMessage-Element nicht gefunden');
+                    // Fallback: Zeige Fehler in der Console
+                    console.error('❌ Dashboard-Fehler:', message);
+                }
+            } catch (error) {
+                console.error('❌ Fehler in showError:', error);
+            }
+        }
+        
+        // Keine Daten Nachricht anzeigen
+        function showNoDataMessage() {
+            try {
+                const loadingMessageElement = document.getElementById('loadingMessage');
+                const dashboardContentElement = document.getElementById('dashboardContent');
+                
+                if (loadingMessageElement) {
+                    loadingMessageElement.style.display = 'none';
+                }
+                
+                if (dashboardContentElement) {
+                    dashboardContentElement.innerHTML = `
+                        <div class="no-data" style="text-align: center; padding: 3rem; color: var(--text-light);">
+                            <i class="fas fa-chart-line" style="font-size: 4rem; margin-bottom: 1rem; color: var(--primary-color);"></i>
+                            <h2 style="margin-bottom: 1rem; color: var(--text-primary);">Keine Statistiken verfügbar</h2>
+                            <p style="margin-bottom: 2rem; font-size: 1.1rem;">Es sind noch keine Statistiken vorhanden. Um Statistiken zu sehen:</p>
+                            <div style="margin: 2rem 0; padding: 20px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; max-width: 500px; margin: 2rem auto;">
+                                <h3 style="margin: 0 0 12px 0; color: #1f2937; font-size: 1.1rem;">So erhalten Sie Statistiken:</h3>
+                                <ol style="text-align: left; margin: 0; padding-left: 20px; color: #374151;">
+                                    <li style="margin-bottom: 8px;">Erstellen Sie einen Account in der App (Admin Panel → Datenverwaltung)</li>
+                                    <li style="margin-bottom: 8px;">Synchronisieren Sie Ihre Statistiken in der App</li>
+                                    <li style="margin-bottom: 8px;">Laden Sie diese Seite neu</li>
+                                </ol>
+                            </div>
+                            <button onclick="window.location.reload()" style="
+                                padding: 12px 24px; 
+                                background: var(--gradient-primary); 
+                                color: white; 
+                                border: none; 
+                                border-radius: 8px; 
+                                cursor: pointer; 
+                                font-size: 14px; 
+                                font-weight: 500;
+                                margin-top: 1rem;
+                            ">
+                                <i class="fas fa-sync-alt" style="margin-right: 8px;"></i>
+                                Seite neu laden
+                            </button>
+                        </div>
+                    `;
+                    dashboardContentElement.style.display = 'block';
+                } else {
+                    console.error('❌ DashboardContent-Element nicht gefunden');
+                }
+            } catch (error) {
+                console.error('❌ Fehler in showNoDataMessage:', error);
+            }
+        }
+        
+        // CSV-Download Funktion
+        async function downloadCSV() {
+            try {
+                const csvDownloadBtn = document.getElementById('csvDownloadBtn');
+                const csvDownloadStatus = document.getElementById('csvDownloadStatus');
+                
+                if (csvDownloadBtn) {
+                    csvDownloadBtn.disabled = true;
+                    csvDownloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Lade CSV...';
+                }
+                
+                if (csvDownloadStatus) {
+                    csvDownloadStatus.textContent = 'CSV wird vorbereitet...';
+                    csvDownloadStatus.style.color = 'var(--primary-blue)';
+                }
+                
+                // Hole Admin-User-ID aus den Statistiken
+                let adminUserId = null;
+                
+                // Fallback: Admin-User-ID aus Statistiken verwenden
+                if (!adminUserId && statistics && statistics.current) {
+                    adminUserId = statistics.current.admin_user_id;
+                }
+                
+                if (!adminUserId) {
+                    throw new Error('Keine Admin-User-ID gefunden');
+                }
+                
+                // Lade CSV-Daten
+                const csvResponse = await fetch(`/api/statistics/csv?admin_user_id=${adminUserId}`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (!csvResponse.ok) {
+                    const errorData = await csvResponse.json();
+                    throw new Error(errorData.error || 'Fehler beim Laden der CSV-Daten');
+                }
+                
+                // Erstelle Download-Link
+                const csvBlob = await csvResponse.blob();
+                const url = window.URL.createObjectURL(csvBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `video_statistics_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                if (csvDownloadStatus) {
+                    csvDownloadStatus.textContent = 'CSV erfolgreich heruntergeladen!';
+                    csvDownloadStatus.style.color = 'var(--success-color)';
+                }
+                
+            } catch (error) {
+                console.error('❌ CSV Download Error:', error);
+                
+                const csvDownloadStatus = document.getElementById('csvDownloadStatus');
+                if (csvDownloadStatus) {
+                    csvDownloadStatus.textContent = `Fehler: ${error.message}`;
+                    csvDownloadStatus.style.color = 'var(--error-color)';
+                }
+            } finally {
+                const csvDownloadBtn = document.getElementById('csvDownloadBtn');
+                if (csvDownloadBtn) {
+                    csvDownloadBtn.disabled = false;
+                    csvDownloadBtn.innerHTML = '<i class="fas fa-download"></i> Video-Statistiken als CSV herunterladen';
+                }
+            }
+        }
+        
+        // Auto-Refresh alle 5 Minuten
+        setInterval(loadDashboard, 5 * 60 * 1000);
+        
+        // Scroll zu Charts-Funktion
+        function scrollToCharts() {
+            const chartsSection = document.getElementById('chartsSection');
+            if (chartsSection) {
+                console.log('📊 Scrolle zu den Statistiken...');
+                
+                // Sanftes Scrollen mit Offset für die Navigation
+                const navbar = document.querySelector('.navbar');
+                const navbarHeight = navbar ? navbar.offsetHeight : 80;
+                const offset = navbarHeight + 20; // 20px zusätzlicher Abstand
+                
+                const targetPosition = chartsSection.offsetTop - offset;
+                
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
+                
+                // Optional: Füge einen visuellen Hinweis hinzu
+                chartsSection.style.animation = 'highlight 2s ease-in-out';
+                setTimeout(() => {
+                    chartsSection.style.animation = '';
+                }, 2000);
+            } else {
+                console.error('❌ Charts-Sektion nicht gefunden');
+            }
+        }
+        
+        // Globale Funktionen für externe Aufrufe
+        window.toggleChart = toggleChart;
+        window.toggleBarChart = () => toggleChart('barChart');
+        window.toggleLineChart = () => toggleChart('lineChart');
+        window.togglePieChart = () => toggleChart('pieChart');
+        window.toggleLineRaceChart = () => toggleChart('lineRaceChart');
+        window.scrollToCharts = scrollToCharts;
+    </script>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <img src="favicon.png" alt="Seraphin Solutions Logo" class="logo-image">
+                        <span class="logo-text">Seraphin Solutions</span>
+                    </div>
+                    <p>Die intelligente Lösung für die Navigation in großen Gebäuden, entwickelt von Seraphin Solutions.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Produkt</h4>
+                    <ul>
+                        <li><a href="index.html#features">Features</a></li>
+                        <li><a href="index.html#admin">Admin-Panel</a></li>
+                        <li><a href="index.html#solution">Lösung</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Unternehmen</h4>
+                    <ul>
+                        <li><a href="index.html#pricing">Preise</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Rechtliches</h4>
+                    <ul>
+                        <li><a href="impressum.html">Impressum</a></li>
+                        <li><a href="datenschutz.html">Datenschutz</a></li>
+                    </ul>
+                </div>
+
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Seraphin Solutions. Alle Rechte vorbehalten.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
+
