@@ -287,6 +287,56 @@
             color: var(--white);
         }
 
+        /* Kalender-Auswahl */
+        .calendar-selector {
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .calendar-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .date-picker {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--primary-blue);
+            border-radius: 8px;
+            font-size: 16px;
+            background: var(--white);
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .date-picker:focus {
+            outline: none;
+            border-color: var(--secondary-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .back-to-daily-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--secondary-blue);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-to-daily-btn:hover {
+            background: var(--primary-blue);
+            transform: translateY(-1px);
+        }
+
         /* Charts-Sektion */
         .charts-section {
             display: grid;
@@ -337,7 +387,8 @@
         .chart-container {
             position: relative;
             height: 400px;
-            transition: all 0.3s ease;
+            transition: height 0.3s ease, padding 0.3s ease, margin 0.3s ease;
+            overflow: hidden;
         }
         
         .chart-container.bar-chart {
@@ -350,8 +401,10 @@
         }
 
         .chart-container.collapsed {
-            height: 0;
+            height: 0 !important;
             overflow: hidden;
+            padding: 0;
+            margin: 0;
         }
 
         /* Video-Liste */
@@ -727,12 +780,23 @@
                 <!-- Zeitraum-Auswahl -->
                 <div class="time-range-selector">
                     <h3 style="margin: 0; color: var(--text-dark);">Zeitraum:</h3>
-                    <div class="time-range-buttons">
+                    <div class="time-range-buttons" id="timeRangeButtons">
                         <button class="time-btn active" data-range="7">Letzte 7 Tage</button>
                         <button class="time-btn" data-range="30">Letzte 30 Tage</button>
                         <button class="time-btn" data-range="90">Letzte 3 Monate</button>
                         <button class="time-btn" data-range="365">Letztes Jahr</button>
                         <button class="time-btn" data-range="all">Insgesamter Zeitraum</button>
+                        <button class="time-btn" data-range="single-day">Einzelne Tage</button>
+                    </div>
+                    
+                    <!-- Kalender-Auswahl (versteckt) -->
+                    <div class="calendar-selector" id="calendarSelector" style="display: none;">
+                        <div class="calendar-container">
+                            <input type="date" id="singleDayPicker" class="date-picker">
+                            <button class="back-to-daily-btn" onclick="backToDailyView()">
+                                <i class="fas fa-arrow-left"></i> Zurück zu täglichen Statistiken
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
@@ -795,6 +859,7 @@
         let currentUser = null;
         let statistics = null;
         let currentTimeRange = '7';
+        let selectedSingleDay = null; // Für einzelne Tagesauswahl
         let charts = {};
         let chartStates = {
             lineChart: true,
@@ -806,7 +871,6 @@
         // Dashboard initialisieren
         document.addEventListener('DOMContentLoaded', async function() {
             await loadDashboard();
-            setupEventListeners();
             setupNavigation();
         });
         
@@ -859,8 +923,60 @@
                     document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     currentTimeRange = this.dataset.range;
+                    
+                    // Prüfe ob "Einzelne Tage" ausgewählt wurde
+                    if (currentTimeRange === 'single-day') {
+                        showCalendarSelector();
+                    } else {
+                        hideCalendarSelector();
+                    }
+                    
                     updateCharts();
                 });
+            });
+            
+            // Kalender Event Listener
+            const singleDayPicker = document.getElementById('singleDayPicker');
+            if (singleDayPicker) {
+                singleDayPicker.addEventListener('change', function() {
+                    if (this.value) {
+                        selectedSingleDay = this.value;
+                        updateCharts();
+                    }
+                });
+            }
+            
+            // Chart-Toggle Event Listeners (zusätzliche Sicherheit)
+            document.querySelectorAll('.chart-header').forEach(header => {
+                header.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Finde den Chart-Namen aus dem onclick-Attribut
+                    const onclickAttr = this.getAttribute('onclick');
+                    if (onclickAttr && onclickAttr.includes('toggleChart')) {
+                        const match = onclickAttr.match(/toggleChart\('([^']+)'\)/);
+                        if (match && match[1]) {
+                            const chartName = match[1];
+                            console.log('🖱️ Chart Header geklickt:', chartName);
+                            toggleChart(chartName);
+                        }
+                    }
+                });
+            });
+            
+            // Direkte Event Listener für jeden Chart-Toggle
+            const chartNames = ['lineChart', 'pieChart', 'barChart', 'lineRaceChart'];
+            chartNames.forEach(chartName => {
+                const toggle = document.getElementById(chartName + 'Toggle');
+                if (toggle) {
+                    toggle.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('🖱️ Toggle Button geklickt:', chartName);
+                        toggleChart(chartName);
+                    });
+                }
             });
         }
         
@@ -937,6 +1053,9 @@
                     console.log('✅ Statistiken erfolgreich geladen:', statistics);
                     displayStatistics();
                     hideLoading();
+                    
+                    // Event Listeners nach dem Laden der Statistiken einrichten
+                    setupEventListeners();
                     
                     // Automatisch zu "Alle Zeit" wechseln nach dem Laden der Statistiken
                     setTimeout(() => {
@@ -1128,6 +1247,15 @@
             
             if (charts.lineChart) {
                 charts.lineChart.dispose();
+            }
+            
+            // Prüfe ob einzelner Tag-Modus aktiv ist
+            if (currentTimeRange === 'single-day' && selectedSingleDay) {
+                const singleDayData = getSingleDayData();
+                if (singleDayData) {
+                    createSingleDayLineChart(singleDayData);
+                    return;
+                }
             }
             
             const videos = statistics?.videos || [];
@@ -1392,6 +1520,107 @@
             charts.lineChart = echarts.init(chartElement);
             charts.lineChart.setOption(option);
             
+            
+            // Chart nach Initialisierung neu zeichnen
+            setTimeout(() => {
+                if (charts.lineChart) {
+                    charts.lineChart.resize();
+                }
+            }, 100);
+        }
+        
+        // Einzelner Tag Liniendiagramm erstellen
+        function createSingleDayLineChart(singleDayData) {
+            const chartElement = document.getElementById('lineChart');
+            if (!chartElement) return;
+            
+            const { timePoints, videoData, averageData, filteredVideos } = singleDayData;
+            
+            // Erstelle Series mit Farben
+            const series = [
+                ...videoData.map((video, idx) => ({
+                    ...video,
+                    itemStyle: {
+                        color: getChartColor(idx)
+                    },
+                    emphasis: { focus: 'series' }
+                })),
+                {
+                    name: 'Durchschnitt (alle Videos)',
+                    type: 'line',
+                    data: averageData,
+                    smooth: true,
+                    symbol: 'none',
+                    lineStyle: {
+                        width: 3,
+                        color: '#888',
+                        type: 'dashed'
+                    },
+                    itemStyle: { color: '#888' },
+                    emphasis: { focus: 'series' },
+                    z: 10
+                }
+            ];
+            
+            const option = {
+                xAxis: {
+                    type: 'category',
+                    data: timePoints.map(timePoint => formatTimeToGerman(timePoint)),
+                    axisLabel: { color: '#666', rotate: 0 },
+                    axisTick: { alignWithLabel: true },
+                    name: 'Uhrzeit',
+                    nameLocation: 'middle',
+                    nameGap: 30
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLabel: { color: '#666' },
+                    name: 'Aufrufe',
+                    nameLocation: 'middle',
+                    nameGap: 50
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'cross' },
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    borderColor: '#ccc',
+                    textStyle: { color: '#333' },
+                    formatter: function(params) {
+                        let tooltip = `<strong>${params[0].axisValue}</strong><br/>`;
+                        params.forEach(param => {
+                            tooltip += `<span style="color:${param.color};">●</span> ${param.seriesName}: ${param.value}<br/>`;
+                        });
+                        return tooltip;
+                    }
+                },
+                legend: {
+                    data: series.map(s => s.name),
+                    top: 10,
+                    textStyle: { color: '#666' }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '15%',
+                    top: '15%',
+                    containLabel: true
+                },
+                series: series,
+                color: getChartColors(),
+                zoom: false,
+                title: {
+                    text: `Statistiken für ${formatDateToGerman(selectedSingleDay)}`,
+                    left: 'center',
+                    top: 10,
+                    textStyle: {
+                        color: '#333',
+                        fontSize: 16
+                    }
+                }
+            };
+            
+            charts.lineChart = echarts.init(chartElement);
+            charts.lineChart.setOption(option);
             
             // Chart nach Initialisierung neu zeichnen
             setTimeout(() => {
@@ -2173,18 +2402,170 @@
         
         // Chart ein-/ausklappen
         function toggleChart(chartName) {
+            console.log('🔄 Toggle Chart:', chartName);
+            
             const container = document.getElementById(chartName + 'Container');
             const toggle = document.getElementById(chartName + 'Toggle');
             
+            if (!container) {
+                console.error('❌ Container nicht gefunden:', chartName + 'Container');
+                return;
+            }
+            
+            if (!toggle) {
+                console.error('❌ Toggle nicht gefunden:', chartName + 'Toggle');
+                return;
+            }
+            
+            // Toggle den Zustand
             chartStates[chartName] = !chartStates[chartName];
+            console.log('📊 Chart State:', chartName, '=', chartStates[chartName]);
             
             if (chartStates[chartName]) {
+                // Chart ausklappen
                 container.classList.remove('collapsed');
                 toggle.classList.add('expanded');
+                console.log('✅ Chart ausgeklappt:', chartName);
+                
+                // Stelle sicher, dass der Container eine Höhe hat
+                if (chartName === 'barChart') {
+                    // Für Bar Chart: dynamische Höhe basierend auf Videos
+                    const videos = statistics?.videos || [];
+                    const barChartVideoCount = statistics?.current?.bar_chart_video_count || 7;
+                    const filteredVideos = videos.filter(video => (video.views || 0) > 0).slice(0, barChartVideoCount);
+                    const maxVisible = 5;
+                    const visibleVideos = filteredVideos.slice(0, maxVisible);
+                    const barHeight = 50 * visibleVideos.length + 80;
+                    container.style.height = barHeight + 'px';
+                } else {
+                    // Für andere Charts: Standard-Höhe
+                    container.style.height = '400px';
+                }
             } else {
+                // Chart einklappen
                 container.classList.add('collapsed');
                 toggle.classList.remove('expanded');
+                console.log('✅ Chart eingeklappt:', chartName);
             }
+            
+            // Resize Charts nach Toggle
+            setTimeout(() => {
+                if (charts[chartName]) {
+                    charts[chartName].resize();
+                }
+            }, 300); // Warte auf CSS-Transition
+        }
+        
+        // Kalender-Funktionalität
+        function showCalendarSelector() {
+            const timeRangeButtons = document.getElementById('timeRangeButtons');
+            const calendarSelector = document.getElementById('calendarSelector');
+            
+            if (timeRangeButtons && calendarSelector) {
+                timeRangeButtons.style.display = 'none';
+                calendarSelector.style.display = 'block';
+                
+                // Setze heutiges Datum als Standard
+                const today = new Date().toISOString().split('T')[0];
+                const datePicker = document.getElementById('singleDayPicker');
+                if (datePicker) {
+                    datePicker.value = today;
+                    selectedSingleDay = today;
+                }
+            }
+        }
+        
+        function hideCalendarSelector() {
+            const timeRangeButtons = document.getElementById('timeRangeButtons');
+            const calendarSelector = document.getElementById('calendarSelector');
+            
+            if (timeRangeButtons && calendarSelector) {
+                timeRangeButtons.style.display = 'flex';
+                calendarSelector.style.display = 'none';
+                selectedSingleDay = null;
+            }
+        }
+        
+        function backToDailyView() {
+            // Wechsle zurück zu "Letzte 7 Tage" als Standard
+            currentTimeRange = '7';
+            hideCalendarSelector();
+            
+            // Aktualisiere Button-Auswahl
+            document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+            const sevenDaysBtn = document.querySelector('.time-btn[data-range="7"]');
+            if (sevenDaysBtn) {
+                sevenDaysBtn.classList.add('active');
+            }
+            
+            updateCharts();
+        }
+        
+        // Hilfsfunktion für Zeitformatierung (Uhrzeiten)
+        function formatTimeToGerman(timeString) {
+            if (!timeString) return '';
+            const date = new Date(timeString);
+            return date.toLocaleTimeString('de-DE', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false 
+            });
+        }
+        
+        // Hilfsfunktion für einzelne Tagesdaten
+        function getSingleDayData() {
+            if (!selectedSingleDay || !statistics?.videos) return null;
+            
+            const videos = statistics.videos || [];
+            const lineChartVideoCount = statistics?.current?.line_chart_video_count || 7;
+            
+            const filteredVideos = videos
+                .filter(video => (video.views || 0) > 0)
+                .sort((a, b) => (b.views || 0) - (a.views || 0))
+                .slice(0, lineChartVideoCount);
+            
+            // Erstelle 24 Stunden Zeitpunkte für den ausgewählten Tag
+            const timePoints = [];
+            for (let hour = 0; hour < 24; hour++) {
+                timePoints.push(`${selectedSingleDay}T${hour.toString().padStart(2, '0')}:00:00`);
+            }
+            
+            // Sammle Daten für jeden Zeitpunkt
+            const videoData = [];
+            const averageData = [];
+            
+            filteredVideos.forEach(video => {
+                const videoViews = [];
+                const viewHistory = video.viewHistory || video.view_history || {};
+                
+                timePoints.forEach(timePoint => {
+                    const views = viewHistory[timePoint] || 0;
+                    videoViews.push(views);
+                });
+                
+                videoData.push({
+                    name: video.title || `Video ${video.id}`,
+                    type: 'line',
+                    data: videoViews,
+                    smooth: true,
+                    lineStyle: { width: 2 },
+                    itemStyle: { borderWidth: 2 }
+                });
+            });
+            
+            // Berechne Durchschnittswerte
+            timePoints.forEach((timePoint, index) => {
+                const totalViews = videoData.reduce((sum, video) => sum + (video.data[index] || 0), 0);
+                const avgViews = filteredVideos.length > 0 ? totalViews / filteredVideos.length : 0;
+                averageData.push(avgViews);
+            });
+            
+            return {
+                timePoints: timePoints,
+                videoData: videoData,
+                averageData: averageData,
+                filteredVideos: filteredVideos
+            };
         }
         
         
@@ -2360,6 +2741,13 @@
         
         // Auto-Refresh alle 5 Minuten
         setInterval(loadDashboard, 5 * 60 * 1000);
+        
+        // Globale Funktionen für externe Aufrufe
+        window.toggleChart = toggleChart;
+        window.toggleBarChart = () => toggleChart('barChart');
+        window.toggleLineChart = () => toggleChart('lineChart');
+        window.togglePieChart = () => toggleChart('pieChart');
+        window.toggleLineRaceChart = () => toggleChart('lineRaceChart');
     </script>
 
     <!-- Footer -->
