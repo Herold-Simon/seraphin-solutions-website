@@ -200,6 +200,41 @@
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            padding: 1rem;
+            position: relative;
+        }
+        
+        .stats-overview:hover {
+            background-color: rgba(0, 123, 255, 0.05);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
+        }
+        
+        .stats-overview::after {
+            content: "📊 Klicken für detaillierte Statistiken";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--gradient-primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+        
+        .stats-overview:hover::after {
+            opacity: 1;
         }
         
         .stat-card {
@@ -531,6 +566,12 @@
                 text-align: center;
             }
             
+            .stats-overview::after {
+                content: "📊 Tippen für Statistiken";
+                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem;
+            }
+            
             .dashboard-user {
                 flex-direction: column;
                 gap: 0.5rem;
@@ -706,6 +747,22 @@
         .csv-download-section .btn i {
             font-size: 1.1rem;
         }
+        
+        /* Highlight-Animation für Charts-Sektion */
+        @keyframes highlight {
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 0 10px rgba(0, 123, 255, 0.3);
+                transform: scale(1.02);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+                transform: scale(1);
+            }
+        }
     </style>
 </head>
 <body>
@@ -801,7 +858,7 @@
                 </div>
                 
                 <!-- Charts -->
-                <div class="charts-section">
+                <div class="charts-section" id="chartsSection">
                     <!-- Liniendiagramm (wie in der App) -->
                     <div class="chart-card">
                         <div class="chart-header" onclick="toggleChart('lineChart')">
@@ -943,6 +1000,15 @@
                         selectedSingleDay = this.value;
                         updateCharts();
                     }
+                });
+            }
+            
+            // Stats-Overview Click Handler für automatisches Scrollen
+            const statsOverview = document.querySelector('.stats-overview');
+            if (statsOverview) {
+                statsOverview.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    scrollToCharts();
                 });
             }
             
@@ -2742,12 +2808,41 @@
         // Auto-Refresh alle 5 Minuten
         setInterval(loadDashboard, 5 * 60 * 1000);
         
+        // Scroll zu Charts-Funktion
+        function scrollToCharts() {
+            const chartsSection = document.getElementById('chartsSection');
+            if (chartsSection) {
+                console.log('📊 Scrolle zu den Statistiken...');
+                
+                // Sanftes Scrollen mit Offset für die Navigation
+                const navbar = document.querySelector('.navbar');
+                const navbarHeight = navbar ? navbar.offsetHeight : 80;
+                const offset = navbarHeight + 20; // 20px zusätzlicher Abstand
+                
+                const targetPosition = chartsSection.offsetTop - offset;
+                
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
+                
+                // Optional: Füge einen visuellen Hinweis hinzu
+                chartsSection.style.animation = 'highlight 2s ease-in-out';
+                setTimeout(() => {
+                    chartsSection.style.animation = '';
+                }, 2000);
+            } else {
+                console.error('❌ Charts-Sektion nicht gefunden');
+            }
+        }
+        
         // Globale Funktionen für externe Aufrufe
         window.toggleChart = toggleChart;
         window.toggleBarChart = () => toggleChart('barChart');
         window.toggleLineChart = () => toggleChart('lineChart');
         window.togglePieChart = () => toggleChart('pieChart');
         window.toggleLineRaceChart = () => toggleChart('lineRaceChart');
+        window.scrollToCharts = scrollToCharts;
     </script>
 
     <!-- Footer -->
