@@ -883,8 +883,9 @@
 
         .device-dropdown-container {
             display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
+            flex-direction: row;
+            align-items: center;
+            gap: 0.75rem;
         }
 
         .device-dropdown-label {
@@ -894,6 +895,7 @@
         }
 
         .device-dropdown {
+            flex: 1;
             padding: 0.75rem 1rem;
             border: 2px solid #d1d5db;
             border-radius: 8px;
@@ -912,6 +914,36 @@
 
         .device-dropdown:hover {
             border-color: #9ca3af;
+        }
+
+        .refresh-devices-btn {
+            padding: 0.75rem;
+            background-color: #f8fafc;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 3rem;
+            height: 3rem;
+        }
+
+        .refresh-devices-btn:hover {
+            background-color: #e2e8f0;
+            color: #374151;
+            border-color: #9ca3af;
+        }
+
+        .refresh-devices-btn:active {
+            background-color: #cbd5e1;
+            transform: scale(0.95);
+        }
+
+        .refresh-devices-btn i {
+            font-size: 1rem;
         }
 
         .device-info {
@@ -1130,12 +1162,15 @@
                             </p>
                         </div>
                         <div class="device-selector-content">
-                            <div class="device-dropdown-container">
-                                <label for="deviceSelector" class="device-dropdown-label">Gerät:</label>
-                                <select id="deviceSelector" class="device-dropdown">
-                                    <option value="all">Alle Geräte (aggregiert)</option>
-                                </select>
-                            </div>
+                        <div class="device-dropdown-container">
+                            <label for="deviceSelector" class="device-dropdown-label">Gerät:</label>
+                            <select id="deviceSelector" class="device-dropdown">
+                                <option value="all">Alle Geräte (aggregiert)</option>
+                            </select>
+                            <button id="refreshDevicesBtn" class="refresh-devices-btn" title="Geräte-Liste aktualisieren">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
                             <div class="device-info" id="deviceInfo" style="display: none;">
                                 <div class="device-info-item">
                                     <span class="device-info-label">Geräte-ID:</span>
@@ -1485,9 +1520,12 @@
                 
                 // Session ist gültig, jetzt Statistiken laden
                 console.log('📊 Lade Statistiken...');
-                const response = await fetch('/api/statistics/get', {
+                // Cache-Busting durch Timestamp hinzufügen
+                const timestamp = new Date().getTime();
+                const response = await fetch(`/api/statistics/get?_t=${timestamp}`, {
                     method: 'GET',
-                    credentials: 'include'
+                    credentials: 'include',
+                    cache: 'no-cache'
                 });
                 
                 console.log('📊 Statistiken-API Status:', response.status);
@@ -1571,9 +1609,12 @@
         async function loadDevices() {
             try {
                 console.log('📱 Lade Geräte-Liste...');
-                const response = await fetch('/api/devices/list', {
+                // Cache-Busting durch Timestamp hinzufügen
+                const timestamp = new Date().getTime();
+                const response = await fetch(`/api/devices/list?_t=${timestamp}`, {
                     method: 'GET',
-                    credentials: 'include'
+                    credentials: 'include',
+                    cache: 'no-cache'
                 });
                 
                 if (response.ok) {
@@ -1635,6 +1676,17 @@
             
             // Event Listener für Geräte-Wechsel
             deviceSelector.addEventListener('change', onDeviceChange);
+            
+            // Event Listener für Refresh-Button
+            const refreshBtn = document.getElementById('refreshDevicesBtn');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', async () => {
+                    console.log('🔄 Manueller Refresh der Geräte-Liste...');
+                    await loadDevices();
+                    await loadDeviceStatistics();
+                    updateCharts();
+                });
+            }
         }
         
         // Geräte-Wechsel Handler
@@ -1653,6 +1705,9 @@
             
             // Aktualisiere Charts
             updateCharts();
+            
+            // Lade Geräte-Liste neu (falls Geräte ausgeloggt wurden)
+            await loadDevices();
         }
         
         // Geräte-Info aktualisieren
@@ -1699,9 +1754,12 @@
             
             try {
                 console.log('📱 Lade geräte-spezifische Statistiken für:', selectedDeviceId);
-                const response = await fetch(`/api/statistics/get?device_id=${selectedDeviceId}`, {
+                // Cache-Busting durch Timestamp hinzufügen
+                const timestamp = new Date().getTime();
+                const response = await fetch(`/api/statistics/get?device_id=${selectedDeviceId}&_t=${timestamp}`, {
                     method: 'GET',
-                    credentials: 'include'
+                    credentials: 'include',
+                    cache: 'no-cache'
                 });
                 
                 if (response.ok) {
