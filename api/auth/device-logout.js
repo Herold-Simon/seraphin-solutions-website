@@ -70,10 +70,11 @@ module.exports = async (req, res) => {
       return;
     }
 
-    // Geräte-Session deaktivieren falls device_id vorhanden
+    // Geräte-Session deaktivieren und Statistiken löschen falls device_id vorhanden
     if (device_id) {
       console.log('📱 Deactivating device session for admin user:', admin_user_id, 'device:', device_id);
       
+      // 1. Geräte-Session deaktivieren
       const { error: sessionError } = await supabase
         .from('device_sessions')
         .update({ 
@@ -88,6 +89,35 @@ module.exports = async (req, res) => {
         // Nicht kritisch, Logout kann trotzdem erfolgreich sein
       } else {
         console.log('✅ Device session deactivated successfully');
+      }
+
+      // 2. Geräte-spezifische Statistiken löschen
+      console.log('🗑️ Deleting device-specific statistics for device:', device_id);
+      
+      // Lösche device_statistics
+      const { error: deviceStatsError } = await supabase
+        .from('device_statistics')
+        .delete()
+        .eq('admin_user_id', admin_user_id)
+        .eq('device_id', device_id);
+
+      if (deviceStatsError) {
+        console.error('❌ Error deleting device statistics:', deviceStatsError);
+      } else {
+        console.log('✅ Device statistics deleted successfully');
+      }
+
+      // Lösche device_video_statistics
+      const { error: deviceVideoStatsError } = await supabase
+        .from('device_video_statistics')
+        .delete()
+        .eq('admin_user_id', admin_user_id)
+        .eq('device_id', device_id);
+
+      if (deviceVideoStatsError) {
+        console.error('❌ Error deleting device video statistics:', deviceVideoStatsError);
+      } else {
+        console.log('✅ Device video statistics deleted successfully');
       }
     }
 
