@@ -1498,9 +1498,11 @@
             selectedDeviceId = event.target.value;
             console.log('📱 Gerät gewechselt zu:', selectedDeviceId);
             
-            
             // Lade geräte-spezifische Statistiken
             await loadDeviceStatistics();
+            
+            // Aktualisiere Stat-Cards mit den neuen Daten
+            displayStatistics();
             
             // Aktualisiere Charts
             updateCharts();
@@ -1548,39 +1550,42 @@
         
         // Statistiken anzeigen
         function displayStatistics() {
-            if (!statistics) {
-                console.log('❌ Keine Statistiken verfügbar');
+            // Verwende die richtigen Statistiken basierend auf der Geräte-Auswahl
+            const currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
+            
+            if (!currentStats) {
+                console.log('❌ Keine Statistiken verfügbar für:', selectedDeviceId);
                 showNoDataMessage();
                 return;
             }
             
             // Prüfe ob überhaupt Daten vorhanden sind
-            const hasAnyData = statistics.videos?.length > 0 || 
-                              statistics.floors?.length > 0 || 
-                              statistics.history?.length > 0 ||
-                              (statistics.current && Object.values(statistics.current).some(val => val > 0));
+            const hasAnyData = currentStats.videos?.length > 0 || 
+                              currentStats.floors?.length > 0 || 
+                              currentStats.history?.length > 0 ||
+                              (currentStats.current && Object.values(currentStats.current).some(val => val > 0));
             
-            console.log('📊 Data check:', {
-                hasVideos: statistics.videos?.length > 0,
-                hasFloors: statistics.floors?.length > 0,
-                hasHistory: statistics.history?.length > 0,
-                hasCurrent: statistics.current && Object.values(statistics.current).some(val => val > 0),
+            console.log('📊 Data check für Gerät', selectedDeviceId, ':', {
+                hasVideos: currentStats.videos?.length > 0,
+                hasFloors: currentStats.floors?.length > 0,
+                hasHistory: currentStats.history?.length > 0,
+                hasCurrent: currentStats.current && Object.values(currentStats.current).some(val => val > 0),
                 hasAnyData: hasAnyData
             });
             
             if (!hasAnyData) {
-                console.log('❌ Keine Daten in den Statistiken');
+                console.log('❌ Keine Daten in den Statistiken für Gerät:', selectedDeviceId);
                 showNoDataMessage();
                 return;
             }
             
-            console.log('📊 Statistiken-Daten:', statistics);
+            console.log('📊 Statistiken-Daten für Gerät', selectedDeviceId, ':', currentStats);
             
-            const current = statistics.current || {};
-            const total = statistics.total || {};
-            const videos = statistics.videos || [];
-            const floors = statistics.floors || [];
-            const history = statistics.history || [];
+            const current = currentStats.current || {};
+            const total = currentStats.total || {};
+            const videos = currentStats.videos || [];
+            const floors = currentStats.floors || [];
+            const history = currentStats.history || [];
             
             // Debug: Zeige verfügbare Daten
             console.log('📈 Current Stats:', current);
@@ -1608,17 +1613,7 @@
                     videosWithViewsElement.textContent = videosWithViews.toLocaleString('de-DE');
                 }
                 
-                // Zeige Geräte-ID an, falls verfügbar
-                const deviceId = statistics.device_id;
-                const deviceIdHeader = document.getElementById('deviceIdHeader');
-                const deviceIdValue = document.getElementById('deviceIdValue');
-                
-                if (deviceId && deviceIdHeader && deviceIdValue) {
-                    deviceIdValue.textContent = deviceId;
-                    deviceIdHeader.style.display = 'block';
-                } else if (deviceIdHeader) {
-                    deviceIdHeader.style.display = 'none';
-                }
+                // Geräte-ID wird jetzt über das Dropdown verwaltet
                 
                 // Zusätzliche Statistiken anzeigen, falls Elemente existieren
                 const totalVideosElement = document.getElementById('totalVideos');
