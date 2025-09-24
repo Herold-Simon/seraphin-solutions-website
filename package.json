@@ -1,0 +1,23 @@
+{
+  "name": "gebaeudenavi-website",
+  "version": "1.0.0",
+  "description": "Website für Gebäudenavi mit Account-System und Statistiken",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Static site - no build needed'",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.0",
+    "bcryptjs": "^2.4.3",
+    "cookie": "^0.6.0"
+  },
+  "devDependencies": {
+    "vercel": "^32.0.0"
+  },
+  "engines": {
+    "node": "20.x"
+  }
+}
+
