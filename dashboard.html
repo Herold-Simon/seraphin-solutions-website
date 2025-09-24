@@ -1455,6 +1455,9 @@
                         
                         // Synchronisiere Dropdown nach dem Befüllen
                         syncDeviceSelector();
+                        
+                        // Prüfe ob das aktuell ausgewählte Gerät noch existiert
+                        checkSelectedDeviceStillExists();
                     } else {
                         console.error('❌ Fehler beim Laden der Geräte:', data.error);
                         // Zeige Geräte-Selector auch bei Fehlern, falls Geräte vorhanden sein könnten
@@ -1535,6 +1538,39 @@
             }
         }
         
+        // Prüfe ob das aktuell ausgewählte Gerät noch existiert
+        function checkSelectedDeviceStillExists() {
+            // Wenn "Alle Geräte" ausgewählt ist, ist alles OK
+            if (selectedDeviceId === 'all') {
+                return;
+            }
+            
+            // Prüfe ob das ausgewählte Gerät noch in der Geräte-Liste existiert
+            const deviceExists = devices.some(device => device.device_id === selectedDeviceId);
+            
+            if (!deviceExists) {
+                console.log('⚠️ Ausgewähltes Gerät', selectedDeviceId, 'existiert nicht mehr. Wechsle zu "Alle Geräte".');
+                
+                // Wechsle zu "Alle Geräte"
+                selectedDeviceId = 'all';
+                
+                // Aktualisiere Dropdown
+                const deviceSelector = document.getElementById('deviceSelector');
+                if (deviceSelector) {
+                    deviceSelector.value = 'all';
+                }
+                
+                // Lösche geräte-spezifische Statistiken
+                deviceStatistics = null;
+                
+                // Aktualisiere Anzeige
+                displayStatistics();
+                updateCharts();
+                
+                console.log('✅ Automatisch zu "Alle Geräte" gewechselt');
+            }
+        }
+        
         
         // Geräte-spezifische Statistiken laden
         async function loadDeviceStatistics() {
@@ -1561,6 +1597,16 @@
                     } else {
                         console.error('❌ Fehler beim Laden der Geräte-Statistiken:', data.error);
                         deviceStatistics = null;
+                        
+                        // Wenn das Gerät nicht mehr existiert, wechsle zu "Alle Geräte"
+                        if (data.error && data.error.includes('nicht gefunden')) {
+                            console.log('⚠️ Gerät nicht gefunden, wechsle zu "Alle Geräte"');
+                            selectedDeviceId = 'all';
+                            const deviceSelector = document.getElementById('deviceSelector');
+                            if (deviceSelector) {
+                                deviceSelector.value = 'all';
+                            }
+                        }
                     }
                 } else {
                     console.error('❌ Geräte-Statistiken-API Fehler:', response.status);
