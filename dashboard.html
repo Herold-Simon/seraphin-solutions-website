@@ -177,8 +177,8 @@
             padding: 0 2rem 4rem;
         }
 
-        /* Geräte-ID-Header */
-        .device-id-header {
+        /* Geräte-Auswahl-Header */
+        .device-selector-header {
             background: var(--white);
             padding: 1rem 1.5rem;
             border-radius: 12px;
@@ -186,11 +186,34 @@
             margin-bottom: 1.5rem;
         }
         
-        .device-id-container {
+        .device-selector-container {
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 0.75rem;
             font-size: 0.9rem;
+        }
+        
+        .device-selector-dropdown {
+            padding: 0.5rem 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            font-size: 0.9rem;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 200px;
+        }
+        
+        .device-selector-dropdown:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .device-selector-dropdown:hover {
+            border-color: #cbd5e1;
         }
 
         /* Statistiken-Karten im AdminPanel-Stil */
@@ -613,15 +636,21 @@
                 text-align: center;
             }
             
-            .device-id-header {
+            .device-selector-header {
                 padding: 0.8rem 1rem;
                 margin-bottom: 1rem;
             }
             
-            .device-id-container {
+            .device-selector-container {
                 font-size: 0.8rem;
                 flex-direction: column;
                 gap: 0.5rem;
+            }
+            
+            .device-selector-dropdown {
+                min-width: auto;
+                width: 100%;
+                font-size: 16px; /* Verhindert Zoom auf iOS */
             }
             
             .stats-overview {
@@ -835,203 +864,6 @@
             }
         }
 
-        /* Device Selector Styles */
-        .device-selector-section {
-            margin: 2rem 0;
-            animation: fadeInUp 0.6s ease-out;
-        }
-
-        .device-selector-card {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            border: 1px solid #cbd5e1;
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            transition: all 0.3s ease;
-        }
-
-        .device-selector-card:hover {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            transform: translateY(-2px);
-        }
-
-        .device-selector-header {
-            margin-bottom: 1.5rem;
-        }
-
-        .device-selector-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #1e293b;
-            margin: 0 0 0.5rem 0;
-            display: flex;
-            align-items: center;
-        }
-
-        .device-selector-description {
-            color: #64748b;
-            font-size: 0.875rem;
-            line-height: 1.5;
-            margin: 0;
-        }
-
-        .device-selector-content {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .device-dropdown-container {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .device-dropdown-label {
-            font-weight: 500;
-            color: #374151;
-            font-size: 0.875rem;
-        }
-
-        .device-dropdown {
-            flex: 1;
-            padding: 0.75rem 1rem;
-            border: 2px solid #d1d5db;
-            border-radius: 8px;
-            background: white;
-            font-size: 0.875rem;
-            color: #374151;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-
-        .device-dropdown:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .device-dropdown:hover {
-            border-color: #9ca3af;
-        }
-
-        .refresh-devices-btn {
-            padding: 0.75rem;
-            background-color: #f8fafc;
-            border: 2px solid #d1d5db;
-            border-radius: 8px;
-            color: #6b7280;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 3rem;
-            height: 3rem;
-        }
-
-        .refresh-devices-btn:hover {
-            background-color: #e2e8f0;
-            color: #374151;
-            border-color: #9ca3af;
-        }
-
-        .refresh-devices-btn:active {
-            background-color: #cbd5e1;
-            transform: scale(0.95);
-        }
-
-        .refresh-devices-btn i {
-            font-size: 1rem;
-        }
-
-        .device-info {
-            background: #f1f5f9;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .device-info-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .device-info-label {
-            font-weight: 500;
-            color: #475569;
-            font-size: 0.875rem;
-        }
-
-        .device-info-value {
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            background: #e2e8f0;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            color: #1e293b;
-        }
-
-        .aggregation-info {
-            background: #eff6ff;
-            border: 1px solid #93c5fd;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 1rem;
-        }
-
-        .aggregation-info-content {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .aggregation-info-text {
-            color: #1e40af;
-            font-size: 0.875rem;
-            line-height: 1.4;
-        }
-
-        /* Mobile Responsive für Device Selector */
-        @media (max-width: 768px) {
-            .device-selector-card {
-                padding: 1rem;
-                margin: 1rem 0;
-            }
-
-            .device-selector-title {
-                font-size: 1.125rem;
-            }
-
-            .device-selector-description {
-                font-size: 0.8125rem;
-            }
-
-            .device-dropdown {
-                padding: 0.875rem 1rem;
-                font-size: 16px; /* Verhindert Zoom auf iOS */
-            }
-
-            .device-info {
-                padding: 0.75rem;
-            }
-
-            .device-info-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.25rem;
-            }
-
-            .device-info-value {
-                font-size: 0.8125rem;
-                word-break: break-all;
-            }
-        }
     </style>
 </head>
 <body>
@@ -1074,12 +906,17 @@
             <div id="errorMessage" class="error-message" style="display: none;"></div>
             
             <div id="dashboardContent" style="display: none;">
-                <!-- Geräte-ID-Anzeige -->
-                <div class="device-id-header" id="deviceIdHeader" style="display: none;">
-                    <div class="device-id-container">
+                <!-- Geräte-Auswahl -->
+                <div class="device-selector-header" id="deviceSelectorHeader" style="display: none;">
+                    <div class="device-selector-container">
                         <i class="fas fa-mobile-alt" style="margin-right: 8px; color: var(--primary-color);"></i>
-                        <span style="font-weight: 500; color: var(--text-color);">Geräte-ID:</span>
-                        <span id="deviceIdValue" style="font-family: monospace; background: var(--card-bg); padding: 2px 8px; border-radius: 4px; margin-left: 8px; color: var(--primary-color);"></span>
+                        <span style="font-weight: 500; color: var(--text-color);">Gerät:</span>
+                        <select id="deviceSelector" class="device-selector-dropdown">
+                            <option value="all">Alle Geräte (aggregiert)</option>
+                        </select>
+                        <button id="refreshDevicesBtn" class="refresh-devices-btn" title="Geräte-Liste aktualisieren">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -1149,49 +986,6 @@
                     </div>
                 </div>
                 
-                <!-- Device Selector -->
-                <div class="device-selector-section" id="deviceSelectorSection" style="display: none;">
-                    <div class="device-selector-card">
-                        <div class="device-selector-header">
-                            <h3 class="device-selector-title">
-                                <i class="fas fa-mobile-alt" style="margin-right: 8px; color: #2563eb;"></i>
-                                Gerät auswählen
-                            </h3>
-                            <p class="device-selector-description">
-                                Wählen Sie ein Gerät aus, um geräte-spezifische Statistiken anzuzeigen, oder "Alle Geräte" für aggregierte Daten von allen eingeloggten Geräten.
-                            </p>
-                        </div>
-                        <div class="device-selector-content">
-                        <div class="device-dropdown-container">
-                            <label for="deviceSelector" class="device-dropdown-label">Gerät:</label>
-                            <select id="deviceSelector" class="device-dropdown">
-                                <option value="all">Alle Geräte (aggregiert)</option>
-                            </select>
-                            <button id="refreshDevicesBtn" class="refresh-devices-btn" title="Geräte-Liste aktualisieren">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>
-                        </div>
-                            <div class="device-info" id="deviceInfo" style="display: none;">
-                                <div class="device-info-item">
-                                    <span class="device-info-label">Geräte-ID:</span>
-                                    <span class="device-info-value" id="selectedDeviceId">-</span>
-                                </div>
-                                <div class="device-info-item">
-                                    <span class="device-info-label">Letzte Aktivität:</span>
-                                    <span class="device-info-value" id="selectedDeviceLastActive">-</span>
-                                </div>
-                            </div>
-                            <div class="aggregation-info" id="aggregationInfo" style="display: none;">
-                                <div class="aggregation-info-content">
-                                    <i class="fas fa-info-circle" style="color: #3b82f6; margin-right: 8px;"></i>
-                                    <span class="aggregation-info-text">
-                                        Videos mit identischen Titeln werden automatisch zusammengefasst und als ein Graph angezeigt.
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 
                 <!-- Charts -->
                 <div class="charts-section" id="chartsSection">
@@ -1626,34 +1420,34 @@
                         populateDeviceSelector();
                         
                         // Zeige Geräte-Selector wenn Geräte vorhanden sind
-                        const deviceSelectorSection = document.getElementById('deviceSelectorSection');
-                        if (deviceSelectorSection) {
+                        const deviceSelectorHeader = document.getElementById('deviceSelectorHeader');
+                        if (deviceSelectorHeader) {
                             const shouldShow = devices.length > 0;
                             console.log('🔍 Zeige Geräte-Selector:', shouldShow);
-                            deviceSelectorSection.style.display = shouldShow ? 'block' : 'none';
+                            deviceSelectorHeader.style.display = shouldShow ? 'block' : 'none';
                         }
                     } else {
                         console.error('❌ Fehler beim Laden der Geräte:', data.error);
                         // Zeige Geräte-Selector auch bei Fehlern, falls Geräte vorhanden sein könnten
-                        const deviceSelectorSection = document.getElementById('deviceSelectorSection');
-                        if (deviceSelectorSection) {
-                            deviceSelectorSection.style.display = 'block';
+                        const deviceSelectorHeader = document.getElementById('deviceSelectorHeader');
+                        if (deviceSelectorHeader) {
+                            deviceSelectorHeader.style.display = 'block';
                         }
                     }
                 } else {
                     console.error('❌ Geräte-API Fehler:', response.status);
                     // Zeige Geräte-Selector auch bei API-Fehlern
-                    const deviceSelectorSection = document.getElementById('deviceSelectorSection');
-                    if (deviceSelectorSection) {
-                        deviceSelectorSection.style.display = 'block';
+                    const deviceSelectorHeader = document.getElementById('deviceSelectorHeader');
+                    if (deviceSelectorHeader) {
+                        deviceSelectorHeader.style.display = 'block';
                     }
                 }
             } catch (error) {
                 console.error('❌ Fehler beim Laden der Geräte:', error);
                 // Zeige Geräte-Selector auch bei Verbindungsfehlern
-                const deviceSelectorSection = document.getElementById('deviceSelectorSection');
-                if (deviceSelectorSection) {
-                    deviceSelectorSection.style.display = 'block';
+                const deviceSelectorHeader = document.getElementById('deviceSelectorHeader');
+                if (deviceSelectorHeader) {
+                    deviceSelectorHeader.style.display = 'block';
                 }
             }
         }
@@ -1694,11 +1488,6 @@
             selectedDeviceId = event.target.value;
             console.log('📱 Gerät gewechselt zu:', selectedDeviceId);
             
-            // Aktualisiere Geräte-Info
-            updateDeviceInfo();
-            
-            // Zeige/verstecke Aggregations-Info
-            updateAggregationInfo();
             
             // Lade geräte-spezifische Statistiken
             await loadDeviceStatistics();
@@ -1710,40 +1499,6 @@
             await loadDevices();
         }
         
-        // Geräte-Info aktualisieren
-        function updateDeviceInfo() {
-            const deviceInfo = document.getElementById('deviceInfo');
-            const selectedDeviceIdElement = document.getElementById('selectedDeviceId');
-            const selectedDeviceLastActiveElement = document.getElementById('selectedDeviceLastActive');
-            
-            if (selectedDeviceId === 'all') {
-                if (deviceInfo) deviceInfo.style.display = 'none';
-            } else {
-                const device = devices.find(d => d.device_id === selectedDeviceId);
-                if (device && deviceInfo) {
-                    deviceInfo.style.display = 'block';
-                    if (selectedDeviceIdElement) {
-                        selectedDeviceIdElement.textContent = device.device_id;
-                    }
-                    if (selectedDeviceLastActiveElement) {
-                        const lastActive = new Date(device.last_active);
-                        selectedDeviceLastActiveElement.textContent = lastActive.toLocaleString('de-DE');
-                    }
-                }
-            }
-        }
-        
-        // Aggregations-Info aktualisieren
-        function updateAggregationInfo() {
-            const aggregationInfo = document.getElementById('aggregationInfo');
-            if (!aggregationInfo) return;
-            
-            if (selectedDeviceId === 'all') {
-                aggregationInfo.style.display = 'block';
-            } else {
-                aggregationInfo.style.display = 'none';
-            }
-        }
         
         // Geräte-spezifische Statistiken laden
         async function loadDeviceStatistics() {
