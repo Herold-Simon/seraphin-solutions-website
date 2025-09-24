@@ -190,8 +190,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.75rem;
-            font-size: 0.9rem;
         }
         
         .device-selector-dropdown {
@@ -660,9 +658,6 @@
             }
             
             .device-selector-container {
-                font-size: 0.8rem;
-                flex-direction: column;
-                gap: 0.75rem;
                 align-items: stretch;
             }
             
@@ -940,10 +935,8 @@
                 <!-- Geräte-Auswahl -->
                 <div class="device-selector-header" id="deviceSelectorHeader" style="display: none;">
                     <div class="device-selector-container">
-                        <i class="fas fa-mobile-alt" style="margin-right: 8px; color: var(--primary-color);"></i>
-                        <span style="font-weight: 500; color: var(--text-color);">Gerät:</span>
                         <select id="deviceSelector" class="device-selector-dropdown">
-                            <option value="all">Alle Geräte (aggregiert)</option>
+                            <option value="all">Alle Geräte</option>
                         </select>
                     </div>
                 </div>
@@ -1486,7 +1479,7 @@
             if (!deviceSelector) return;
             
             // Lösche alle Optionen außer "Alle Geräte"
-            deviceSelector.innerHTML = '<option value="all">Alle Geräte (aggregiert)</option>';
+            deviceSelector.innerHTML = '<option value="all">Alle Geräte</option>';
             
             // Füge Geräte hinzu
             devices.forEach(device => {
