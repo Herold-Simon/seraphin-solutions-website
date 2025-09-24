@@ -179,57 +179,99 @@
 
         /* Geräte-Auswahl-Header */
         .device-selector-header {
-            background: var(--white);
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            box-shadow: var(--shadow);
-            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            padding: 1.5rem 2rem;
+            border-radius: 20px;
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 2rem;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            backdrop-filter: blur(10px);
         }
         
         .device-selector-container {
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .device-selector-header:hover {
+            transform: translateY(-1px);
+            box-shadow: 
+                0 8px 25px -5px rgba(0, 0, 0, 0.1),
+                0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
         
         .device-selector-dropdown {
-            padding: 0.75rem 1rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            background: white;
-            font-size: 0.9rem;
-            color: var(--text-color);
+            padding: 1rem 1.25rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            font-size: 0.95rem;
+            color: #1e293b;
             cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 220px;
-            font-weight: 500;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 240px;
+            font-weight: 600;
+            box-shadow: 
+                0 1px 3px rgba(0, 0, 0, 0.1),
+                0 1px 2px rgba(0, 0, 0, 0.06);
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234b5563' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            background-size: 1rem;
-            padding-right: 2.5rem;
+            background-position: right 1rem center;
+            background-size: 1.25rem;
+            padding-right: 3rem;
+            letter-spacing: 0.025em;
         }
         
         .device-selector-dropdown:focus {
             outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
-            transform: translateY(-1px);
+            border-color: #3b82f6;
+            box-shadow: 
+                0 0 0 4px rgba(59, 130, 246, 0.1),
+                0 4px 12px rgba(0, 0, 0, 0.15),
+                0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
         }
         
         .device-selector-dropdown:hover {
-            border-color: #cbd5e1;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-color: #94a3b8;
+            box-shadow: 
+                0 4px 12px rgba(0, 0, 0, 0.15),
+                0 2px 4px rgba(0, 0, 0, 0.1);
             transform: translateY(-1px);
+            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+        }
+        
+        .device-selector-dropdown:active {
+            transform: translateY(0);
+            box-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.1),
+                0 1px 2px rgba(0, 0, 0, 0.06);
         }
         
         .device-selector-dropdown option {
-            padding: 0.5rem;
-            font-weight: 500;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #1e293b;
+            background: #ffffff;
+            border: none;
+        }
+        
+        .device-selector-dropdown option:hover {
+            background: #f1f5f9;
+        }
+        
+        .device-selector-dropdown option:checked {
+            background: #3b82f6;
+            color: #ffffff;
         }
 
         /* Statistiken-Karten im AdminPanel-Stil */
@@ -653,8 +695,9 @@
             }
             
             .device-selector-header {
-                padding: 0.8rem 1rem;
-                margin-bottom: 1rem;
+                padding: 1.25rem 1.5rem;
+                margin-bottom: 1.5rem;
+                border-radius: 16px;
             }
             
             .device-selector-container {
@@ -665,18 +708,19 @@
                 min-width: auto;
                 width: 100%;
                 font-size: 16px; /* Verhindert Zoom auf iOS */
-                padding: 1rem;
+                padding: 1.25rem 1.5rem;
                 border-radius: 16px;
                 font-weight: 600;
                 text-align: center;
                 -webkit-appearance: none;
                 -moz-appearance: none;
                 appearance: none;
-                background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+                background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234b5563' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
                 background-repeat: no-repeat;
-                background-position: right 1rem center;
-                background-size: 1rem;
-                padding-right: 3rem;
+                background-position: right 1.25rem center;
+                background-size: 1.25rem;
+                padding-right: 3.5rem;
+                letter-spacing: 0.025em;
             }
             
             .stats-overview {
