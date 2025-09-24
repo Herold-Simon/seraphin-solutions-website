@@ -1126,7 +1126,7 @@
                                 Gerät auswählen
                             </h3>
                             <p class="device-selector-description">
-                                Wählen Sie ein Gerät aus, um geräte-spezifische Statistiken anzuzeigen, oder "Alle Geräte" für aggregierte Daten.
+                                Wählen Sie ein Gerät aus, um geräte-spezifische Statistiken anzuzeigen, oder "Alle Geräte" für aggregierte Daten von allen eingeloggten Geräten.
                             </p>
                         </div>
                         <div class="device-selector-content">
@@ -1581,21 +1581,39 @@
                     if (data.success) {
                         devices = data.devices || [];
                         console.log('✅ Geräte geladen:', devices);
+                        console.log('📊 Anzahl Geräte:', devices.length);
                         populateDeviceSelector();
                         
-                        // Zeige Geräte-Selector nur wenn mehr als ein Gerät vorhanden ist
+                        // Zeige Geräte-Selector wenn Geräte vorhanden sind
                         const deviceSelectorSection = document.getElementById('deviceSelectorSection');
                         if (deviceSelectorSection) {
-                            deviceSelectorSection.style.display = devices.length > 1 ? 'block' : 'none';
+                            const shouldShow = devices.length > 0;
+                            console.log('🔍 Zeige Geräte-Selector:', shouldShow);
+                            deviceSelectorSection.style.display = shouldShow ? 'block' : 'none';
                         }
                     } else {
                         console.error('❌ Fehler beim Laden der Geräte:', data.error);
+                        // Zeige Geräte-Selector auch bei Fehlern, falls Geräte vorhanden sein könnten
+                        const deviceSelectorSection = document.getElementById('deviceSelectorSection');
+                        if (deviceSelectorSection) {
+                            deviceSelectorSection.style.display = 'block';
+                        }
                     }
                 } else {
                     console.error('❌ Geräte-API Fehler:', response.status);
+                    // Zeige Geräte-Selector auch bei API-Fehlern
+                    const deviceSelectorSection = document.getElementById('deviceSelectorSection');
+                    if (deviceSelectorSection) {
+                        deviceSelectorSection.style.display = 'block';
+                    }
                 }
             } catch (error) {
                 console.error('❌ Fehler beim Laden der Geräte:', error);
+                // Zeige Geräte-Selector auch bei Verbindungsfehlern
+                const deviceSelectorSection = document.getElementById('deviceSelectorSection');
+                if (deviceSelectorSection) {
+                    deviceSelectorSection.style.display = 'block';
+                }
             }
         }
         
