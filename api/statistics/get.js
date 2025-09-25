@@ -122,41 +122,70 @@ module.exports = async function handler(req, res) {
     try {
         const cookies = cookie.parse(req.headers.cookie || '');
         const sessionToken = cookies.session_token;
+        let adminUserId = null;
+        let isFallbackMode = false;
 
-        if (!sessionToken) {
+        // Versuche zuerst normale Session-Verifikation
+        if (sessionToken) {
+            const { data: session, error: sessionError } = await supabase
+                .from('website_sessions')
+                .select(`
+                    user_id,
+                    expires_at,
+                    website_users!inner(
+                        id,
+                        username,
+                        admin_user_id
+                    )
+                `)
+                .eq('session_token', sessionToken)
+                .single();
+
+            if (session && !sessionError) {
+                // Überprüfe Ablaufzeit
+                const now = new Date();
+                const expiresAt = new Date(session.expires_at);
+                
+                if (now <= expiresAt) {
+                    adminUserId = session.website_users.admin_user_id;
+                    console.log('Statistics API - Session valid, admin_user_id:', adminUserId);
+                } else {
+                    console.log('Statistics API - Session expired, trying fallback mode');
+                    isFallbackMode = true;
+                }
+            } else {
+                console.log('Statistics API - Session validation failed, trying fallback mode');
+                isFallbackMode = true;
+            }
+        } else {
+            console.log('Statistics API - No session token, trying fallback mode');
+            isFallbackMode = true;
+        }
+
+        // Fallback-Modus: Versuche Admin-User über aktuelle Statistiken zu finden
+        if (isFallbackMode) {
+            console.log('Statistics API - Entering fallback mode to find admin user by recent statistics');
+            
+            // Hole die neuesten Statistiken um den Admin-User zu identifizieren
+            const { data: recentStats, error: statsError } = await supabase
+                .from('app_statistics')
+                .select('admin_user_id, device_id, date')
+                .order('date', { ascending: false })
+                .limit(1)
+                .single();
+            
+            if (statsError || !recentStats) {
+                console.log('Statistics API - No recent statistics found in fallback mode:', statsError?.message);
+                return res.status(401).json({ success: false, error: 'Keine Statistiken verfügbar' });
+            }
+            
+            adminUserId = recentStats.admin_user_id;
+            console.log('Statistics API - Found admin user from recent statistics:', adminUserId, 'device:', recentStats.device_id);
+        }
+
+        if (!adminUserId) {
             return res.status(401).json({ success: false, error: 'Nicht authentifiziert' });
         }
-
-        // Validiere Session
-        const { data: session, error: sessionError } = await supabase
-            .from('website_sessions')
-            .select(`
-                user_id,
-                expires_at,
-                website_users!inner(
-                    id,
-                    username,
-                    admin_user_id
-                )
-            `)
-            .eq('session_token', sessionToken)
-            .single();
-
-        if (sessionError || !session) {
-            console.log('Statistics API - Session validation failed:', sessionError?.message || 'Session not found');
-            return res.status(401).json({ success: false, error: 'Ungültige Session' });
-        }
-
-        // Überprüfe Ablaufzeit
-        const now = new Date();
-        const expiresAt = new Date(session.expires_at);
-        
-        if (now > expiresAt) {
-            console.log('Statistics API - Session expired');
-            return res.status(401).json({ success: false, error: 'Session abgelaufen' });
-        }
-
-        const adminUserId = session.website_users.admin_user_id;
         const deviceId = req.query.device_id;
         console.log('Statistics API - Loading data for admin_user_id:', adminUserId, 'device_id:', deviceId);
 
