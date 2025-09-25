@@ -1506,8 +1506,12 @@
                     // Lade Geräte-Liste nach displayStatistics
                     console.log('📱 ===== STARTE GERÄTE-LADEN =====');
                     console.log('📱 Rufe loadDevices() auf...');
-                    await loadDevices();
-                    console.log('📱 loadDevices() abgeschlossen');
+                    try {
+                        await loadDevices();
+                        console.log('📱 loadDevices() abgeschlossen');
+                    } catch (error) {
+                        console.error('❌ Fehler in loadDevices():', error);
+                    }
                     console.log('📱 ===== GERÄTE-LADEN ABGESCHLOSSEN =====');
                     
                     hideLoading();
@@ -1641,6 +1645,8 @@
                 }
             } catch (error) {
                 console.error('❌ Fehler beim Laden der Geräte:', error);
+                console.error('❌ Fehler-Details:', error.message);
+                console.error('❌ Fehler-Stack:', error.stack);
                 // Zeige Geräte-Selector auch bei Verbindungsfehlern
                 const deviceSelectorHeader = document.getElementById('deviceSelectorHeader');
                 if (deviceSelectorHeader) {
