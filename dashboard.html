@@ -1662,17 +1662,36 @@
             // Mehrere Geräte vorhanden - zeige normales Dropdown
             console.log('📱 Mehrere Geräte vorhanden, zeige Dropdown an');
             
-            // Lösche alle Items und füge Standard-Optionen hinzu
-            deviceDropdownMenu.innerHTML = `
-                <div class="device-dropdown-item" data-value="all">
-                    <svg class="device-dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                        <line x1="8" y1="21" x2="16" y2="21"></line>
-                        <line x1="12" y1="17" x2="12" y2="21"></line>
-                    </svg>
-                    <span class="device-dropdown-item-text">Alle Geräte</span>
+            // Stelle das normale Dropdown-HTML wieder her
+            deviceSelectorHeader.innerHTML = `
+                <div class="device-dropdown" id="deviceDropdown">
+                    <button class="device-dropdown-trigger" id="deviceDropdownTrigger">
+                        <span class="device-dropdown-text" id="deviceDropdownText">Alle Geräte</span>
+                        <svg class="device-dropdown-icon" id="deviceDropdownIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6,9 12,15 18,9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="device-dropdown-menu" id="deviceDropdownMenu">
+                        <div class="device-dropdown-item" data-value="all">
+                            <svg class="device-dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                <line x1="8" y1="21" x2="16" y2="21"></line>
+                                <line x1="12" y1="17" x2="12" y2="21"></line>
+                            </svg>
+                            <span class="device-dropdown-item-text">Alle Geräte</span>
+                        </div>
+                    </div>
                 </div>
             `;
+            
+            // Hole die neuen Elemente nach dem HTML-Update
+            const newDeviceDropdownMenu = document.getElementById('deviceDropdownMenu');
+            const newDeviceDropdownText = document.getElementById('deviceDropdownText');
+            
+            if (!newDeviceDropdownMenu || !newDeviceDropdownText) {
+                console.error('❌ Fehler beim Wiederherstellen des Dropdown-HTML');
+                return;
+            }
             
             // Füge Geräte hinzu
             devices.forEach(device => {
@@ -1711,7 +1730,7 @@
                     ${iconSvg}
                     <span class="device-dropdown-item-text">${device.device_id}</span>
                 `;
-                deviceDropdownMenu.appendChild(deviceItem);
+                newDeviceDropdownMenu.appendChild(deviceItem);
             });
             
             // Setze den korrekten Wert basierend auf selectedDeviceId
