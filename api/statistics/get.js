@@ -176,16 +176,35 @@ module.exports = async function handler(req, res) {
         // Hole App-Statistiken (geräte-spezifisch oder aggregiert)
         let appStats;
         if (deviceId && deviceId !== 'all') {
-            // Geräte-spezifische Statistiken
-            console.log('📱 Loading device-specific statistics for device:', deviceId);
-            const { data: deviceStats } = await supabase
-                .from('device_statistics')
-                .select('*')
-                .eq('admin_user_id', adminUserId)
-                .eq('device_id', deviceId)
-                .order('date', { ascending: false })
-                .limit(30);
-            appStats = deviceStats;
+            if (deviceId === 'original') {
+                // Statistiken für das ursprüngliche Gerät (das Gerät mit dem das Konto erstellt wurde)
+                const originalDeviceId = adminUser?.device_id;
+                if (originalDeviceId) {
+                    console.log('📱 Loading statistics for original device:', originalDeviceId);
+                    const { data: deviceStats } = await supabase
+                        .from('device_statistics')
+                        .select('*')
+                        .eq('admin_user_id', adminUserId)
+                        .eq('device_id', originalDeviceId)
+                        .order('date', { ascending: false })
+                        .limit(30);
+                    appStats = deviceStats;
+                } else {
+                    console.log('⚠️ No original device ID found for user');
+                    appStats = [];
+                }
+            } else {
+                // Geräte-spezifische Statistiken
+                console.log('📱 Loading device-specific statistics for device:', deviceId);
+                const { data: deviceStats } = await supabase
+                    .from('device_statistics')
+                    .select('*')
+                    .eq('admin_user_id', adminUserId)
+                    .eq('device_id', deviceId)
+                    .order('date', { ascending: false })
+                    .limit(30);
+                appStats = deviceStats;
+            }
         } else {
             // Aggregierte Statistiken (alle Geräte)
             console.log('📊 Loading aggregated statistics for all devices');
