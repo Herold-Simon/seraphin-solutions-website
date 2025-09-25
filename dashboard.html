@@ -1611,6 +1611,11 @@
                         console.log('✅ Geräte geladen:', devices);
                         console.log('📊 Anzahl Geräte:', devices.length);
                         console.log('📱 Geräte-Details:', devices.map(d => ({ id: d.device_id, is_original: d.is_original })));
+                        
+                        // Prüfe ob das aktuell ausgewählte Gerät noch existiert (vor Dropdown-Setup)
+                        checkSelectedDeviceStillExists();
+                        
+                        // Jetzt das Dropdown basierend auf der validierten selectedDeviceId einrichten
                         populateDeviceSelector();
                         
                         // Zeige Geräte-Selector wenn Geräte vorhanden sind
@@ -1631,9 +1636,6 @@
                                 setupDeviceDropdownEvents();
                             }, 100);
                         }
-                        
-                        // Prüfe ob das aktuell ausgewählte Gerät noch existiert
-                        checkSelectedDeviceStillExists();
                     } else {
                         console.error('❌ Fehler beim Laden der Geräte:', data.error);
                         // Zeige Geräte-Selector auch bei Fehlern, falls Geräte vorhanden sein könnten
