@@ -348,98 +348,6 @@
             border-left: 5px solid #dc3545;
         }
 
-        /* Success Overlay */
-        .success-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .success-overlay.show {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .success-modal {
-            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-            color: #155724;
-            border: 2px solid #28a745;
-            border-radius: 15px;
-            padding: 2rem 3rem;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            transform: scale(0.8) translateY(50px);
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            max-width: 400px;
-            width: 90%;
-        }
-
-        .success-overlay.show .success-modal {
-            transform: scale(1) translateY(0);
-        }
-
-        .success-icon {
-            font-size: 4rem;
-            color: #28a745;
-            margin-bottom: 1rem;
-            animation: successBounce 0.6s ease-out;
-        }
-
-        .success-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: #155724;
-        }
-
-        .success-message {
-            font-size: 1.1rem;
-            color: #155724;
-            margin-bottom: 1.5rem;
-        }
-
-        .success-close {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 0.75rem 2rem;
-            border-radius: 25px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .success-close:hover {
-            background: #218838;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
-        }
-
-        @keyframes successBounce {
-            0% {
-                transform: scale(0);
-                opacity: 0;
-            }
-            50% {
-                transform: scale(1.2);
-                opacity: 1;
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
 
         .account-info {
             background: var(--light-gray);
@@ -549,18 +457,6 @@
 
             <!-- Alerts -->
             <div id="errorAlert" class="alert alert-error"></div>
-            
-            <!-- Success Overlay -->
-            <div id="successOverlay" class="success-overlay">
-                <div class="success-modal">
-                    <div class="success-icon">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="success-title">Erfolgreich!</div>
-                    <div class="success-message" id="successMessage"></div>
-                    <button class="success-close" onclick="closeSuccessOverlay()">Verstanden</button>
-                </div>
-            </div>
 
             <!-- Account-Informationen -->
             <div class="account-card">
@@ -1008,23 +904,13 @@
             }
         }
 
-        // Alerts anzeigen/verstecken
+        // Success-Meldung anzeigen und zum Dashboard weiterleiten
         function showSuccess(message) {
-            const overlay = document.getElementById('successOverlay');
-            const messageElement = document.getElementById('successMessage');
+            // Speichere die Erfolgsmeldung im localStorage für das Dashboard
+            localStorage.setItem('successMessage', message);
             
-            messageElement.textContent = message;
-            overlay.classList.add('show');
-            
-            // Auto-close after 5 seconds
-            setTimeout(() => {
-                closeSuccessOverlay();
-            }, 5000);
-        }
-        
-        function closeSuccessOverlay() {
-            const overlay = document.getElementById('successOverlay');
-            overlay.classList.remove('show');
+            // Weiterleitung zum Dashboard
+            window.location.href = 'dashboard.html';
         }
 
         function showError(message) {

@@ -737,6 +737,17 @@
             text-align: center;
         }
         
+        .success-message {
+            background: #F0FDF4;
+            color: #166534;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border: 1px solid #BBF7D0;
+            text-align: center;
+            display: none;
+        }
+        
         .no-data {
             text-align: center;
             color: var(--text-light);
@@ -1051,6 +1062,7 @@
             </div>
             
             <div id="errorMessage" class="error-message" style="display: none;"></div>
+            <div id="successMessage" class="success-message" style="display: none;"></div>
             
             <div id="dashboardContent" style="display: none;">
             <!-- Modern Device Selector -->
@@ -1435,6 +1447,14 @@
         // Dashboard laden
         async function loadDashboard() {
             try {
+                // Prüfe auf Success-Meldung aus localStorage
+                const successMessage = localStorage.getItem('successMessage');
+                if (successMessage) {
+                    // Zeige die Success-Meldung an
+                    showSuccess(successMessage);
+                    // Entferne die Meldung aus localStorage
+                    localStorage.removeItem('successMessage');
+                }
                 
                 // Erst prüfen, ob wir eine gültige Session haben
                 console.log('🔍 Starte Session-Verifikation...');
@@ -3325,6 +3345,27 @@
                 }
             } catch (error) {
                 console.error('❌ Fehler in showError:', error);
+            }
+        }
+        
+        // Erfolgsmeldung anzeigen
+        function showSuccess(message) {
+            try {
+                const successDiv = document.getElementById('successMessage');
+                if (successDiv) {
+                    successDiv.textContent = message;
+                    successDiv.style.display = 'block';
+                    
+                    // Auto-hide nach 5 Sekunden
+                    setTimeout(() => {
+                        successDiv.style.display = 'none';
+                    }, 5000);
+                } else {
+                    console.error('❌ SuccessMessage-Element nicht gefunden');
+                    console.log('✅ Dashboard-Erfolg:', message);
+                }
+            } catch (error) {
+                console.error('❌ Fehler in showSuccess:', error);
             }
         }
         
