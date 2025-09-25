@@ -1966,7 +1966,14 @@
         // Statistiken anzeigen
         function displayStatistics() {
             // Verwende die richtigen Statistiken basierend auf der Geräte-Auswahl
-            const currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
+            let currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
+            
+            // Fallback: Wenn deviceStatistics nicht verfügbar ist, aber statistics vorhanden sind,
+            // verwende statistics (besonders wichtig bei einzelnen Geräten)
+            if (!currentStats && statistics) {
+                console.log('📊 DeviceStatistics nicht verfügbar, verwende allgemeine Statistiken für:', selectedDeviceId);
+                currentStats = statistics;
+            }
             
             if (!currentStats) {
                 console.log('❌ Keine Statistiken verfügbar für:', selectedDeviceId);
@@ -2139,7 +2146,15 @@
             }
             
             // Verwende geräte-spezifische Daten falls verfügbar
-            const currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
+            let currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
+            
+            // Fallback: Wenn deviceStatistics nicht verfügbar ist, aber statistics vorhanden sind,
+            // verwende statistics (besonders wichtig bei einzelnen Geräten)
+            if (!currentStats && statistics) {
+                console.log('📈 DeviceStatistics nicht verfügbar, verwende allgemeine Statistiken für Liniendiagramm:', selectedDeviceId);
+                currentStats = statistics;
+            }
+            
             const videos = currentStats?.videos || [];
             
             console.log('📈 Liniendiagramm - Verwende Daten für Gerät:', selectedDeviceId);
@@ -2433,7 +2448,15 @@
             }
             
             // Verwende geräte-spezifische Daten falls verfügbar
-            const currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
+            let currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
+            
+            // Fallback: Wenn deviceStatistics nicht verfügbar ist, aber statistics vorhanden sind,
+            // verwende statistics (besonders wichtig bei einzelnen Geräten)
+            if (!currentStats && statistics) {
+                console.log('📊 DeviceStatistics nicht verfügbar, verwende allgemeine Statistiken für Balkendiagramm:', selectedDeviceId);
+                currentStats = statistics;
+            }
+            
             const videos = currentStats?.videos || [];
             
             console.log('📊 Balkendiagramm - Verwende Daten für Gerät:', selectedDeviceId);
@@ -2671,7 +2694,15 @@
             }
             
             // Verwende geräte-spezifische Daten falls verfügbar
-            const currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
+            let currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
+            
+            // Fallback: Wenn deviceStatistics nicht verfügbar ist, aber statistics vorhanden sind,
+            // verwende statistics (besonders wichtig bei einzelnen Geräten)
+            if (!currentStats && statistics) {
+                console.log('🏃 DeviceStatistics nicht verfügbar, verwende allgemeine Statistiken für Line Race:', selectedDeviceId);
+                currentStats = statistics;
+            }
+            
             const videos = currentStats?.videos || [];
             
             console.log('🏃 Line Race - Verwende Daten für Gerät:', selectedDeviceId);
@@ -2941,7 +2972,15 @@
             }
             
             // Verwende geräte-spezifische Daten falls verfügbar
-            const currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
+            let currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
+            
+            // Fallback: Wenn deviceStatistics nicht verfügbar ist, aber statistics vorhanden sind,
+            // verwende statistics (besonders wichtig bei einzelnen Geräten)
+            if (!currentStats && statistics) {
+                console.log('🥧 DeviceStatistics nicht verfügbar, verwende allgemeine Statistiken für Tortendiagramm:', selectedDeviceId);
+                currentStats = statistics;
+            }
+            
             const videos = currentStats?.videos || [];
             
             console.log('🥧 Tortendiagramm - Verwende Daten für Gerät:', selectedDeviceId);
