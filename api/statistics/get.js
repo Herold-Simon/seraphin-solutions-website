@@ -218,13 +218,32 @@ module.exports = async function handler(req, res) {
         } else {
             // Aggregierte Statistiken (alle Geräte)
             console.log('📊 Loading aggregated statistics for all devices');
-            const { data: aggregatedStats } = await supabase
+            const { data: aggregatedStats, error: aggregatedError } = await supabase
                 .rpc('get_aggregated_device_statistics', {
                     p_admin_user_id: adminUserId
                 });
             
-            // Konvertiere aggregierte Daten in das erwartete Format
-            if (aggregatedStats && aggregatedStats.length > 0) {
+            console.log('📊 Aggregated stats result:', { aggregatedStats, aggregatedError });
+            
+            // Fallback: Wenn aggregierte Statistiken leer sind, versuche direkte app_statistics
+            if (!aggregatedStats || aggregatedStats.length === 0) {
+                console.log('📊 No aggregated stats found, trying direct app_statistics query');
+                const { data: directStats, error: directError } = await supabase
+                    .from('app_statistics')
+                    .select('*')
+                    .eq('admin_user_id', adminUserId)
+                    .order('date', { ascending: false })
+                    .limit(30);
+                
+                console.log('📊 Direct app_statistics result:', { directStats, directError });
+                
+                if (directStats && directStats.length > 0) {
+                    // Verwende die neuesten direkten Statistiken
+                    appStats = directStats;
+                } else {
+                    appStats = [];
+                }
+            } else if (aggregatedStats && aggregatedStats.length > 0) {
                 const aggregated = aggregatedStats[0];
                 appStats = [{
                     admin_user_id: adminUserId,
@@ -281,20 +300,45 @@ module.exports = async function handler(req, res) {
                     p_admin_user_id: adminUserId
                 });
             
-            if (aggregatedVideoError) {
-                console.error('❌ Aggregated video statistics query error:', aggregatedVideoError);
-                // Fallback zu normalen Video-Statistiken
+            console.log('📊 Aggregated video stats result:', { aggregatedVideoStats, aggregatedVideoError });
+            
+            if (aggregatedVideoError || !aggregatedVideoStats || aggregatedVideoStats.length === 0) {
+                console.log('📊 No aggregated video stats found, trying multiple fallback strategies');
+                
+                // Fallback 1: Normale Video-Statistiken
                 const { data: fallbackVideoStats, error: fallbackVideoError } = await supabase
                     .from('video_statistics')
                     .select('*')
                     .eq('admin_user_id', adminUserId)
                     .order('views', { ascending: false });
                 
-                if (fallbackVideoError) {
-                    console.error('❌ Fallback video statistics query error:', fallbackVideoError);
-                    videoStats = [];
-                } else {
+                console.log('📊 Fallback video stats result:', { fallbackVideoStats, fallbackVideoError });
+                
+                if (fallbackVideoStats && fallbackVideoStats.length > 0) {
                     videoStats = fallbackVideoStats;
+                } else {
+                    // Fallback 2: Device Video Statistics (falls vorhanden)
+                    const { data: deviceVideoStats, error: deviceVideoError } = await supabase
+                        .from('device_video_statistics')
+                        .select('*')
+                        .eq('admin_user_id', adminUserId)
+                        .order('views', { ascending: false });
+                    
+                    console.log('📊 Device video stats fallback result:', { deviceVideoStats, deviceVideoError });
+                    
+                    if (deviceVideoStats && deviceVideoStats.length > 0) {
+                        videoStats = deviceVideoStats;
+                    } else {
+                        // Fallback 3: App Video Statistics (falls vorhanden)
+                        const { data: appVideoStats, error: appVideoError } = await supabase
+                            .from('app_video_statistics')
+                            .select('*')
+                            .eq('admin_user_id', adminUserId)
+                            .order('views', { ascending: false });
+                        
+                        console.log('📊 App video stats fallback result:', { appVideoStats, appVideoError });
+                        videoStats = appVideoStats || [];
+                    }
                 }
             } else {
                 // Konvertiere aggregierte Video-Daten in das erwartete Format
