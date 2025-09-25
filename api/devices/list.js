@@ -121,6 +121,9 @@ module.exports = async (req, res) => {
       .eq('is_active', true)
       .order('last_active', { ascending: false });
 
+    console.log('📱 Device sessions query result:', { devices, devicesError, adminUserId });
+    console.log('📱 Number of devices from device_sessions:', devices?.length || 0);
+
     if (devicesError) {
       console.error('❌ Error loading devices:', devicesError);
       return res.status(500).json({
@@ -140,6 +143,36 @@ module.exports = async (req, res) => {
 
     let allDevices = devices || [];
     
+    // Zusätzlich: Hole alle Geräte aus den Statistiken, die möglicherweise nicht in device_sessions sind
+    console.log('📱 Loading devices from statistics as fallback...');
+    const { data: statsDevices, error: statsDevicesError } = await supabase
+      .from('app_statistics')
+      .select('device_id')
+      .eq('admin_user_id', adminUserId)
+      .not('device_id', 'is', null);
+    
+    console.log('📱 Statistics devices query result:', { statsDevices, statsDevicesError });
+    
+    if (statsDevices && statsDevices.length > 0) {
+      // Erstelle eine Liste aller eindeutigen Geräte-IDs aus den Statistiken
+      const uniqueStatsDevices = [...new Set(statsDevices.map(s => s.device_id))];
+      console.log('📱 Unique devices from statistics:', uniqueStatsDevices);
+      
+      // Füge Geräte aus Statistiken hinzu, die nicht in device_sessions sind
+      uniqueStatsDevices.forEach(deviceId => {
+        if (!allDevices.some(device => device.device_id === deviceId)) {
+          console.log('📱 Adding device from statistics:', deviceId);
+          allDevices.push({
+            device_id: deviceId,
+            device_name: deviceId,
+            last_active: null,
+            created_at: null,
+            is_original: false
+          });
+        }
+      });
+    }
+    
     // Füge das ursprüngliche Gerät hinzu, falls es nicht bereits in der Liste ist
     if (adminUser?.device_id && !allDevices.some(device => device.device_id === adminUser.device_id)) {
       console.log('📱 Adding original device to list:', adminUser.device_id);
@@ -152,33 +185,13 @@ module.exports = async (req, res) => {
       });
     } else if (adminUser?.device_id) {
       console.log('📱 Original device already in list:', adminUser.device_id);
+      // Markiere das ursprüngliche Gerät in der Liste
+      const originalDeviceIndex = allDevices.findIndex(device => device.device_id === adminUser.device_id);
+      if (originalDeviceIndex !== -1) {
+        allDevices[originalDeviceIndex].is_original = true;
+      }
     } else {
       console.log('⚠️ No original device found for admin user:', adminUserId);
-      
-      // Fallback: Versuche das ursprüngliche Gerät aus den Statistiken zu bekommen
-      console.log('📱 Trying to get original device from statistics');
-      
-      // Hole die neuesten Statistiken um die device_id zu bekommen
-      const { data: latestStats } = await supabase
-        .from('app_statistics')
-        .select('device_id')
-        .eq('admin_user_id', adminUserId)
-        .order('date', { ascending: false })
-        .limit(1)
-        .single();
-      
-      if (latestStats?.device_id && !allDevices.some(device => device.device_id === latestStats.device_id)) {
-        console.log('📱 Adding original device from statistics:', latestStats.device_id);
-        allDevices.unshift({
-          device_id: latestStats.device_id,
-          device_name: latestStats.device_id,
-          last_active: null,
-          created_at: null,
-          is_original: true
-        });
-      } else {
-        console.log('⚠️ Could not determine original device from statistics');
-      }
     }
 
     console.log('✅ Devices loaded successfully:', allDevices.length);
