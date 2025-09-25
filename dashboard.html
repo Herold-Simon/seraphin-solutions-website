@@ -1576,11 +1576,13 @@
                 console.log('📱 loadDevices() - selectedDeviceId vor Laden:', selectedDeviceId);
                 // Cache-Busting durch Timestamp hinzufügen
                 const timestamp = new Date().getTime();
+                console.log('📱 Fetching devices from API with timestamp:', timestamp);
                 const response = await fetch(`/api/devices/list?_t=${timestamp}`, {
                     method: 'GET',
                     credentials: 'include',
                     cache: 'no-cache'
                 });
+                console.log('📱 API fetch completed, response received');
                 
                 console.log('📱 API Response Status:', response.status);
                 console.log('📱 API Response OK:', response.ok);
