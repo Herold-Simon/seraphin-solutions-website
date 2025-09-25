@@ -737,17 +737,6 @@
             text-align: center;
         }
         
-        .success-message {
-            background: #F0FDF4;
-            color: #166534;
-            padding: 1rem;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            border: 1px solid #BBF7D0;
-            text-align: center;
-            display: none;
-        }
-        
         .no-data {
             text-align: center;
             color: var(--text-light);
@@ -1062,7 +1051,6 @@
             </div>
             
             <div id="errorMessage" class="error-message" style="display: none;"></div>
-            <div id="successMessage" class="success-message" style="display: none;"></div>
             
             <div id="dashboardContent" style="display: none;">
             <!-- Modern Device Selector -->
@@ -1447,14 +1435,6 @@
         // Dashboard laden
         async function loadDashboard() {
             try {
-                // Prüfe auf Success-Meldung aus localStorage
-                const successMessage = localStorage.getItem('successMessage');
-                if (successMessage) {
-                    // Zeige die Success-Meldung an
-                    showSuccess(successMessage);
-                    // Entferne die Meldung aus localStorage
-                    localStorage.removeItem('successMessage');
-                }
                 
                 // Erst prüfen, ob wir eine gültige Session haben
                 console.log('🔍 Starte Session-Verifikation...');
@@ -2113,6 +2093,42 @@
             }
         }
         
+        // Hilfsfunktion: Videos mit gleichem Titel zusammenfassen
+        function mergeVideosByTitle(videos) {
+            const mergedVideos = {};
+            
+            videos.forEach(video => {
+                const title = video.title || video.video_title || 'Unbenanntes Video';
+                
+                if (!mergedVideos[title]) {
+                    mergedVideos[title] = {
+                        title: title,
+                        views: 0,
+                        viewHistory: {},
+                        view_history: {},
+                        devices: []
+                    };
+                }
+                
+                // Summiere Views
+                mergedVideos[title].views += (video.views || 0);
+                
+                // Merge viewHistory
+                const videoViewHistory = video.viewHistory || video.view_history || {};
+                Object.keys(videoViewHistory).forEach(date => {
+                    if (!mergedVideos[title].viewHistory[date]) {
+                        mergedVideos[title].viewHistory[date] = 0;
+                    }
+                    mergedVideos[title].viewHistory[date] += videoViewHistory[date];
+                });
+                
+                // Speichere Geräte-Info für Debugging
+                mergedVideos[title].devices.push(video.device_id || 'Unknown');
+            });
+            
+            return Object.values(mergedVideos);
+        }
+
         // Liniendiagramm erstellen (wie in der App)
         function createLineChart() {
             const chartElement = document.getElementById('lineChart');
@@ -2127,22 +2143,27 @@
             const videos = currentStats?.videos || [];
             
             console.log('📈 Liniendiagramm - Verwende Daten für Gerät:', selectedDeviceId);
-            console.log('📈 Liniendiagramm - Videos-Anzahl:', videos.length);
+            console.log('📈 Liniendiagramm - Videos-Anzahl vor Merge:', videos.length);
+            
+            // Videos mit gleichem Titel zusammenfassen
+            const mergedVideos = mergeVideosByTitle(videos);
+            console.log('📈 Liniendiagramm - Videos-Anzahl nach Merge:', mergedVideos.length);
+            
             const lineChartVideoCount = currentStats?.current?.line_chart_video_count || 7;
             const timeRangeStart = currentStats?.current?.time_range_start;
             const timeRangeEnd = currentStats?.current?.time_range_end;
             
-            console.log('📈 Line Chart - Video-Daten:', videos);
+            console.log('📈 Line Chart - Video-Daten:', mergedVideos);
             console.log('📈 Line Chart - Video Count:', lineChartVideoCount);
             console.log('📈 Line Chart - Zeitraum:', { timeRangeStart, timeRangeEnd });
             
-            if (!videos || videos.length === 0) {
+            if (!mergedVideos || mergedVideos.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
                 return;
             }
             
             // Filtere Videos mit Aufrufen und sortiere nach Aufrufen (wie in der App)
-            const filteredVideos = videos
+            const filteredVideos = mergedVideos
                 .filter(video => (video.views || 0) > 0)
                 .sort((a, b) => (b.views || 0) - (a.views || 0))
                 .slice(0, lineChartVideoCount);
@@ -2196,7 +2217,7 @@
                     });
                     
                     return {
-                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        name: video.title,
                         type: 'line',
                         data: data,
                         smooth: true,
@@ -2265,7 +2286,7 @@
                     });
                     
                     return {
-                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        name: video.title,
                         type: 'line',
                         data: data,
                         smooth: true,
@@ -2416,20 +2437,25 @@
             const videos = currentStats?.videos || [];
             
             console.log('📊 Balkendiagramm - Verwende Daten für Gerät:', selectedDeviceId);
-            console.log('📊 Balkendiagramm - Videos-Anzahl:', videos.length);
+            console.log('📊 Balkendiagramm - Videos-Anzahl vor Merge:', videos.length);
+            
+            // Videos mit gleichem Titel zusammenfassen
+            const mergedVideos = mergeVideosByTitle(videos);
+            console.log('📊 Balkendiagramm - Videos-Anzahl nach Merge:', mergedVideos.length);
+            
             const barChartVideoCount = currentStats?.current?.bar_chart_video_count || 7;
             
-            console.log('📊 Bar Chart - Video-Daten:', videos);
+            console.log('📊 Bar Chart - Video-Daten:', mergedVideos);
             console.log('📊 Bar Chart - Video Count:', barChartVideoCount);
             console.log('📊 Bar Chart - Zeitraum:', currentTimeRange);
             
-            if (!videos || videos.length === 0) {
+            if (!mergedVideos || mergedVideos.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
                 return;
             }
             
             // Filtere Videos basierend auf Zeitraum und Aufrufen
-            let filteredVideos = videos.filter(video => (video.views || 0) > 0);
+            let filteredVideos = mergedVideos.filter(video => (video.views || 0) > 0);
             
             // Wenn viewHistory verfügbar ist, filtere basierend auf Zeitraum
             const hasViewHistory = filteredVideos.some(video => 
@@ -2583,7 +2609,7 @@
                     
                     // Erstelle erweiterte Version mit allen Videos
                     const allLabels = filteredVideos.map(video => {
-                        const title = video.title || video.video_title || 'Unbenanntes Video';
+                        const title = video.title;
                         return title.length > 10 ? title.substring(0, 10) + '...' : title;
                     });
                     const allData = filteredVideos.map((video, idx) => ({
@@ -2647,23 +2673,29 @@
             // Verwende geräte-spezifische Daten falls verfügbar
             const currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
             const videos = currentStats?.videos || [];
+            
+            console.log('🏃 Line Race - Verwende Daten für Gerät:', selectedDeviceId);
+            console.log('🏃 Line Race - Videos-Anzahl vor Merge:', videos.length);
+            
+            // Videos mit gleichem Titel zusammenfassen
+            const mergedVideos = mergeVideosByTitle(videos);
+            console.log('🏃 Line Race - Videos-Anzahl nach Merge:', mergedVideos.length);
+            
             const lineRaceVideoCount = currentStats?.current?.line_race_video_count || 7;
             const timeRangeStart = currentStats?.current?.time_range_start;
             const timeRangeEnd = currentStats?.current?.time_range_end;
             
-            console.log('🏃 Line Race - Verwende Daten für Gerät:', selectedDeviceId);
-            console.log('🏃 Line Race - Videos-Anzahl:', videos.length);
-            console.log('🏁 Line Race Chart - Video-Daten:', videos);
+            console.log('🏁 Line Race Chart - Video-Daten:', mergedVideos);
             console.log('🏁 Line Race Chart - Video Count:', lineRaceVideoCount);
             console.log('🏁 Line Race Chart - Zeitraum:', { timeRangeStart, timeRangeEnd });
             
-            if (!videos || videos.length === 0) {
+            if (!mergedVideos || mergedVideos.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
                 return;
             }
             
             // Filtere Videos mit Aufrufen und sortiere nach Aufrufen (wie in der App)
-            const filteredVideos = videos
+            const filteredVideos = mergedVideos
                 .filter(video => (video.views || 0) > 0)
                 .sort((a, b) => (b.views || 0) - (a.views || 0))
                 .slice(0, lineRaceVideoCount);
@@ -2728,7 +2760,7 @@
                     });
                     
                     return {
-                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        name: video.title,
                         type: 'line',
                         data: data,
                         smooth: true,
@@ -2797,7 +2829,7 @@
                     });
                     
                     return {
-                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        name: video.title,
                         type: 'line',
                         data: data,
                         smooth: true,
@@ -2913,20 +2945,25 @@
             const videos = currentStats?.videos || [];
             
             console.log('🥧 Tortendiagramm - Verwende Daten für Gerät:', selectedDeviceId);
-            console.log('🥧 Tortendiagramm - Videos-Anzahl:', videos.length);
+            console.log('🥧 Tortendiagramm - Videos-Anzahl vor Merge:', videos.length);
+            
+            // Videos mit gleichem Titel zusammenfassen
+            const mergedVideos = mergeVideosByTitle(videos);
+            console.log('🥧 Tortendiagramm - Videos-Anzahl nach Merge:', mergedVideos.length);
+            
             const pieChartVideoCount = currentStats?.current?.pie_chart_video_count || 7;
             
-            console.log('🥧 Pie Chart - Video-Daten:', videos);
+            console.log('🥧 Pie Chart - Video-Daten:', mergedVideos);
             console.log('🥧 Pie Chart - Video Count:', pieChartVideoCount);
             console.log('🥧 Pie Chart - Zeitraum:', currentTimeRange);
             
-            if (!videos || videos.length === 0) {
+            if (!mergedVideos || mergedVideos.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
                 return;
             }
             
             // Filtere Videos basierend auf Zeitraum und Aufrufen
-            let filteredVideos = videos.filter(video => (video.views || 0) > 0);
+            let filteredVideos = mergedVideos.filter(video => (video.views || 0) > 0);
             
             // Wenn viewHistory verfügbar ist, filtere basierend auf Zeitraum
             const hasViewHistory = filteredVideos.some(video => 
@@ -2979,7 +3016,7 @@
                     radius: ['40%', '70%'],
                     center: ['50%', '50%'],
                     data: filteredVideos.map((video, index) => ({
-                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        name: video.title,
                         value: video.views || 0,
                         itemStyle: {
                             color: getChartColor(index)
@@ -3001,7 +3038,7 @@
                 }],
                 legend: {
                     data: filteredVideos.map((video, index) => ({
-                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        name: video.title,
                         icon: 'circle',
                         textStyle: { color: getChartColor(index) }
                     })),
@@ -3345,27 +3382,6 @@
                 }
             } catch (error) {
                 console.error('❌ Fehler in showError:', error);
-            }
-        }
-        
-        // Erfolgsmeldung anzeigen
-        function showSuccess(message) {
-            try {
-                const successDiv = document.getElementById('successMessage');
-                if (successDiv) {
-                    successDiv.textContent = message;
-                    successDiv.style.display = 'block';
-                    
-                    // Auto-hide nach 5 Sekunden
-                    setTimeout(() => {
-                        successDiv.style.display = 'none';
-                    }, 5000);
-                } else {
-                    console.error('❌ SuccessMessage-Element nicht gefunden');
-                    console.log('✅ Dashboard-Erfolg:', message);
-                }
-            } catch (error) {
-                console.error('❌ Fehler in showSuccess:', error);
             }
         }
         
