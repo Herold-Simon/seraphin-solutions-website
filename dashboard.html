@@ -1224,8 +1224,8 @@
             await loadDashboard();
             setupNavigation();
             
-            // Setup device dropdown events
-            setupDeviceDropdownEvents();
+            // Setup device dropdown events wird jetzt in loadDevices() aufgerufen
+            // setupDeviceDropdownEvents();
             
             // Zusätzliche Dropdown-Synchronisation nach dem Laden
             setTimeout(() => {
@@ -1538,7 +1538,9 @@
                     console.log('✅ Statistiken erfolgreich geladen:', statistics);
                     
                     // Lade Geräte-Liste
+                    console.log('📱 Rufe loadDevices() auf...');
                     await loadDevices();
+                    console.log('📱 loadDevices() abgeschlossen');
                     
                     displayStatistics();
                     hideLoading();
@@ -1596,6 +1598,7 @@
         async function loadDevices() {
             try {
                 console.log('📱 Lade Geräte-Liste...');
+                console.log('📱 loadDevices() - selectedDeviceId vor Laden:', selectedDeviceId);
                 // Cache-Busting durch Timestamp hinzufügen
                 const timestamp = new Date().getTime();
                 const response = await fetch(`/api/devices/list?_t=${timestamp}`, {
@@ -1613,9 +1616,12 @@
                         console.log('📱 Geräte-Details:', devices.map(d => ({ id: d.device_id, is_original: d.is_original })));
                         
                         // Prüfe ob das aktuell ausgewählte Gerät noch existiert (vor Dropdown-Setup)
+                        console.log('📱 Vor checkSelectedDeviceStillExists - selectedDeviceId:', selectedDeviceId);
                         checkSelectedDeviceStillExists();
+                        console.log('📱 Nach checkSelectedDeviceStillExists - selectedDeviceId:', selectedDeviceId);
                         
                         // Jetzt das Dropdown basierend auf der validierten selectedDeviceId einrichten
+                        console.log('📱 Rufe populateDeviceSelector() auf mit devices.length:', devices.length);
                         populateDeviceSelector();
                         
                         // Zeige Geräte-Selector wenn Geräte vorhanden sind
