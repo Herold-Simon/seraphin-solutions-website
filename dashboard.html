@@ -1590,7 +1590,7 @@
             const deviceDropdownText = document.getElementById('deviceDropdownText');
             if (!deviceDropdownMenu || !deviceDropdownText) return;
             
-            // Lösche alle Items und füge Standard-Optionen hinzu
+            // Lösche alle Items außer "Alle Geräte"
             deviceDropdownMenu.innerHTML = `
                 <div class="device-dropdown-item" data-value="all">
                     <svg class="device-dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1599,14 +1599,6 @@
                         <line x1="12" y1="17" x2="12" y2="21"></line>
                     </svg>
                     <span class="device-dropdown-item-text">Alle Geräte</span>
-                </div>
-                <div class="device-dropdown-item" data-value="original">
-                    <svg class="device-dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                        <path d="M2 17l10 5 10-5"></path>
-                        <path d="M2 12l10 5 10-5"></path>
-                    </svg>
-                    <span class="device-dropdown-item-text">Ursprüngliches Gerät</span>
                 </div>
             `;
             
@@ -1808,8 +1800,8 @@
         
         // Prüfe ob das aktuell ausgewählte Gerät noch existiert
         function checkSelectedDeviceStillExists() {
-            // Wenn "Alle Geräte" oder "Ursprüngliches Gerät" ausgewählt ist, ist alles OK
-            if (selectedDeviceId === 'all' || selectedDeviceId === 'original') {
+            // Wenn "Alle Geräte" ausgewählt ist, ist alles OK
+            if (selectedDeviceId === 'all') {
                 return;
             }
             
@@ -1848,10 +1840,7 @@
                 console.log('📱 Lade geräte-spezifische Statistiken für:', selectedDeviceId);
                 // Cache-Busting durch Timestamp hinzufügen
                 const timestamp = new Date().getTime();
-                
-                // Für "original" verwenden wir einen speziellen Parameter
-                const deviceParam = selectedDeviceId === 'original' ? 'original' : selectedDeviceId;
-                const response = await fetch(`/api/statistics/get?device_id=${deviceParam}&_t=${timestamp}`, {
+                const response = await fetch(`/api/statistics/get?device_id=${selectedDeviceId}&_t=${timestamp}`, {
                     method: 'GET',
                     credentials: 'include',
                     cache: 'no-cache'
