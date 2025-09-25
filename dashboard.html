@@ -1501,12 +1501,13 @@
                     statistics = data.statistics;
                     console.log('✅ Statistiken erfolgreich geladen:', statistics);
                     
-                    // Lade Geräte-Liste
+                    displayStatistics();
+                    
+                    // Lade Geräte-Liste nach displayStatistics
                     console.log('📱 Rufe loadDevices() auf...');
                     await loadDevices();
                     console.log('📱 loadDevices() abgeschlossen');
                     
-                    displayStatistics();
                     hideLoading();
                     
                     // Event Listeners nach dem Laden der Statistiken einrichten
@@ -1530,7 +1531,7 @@
                         
                         updateCharts();
                         console.log('🔄 Automatisch zu "Gesamter Zeitraum" gewechselt');
-                    }, 2000); // 2 Sekunden Verzögerung
+                    }, 0); // 500ms Verzögerung
                     
                 } else {
                     console.error('❌ API Fehler:', data.error);
