@@ -1582,9 +1582,11 @@
                     cache: 'no-cache'
                 });
                 
+                console.log('📱 API Response Status:', response.status);
+                console.log('📱 API Response OK:', response.ok);
+                
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('📱 API Response Status:', response.status);
                     console.log('📱 API Response Data:', data);
                     if (data.success) {
                         devices = data.devices || [];

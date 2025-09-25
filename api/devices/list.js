@@ -243,6 +243,7 @@ module.exports = async (req, res) => {
     console.log('📱 Final allDevices after original device processing:', allDevices.map(d => ({ id: d.device_id, is_original: d.is_original })));
 
     console.log('✅ Devices loaded successfully:', allDevices.length);
+    console.log('📱 Final devices list:', allDevices.map(d => ({ id: d.device_id, is_original: d.is_original })));
 
     res.status(200).json({
       success: true,
