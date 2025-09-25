@@ -115,7 +115,17 @@ module.exports = async (req, res) => {
 
     // NEUE LOGIK: Sammle alle Geräte aus verschiedenen Quellen
     
-    // 1. Hole alle aktiven Geräte aus device_sessions (eingeloggte Geräte)
+    // 1. Hole alle Geräte aus den Statistiken (das ist die zuverlässigste Quelle)
+    const { data: statsDevices, error: statsError } = await supabase
+      .from('app_statistics')
+      .select('device_id, date')
+      .eq('admin_user_id', adminUserId)
+      .not('device_id', 'is', null)
+      .order('date', { ascending: true });
+
+    console.log('📱 Statistics devices:', statsDevices?.map(s => s.device_id) || []);
+
+    // 2. Hole alle aktiven Geräte aus device_sessions (eingeloggte Geräte)
     const { data: sessionDevices, error: sessionError } = await supabase
       .from('device_sessions')
       .select('device_id, device_name, last_active, created_at')
@@ -125,7 +135,7 @@ module.exports = async (req, res) => {
 
     console.log('📱 Session devices:', sessionDevices?.map(d => d.device_id) || []);
 
-    // 2. Hole das ursprüngliche Gerät aus admin_users
+    // 3. Hole das ursprüngliche Gerät aus admin_users
     const { data: adminUser, error: adminUserError } = await supabase
       .from('admin_users')
       .select('device_id')
@@ -134,18 +144,24 @@ module.exports = async (req, res) => {
 
     console.log('📱 Original device from admin_users:', adminUser?.device_id);
 
-    // 3. Erstelle eine einheitliche Geräte-Liste
+    // 4. Erstelle eine einheitliche Geräte-Liste
     let allDevices = [];
     
-    // Füge eingeloggte Geräte hinzu
-    if (sessionDevices && sessionDevices.length > 0) {
-      sessionDevices.forEach(device => {
+    // Füge alle Geräte aus Statistiken hinzu
+    if (statsDevices && statsDevices.length > 0) {
+      const uniqueStatsDevices = [...new Set(statsDevices.map(s => s.device_id))];
+      console.log('📱 Unique statistics devices:', uniqueStatsDevices);
+      
+      uniqueStatsDevices.forEach(deviceId => {
+        // Finde zusätzliche Infos aus sessionDevices falls verfügbar
+        const sessionDevice = sessionDevices?.find(s => s.device_id === deviceId);
+        
         allDevices.push({
-          device_id: device.device_id,
-          device_name: device.device_name || device.device_id,
-          last_active: device.last_active,
-          created_at: device.created_at,
-          source: 'session' // Markierung für Debugging
+          device_id: deviceId,
+          device_name: sessionDevice?.device_name || deviceId,
+          last_active: sessionDevice?.last_active || null,
+          created_at: sessionDevice?.created_at || null,
+          source: sessionDevice ? 'session' : 'statistics'
         });
       });
     }
@@ -159,7 +175,7 @@ module.exports = async (req, res) => {
           device_name: adminUser.device_id,
           last_active: null,
           created_at: null,
-          source: 'original' // Markierung für Debugging
+          source: 'original'
         });
         console.log('📱 Added original device:', adminUser.device_id);
       } else {
