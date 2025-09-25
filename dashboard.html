@@ -177,144 +177,102 @@
             padding: 0 2rem 4rem;
         }
 
-        /* Modern Device Selector */
-        .device-selector-container {
-            background: var(--white);
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: var(--shadow);
+        /* Geräte-Auswahl-Header */
+        .device-selector-header {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            padding: 1.5rem 2rem;
+            border-radius: 20px;
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                0 2px 4px -1px rgba(0, 0, 0, 0.06);
             margin-bottom: 2rem;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            backdrop-filter: blur(10px);
+        }
+        
+        .device-selector-container {
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.3s ease;
         }
         
-        .device-dropdown {
-            position: relative;
-            min-width: 280px;
-            width: 100%;
-        }
-        
-        .device-dropdown-trigger {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 16px;
-            background: var(--white);
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--text-dark);
-            min-height: 48px;
-            width: 100%;
-        }
-        
-        .device-dropdown-trigger:hover {
-            border-color: var(--primary-blue);
+        .device-selector-header:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 
+                0 8px 25px -5px rgba(0, 0, 0, 0.1),
+                0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
         
-        .device-dropdown-trigger:active {
-            transform: translateY(0);
-        }
-        
-        .device-dropdown-trigger.open {
-            border-color: var(--primary-blue);
-            border-radius: 8px 8px 0 0;
-        }
-        
-        .device-dropdown-text {
-            flex: 1;
-            text-align: left;
-        }
-        
-        .device-dropdown-icon {
-            width: 20px;
-            height: 20px;
-            transition: transform 0.2s ease;
-            color: var(--text-light);
-        }
-        
-        .device-dropdown-icon.open {
-            transform: rotate(180deg);
-        }
-        
-        .device-dropdown-menu {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: var(--white);
-            border-radius: 0 0 8px 8px;
-            box-shadow: var(--shadow-lg);
-            z-index: 1000;
-            max-height: 300px;
-            overflow-y: auto;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-10px);
-            transition: all 0.2s ease;
-            border: 2px solid var(--border-color);
-            border-top: none;
-        }
-        
-        .device-dropdown-menu.open {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-        
-        .device-dropdown-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
+        .device-selector-dropdown {
+            padding: 1rem 1.25rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            font-size: 0.95rem;
+            color: #1e293b;
             cursor: pointer;
-            transition: all 0.2s ease;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        
-        .device-dropdown-item:last-child {
-            border-bottom: none;
-            border-radius: 0 0 6px 6px;
-        }
-        
-        .device-dropdown-item:hover {
-            background: #f8f9fa;
-        }
-        
-        .device-dropdown-item-icon {
-            width: 20px;
-            height: 20px;
-            margin-right: 12px;
-            color: #9e9e9e;
-            flex-shrink: 0;
-        }
-        
-        .device-dropdown-item-text {
-            color: #424242;
-            font-size: 14px;
-            font-weight: 500;
-            flex: 1;
-        }
-        
-        .device-dropdown-item.selected {
-            background: var(--light-gray);
-            color: var(--primary-blue);
-        }
-        
-        .device-dropdown-item.selected .device-dropdown-item-text {
-            color: var(--primary-blue);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 240px;
             font-weight: 600;
+            box-shadow: 
+                0 1px 3px rgba(0, 0, 0, 0.1),
+                0 1px 2px rgba(0, 0, 0, 0.06);
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234b5563' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.25rem;
+            padding-right: 3rem;
+            letter-spacing: 0.025em;
         }
         
-        .device-dropdown-item.selected .device-dropdown-item-icon {
-            color: var(--primary-blue);
+        .device-selector-dropdown:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 
+                0 0 0 4px rgba(59, 130, 246, 0.1),
+                0 4px 12px rgba(0, 0, 0, 0.15),
+                0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
         }
         
+        .device-selector-dropdown:hover {
+            border-color: #94a3b8;
+            box-shadow: 
+                0 4px 12px rgba(0, 0, 0, 0.15),
+                0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+        }
+        
+        .device-selector-dropdown:active {
+            transform: translateY(0);
+            box-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.1),
+                0 1px 2px rgba(0, 0, 0, 0.06);
+        }
+        
+        .device-selector-dropdown option {
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #1e293b;
+            background: #ffffff;
+            border: none;
+        }
+        
+        .device-selector-dropdown option:hover {
+            background: #f1f5f9;
+        }
+        
+        .device-selector-dropdown option:checked {
+            background: #3b82f6;
+            color: #ffffff;
+        }
 
         /* Statistiken-Karten im AdminPanel-Stil */
         .stats-overview {
@@ -325,27 +283,22 @@
             cursor: pointer;
             transition: all 0.3s ease;
             border-radius: 12px;
-            padding: 1.5rem;
+            padding: 1rem;
             position: relative;
-            background: var(--white);
-            box-shadow: var(--shadow);
         }
         
         
         .stat-card {
-            background: var(--light-gray);
+            background: var(--white);
             padding: 1.5rem;
             border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            box-shadow: var(--shadow);
             text-align: center;
             transition: transform 0.3s ease;
-            border: 1px solid var(--border-color);
         }
         
         .stat-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            background: var(--white);
         }
         
         .stat-icon {
@@ -751,16 +704,23 @@
                 align-items: stretch;
             }
             
-            .device-dropdown {
+            .device-selector-dropdown {
                 min-width: auto;
                 width: 100%;
-            }
-            
-            .device-dropdown-trigger {
                 font-size: 16px; /* Verhindert Zoom auf iOS */
                 padding: 1.25rem 1.5rem;
+                border-radius: 16px;
+                font-weight: 600;
                 text-align: center;
-                border: 2px solid var(--border-color);
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+                background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234b5563' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+                background-repeat: no-repeat;
+                background-position: right 1.25rem center;
+                background-size: 1.25rem;
+                padding-right: 3.5rem;
+                letter-spacing: 0.025em;
             }
             
             .stats-overview {
@@ -1016,25 +976,12 @@
             <div id="errorMessage" class="error-message" style="display: none;"></div>
             
             <div id="dashboardContent" style="display: none;">
-            <!-- Modern Device Selector -->
-            <div class="device-selector-container" id="deviceSelectorHeader" style="display: none;">
-                <div class="device-dropdown" id="deviceDropdown">
-                    <button class="device-dropdown-trigger" id="deviceDropdownTrigger">
-                        <span class="device-dropdown-text" id="deviceDropdownText">Alle Geräte</span>
-                        <svg class="device-dropdown-icon" id="deviceDropdownIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="6,9 12,15 18,9"></polyline>
-                        </svg>
-                    </button>
-                    <div class="device-dropdown-menu" id="deviceDropdownMenu">
-                        <div class="device-dropdown-item" data-value="all">
-                            <svg class="device-dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                                <line x1="8" y1="21" x2="16" y2="21"></line>
-                                <line x1="12" y1="17" x2="12" y2="21"></line>
-                            </svg>
-                            <span class="device-dropdown-item-text">Alle Geräte</span>
-                        </div>
-                    </div>
+            <!-- Geräte-Auswahl -->
+            <div class="device-selector-header" id="deviceSelectorHeader" style="display: none;">
+                <div class="device-selector-container">
+                    <select id="deviceSelector" class="device-selector-dropdown">
+                        <option value="all">Alle Geräte</option>
+                    </select>
                 </div>
             </div>
 
@@ -1590,7 +1537,7 @@
             const deviceDropdownText = document.getElementById('deviceDropdownText');
             if (!deviceDropdownMenu || !deviceDropdownText) return;
             
-            // Lösche alle Items außer "Alle Geräte"
+            // Lösche alle Items und füge Standard-Optionen hinzu
             deviceDropdownMenu.innerHTML = `
                 <div class="device-dropdown-item" data-value="all">
                     <svg class="device-dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1608,9 +1555,18 @@
                 deviceItem.className = 'device-dropdown-item';
                 deviceItem.setAttribute('data-value', device.device_id);
                 
-                // Bestimme Icon basierend auf Geräte-ID oder Typ
+                // Bestimme Icon basierend auf Geräte-Typ
                 let iconSvg = '';
-                if (device.device_id.toLowerCase().includes('phone') || device.device_id.toLowerCase().includes('mobile')) {
+                if (device.is_original) {
+                    // Spezielles Icon für ursprüngliches Gerät
+                    iconSvg = `
+                        <svg class="device-dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                            <path d="M2 17l10 5 10-5"></path>
+                            <path d="M2 12l10 5 10-5"></path>
+                        </svg>
+                    `;
+                } else if (device.device_id.toLowerCase().includes('phone') || device.device_id.toLowerCase().includes('mobile')) {
                     iconSvg = `
                         <svg class="device-dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>

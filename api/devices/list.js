@@ -100,12 +100,33 @@ module.exports = async (req, res) => {
       });
     }
 
-    console.log('✅ Devices loaded successfully:', devices?.length || 0);
+    // Hole das ursprüngliche Gerät aus admin_users
+    const { data: adminUser, error: adminUserError } = await supabase
+      .from('admin_users')
+      .select('device_id')
+      .eq('id', adminUserId)
+      .single();
+
+    let allDevices = devices || [];
+    
+    // Füge das ursprüngliche Gerät hinzu, falls es nicht bereits in der Liste ist
+    if (adminUser?.device_id && !allDevices.some(device => device.device_id === adminUser.device_id)) {
+      console.log('📱 Adding original device to list:', adminUser.device_id);
+      allDevices.unshift({
+        device_id: adminUser.device_id,
+        device_name: adminUser.device_id,
+        last_active: null,
+        created_at: null,
+        is_original: true
+      });
+    }
+
+    console.log('✅ Devices loaded successfully:', allDevices.length);
 
     res.status(200).json({
       success: true,
-      devices: devices || [],
-      total_devices: devices?.length || 0
+      devices: allDevices,
+      total_devices: allDevices.length
     });
 
   } catch (error) {
