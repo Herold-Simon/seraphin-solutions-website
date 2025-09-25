@@ -1276,12 +1276,12 @@
                                 customDateRange.endDate = endDate.toISOString().split('T')[0];
                             } else {
                                 // Fallback zu 30 Tagen wenn keine Historie-Daten
-                                const today = new Date();
-                                const thirtyDaysAgo = new Date();
-                                thirtyDaysAgo.setDate(today.getDate() - 30);
-                                
-                                document.getElementById('endDate').value = today.toISOString().split('T')[0];
-                                document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+                        const today = new Date();
+                        const thirtyDaysAgo = new Date();
+                        thirtyDaysAgo.setDate(today.getDate() - 30);
+                        
+                        document.getElementById('endDate').value = today.toISOString().split('T')[0];
+                        document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
                                 
                                 customDateRange.startDate = thirtyDaysAgo.toISOString().split('T')[0];
                                 customDateRange.endDate = today.toISOString().split('T')[0];
@@ -1507,7 +1507,7 @@
                     console.log('📱 ===== STARTE GERÄTE-LADEN =====');
                     console.log('📱 Rufe loadDevices() auf...');
                     try {
-                        await loadDevices();
+                    await loadDevices();
                         console.log('📱 loadDevices() abgeschlossen');
                     } catch (error) {
                         console.error('❌ Fehler in loadDevices():', error);
@@ -1594,12 +1594,11 @@
                 if (response.ok) {
                     const data = await response.json();
                     console.log('📱 API Response Data:', data);
-                    console.log('📱 API Response Data Details:', JSON.stringify(data, null, 2));
                     if (data.success) {
                         devices = data.devices || [];
                         console.log('✅ Geräte geladen:', devices);
                         console.log('📊 Anzahl Geräte:', devices.length);
-                        console.log('📱 Geräte-Details:', devices.map(d => ({ id: d.device_id, is_original: d.is_original })));
+                        console.log('📱 Geräte-Details:', devices.map(d => ({ id: d.device_id, source: d.source })));
                         console.log('📱 ===== LOADDEVICES SUCCESS =====');
                         
                         // Prüfe ob das aktuell ausgewählte Gerät noch existiert (vor Dropdown-Setup)
@@ -1930,21 +1929,21 @@
                 
                 if (!isOriginalDevice) {
                     console.log('⚠️ Gerät ist nicht das ursprüngliche Gerät. Wechsle zu "Alle Geräte".');
-                    
-                    // Wechsle zu "Alle Geräte"
-                    selectedDeviceId = 'all';
-                    
-                    // Aktualisiere Dropdown
+                
+                // Wechsle zu "Alle Geräte"
+                selectedDeviceId = 'all';
+                
+                // Aktualisiere Dropdown
                     updateDeviceDropdownDisplay();
-                    
-                    // Lösche geräte-spezifische Statistiken
-                    deviceStatistics = null;
-                    
-                    // Aktualisiere Anzeige
-                    displayStatistics();
-                    updateCharts();
-                    
-                    console.log('✅ Automatisch zu "Alle Geräte" gewechselt');
+                
+                // Lösche geräte-spezifische Statistiken
+                deviceStatistics = null;
+                
+                // Aktualisiere Anzeige
+                displayStatistics();
+                updateCharts();
+                
+                console.log('✅ Automatisch zu "Alle Geräte" gewechselt');
                 } else {
                     console.log('✅ Ausgewähltes Gerät ist das ursprüngliche Gerät - behalte Auswahl bei');
                 }
@@ -2170,7 +2169,7 @@
             
             return Object.values(mergedVideos);
         }
-
+        
         // Liniendiagramm erstellen (wie in der App)
         function createLineChart() {
             const chartElement = document.getElementById('lineChart');
