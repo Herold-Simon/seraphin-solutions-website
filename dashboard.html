@@ -1504,9 +1504,11 @@
                     displayStatistics();
                     
                     // Lade Geräte-Liste nach displayStatistics
+                    console.log('📱 ===== STARTE GERÄTE-LADEN =====');
                     console.log('📱 Rufe loadDevices() auf...');
                     await loadDevices();
                     console.log('📱 loadDevices() abgeschlossen');
+                    console.log('📱 ===== GERÄTE-LADEN ABGESCHLOSSEN =====');
                     
                     hideLoading();
                     
@@ -1569,6 +1571,7 @@
         // Geräte laden
         async function loadDevices() {
             try {
+                console.log('📱 ===== LOADDEVICES START =====');
                 console.log('📱 Lade Geräte-Liste...');
                 console.log('📱 loadDevices() - selectedDeviceId vor Laden:', selectedDeviceId);
                 // Cache-Busting durch Timestamp hinzufügen
@@ -1581,11 +1584,14 @@
                 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('📱 API Response Status:', response.status);
+                    console.log('📱 API Response Data:', data);
                     if (data.success) {
                         devices = data.devices || [];
                         console.log('✅ Geräte geladen:', devices);
                         console.log('📊 Anzahl Geräte:', devices.length);
                         console.log('📱 Geräte-Details:', devices.map(d => ({ id: d.device_id, is_original: d.is_original })));
+                        console.log('📱 ===== LOADDEVICES SUCCESS =====');
                         
                         // Prüfe ob das aktuell ausgewählte Gerät noch existiert (vor Dropdown-Setup)
                         console.log('📱 Vor checkSelectedDeviceStillExists - selectedDeviceId:', selectedDeviceId);
