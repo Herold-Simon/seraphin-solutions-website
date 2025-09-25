@@ -168,6 +168,9 @@ module.exports = async (req, res) => {
     }
     
     console.log('📱 Final device list:', allDevices.map(d => ({ id: d.device_id, source: d.source })));
+    console.log('📱 Session devices count:', sessionDevices?.length || 0);
+    console.log('📱 Original device found:', !!adminUser?.device_id);
+    console.log('📱 Original device ID:', adminUser?.device_id);
     
     console.log('✅ Devices loaded successfully:', allDevices.length);
     console.log('📱 ===== API RESPONSE SENDING =====');
