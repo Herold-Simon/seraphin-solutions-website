@@ -179,15 +179,20 @@
 
         /* Modern Device Selector */
         .device-selector-container {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 2rem;
         }
         
         .device-dropdown {
             position: relative;
             min-width: 280px;
+            width: 100%;
         }
         
         .device-dropdown-trigger {
@@ -195,22 +200,22 @@
             align-items: center;
             justify-content: space-between;
             padding: 12px 16px;
-            background: #e3f2fd;
-            border: none;
-            border-radius: 12px;
+            background: var(--white);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s ease;
             font-size: 16px;
-            font-weight: 600;
-            color: #1976d2;
+            font-weight: 500;
+            color: var(--text-dark);
             min-height: 48px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100%;
         }
         
         .device-dropdown-trigger:hover {
-            background: #bbdefb;
+            border-color: var(--primary-blue);
             transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         
         .device-dropdown-trigger:active {
@@ -218,7 +223,8 @@
         }
         
         .device-dropdown-trigger.open {
-            border-radius: 12px 12px 0 0;
+            border-color: var(--primary-blue);
+            border-radius: 8px 8px 0 0;
         }
         
         .device-dropdown-text {
@@ -230,6 +236,7 @@
             width: 20px;
             height: 20px;
             transition: transform 0.2s ease;
+            color: var(--text-light);
         }
         
         .device-dropdown-icon.open {
@@ -241,9 +248,9 @@
             top: 100%;
             left: 0;
             right: 0;
-            background: white;
-            border-radius: 0 0 12px 12px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            background: var(--white);
+            border-radius: 0 0 8px 8px;
+            box-shadow: var(--shadow-lg);
             z-index: 1000;
             max-height: 300px;
             overflow-y: auto;
@@ -251,7 +258,8 @@
             visibility: hidden;
             transform: translateY(-10px);
             transition: all 0.2s ease;
-            border: 1px solid rgba(0, 0, 0, 0.1);
+            border: 2px solid var(--border-color);
+            border-top: none;
         }
         
         .device-dropdown-menu.open {
@@ -271,7 +279,7 @@
         
         .device-dropdown-item:last-child {
             border-bottom: none;
-            border-radius: 0 0 12px 12px;
+            border-radius: 0 0 6px 6px;
         }
         
         .device-dropdown-item:hover {
@@ -294,17 +302,17 @@
         }
         
         .device-dropdown-item.selected {
-            background: #e3f2fd;
-            color: #1976d2;
+            background: var(--light-gray);
+            color: var(--primary-blue);
         }
         
         .device-dropdown-item.selected .device-dropdown-item-text {
-            color: #1976d2;
+            color: var(--primary-blue);
             font-weight: 600;
         }
         
         .device-dropdown-item.selected .device-dropdown-item-icon {
-            color: #1976d2;
+            color: var(--primary-blue);
         }
         
 
@@ -747,6 +755,7 @@
                 font-size: 16px; /* Verhindert Zoom auf iOS */
                 padding: 1.25rem 1.5rem;
                 text-align: center;
+                border: 2px solid var(--border-color);
             }
             
             .stats-overview {
@@ -1642,36 +1651,57 @@
             const menu = document.getElementById('deviceDropdownMenu');
             const icon = document.getElementById('deviceDropdownIcon');
             
-            if (!trigger || !menu || !icon) return;
+            console.log('🔽 Setting up dropdown events - elements found:', { trigger: !!trigger, menu: !!menu, icon: !!icon });
+            
+            if (!trigger || !menu || !icon) {
+                console.error('🔽 Failed to setup dropdown events - missing elements');
+                return;
+            }
+            
+            // Remove existing event listeners to prevent duplicates
+            trigger.removeEventListener('click', handleTriggerClick);
+            menu.removeEventListener('click', handleMenuClick);
             
             // Toggle dropdown
-            trigger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isOpen = menu.classList.contains('open');
-                
-                if (isOpen) {
-                    closeDeviceDropdown();
-                } else {
-                    openDeviceDropdown();
-                }
-            });
+            trigger.addEventListener('click', handleTriggerClick);
             
             // Handle item selection
-            menu.addEventListener('click', (e) => {
-                const item = e.target.closest('.device-dropdown-item');
-                if (item) {
-                    const value = item.getAttribute('data-value');
-                    selectDevice(value);
-                    closeDeviceDropdown();
-                }
-            });
+            menu.addEventListener('click', handleMenuClick);
             
-            // Close dropdown when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.device-dropdown')) {
-                    closeDeviceDropdown();
-                }
-            });
+            // Close dropdown when clicking outside (only add once)
+            if (!document.hasDeviceDropdownOutsideListener) {
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.device-dropdown')) {
+                        closeDeviceDropdown();
+                    }
+                });
+                document.hasDeviceDropdownOutsideListener = true;
+            }
+        }
+        
+        // Separate event handler functions
+        function handleTriggerClick(e) {
+            e.stopPropagation();
+            console.log('🔽 Dropdown trigger clicked');
+            const menu = document.getElementById('deviceDropdownMenu');
+            const isOpen = menu.classList.contains('open');
+            
+            if (isOpen) {
+                console.log('🔽 Closing dropdown');
+                closeDeviceDropdown();
+            } else {
+                console.log('🔽 Opening dropdown');
+                openDeviceDropdown();
+            }
+        }
+        
+        function handleMenuClick(e) {
+            const item = e.target.closest('.device-dropdown-item');
+            if (item) {
+                const value = item.getAttribute('data-value');
+                selectDevice(value);
+                closeDeviceDropdown();
+            }
         }
         
         // Open device dropdown
@@ -1680,10 +1710,15 @@
             const menu = document.getElementById('deviceDropdownMenu');
             const icon = document.getElementById('deviceDropdownIcon');
             
+            console.log('🔽 Opening dropdown - elements found:', { trigger: !!trigger, menu: !!menu, icon: !!icon });
+            
             if (trigger && menu && icon) {
                 trigger.classList.add('open');
                 menu.classList.add('open');
                 icon.classList.add('open');
+                console.log('🔽 Dropdown opened successfully');
+            } else {
+                console.error('🔽 Failed to open dropdown - missing elements');
             }
         }
         
@@ -1693,10 +1728,15 @@
             const menu = document.getElementById('deviceDropdownMenu');
             const icon = document.getElementById('deviceDropdownIcon');
             
+            console.log('🔽 Closing dropdown - elements found:', { trigger: !!trigger, menu: !!menu, icon: !!icon });
+            
             if (trigger && menu && icon) {
                 trigger.classList.remove('open');
                 menu.classList.remove('open');
                 icon.classList.remove('open');
+                console.log('🔽 Dropdown closed successfully');
+            } else {
+                console.error('🔽 Failed to close dropdown - missing elements');
             }
         }
         
