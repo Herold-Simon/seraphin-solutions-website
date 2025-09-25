@@ -581,14 +581,61 @@
             messageContainer.style.display = 'block';
         }
 
-        // Enter Key Handling
-        document.addEventListener('keypress', function(e) {
+        // Enter Key Handling - Multiple approaches for maximum compatibility
+        document.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
-                const form = document.getElementById('loginForm');
-                if (form) {
-                    form.dispatchEvent(new Event('submit'));
+                const activeElement = document.activeElement;
+                const isInForm = activeElement && (
+                    activeElement.id === 'username' || 
+                    activeElement.id === 'password'
+                );
+                
+                if (isInForm) {
+                    console.log('Enter key pressed in form field, submitting form...');
+                    e.preventDefault();
+                    
+                    // Method 1: Direct form submission
+                    const form = document.getElementById('loginForm');
+                    if (form) {
+                        // Trigger the submit event
+                        const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+                        form.dispatchEvent(submitEvent);
+                    }
                 }
             }
+        });
+        
+        // Alternative: Handle Enter on individual input fields
+        document.addEventListener('DOMContentLoaded', function() {
+            const usernameField = document.getElementById('username');
+            const passwordField = document.getElementById('password');
+            
+            // Add Enter key listeners to input fields
+            [usernameField, passwordField].forEach(field => {
+                if (field) {
+                    field.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            console.log('Enter pressed in', field.id, 'field');
+                            e.preventDefault();
+                            
+                            // If in username field, move to password field
+                            if (field.id === 'username') {
+                                const passwordField = document.getElementById('password');
+                                if (passwordField) {
+                                    passwordField.focus();
+                                }
+                            } else {
+                                // If in password field, submit the form
+                                const form = document.getElementById('loginForm');
+                                if (form) {
+                                    const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+                                    form.dispatchEvent(submitEvent);
+                                }
+                            }
+                        }
+                    });
+                }
+            });
         });
 
         // Auto-focus on username field and load saved credentials
