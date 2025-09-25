@@ -123,6 +123,7 @@ module.exports = async (req, res) => {
 
     console.log('📱 Device sessions query result:', { devices, devicesError, adminUserId });
     console.log('📱 Number of devices from device_sessions:', devices?.length || 0);
+    console.log('📱 Devices from device_sessions:', devices?.map(d => d.device_id) || []);
 
     if (devicesError) {
       console.error('❌ Error loading devices:', devicesError);
@@ -152,6 +153,7 @@ module.exports = async (req, res) => {
       .not('device_id', 'is', null);
     
     console.log('📱 Statistics devices query result:', { statsDevices, statsDevicesError });
+    console.log('📱 Devices from statistics:', statsDevices?.map(s => s.device_id) || []);
     
     if (statsDevices && statsDevices.length > 0) {
       // Erstelle eine Liste aller eindeutigen Geräte-IDs aus den Statistiken

@@ -1630,6 +1630,7 @@
                     }
                 } else {
                     console.error('❌ Geräte-API Fehler:', response.status);
+                    console.error('❌ Geräte-API Response:', await response.text());
                     // Zeige Geräte-Selector auch bei API-Fehlern
                     const deviceSelectorHeader = document.getElementById('deviceSelectorHeader');
                     if (deviceSelectorHeader) {
