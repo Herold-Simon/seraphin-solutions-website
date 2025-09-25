@@ -125,6 +125,31 @@ module.exports = async (req, res) => {
       console.log('📱 Original device already in list:', adminUser.device_id);
     } else {
       console.log('⚠️ No original device found for admin user:', adminUserId);
+      
+      // Fallback: Versuche das ursprüngliche Gerät aus den Statistiken zu bekommen
+      console.log('📱 Trying to get original device from statistics');
+      
+      // Hole die neuesten Statistiken um die device_id zu bekommen
+      const { data: latestStats } = await supabase
+        .from('app_statistics')
+        .select('device_id')
+        .eq('admin_user_id', adminUserId)
+        .order('date', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (latestStats?.device_id && !allDevices.some(device => device.device_id === latestStats.device_id)) {
+        console.log('📱 Adding original device from statistics:', latestStats.device_id);
+        allDevices.unshift({
+          device_id: latestStats.device_id,
+          device_name: latestStats.device_id,
+          last_active: null,
+          created_at: null,
+          is_original: true
+        });
+      } else {
+        console.log('⚠️ Could not determine original device from statistics');
+      }
     }
 
     console.log('✅ Devices loaded successfully:', allDevices.length);
