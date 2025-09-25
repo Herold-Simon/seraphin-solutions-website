@@ -174,25 +174,73 @@ module.exports = async (req, res) => {
     }
     
     // Füge das ursprüngliche Gerät hinzu, falls es nicht bereits in der Liste ist
-    if (adminUser?.device_id && !allDevices.some(device => device.device_id === adminUser.device_id)) {
-      console.log('📱 Adding original device to list:', adminUser.device_id);
-      allDevices.unshift({
-        device_id: adminUser.device_id,
-        device_name: adminUser.device_id,
-        last_active: null,
-        created_at: null,
-        is_original: true
-      });
-    } else if (adminUser?.device_id) {
-      console.log('📱 Original device already in list:', adminUser.device_id);
-      // Markiere das ursprüngliche Gerät in der Liste
-      const originalDeviceIndex = allDevices.findIndex(device => device.device_id === adminUser.device_id);
-      if (originalDeviceIndex !== -1) {
-        allDevices[originalDeviceIndex].is_original = true;
+    console.log('📱 Processing original device logic...');
+    console.log('📱 Admin user device_id:', adminUser?.device_id);
+    console.log('📱 Current allDevices before original device processing:', allDevices.map(d => d.device_id));
+    
+    if (adminUser?.device_id) {
+      const originalDeviceExists = allDevices.some(device => device.device_id === adminUser.device_id);
+      console.log('📱 Original device exists in list:', originalDeviceExists);
+      
+      if (!originalDeviceExists) {
+        console.log('📱 Adding original device to list:', adminUser.device_id);
+        allDevices.unshift({
+          device_id: adminUser.device_id,
+          device_name: adminUser.device_id,
+          last_active: null,
+          created_at: null,
+          is_original: true
+        });
+      } else {
+        console.log('📱 Original device already in list, marking as original:', adminUser.device_id);
+        // Markiere das ursprüngliche Gerät in der Liste
+        const originalDeviceIndex = allDevices.findIndex(device => device.device_id === adminUser.device_id);
+        if (originalDeviceIndex !== -1) {
+          allDevices[originalDeviceIndex].is_original = true;
+          console.log('📱 Marked device at index', originalDeviceIndex, 'as original');
+        }
       }
     } else {
       console.log('⚠️ No original device found for admin user:', adminUserId);
+      console.log('⚠️ Admin user data:', adminUser);
+      console.log('⚠️ Admin user error:', adminUserError);
+      
+      // Fallback: Versuche das ursprüngliche Gerät aus den Statistiken zu bekommen
+      console.log('📱 Trying to get original device from statistics as fallback...');
+      
+      // Hole die ältesten Statistiken um die ursprüngliche device_id zu bekommen
+      const { data: oldestStats, error: oldestStatsError } = await supabase
+        .from('app_statistics')
+        .select('device_id, date')
+        .eq('admin_user_id', adminUserId)
+        .not('device_id', 'is', null)
+        .order('date', { ascending: true })
+        .limit(1)
+        .single();
+      
+      console.log('📱 Oldest statistics result:', { oldestStats, oldestStatsError });
+      
+      if (oldestStats?.device_id && !allDevices.some(device => device.device_id === oldestStats.device_id)) {
+        console.log('📱 Adding original device from oldest statistics:', oldestStats.device_id);
+        allDevices.unshift({
+          device_id: oldestStats.device_id,
+          device_name: oldestStats.device_id,
+          last_active: null,
+          created_at: null,
+          is_original: true
+        });
+      } else if (oldestStats?.device_id) {
+        console.log('📱 Original device from statistics already in list, marking as original:', oldestStats.device_id);
+        const originalDeviceIndex = allDevices.findIndex(device => device.device_id === oldestStats.device_id);
+        if (originalDeviceIndex !== -1) {
+          allDevices[originalDeviceIndex].is_original = true;
+        }
+      } else {
+        console.log('⚠️ Could not determine original device from statistics either');
+      }
     }
+    
+    console.log('📱 Final allDevices after original device processing:', allDevices.map(d => ({ id: d.device_id, is_original: d.is_original })));
 
     console.log('✅ Devices loaded successfully:', allDevices.length);
 
