@@ -177,102 +177,136 @@
             padding: 0 2rem 4rem;
         }
 
-        /* Geräte-Auswahl-Header */
-        .device-selector-header {
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            padding: 1.5rem 2rem;
-            border-radius: 20px;
-            box-shadow: 
-                0 4px 6px -1px rgba(0, 0, 0, 0.1),
-                0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            margin-bottom: 2rem;
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            backdrop-filter: blur(10px);
-        }
-        
+        /* Modern Device Selector */
         .device-selector-container {
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s ease;
+            margin-bottom: 2rem;
         }
         
-        .device-selector-header:hover {
-            transform: translateY(-1px);
-            box-shadow: 
-                0 8px 25px -5px rgba(0, 0, 0, 0.1),
-                0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        .device-dropdown {
+            position: relative;
+            min-width: 280px;
         }
         
-        .device-selector-dropdown {
-            padding: 1rem 1.25rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            font-size: 0.95rem;
-            color: #1e293b;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            min-width: 240px;
-            font-weight: 600;
-            box-shadow: 
-                0 1px 3px rgba(0, 0, 0, 0.1),
-                0 1px 2px rgba(0, 0, 0, 0.06);
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234b5563' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 1rem center;
-            background-size: 1.25rem;
-            padding-right: 3rem;
-            letter-spacing: 0.025em;
-        }
-        
-        .device-selector-dropdown:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 
-                0 0 0 4px rgba(59, 130, 246, 0.1),
-                0 4px 12px rgba(0, 0, 0, 0.15),
-                0 2px 4px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
-            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-        }
-        
-        .device-selector-dropdown:hover {
-            border-color: #94a3b8;
-            box-shadow: 
-                0 4px 12px rgba(0, 0, 0, 0.15),
-                0 2px 4px rgba(0, 0, 0, 0.1);
-            transform: translateY(-1px);
-            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-        }
-        
-        .device-selector-dropdown:active {
-            transform: translateY(0);
-            box-shadow: 
-                0 2px 4px rgba(0, 0, 0, 0.1),
-                0 1px 2px rgba(0, 0, 0, 0.06);
-        }
-        
-        .device-selector-dropdown option {
-            padding: 0.75rem 1rem;
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: #1e293b;
-            background: #ffffff;
+        .device-dropdown-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #e3f2fd;
             border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1976d2;
+            min-height: 48px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
-        .device-selector-dropdown option:hover {
-            background: #f1f5f9;
+        .device-dropdown-trigger:hover {
+            background: #bbdefb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
         
-        .device-selector-dropdown option:checked {
-            background: #3b82f6;
-            color: #ffffff;
+        .device-dropdown-trigger:active {
+            transform: translateY(0);
         }
+        
+        .device-dropdown-trigger.open {
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .device-dropdown-text {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .device-dropdown-icon {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.2s ease;
+        }
+        
+        .device-dropdown-icon.open {
+            transform: rotate(180deg);
+        }
+        
+        .device-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            max-height: 300px;
+            overflow-y: auto;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .device-dropdown-menu.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .device-dropdown-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .device-dropdown-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 12px 12px;
+        }
+        
+        .device-dropdown-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .device-dropdown-item-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            color: #9e9e9e;
+            flex-shrink: 0;
+        }
+        
+        .device-dropdown-item-text {
+            color: #424242;
+            font-size: 14px;
+            font-weight: 500;
+            flex: 1;
+        }
+        
+        .device-dropdown-item.selected {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .device-dropdown-item.selected .device-dropdown-item-text {
+            color: #1976d2;
+            font-weight: 600;
+        }
+        
+        .device-dropdown-item.selected .device-dropdown-item-icon {
+            color: #1976d2;
+        }
+        
 
         /* Statistiken-Karten im AdminPanel-Stil */
         .stats-overview {
@@ -704,23 +738,15 @@
                 align-items: stretch;
             }
             
-            .device-selector-dropdown {
+            .device-dropdown {
                 min-width: auto;
                 width: 100%;
+            }
+            
+            .device-dropdown-trigger {
                 font-size: 16px; /* Verhindert Zoom auf iOS */
                 padding: 1.25rem 1.5rem;
-                border-radius: 16px;
-                font-weight: 600;
                 text-align: center;
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                appearance: none;
-                background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234b5563' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
-                background-repeat: no-repeat;
-                background-position: right 1.25rem center;
-                background-size: 1.25rem;
-                padding-right: 3.5rem;
-                letter-spacing: 0.025em;
             }
             
             .stats-overview {
@@ -976,12 +1002,25 @@
             <div id="errorMessage" class="error-message" style="display: none;"></div>
             
             <div id="dashboardContent" style="display: none;">
-            <!-- Geräte-Auswahl -->
-            <div class="device-selector-header" id="deviceSelectorHeader" style="display: none;">
-                <div class="device-selector-container">
-                    <select id="deviceSelector" class="device-selector-dropdown">
-                        <option value="all">Alle Geräte</option>
-                    </select>
+            <!-- Modern Device Selector -->
+            <div class="device-selector-container" id="deviceSelectorHeader" style="display: none;">
+                <div class="device-dropdown" id="deviceDropdown">
+                    <button class="device-dropdown-trigger" id="deviceDropdownTrigger">
+                        <span class="device-dropdown-text" id="deviceDropdownText">Alle Geräte</span>
+                        <svg class="device-dropdown-icon" id="deviceDropdownIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6,9 12,15 18,9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="device-dropdown-menu" id="deviceDropdownMenu">
+                        <div class="device-dropdown-item" data-value="all">
+                            <svg class="device-dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                <line x1="8" y1="21" x2="16" y2="21"></line>
+                                <line x1="12" y1="17" x2="12" y2="21"></line>
+                            </svg>
+                            <span class="device-dropdown-item-text">Alle Geräte</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1132,6 +1171,9 @@
         document.addEventListener('DOMContentLoaded', async function() {
             await loadDashboard();
             setupNavigation();
+            
+            // Setup device dropdown events
+            setupDeviceDropdownEvents();
             
             // Zusätzliche Dropdown-Synchronisation nach dem Laden
             setTimeout(() => {
@@ -1528,34 +1570,165 @@
             }
         }
         
-        // Geräte-Dropdown befüllen
+        // Modern Device Dropdown befüllen
         function populateDeviceSelector() {
-            const deviceSelector = document.getElementById('deviceSelector');
-            if (!deviceSelector) return;
+            const deviceDropdownMenu = document.getElementById('deviceDropdownMenu');
+            const deviceDropdownText = document.getElementById('deviceDropdownText');
+            if (!deviceDropdownMenu || !deviceDropdownText) return;
             
-            // Lösche alle Optionen außer "Alle Geräte"
-            deviceSelector.innerHTML = '<option value="all">Alle Geräte</option>';
+            // Lösche alle Items außer "Alle Geräte"
+            deviceDropdownMenu.innerHTML = `
+                <div class="device-dropdown-item" data-value="all">
+                    <svg class="device-dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                    <span class="device-dropdown-item-text">Alle Geräte</span>
+                </div>
+            `;
             
             // Füge Geräte hinzu
             devices.forEach(device => {
-                const option = document.createElement('option');
-                option.value = device.device_id;
-                option.textContent = device.device_id;
-                deviceSelector.appendChild(option);
+                const deviceItem = document.createElement('div');
+                deviceItem.className = 'device-dropdown-item';
+                deviceItem.setAttribute('data-value', device.device_id);
+                
+                // Bestimme Icon basierend auf Geräte-ID oder Typ
+                let iconSvg = '';
+                if (device.device_id.toLowerCase().includes('phone') || device.device_id.toLowerCase().includes('mobile')) {
+                    iconSvg = `
+                        <svg class="device-dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                        </svg>
+                    `;
+                } else if (device.device_id.toLowerCase().includes('tablet')) {
+                    iconSvg = `
+                        <svg class="device-dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+                            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                        </svg>
+                    `;
+                } else {
+                    // Standard Desktop/Laptop Icon
+                    iconSvg = `
+                        <svg class="device-dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                            <line x1="12" y1="17" x2="12" y2="21"></line>
+                        </svg>
+                    `;
+                }
+                
+                deviceItem.innerHTML = `
+                    ${iconSvg}
+                    <span class="device-dropdown-item-text">${device.device_id}</span>
+                `;
+                deviceDropdownMenu.appendChild(deviceItem);
             });
             
             // Setze den korrekten Wert basierend auf selectedDeviceId
-            deviceSelector.value = selectedDeviceId;
+            updateDeviceDropdownDisplay();
             console.log('🔄 Dropdown-Wert gesetzt auf:', selectedDeviceId);
             
-            // Event Listener für Geräte-Wechsel
-            deviceSelector.addEventListener('change', onDeviceChange);
+            // Event Listener für Dropdown-Interaktionen
+            setupDeviceDropdownEvents();
         }
         
-        // Geräte-Wechsel Handler
-        async function onDeviceChange(event) {
-            selectedDeviceId = event.target.value;
+        // Modern Device Dropdown Events Setup
+        function setupDeviceDropdownEvents() {
+            const trigger = document.getElementById('deviceDropdownTrigger');
+            const menu = document.getElementById('deviceDropdownMenu');
+            const icon = document.getElementById('deviceDropdownIcon');
+            
+            if (!trigger || !menu || !icon) return;
+            
+            // Toggle dropdown
+            trigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = menu.classList.contains('open');
+                
+                if (isOpen) {
+                    closeDeviceDropdown();
+                } else {
+                    openDeviceDropdown();
+                }
+            });
+            
+            // Handle item selection
+            menu.addEventListener('click', (e) => {
+                const item = e.target.closest('.device-dropdown-item');
+                if (item) {
+                    const value = item.getAttribute('data-value');
+                    selectDevice(value);
+                    closeDeviceDropdown();
+                }
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.device-dropdown')) {
+                    closeDeviceDropdown();
+                }
+            });
+        }
+        
+        // Open device dropdown
+        function openDeviceDropdown() {
+            const trigger = document.getElementById('deviceDropdownTrigger');
+            const menu = document.getElementById('deviceDropdownMenu');
+            const icon = document.getElementById('deviceDropdownIcon');
+            
+            if (trigger && menu && icon) {
+                trigger.classList.add('open');
+                menu.classList.add('open');
+                icon.classList.add('open');
+            }
+        }
+        
+        // Close device dropdown
+        function closeDeviceDropdown() {
+            const trigger = document.getElementById('deviceDropdownTrigger');
+            const menu = document.getElementById('deviceDropdownMenu');
+            const icon = document.getElementById('deviceDropdownIcon');
+            
+            if (trigger && menu && icon) {
+                trigger.classList.remove('open');
+                menu.classList.remove('open');
+                icon.classList.remove('open');
+            }
+        }
+        
+        // Update dropdown display text
+        function updateDeviceDropdownDisplay() {
+            const deviceDropdownText = document.getElementById('deviceDropdownText');
+            const menu = document.getElementById('deviceDropdownMenu');
+            
+            if (!deviceDropdownText || !menu) return;
+            
+            // Remove selected class from all items
+            const items = menu.querySelectorAll('.device-dropdown-item');
+            items.forEach(item => item.classList.remove('selected'));
+            
+            // Find and highlight selected item
+            const selectedItem = menu.querySelector(`[data-value="${selectedDeviceId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('selected');
+                const text = selectedItem.querySelector('.device-dropdown-item-text').textContent;
+                deviceDropdownText.textContent = text;
+            } else {
+                deviceDropdownText.textContent = 'Alle Geräte';
+            }
+        }
+        
+        // Select device
+        async function selectDevice(deviceId) {
+            selectedDeviceId = deviceId;
             console.log('📱 Gerät gewechselt zu:', selectedDeviceId);
+            
+            // Update display
+            updateDeviceDropdownDisplay();
             
             // Lade geräte-spezifische Statistiken
             await loadDeviceStatistics();
@@ -1575,11 +1748,9 @@
         
         // Dropdown-Synchronisation sicherstellen
         function syncDeviceSelector() {
-            const deviceSelector = document.getElementById('deviceSelector');
-            if (deviceSelector && deviceSelector.value !== selectedDeviceId) {
-                console.log('🔄 Dropdown-Synchronisation: Setze Dropdown von', deviceSelector.value, 'auf', selectedDeviceId);
-                deviceSelector.value = selectedDeviceId;
-            }
+            // Update the display text to match selectedDeviceId
+            updateDeviceDropdownDisplay();
+            console.log('🔄 Dropdown-Synchronisation: Aktualisiere Anzeige für', selectedDeviceId);
         }
         
         // Prüfe ob das aktuell ausgewählte Gerät noch existiert
@@ -1599,10 +1770,7 @@
                 selectedDeviceId = 'all';
                 
                 // Aktualisiere Dropdown
-                const deviceSelector = document.getElementById('deviceSelector');
-                if (deviceSelector) {
-                    deviceSelector.value = 'all';
-                }
+                updateDeviceDropdownDisplay();
                 
                 // Lösche geräte-spezifische Statistiken
                 deviceStatistics = null;
