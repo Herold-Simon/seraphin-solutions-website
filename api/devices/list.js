@@ -107,6 +107,8 @@ module.exports = async (req, res) => {
       .eq('id', adminUserId)
       .single();
 
+    console.log('📱 Admin user query result:', { adminUser, adminUserError, adminUserId });
+
     let allDevices = devices || [];
     
     // Füge das ursprüngliche Gerät hinzu, falls es nicht bereits in der Liste ist
@@ -119,6 +121,10 @@ module.exports = async (req, res) => {
         created_at: null,
         is_original: true
       });
+    } else if (adminUser?.device_id) {
+      console.log('📱 Original device already in list:', adminUser.device_id);
+    } else {
+      console.log('⚠️ No original device found for admin user:', adminUserId);
     }
 
     console.log('✅ Devices loaded successfully:', allDevices.length);

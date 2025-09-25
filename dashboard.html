@@ -1543,6 +1543,7 @@
                         devices = data.devices || [];
                         console.log('✅ Geräte geladen:', devices);
                         console.log('📊 Anzahl Geräte:', devices.length);
+                        console.log('📱 Geräte-Details:', devices.map(d => ({ id: d.device_id, is_original: d.is_original })));
                         populateDeviceSelector();
                         
                         // Zeige Geräte-Selector wenn Geräte vorhanden sind
