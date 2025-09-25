@@ -189,34 +189,6 @@
             justify-content: center;
         }
         
-        /* Single Device Display */
-        .single-device-display {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            padding: 12px 16px;
-            background: var(--light-gray);
-            border-radius: 8px;
-            border: 2px solid var(--border-color);
-            min-height: 48px;
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        
-        .single-device-icon {
-            width: 20px;
-            height: 20px;
-            color: var(--primary-blue);
-            flex-shrink: 0;
-        }
-        
-        .single-device-text {
-            color: var(--text-dark);
-            font-size: 16px;
-            font-weight: 500;
-        }
         
         .device-dropdown {
             position: relative;
@@ -792,14 +764,6 @@
                 border: 2px solid var(--border-color);
             }
             
-            .single-device-display {
-                padding: 1rem 1.25rem;
-                font-size: 16px; /* Verhindert Zoom auf iOS */
-            }
-            
-            .single-device-text {
-                font-size: 16px; /* Verhindert Zoom auf iOS */
-            }
             
             .stats-overview {
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -1635,13 +1599,11 @@
                         // Synchronisiere Dropdown nach dem Befüllen
                         syncDeviceSelector();
                         
-                        // Setup Dropdown-Events nur bei mehreren Geräten (nach populateDeviceSelector)
-                        if (devices.length > 1) {
-                            // Kurze Verzögerung um sicherzustellen, dass das HTML vollständig wiederhergestellt ist
-                            setTimeout(() => {
-                                setupDeviceDropdownEvents();
-                            }, 100);
-                        }
+                        // Setup Dropdown-Events nach populateDeviceSelector
+                        // Kurze Verzögerung um sicherzustellen, dass das HTML vollständig wiederhergestellt ist
+                        setTimeout(() => {
+                            setupDeviceDropdownEvents();
+                        }, 100);
                     } else {
                         console.error('❌ Fehler beim Laden der Geräte:', data.error);
                         // Zeige Geräte-Selector auch bei Fehlern, falls Geräte vorhanden sein könnten
@@ -1688,30 +1650,8 @@
                 return;
             }
             
-            // Wenn nur ein Gerät vorhanden ist, zeige nur die Geräte-ID an
-            if (devices.length === 1) {
-                const singleDevice = devices[0];
-                console.log('📱 Nur ein Gerät vorhanden, zeige Geräte-ID an:', singleDevice.device_id);
-                
-                // Ersetze das Dropdown mit einfacher Anzeige
-                deviceSelectorHeader.innerHTML = `
-                    <div class="single-device-display">
-                        <svg class="single-device-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                            <line x1="8" y1="21" x2="16" y2="21"></line>
-                            <line x1="12" y1="17" x2="12" y2="21"></line>
-                        </svg>
-                        <span class="single-device-text">Gerät: ${singleDevice.device_id}</span>
-                    </div>
-                `;
-                
-                // Setze das ausgewählte Gerät
-                selectedDeviceId = singleDevice.device_id;
-                return;
-            }
-            
-            // Mehrere Geräte vorhanden - zeige normales Dropdown
-            console.log('📱 Mehrere Geräte vorhanden, zeige Dropdown an');
+            // Zeige immer das Dropdown an, unabhängig von der Anzahl der Geräte
+            console.log('📱 Zeige Dropdown an für', devices.length, 'Geräte');
             console.log('📱 Aktuelle devices:', devices.map(d => d.device_id));
             
             // Stelle das normale Dropdown-HTML wieder her
@@ -1920,10 +1860,8 @@
             selectedDeviceId = deviceId;
             console.log('📱 Gerät gewechselt zu:', selectedDeviceId);
             
-            // Update display nur bei mehreren Geräten
-            if (devices.length > 1) {
-                updateDeviceDropdownDisplay();
-            }
+            // Update display
+            updateDeviceDropdownDisplay();
             
             // Lade geräte-spezifische Statistiken
             await loadDeviceStatistics();
@@ -1940,12 +1878,6 @@
         
         // Dropdown-Synchronisation sicherstellen
         function syncDeviceSelector() {
-            // Wenn nur ein Gerät vorhanden ist, ist keine Synchronisation nötig
-            if (devices.length === 1) {
-                console.log('🔄 Einzelnes Gerät - keine Dropdown-Synchronisation nötig');
-                return;
-            }
-            
             // Update the display text to match selectedDeviceId
             updateDeviceDropdownDisplay();
             console.log('🔄 Dropdown-Synchronisation: Aktualisiere Anzeige für', selectedDeviceId);
