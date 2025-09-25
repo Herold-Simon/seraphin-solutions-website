@@ -1592,13 +1592,16 @@
                             deviceSelectorHeader.style.display = shouldShow ? 'block' : 'none';
                         }
                         
-                        // Setup Dropdown-Events nur bei mehreren Geräten
-                        if (devices.length > 1) {
-                            setupDeviceDropdownEvents();
-                        }
-                        
                         // Synchronisiere Dropdown nach dem Befüllen
                         syncDeviceSelector();
+                        
+                        // Setup Dropdown-Events nur bei mehreren Geräten (nach populateDeviceSelector)
+                        if (devices.length > 1) {
+                            // Kurze Verzögerung um sicherzustellen, dass das HTML vollständig wiederhergestellt ist
+                            setTimeout(() => {
+                                setupDeviceDropdownEvents();
+                            }, 100);
+                        }
                         
                         // Prüfe ob das aktuell ausgewählte Gerät noch existiert
                         checkSelectedDeviceStillExists();
@@ -1635,7 +1638,18 @@
             const deviceDropdown = document.getElementById('deviceDropdown');
             const deviceSelectorHeader = document.getElementById('deviceSelectorHeader');
             
-            if (!deviceDropdownMenu || !deviceDropdownText || !deviceDropdown || !deviceSelectorHeader) return;
+            console.log('🔧 populateDeviceSelector - Elemente gefunden:', {
+                deviceDropdownMenu: !!deviceDropdownMenu,
+                deviceDropdownText: !!deviceDropdownText,
+                deviceDropdown: !!deviceDropdown,
+                deviceSelectorHeader: !!deviceSelectorHeader,
+                devicesLength: devices.length
+            });
+            
+            if (!deviceSelectorHeader) {
+                console.error('❌ deviceSelectorHeader nicht gefunden');
+                return;
+            }
             
             // Wenn nur ein Gerät vorhanden ist, zeige nur die Geräte-ID an
             if (devices.length === 1) {
@@ -1661,6 +1675,7 @@
             
             // Mehrere Geräte vorhanden - zeige normales Dropdown
             console.log('📱 Mehrere Geräte vorhanden, zeige Dropdown an');
+            console.log('📱 Aktuelle devices:', devices.map(d => d.device_id));
             
             // Stelle das normale Dropdown-HTML wieder her
             deviceSelectorHeader.innerHTML = `
@@ -1687,6 +1702,11 @@
             // Hole die neuen Elemente nach dem HTML-Update
             const newDeviceDropdownMenu = document.getElementById('deviceDropdownMenu');
             const newDeviceDropdownText = document.getElementById('deviceDropdownText');
+            
+            console.log('🔧 Nach HTML-Update - Neue Elemente gefunden:', {
+                newDeviceDropdownMenu: !!newDeviceDropdownMenu,
+                newDeviceDropdownText: !!newDeviceDropdownText
+            });
             
             if (!newDeviceDropdownMenu || !newDeviceDropdownText) {
                 console.error('❌ Fehler beim Wiederherstellen des Dropdown-HTML');
