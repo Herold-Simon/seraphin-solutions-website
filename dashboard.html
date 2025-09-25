@@ -1784,11 +1784,8 @@
             // Aktualisiere Charts
             updateCharts();
             
-            // Lade Geräte-Liste neu (falls Geräte ausgeloggt wurden)
-            await loadDevices();
-            
-            // Synchronisiere Dropdown nach dem Laden
-            syncDeviceSelector();
+            // Kein Neuladen der Geräte-Liste nach Auswahl, um Dropdown-Stabilität zu gewährleisten
+            console.log('✅ Geräte-Auswahl abgeschlossen ohne Neuladen der Geräte-Liste');
         }
         
         // Dropdown-Synchronisation sicherstellen
@@ -1808,23 +1805,35 @@
             // Prüfe ob das ausgewählte Gerät noch in der Geräte-Liste existiert
             const deviceExists = devices.some(device => device.device_id === selectedDeviceId);
             
+            // Wenn das Gerät nicht gefunden wird, aber es das ursprüngliche Gerät sein könnte,
+            // dann nicht automatisch zu "Alle Geräte" wechseln
             if (!deviceExists) {
-                console.log('⚠️ Ausgewähltes Gerät', selectedDeviceId, 'existiert nicht mehr. Wechsle zu "Alle Geräte".');
+                console.log('⚠️ Ausgewähltes Gerät', selectedDeviceId, 'nicht in aktueller Geräte-Liste gefunden');
+                console.log('📱 Verfügbare Geräte:', devices.map(d => d.device_id));
                 
-                // Wechsle zu "Alle Geräte"
-                selectedDeviceId = 'all';
+                // Prüfe ob es sich um das ursprüngliche Gerät handelt
+                const isOriginalDevice = devices.some(device => device.is_original && device.device_id === selectedDeviceId);
                 
-                // Aktualisiere Dropdown
-                updateDeviceDropdownDisplay();
-                
-                // Lösche geräte-spezifische Statistiken
-                deviceStatistics = null;
-                
-                // Aktualisiere Anzeige
-                displayStatistics();
-                updateCharts();
-                
-                console.log('✅ Automatisch zu "Alle Geräte" gewechselt');
+                if (!isOriginalDevice) {
+                    console.log('⚠️ Gerät ist nicht das ursprüngliche Gerät. Wechsle zu "Alle Geräte".');
+                    
+                    // Wechsle zu "Alle Geräte"
+                    selectedDeviceId = 'all';
+                    
+                    // Aktualisiere Dropdown
+                    updateDeviceDropdownDisplay();
+                    
+                    // Lösche geräte-spezifische Statistiken
+                    deviceStatistics = null;
+                    
+                    // Aktualisiere Anzeige
+                    displayStatistics();
+                    updateCharts();
+                    
+                    console.log('✅ Automatisch zu "Alle Geräte" gewechselt');
+                } else {
+                    console.log('✅ Ausgewähltes Gerät ist das ursprüngliche Gerät - behalte Auswahl bei');
+                }
             }
         }
         
