@@ -125,6 +125,22 @@ module.exports = async (req, res) => {
 
     console.log('📱 Active session devices:', activeDevices?.map(d => d.device_id) || []);
 
+    // 1.5. Falls keine aktiven Sessions, hole alle Geräte aus device_sessions (auch inaktive)
+    let allSessionDevices = activeDevices;
+    if (!activeDevices || activeDevices.length === 0) {
+      console.log('📱 No active sessions found, checking all device sessions...');
+      const { data: allDevicesFromSessions, error: allSessionError } = await supabase
+        .from('device_sessions')
+        .select('device_id, device_name, last_active, created_at, is_active')
+        .eq('admin_user_id', adminUserId)
+        .order('last_active', { ascending: false });
+      
+      if (!allSessionError && allDevicesFromSessions) {
+        allSessionDevices = allDevicesFromSessions;
+        console.log('📱 All session devices (including inactive):', allDevicesFromSessions.map(d => d.device_id));
+      }
+    }
+
     // 2. Hole zusätzlich alle Geräte aus Statistiken (falls Sessions nicht vollständig sind)
     const { data: statsDevices, error: statsError } = await supabase
       .from('app_statistics')
@@ -149,22 +165,22 @@ module.exports = async (req, res) => {
     let allDevices = [];
     let deviceIds = new Set(); // Verhindere Duplikate
     
-    // ZUERST: Füge alle aktiven Geräte-Sessions hinzu (höchste Priorität)
-    if (activeDevices && activeDevices.length > 0) {
-      activeDevices.forEach(device => {
+    // ZUERST: Füge alle Geräte-Sessions hinzu (höchste Priorität)
+    if (allSessionDevices && allSessionDevices.length > 0) {
+      allSessionDevices.forEach(device => {
         if (!deviceIds.has(device.device_id)) {
           allDevices.push({
             device_id: device.device_id,
             device_name: device.device_name || device.device_id,
             last_active: device.last_active,
             created_at: device.created_at,
-            source: 'active_session',
-            is_active: true
+            source: device.is_active ? 'active_session' : 'inactive_session',
+            is_active: device.is_active
           });
           deviceIds.add(device.device_id);
         }
       });
-      console.log('📱 Added active session devices:', activeDevices.length);
+      console.log('📱 Added session devices:', allSessionDevices.length, '(active:', allSessionDevices.filter(d => d.is_active).length, ')');
     }
     
     // ZWEITENS: Füge Geräte aus Statistiken hinzu (falls noch nicht vorhanden)

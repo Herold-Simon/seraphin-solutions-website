@@ -55,9 +55,11 @@ module.exports = async function handler(req, res) {
             return res.status(404).json({ error: 'Admin-Benutzer nicht gefunden' });
         }
 
-        // Aktualisiere Geräte-ID falls vorhanden
+        // Aktualisiere Geräte-ID und Geräte-Session falls vorhanden
         if (device_id) {
-            console.log('📱 Updating device ID for admin user:', admin_user_id, 'to:', device_id);
+            console.log('📱 Updating device ID and session for admin user:', admin_user_id, 'device:', device_id);
+            
+            // 1. Aktualisiere device_id in admin_users
             const { error: deviceUpdateError } = await supabase
                 .from('admin_users')
                 .update({ device_id: device_id })
@@ -67,6 +69,22 @@ module.exports = async function handler(req, res) {
                 console.error('❌ Error updating device ID:', deviceUpdateError);
             } else {
                 console.log('✅ Device ID updated successfully');
+            }
+            
+            // 2. Aktualisiere oder erstelle Geräte-Session (dauerhaft speichern)
+            console.log('📱 Updating device session for persistent storage...');
+            const { data: sessionData, error: sessionError } = await supabase
+                .rpc('update_device_activity', {
+                    p_admin_user_id: admin_user_id,
+                    p_device_id: device_id,
+                    p_device_name: `Device ${device_id.substring(0, 8)}`
+                });
+
+            if (sessionError) {
+                console.error('❌ Error updating device session:', sessionError);
+                // Nicht kritisch, weiter mit Synchronisierung
+            } else {
+                console.log('✅ Device session updated successfully for persistent storage');
             }
         }
 
