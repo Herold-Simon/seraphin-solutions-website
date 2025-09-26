@@ -1266,8 +1266,13 @@
                                 const endDate = new Date(sortedDates[sortedDates.length - 1]);
                                 endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
                                 
-                                document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
-                                document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
+                                // Setze die Eingabefelder auf den "Gesamter Zeitraum"-Zeitraum
+                                const startDateInput = document.getElementById('startDate');
+                                const endDateInput = document.getElementById('endDate');
+                                if (startDateInput && endDateInput) {
+                                    startDateInput.value = startDate.toISOString().split('T')[0];
+                                    endDateInput.value = endDate.toISOString().split('T')[0];
+                                }
                                 
                                 // Setze auch die customDateRange Objekte
                                 customDateRange.startDate = startDate.toISOString().split('T')[0];
@@ -1363,18 +1368,39 @@
             const resetDateBtn = document.getElementById('resetDateBtn');
             if (resetDateBtn) {
                 resetDateBtn.addEventListener('click', function() {
-                    // Setze Standard-Zeitraum (letzte 30 Tage)
-                    const today = new Date();
-                    const thirtyDaysAgo = new Date();
-                    thirtyDaysAgo.setDate(today.getDate() - 30);
-                    
-                    // Aktualisiere die Eingabefelder
-                    startDateInput.value = thirtyDaysAgo.toISOString().split('T')[0];
-                    endDateInput.value = today.toISOString().split('T')[0];
-                    
-                    // Aktualisiere die benutzerdefinierten Datumsbereiche
-                    customDateRange.startDate = startDateInput.value;
-                    customDateRange.endDate = endDateInput.value;
+                    // Setze Standard-Zeitraum basierend auf "Gesamter Zeitraum"
+                    const history = statistics?.history || [];
+                    if (history && history.length > 0) {
+                        // Sortiere Daten chronologisch
+                        const sortedDates = history
+                            .map(item => new Date(item.date))
+                            .sort((a, b) => a - b);
+                        
+                        // Verwende den gleichen Zeitraum wie "Gesamter Zeitraum"
+                        const startDate = new Date(sortedDates[0]);
+                        startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
+                        const endDate = new Date(sortedDates[sortedDates.length - 1]);
+                        endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
+                        
+                        // Aktualisiere die Eingabefelder
+                        startDateInput.value = startDate.toISOString().split('T')[0];
+                        endDateInput.value = endDate.toISOString().split('T')[0];
+                        
+                        // Aktualisiere die benutzerdefinierten Datumsbereiche
+                        customDateRange.startDate = startDateInput.value;
+                        customDateRange.endDate = endDateInput.value;
+                    } else {
+                        // Fallback zu letzte 30 Tage wenn keine Historie verfügbar
+                        const today = new Date();
+                        const thirtyDaysAgo = new Date();
+                        thirtyDaysAgo.setDate(today.getDate() - 30);
+                        
+                        startDateInput.value = thirtyDaysAgo.toISOString().split('T')[0];
+                        endDateInput.value = today.toISOString().split('T')[0];
+                        
+                        customDateRange.startDate = startDateInput.value;
+                        customDateRange.endDate = endDateInput.value;
+                    }
                     
                     // Aktualisiere die Charts
                     updateCharts();
@@ -3034,23 +3060,16 @@
             } else if (timeRange === 'custom') {
                 // Benutzerdefinierter Zeitraum
                 if (!customDateRange.startDate || !customDateRange.endDate) {
-                    // Fallback zu 30 Tagen wenn keine benutzerdefinierten Daten
-                    const lastDate = new Date(sortedDates[sortedDates.length - 1]);
-                    const startDate = new Date(lastDate);
-                    startDate.setDate(lastDate.getDate() - 29);
-                    
-                    const extendedTimePoints = [];
-                    const currentDate = new Date(startDate);
-                    while (currentDate <= lastDate) {
-                        const dateString = currentDate.toISOString().split('T')[0];
-                        extendedTimePoints.push(dateString);
-                        currentDate.setDate(currentDate.getDate() + 1);
-                    }
+                    // Fallback: Verwende den gleichen Zeitraum wie "Gesamter Zeitraum"
+                    const startDate = new Date(sortedDates[0]);
+                    startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
+                    const endDate = new Date(sortedDates[sortedDates.length - 1]);
+                    endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
                     
                     return {
                         startDate: startDate,
-                        timePoints: extendedTimePoints,
-                        addEndOffset: false
+                        timePoints: sortedDates,
+                        addEndOffset: true
                     };
                 }
                 
