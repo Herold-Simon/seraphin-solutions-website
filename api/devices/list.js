@@ -113,27 +113,28 @@ module.exports = async (req, res) => {
     }
     console.log('Devices API - Loading devices for admin_user_id:', adminUserId);
 
-    // NEUE LOGIK: Sammle alle Geräte aus verschiedenen Quellen
+    // VERBESSERTE LOGIK: Hole direkt alle aktiven Geräte aus der Datenbank
     
-    // 1. Hole alle Geräte aus den Statistiken (das ist die zuverlässigste Quelle)
+    // 1. Hole alle aktiven Geräte-Sessions (eingeloggte Geräte)
+    const { data: activeDevices, error: sessionError } = await supabase
+      .from('device_sessions')
+      .select('device_id, device_name, last_active, created_at, is_active')
+      .eq('admin_user_id', adminUserId)
+      .eq('is_active', true)
+      .order('last_active', { ascending: false });
+
+    console.log('📱 Active session devices:', activeDevices?.map(d => d.device_id) || []);
+
+    // 2. Hole zusätzlich alle Geräte aus Statistiken (falls Sessions nicht vollständig sind)
     const { data: statsDevices, error: statsError } = await supabase
       .from('app_statistics')
       .select('device_id, date')
       .eq('admin_user_id', adminUserId)
       .not('device_id', 'is', null)
-      .order('date', { ascending: true });
+      .order('date', { ascending: false })
+      .limit(50); // Begrenze auf die neuesten 50 Einträge
 
     console.log('📱 Statistics devices:', statsDevices?.map(s => s.device_id) || []);
-
-    // 2. Hole alle aktiven Geräte aus device_sessions (eingeloggte Geräte)
-    const { data: sessionDevices, error: sessionError } = await supabase
-      .from('device_sessions')
-      .select('device_id, device_name, last_active, created_at')
-      .eq('admin_user_id', adminUserId)
-      .eq('is_active', true)
-      .order('last_active', { ascending: false });
-
-    console.log('📱 Session devices:', sessionDevices?.map(d => d.device_id) || []);
 
     // 3. Hole das ursprüngliche Gerät aus admin_users
     const { data: adminUser, error: adminUserError } = await supabase
@@ -144,49 +145,85 @@ module.exports = async (req, res) => {
 
     console.log('📱 Original device from admin_users:', adminUser?.device_id);
 
-    // 4. Erstelle eine einheitliche Geräte-Liste
+    // 4. Erstelle eine einheitliche Geräte-Liste - PRIORISIERE AKTIVE SESSIONS
     let allDevices = [];
+    let deviceIds = new Set(); // Verhindere Duplikate
     
-    // Füge alle Geräte aus Statistiken hinzu
+    // ZUERST: Füge alle aktiven Geräte-Sessions hinzu (höchste Priorität)
+    if (activeDevices && activeDevices.length > 0) {
+      activeDevices.forEach(device => {
+        if (!deviceIds.has(device.device_id)) {
+          allDevices.push({
+            device_id: device.device_id,
+            device_name: device.device_name || device.device_id,
+            last_active: device.last_active,
+            created_at: device.created_at,
+            source: 'active_session',
+            is_active: true
+          });
+          deviceIds.add(device.device_id);
+        }
+      });
+      console.log('📱 Added active session devices:', activeDevices.length);
+    }
+    
+    // ZWEITENS: Füge Geräte aus Statistiken hinzu (falls noch nicht vorhanden)
     if (statsDevices && statsDevices.length > 0) {
       const uniqueStatsDevices = [...new Set(statsDevices.map(s => s.device_id))];
-      console.log('📱 Unique statistics devices:', uniqueStatsDevices);
-      
       uniqueStatsDevices.forEach(deviceId => {
-        // Finde zusätzliche Infos aus sessionDevices falls verfügbar
-        const sessionDevice = sessionDevices?.find(s => s.device_id === deviceId);
-        
-        allDevices.push({
-          device_id: deviceId,
-          device_name: sessionDevice?.device_name || deviceId,
-          last_active: sessionDevice?.last_active || null,
-          created_at: sessionDevice?.created_at || null,
-          source: sessionDevice ? 'session' : 'statistics'
-        });
+        if (!deviceIds.has(deviceId)) {
+          allDevices.push({
+            device_id: deviceId,
+            device_name: deviceId,
+            last_active: null,
+            created_at: null,
+            source: 'statistics',
+            is_active: false
+          });
+          deviceIds.add(deviceId);
+        }
       });
+      console.log('📱 Added statistics devices:', uniqueStatsDevices.length);
     }
     
-    // Füge das ursprüngliche Gerät hinzu (falls nicht bereits vorhanden)
-    if (adminUser?.device_id) {
-      const originalExists = allDevices.some(device => device.device_id === adminUser.device_id);
-      if (!originalExists) {
-        allDevices.push({
-          device_id: adminUser.device_id,
-          device_name: adminUser.device_id,
-          last_active: null,
-          created_at: null,
-          source: 'original'
-        });
-        console.log('📱 Added original device:', adminUser.device_id);
-      } else {
-        console.log('📱 Original device already in list:', adminUser.device_id);
+    // DRITTENS: Füge das ursprüngliche Gerät hinzu (falls noch nicht vorhanden)
+    if (adminUser?.device_id && !deviceIds.has(adminUser.device_id)) {
+      allDevices.push({
+        device_id: adminUser.device_id,
+        device_name: adminUser.device_id,
+        last_active: null,
+        created_at: null,
+        source: 'original',
+        is_active: false
+      });
+      deviceIds.add(adminUser.device_id);
+      console.log('📱 Added original device:', adminUser.device_id);
+    }
+    
+    // Sortiere Geräte: Aktive Sessions zuerst, dann nach letzter Aktivität
+    allDevices.sort((a, b) => {
+      // Aktive Sessions haben höchste Priorität
+      if (a.is_active && !b.is_active) return -1;
+      if (!a.is_active && b.is_active) return 1;
+      
+      // Dann nach letzter Aktivität
+      if (a.last_active && b.last_active) {
+        return new Date(b.last_active) - new Date(a.last_active);
       }
-    }
+      if (a.last_active && !b.last_active) return -1;
+      if (!a.last_active && b.last_active) return 1;
+      
+      return 0;
+    });
     
-    console.log('📱 Final device list:', allDevices.map(d => ({ id: d.device_id, source: d.source })));
-    console.log('📱 Session devices count:', sessionDevices?.length || 0);
-    console.log('📱 Original device found:', !!adminUser?.device_id);
-    console.log('📱 Original device ID:', adminUser?.device_id);
+    console.log('📱 Final device list:', allDevices.map(d => ({ 
+      id: d.device_id, 
+      source: d.source, 
+      is_active: d.is_active,
+      last_active: d.last_active 
+    })));
+    console.log('📱 Total devices found:', allDevices.length);
+    console.log('📱 Active devices:', allDevices.filter(d => d.is_active).length);
     
     console.log('✅ Devices loaded successfully:', allDevices.length);
     console.log('📱 ===== API RESPONSE SENDING =====');
