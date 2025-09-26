@@ -1178,10 +1178,11 @@
             lineRaceChart: true
         };
         
-        // Device selector variables
+        // Device selector variables - NEUE EINFACHE IMPLEMENTIERUNG
         let devices = [];
         let selectedDeviceId = 'all';
         let deviceStatistics = null;
+        let isLoadingDevices = false;
         
         // Dashboard initialisieren
         document.addEventListener('DOMContentLoaded', async function() {
@@ -1191,10 +1192,7 @@
             // Setup device dropdown events wird jetzt in loadDevices() aufgerufen
             // setupDeviceDropdownEvents();
             
-            // Zusätzliche Dropdown-Synchronisation nach dem Laden
-            setTimeout(() => {
-                syncDeviceSelector();
-            }, 500);
+            // Entfernt: syncDeviceSelector nicht mehr benötigt
         });
         
         // Navigation einrichten
@@ -1572,149 +1570,69 @@
             }
         }
         
-        // Geräte laden
+        // NEUE EINFACHE GERÄTE-LADUNG
         async function loadDevices() {
+            if (isLoadingDevices) {
+                console.log('📱 Geräte werden bereits geladen, überspringe...');
+                return;
+            }
+            
+            isLoadingDevices = true;
+            
             try {
-                console.log('📱 ===== LOADDEVICES START =====');
                 console.log('📱 Lade Geräte-Liste...');
-                console.log('📱 loadDevices() - selectedDeviceId vor Laden:', selectedDeviceId);
-                // Cache-Busting durch Timestamp hinzufügen
-                const timestamp = new Date().getTime();
-                console.log('📱 Fetching devices from API with timestamp:', timestamp);
-                const response = await fetch(`/api/devices/list?_t=${timestamp}`, {
+                const response = await fetch('/api/devices/list', {
                     method: 'GET',
-                    credentials: 'include',
-                    cache: 'no-cache'
+                    credentials: 'include'
                 });
-                console.log('📱 API fetch completed, response received');
-                
-                console.log('📱 API Response Status:', response.status);
-                console.log('📱 API Response OK:', response.ok);
                 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('📱 API Response Data:', data);
-                    if (data.success) {
-                        devices = data.devices || [];
-                        console.log('✅ Geräte geladen:', devices);
-                        console.log('📊 Anzahl Geräte:', devices.length);
-                        console.log('📱 Geräte-Details:', devices.map(d => ({ id: d.device_id, source: d.source })));
-                        console.log('📱 Geräte für Dropdown:', devices.map(d => d.device_id));
-                        console.log('📱 ===== LOADDEVICES SUCCESS =====');
+                    if (data.success && data.devices) {
+                        devices = data.devices;
+                        console.log('📱 Geräte geladen:', devices.length);
                         
-                        // Prüfe ob das aktuell ausgewählte Gerät noch existiert (vor Dropdown-Setup)
-                        console.log('📱 Vor checkSelectedDeviceStillExists - selectedDeviceId:', selectedDeviceId);
-                        checkSelectedDeviceStillExists();
-                        console.log('📱 Nach checkSelectedDeviceStillExists - selectedDeviceId:', selectedDeviceId);
-                        
-                        // Jetzt das Dropdown basierend auf der validierten selectedDeviceId einrichten
-                        console.log('📱 Rufe populateDeviceSelector() auf mit devices.length:', devices.length);
+                        // Dropdown befüllen
                         populateDeviceSelector();
                         
-                        // Zeige Geräte-Selector wenn Geräte vorhanden sind
+                        // Zeige/verstecke Geräte-Selector
                         const deviceSelectorHeader = document.getElementById('deviceSelectorHeader');
                         if (deviceSelectorHeader) {
-                            const shouldShow = devices.length > 0;
-                            console.log('🔍 Zeige Geräte-Selector:', shouldShow);
-                            deviceSelectorHeader.style.display = shouldShow ? 'block' : 'none';
+                            deviceSelectorHeader.style.display = devices.length > 0 ? 'block' : 'none';
                         }
-                        
-                        // Synchronisiere Dropdown nach dem Befüllen
-                        syncDeviceSelector();
-                        
-                        // Setup Dropdown-Events nach populateDeviceSelector
-                        // Kurze Verzögerung um sicherzustellen, dass das HTML vollständig wiederhergestellt ist
-                        setTimeout(() => {
-                            setupDeviceDropdownEvents();
-                        }, 100);
                     } else {
                         console.error('❌ Fehler beim Laden der Geräte:', data.error);
-                        // Zeige Geräte-Selector auch bei Fehlern, falls Geräte vorhanden sein könnten
-                        const deviceSelectorHeader = document.getElementById('deviceSelectorHeader');
-                        if (deviceSelectorHeader) {
-                            deviceSelectorHeader.style.display = 'block';
-                        }
+                        devices = [];
                     }
                 } else {
-                    console.error('❌ Geräte-API Fehler:', response.status);
-                    console.error('❌ Geräte-API Response:', await response.text());
-                    // Zeige Geräte-Selector auch bei API-Fehlern
-                    const deviceSelectorHeader = document.getElementById('deviceSelectorHeader');
-                    if (deviceSelectorHeader) {
-                        deviceSelectorHeader.style.display = 'block';
-                    }
+                    console.error('❌ API-Fehler beim Laden der Geräte:', response.status);
+                    devices = [];
                 }
             } catch (error) {
                 console.error('❌ Fehler beim Laden der Geräte:', error);
-                console.error('❌ Fehler-Details:', error.message);
-                console.error('❌ Fehler-Stack:', error.stack);
-                // Zeige Geräte-Selector auch bei Verbindungsfehlern
-                const deviceSelectorHeader = document.getElementById('deviceSelectorHeader');
-                if (deviceSelectorHeader) {
-                    deviceSelectorHeader.style.display = 'block';
-                }
+                devices = [];
+            } finally {
+                isLoadingDevices = false;
             }
         }
         
-        // Modern Device Dropdown befüllen
+        // NEUE EINFACHE DROPDOWN-BEFÜLLUNG
         function populateDeviceSelector() {
             const deviceDropdownMenu = document.getElementById('deviceDropdownMenu');
             const deviceDropdownText = document.getElementById('deviceDropdownText');
-            const deviceDropdown = document.getElementById('deviceDropdown');
-            const deviceSelectorHeader = document.getElementById('deviceSelectorHeader');
             
-            console.log('🔧 populateDeviceSelector - Elemente gefunden:', {
-                deviceDropdownMenu: !!deviceDropdownMenu,
-                deviceDropdownText: !!deviceDropdownText,
-                deviceDropdown: !!deviceDropdown,
-                deviceSelectorHeader: !!deviceSelectorHeader,
-                devicesLength: devices.length
-            });
-            
-            if (!deviceSelectorHeader) {
-                console.error('❌ deviceSelectorHeader nicht gefunden');
+            if (!deviceDropdownMenu || !deviceDropdownText) {
+                console.error('❌ Dropdown-Elemente nicht gefunden');
                 return;
             }
             
-            // Zeige immer das Dropdown an, unabhängig von der Anzahl der Geräte
-            console.log('📱 Zeige Dropdown an für', devices.length, 'Geräte');
-            console.log('📱 Aktuelle devices:', devices.map(d => d.device_id));
-            
-            // Stelle das normale Dropdown-HTML wieder her
-            deviceSelectorHeader.innerHTML = `
-                <div class="device-dropdown" id="deviceDropdown">
-                    <button class="device-dropdown-trigger" id="deviceDropdownTrigger">
-                        <span class="device-dropdown-text" id="deviceDropdownText">Alle Geräte</span>
-                        <svg class="device-dropdown-icon" id="deviceDropdownIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="6,9 12,15 18,9"></polyline>
-                        </svg>
-                    </button>
-                    <div class="device-dropdown-menu" id="deviceDropdownMenu">
-                        <div class="device-dropdown-item" data-value="all">
-                            <svg class="device-dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                                <line x1="8" y1="21" x2="16" y2="21"></line>
-                                <line x1="12" y1="17" x2="12" y2="21"></line>
-                            </svg>
-                            <span class="device-dropdown-item-text">Alle Geräte</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // Hole die neuen Elemente nach dem HTML-Update
-            const newDeviceDropdownMenu = document.getElementById('deviceDropdownMenu');
-            const newDeviceDropdownText = document.getElementById('deviceDropdownText');
-            
-            console.log('🔧 Nach HTML-Update - Neue Elemente gefunden:', {
-                newDeviceDropdownMenu: !!newDeviceDropdownMenu,
-                newDeviceDropdownText: !!newDeviceDropdownText
+            // Lösche alle vorhandenen Geräte-Einträge (außer "Alle Geräte")
+            const existingItems = deviceDropdownMenu.querySelectorAll('.device-dropdown-item[data-value]');
+            existingItems.forEach(item => {
+                if (item.getAttribute('data-value') !== 'all') {
+                    item.remove();
+                }
             });
-            
-            if (!newDeviceDropdownMenu || !newDeviceDropdownText) {
-                console.error('❌ Fehler beim Wiederherstellen des Dropdown-HTML');
-                return;
-            }
             
             // Füge Geräte hinzu
             devices.forEach(device => {
@@ -1722,72 +1640,48 @@
                 deviceItem.className = 'device-dropdown-item';
                 deviceItem.setAttribute('data-value', device.device_id);
                 
-                // Bestimme Icon basierend auf Geräte-Typ
-                let iconSvg = '';
-                if (device.device_id.toLowerCase().includes('phone') || device.device_id.toLowerCase().includes('mobile')) {
-                    iconSvg = `
-                        <svg class="device-dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
-                            <line x1="12" y1="18" x2="12.01" y2="18"></line>
-                        </svg>
-                    `;
-                } else if (device.device_id.toLowerCase().includes('tablet')) {
-                    iconSvg = `
-                        <svg class="device-dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
-                            <line x1="12" y1="18" x2="12.01" y2="18"></line>
-                        </svg>
-                    `;
-                } else {
-                    // Standard Desktop/Laptop Icon
-                    iconSvg = `
-                        <svg class="device-dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                            <line x1="8" y1="21" x2="16" y2="21"></line>
-                            <line x1="12" y1="17" x2="12" y2="21"></line>
-                        </svg>
-                    `;
-                }
+                // Einfaches Icon für alle Geräte
+                const iconSvg = `
+                    <svg class="device-dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                `;
                 
                 deviceItem.innerHTML = `
                     ${iconSvg}
                     <span class="device-dropdown-item-text">${device.device_id}</span>
                 `;
-                newDeviceDropdownMenu.appendChild(deviceItem);
+                deviceDropdownMenu.appendChild(deviceItem);
             });
             
-            // Setze den korrekten Wert basierend auf selectedDeviceId
+            // Setze den korrekten Wert
             updateDeviceDropdownDisplay();
-            console.log('🔄 Dropdown-Wert gesetzt auf:', selectedDeviceId);
             
-            // Event Listener für Dropdown-Interaktionen
+            // Event Listener einrichten
             setupDeviceDropdownEvents();
         }
         
-        // Modern Device Dropdown Events Setup
+        // NEUE EINFACHE DROPDOWN-EVENTS
         function setupDeviceDropdownEvents() {
             const trigger = document.getElementById('deviceDropdownTrigger');
             const menu = document.getElementById('deviceDropdownMenu');
-            const icon = document.getElementById('deviceDropdownIcon');
             
-            console.log('🔽 Setting up dropdown events - elements found:', { trigger: !!trigger, menu: !!menu, icon: !!icon });
-            
-            if (!trigger || !menu || !icon) {
-                console.error('🔽 Failed to setup dropdown events - missing elements');
+            if (!trigger || !menu) {
+                console.error('❌ Dropdown-Elemente nicht gefunden');
                 return;
             }
             
-            // Remove existing event listeners to prevent duplicates
+            // Entferne alte Event Listener
             trigger.removeEventListener('click', handleTriggerClick);
             menu.removeEventListener('click', handleMenuClick);
             
-            // Toggle dropdown
+            // Neue Event Listener
             trigger.addEventListener('click', handleTriggerClick);
-            
-            // Handle item selection
             menu.addEventListener('click', handleMenuClick);
             
-            // Close dropdown when clicking outside (only add once)
+            // Außerhalb klicken schließt Dropdown
             if (!document.hasDeviceDropdownOutsideListener) {
                 document.addEventListener('click', (e) => {
                     if (!e.target.closest('.device-dropdown')) {
@@ -1881,7 +1775,7 @@
             }
         }
         
-        // Select device
+        // NEUE EINFACHE GERÄTE-AUSWAHL
         async function selectDevice(deviceId) {
             selectedDeviceId = deviceId;
             console.log('📱 Gerät gewechselt zu:', selectedDeviceId);
@@ -1892,67 +1786,19 @@
             // Lade geräte-spezifische Statistiken
             await loadDeviceStatistics();
             
-            // Aktualisiere Stat-Cards mit den neuen Daten
+            // Aktualisiere Anzeige
             displayStatistics();
-            
-            // Aktualisiere Charts
             updateCharts();
             
-            // Kein Neuladen der Geräte-Liste nach Auswahl, um Dropdown-Stabilität zu gewährleisten
-            console.log('✅ Geräte-Auswahl abgeschlossen ohne Neuladen der Geräte-Liste');
+            console.log('✅ Geräte-Auswahl abgeschlossen');
         }
         
-        // Dropdown-Synchronisation sicherstellen
-        function syncDeviceSelector() {
-            // Update the display text to match selectedDeviceId
-            updateDeviceDropdownDisplay();
-            console.log('🔄 Dropdown-Synchronisation: Aktualisiere Anzeige für', selectedDeviceId);
-        }
+        // Entfernt: syncDeviceSelector nicht mehr benötigt
         
-        // Prüfe ob das aktuell ausgewählte Gerät noch existiert
-        function checkSelectedDeviceStillExists() {
-            // Wenn "Alle Geräte" ausgewählt ist, ist alles OK
-            if (selectedDeviceId === 'all') {
-                return;
-            }
-            
-            // Prüfe ob das ausgewählte Gerät noch in der Geräte-Liste existiert
-            const deviceExists = devices.some(device => device.device_id === selectedDeviceId);
-            
-            // Wenn das Gerät nicht gefunden wird, aber es das ursprüngliche Gerät sein könnte,
-            // dann nicht automatisch zu "Alle Geräte" wechseln
-            if (!deviceExists) {
-                console.log('⚠️ Ausgewähltes Gerät', selectedDeviceId, 'nicht in aktueller Geräte-Liste gefunden');
-                console.log('📱 Verfügbare Geräte:', devices.map(d => d.device_id));
-                
-                // Prüfe ob es sich um das ursprüngliche Gerät handelt
-                const isOriginalDevice = devices.some(device => device.is_original && device.device_id === selectedDeviceId);
-                
-                if (!isOriginalDevice) {
-                    console.log('⚠️ Gerät ist nicht das ursprüngliche Gerät. Wechsle zu "Alle Geräte".');
-                
-                // Wechsle zu "Alle Geräte"
-                selectedDeviceId = 'all';
-                
-                // Aktualisiere Dropdown
-                    updateDeviceDropdownDisplay();
-                
-                // Lösche geräte-spezifische Statistiken
-                deviceStatistics = null;
-                
-                // Aktualisiere Anzeige
-                displayStatistics();
-                updateCharts();
-                
-                console.log('✅ Automatisch zu "Alle Geräte" gewechselt');
-                } else {
-                    console.log('✅ Ausgewähltes Gerät ist das ursprüngliche Gerät - behalte Auswahl bei');
-                }
-            }
-        }
+        // Entfernt: checkSelectedDeviceStillExists nicht mehr benötigt
         
         
-        // Geräte-spezifische Statistiken laden
+        // NEUE EINFACHE GERÄTE-STATISTIKEN
         async function loadDeviceStatistics() {
             if (selectedDeviceId === 'all') {
                 deviceStatistics = null;
@@ -1960,36 +1806,23 @@
             }
             
             try {
-                console.log('📱 Lade geräte-spezifische Statistiken für:', selectedDeviceId);
-                // Cache-Busting durch Timestamp hinzufügen
-                const timestamp = new Date().getTime();
-                const response = await fetch(`/api/statistics/get?device_id=${selectedDeviceId}&_t=${timestamp}`, {
+                console.log('📱 Lade Statistiken für Gerät:', selectedDeviceId);
+                const response = await fetch(`/api/statistics/get?device_id=${selectedDeviceId}`, {
                     method: 'GET',
-                    credentials: 'include',
-                    cache: 'no-cache'
+                    credentials: 'include'
                 });
                 
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success) {
                         deviceStatistics = data.statistics;
-                        console.log('✅ Geräte-Statistiken geladen:', deviceStatistics);
+                        console.log('✅ Geräte-Statistiken geladen');
                     } else {
                         console.error('❌ Fehler beim Laden der Geräte-Statistiken:', data.error);
                         deviceStatistics = null;
-                        
-                        // Wenn das Gerät nicht mehr existiert, wechsle zu "Alle Geräte"
-                        if (data.error && data.error.includes('nicht gefunden')) {
-                            console.log('⚠️ Gerät nicht gefunden, wechsle zu "Alle Geräte"');
-                            selectedDeviceId = 'all';
-                            const deviceSelector = document.getElementById('deviceSelector');
-                            if (deviceSelector) {
-                                deviceSelector.value = 'all';
-                            }
-                        }
                     }
                 } else {
-                    console.error('❌ Geräte-Statistiken-API Fehler:', response.status);
+                    console.error('❌ API-Fehler beim Laden der Geräte-Statistiken:', response.status);
                     deviceStatistics = null;
                 }
             } catch (error) {
