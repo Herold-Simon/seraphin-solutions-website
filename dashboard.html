@@ -1111,9 +1111,8 @@
                 <div class="charts-section" id="chartsSection">
                     <!-- Liniendiagramm (wie in der App) -->
                     <div class="chart-card">
-                        <div class="chart-header" onclick="toggleChart('lineChart')">
+                        <div class="chart-header">
                             <h3 class="chart-title">Liniendiagramm</h3>
-                            <span class="chart-toggle" id="lineChartToggle">▶</span>
                         </div>
                         <div class="chart-container" id="lineChartContainer">
                             <div id="lineChart" style="width: 100%; height: 100%;"></div>
@@ -1122,9 +1121,8 @@
 
                     <!-- Tortendiagramm (wie in der App) -->
                     <div class="chart-card">
-                        <div class="chart-header" onclick="toggleChart('pieChart')">
+                        <div class="chart-header">
                             <h3 class="chart-title">Tortendiagramm</h3>
-                            <span class="chart-toggle" id="pieChartToggle">▶</span>
                         </div>
                         <div class="chart-container pie-chart" id="pieChartContainer">
                             <div id="pieChart" style="width: 100%; height: 100%;"></div>
@@ -1143,9 +1141,8 @@
 
                     <!-- Line Race (wie in der App) -->
                     <div class="chart-card">
-                        <div class="chart-header" onclick="toggleChart('lineRaceChart')">
+                        <div class="chart-header">
                             <h3 class="chart-title">Line Race</h3>
-                            <span class="chart-toggle" id="lineRaceChartToggle">▶</span>
                         </div>
                         <div class="chart-container" id="lineRaceChartContainer">
                             <div id="lineRaceChart" style="width: 100%; height: 100%;"></div>
@@ -1170,11 +1167,7 @@
             endDate: null
         };
         let charts = {};
-        let chartStates = {
-            lineChart: true,
-            pieChart: true,
-            lineRaceChart: true
-        };
+        // Chart States entfernt - alle Charts werden immer angezeigt
         
         // Device selector variables - NEUE EINFACHE IMPLEMENTIERUNG
         let devices = [];
@@ -3168,30 +3161,23 @@
             console.log('🔄 Aktualisiere Charts für Gerät:', selectedDeviceId);
             console.log('📊 Verwende Statistiken:', selectedDeviceId === 'all' ? 'statistics (aggregiert)' : 'deviceStatistics (geräte-spezifisch)');
             
-            // Charts komplett neu erstellen um sicherzustellen, dass die richtigen Daten verwendet werden
-            if (chartStates.lineChart) {
-                console.log('📈 Erstelle Liniendiagramm neu...');
-                createLineChart();
-            }
-            // Bar Chart wird immer angezeigt (kein Toggle)
+            // Alle Charts werden immer angezeigt (kein Toggle mehr)
+            console.log('📈 Erstelle Liniendiagramm neu...');
+            createLineChart();
             console.log('📊 Erstelle Balkendiagramm neu...');
             createBarChart();
-            if (chartStates.pieChart) {
-                console.log('🥧 Erstelle Tortendiagramm neu...');
-                createPieChart();
-            }
-            if (chartStates.lineRaceChart) {
-                console.log('🏃 Erstelle Line Race neu...');
-                createLineRaceChart();
-            }
+            console.log('🥧 Erstelle Tortendiagramm neu...');
+            createPieChart();
+            console.log('🏃 Erstelle Line Race neu...');
+            createLineRaceChart();
         }
         
         // Chart-Größe bei Fenster-Resize anpassen
         window.addEventListener('resize', function() {
+            // Alle Charts werden immer angezeigt (kein Toggle mehr)
             if (charts.lineChart) {
                 charts.lineChart.resize();
             }
-            // Bar Chart wird immer angezeigt (kein Toggle)
             if (charts.barChart) {
                 charts.barChart.resize();
             }
@@ -3204,48 +3190,7 @@
         });
         
         // Chart ein-/ausklappen
-        function toggleChart(chartName) {
-            console.log('🔄 Toggle Chart:', chartName);
-            
-            const container = document.getElementById(chartName + 'Container');
-            const toggle = document.getElementById(chartName + 'Toggle');
-            
-            if (!container) {
-                console.error('❌ Container nicht gefunden:', chartName + 'Container');
-                return;
-            }
-            
-            if (!toggle) {
-                console.error('❌ Toggle nicht gefunden:', chartName + 'Toggle');
-                return;
-            }
-            
-            // Toggle den Zustand
-            chartStates[chartName] = !chartStates[chartName];
-            console.log('📊 Chart State:', chartName, '=', chartStates[chartName]);
-            
-            if (chartStates[chartName]) {
-                // Chart ausklappen
-                container.classList.remove('collapsed');
-                toggle.classList.add('expanded');
-                console.log('✅ Chart ausgeklappt:', chartName);
-                
-                // Für alle Charts: Standard-Höhe
-                container.style.height = '400px';
-            } else {
-                // Chart einklappen
-                container.classList.add('collapsed');
-                toggle.classList.remove('expanded');
-                console.log('✅ Chart eingeklappt:', chartName);
-            }
-            
-            // Resize Charts nach Toggle
-            setTimeout(() => {
-                if (charts[chartName]) {
-                    charts[chartName].resize();
-                }
-            }, 300); // Warte auf CSS-Transition
-        }
+        // Toggle-Funktionalität entfernt - alle Charts werden immer angezeigt
         
         
         // Abmelden
@@ -3450,10 +3395,7 @@
         }
         
         // Globale Funktionen für externe Aufrufe
-        window.toggleChart = toggleChart;
-        window.toggleLineChart = () => toggleChart('lineChart');
-        window.togglePieChart = () => toggleChart('pieChart');
-        window.toggleLineRaceChart = () => toggleChart('lineRaceChart');
+        // Toggle-Funktionen entfernt - alle Charts werden immer angezeigt
         window.scrollToCharts = scrollToCharts;
     </script>
 
