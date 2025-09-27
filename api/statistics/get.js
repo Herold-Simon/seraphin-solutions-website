@@ -31,7 +31,7 @@ module.exports = async function handler(req, res) {
     }
 
     // Debug-Modus: Zeige alle Datenbankinhalte
-    if (req.query.debug === 'true') {
+    if (req.query.debug === 'true' || req.query.debug === '1') {
         try {
             console.log('🔍 Debug: Checking all statistics data...');
 
@@ -99,6 +99,32 @@ module.exports = async function handler(req, res) {
                 console.log('📄 CSV statistics (last 5):', csvStats);
             }
 
+            // Hole alle Device-Statistiken
+            const { data: deviceStats, error: deviceError } = await supabase
+                .from('device_statistics')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(10);
+
+            if (deviceError) {
+                console.error('❌ Device statistics query error:', deviceError);
+            } else {
+                console.log('📱 Device statistics (last 10):', deviceStats);
+            }
+
+            // Hole alle Device-Video-Statistiken
+            const { data: deviceVideoStats, error: deviceVideoError } = await supabase
+                .from('device_video_statistics')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(10);
+
+            if (deviceVideoError) {
+                console.error('❌ Device video statistics query error:', deviceVideoError);
+            } else {
+                console.log('📱🎥 Device video statistics (last 10):', deviceVideoStats);
+            }
+
             return res.status(200).json({
                 success: true,
                 debug: {
@@ -106,7 +132,9 @@ module.exports = async function handler(req, res) {
                     appStatistics: appStats,
                     videoStatistics: videoStats,
                     floorStatistics: floorStats,
-                    csvStatistics: csvStats
+                    csvStatistics: csvStats,
+                    deviceStatistics: deviceStats,
+                    deviceVideoStatistics: deviceVideoStats
                 }
             });
 
@@ -304,6 +332,7 @@ module.exports = async function handler(req, res) {
             
             if (aggregatedVideoError || !aggregatedVideoStats || aggregatedVideoStats.length === 0) {
                 console.log('📊 No aggregated video stats found, trying multiple fallback strategies');
+                console.log('📊 Aggregated error details:', aggregatedVideoError);
                 
                 // Fallback 1: Normale Video-Statistiken
                 const { data: fallbackVideoStats, error: fallbackVideoError } = await supabase
@@ -312,10 +341,15 @@ module.exports = async function handler(req, res) {
                     .eq('admin_user_id', adminUserId)
                     .order('views', { ascending: false });
                 
-                console.log('📊 Fallback video stats result:', { fallbackVideoStats, fallbackVideoError });
+                console.log('📊 Fallback video stats result:', { 
+                    count: fallbackVideoStats?.length || 0, 
+                    error: fallbackVideoError,
+                    firstVideo: fallbackVideoStats?.[0]
+                });
                 
                 if (fallbackVideoStats && fallbackVideoStats.length > 0) {
                     videoStats = fallbackVideoStats;
+                    console.log('📊 Using fallback video statistics:', videoStats.length, 'videos');
                 } else {
                     // Fallback 2: Device Video Statistics (falls vorhanden)
                     const { data: deviceVideoStats, error: deviceVideoError } = await supabase
@@ -407,6 +441,14 @@ module.exports = async function handler(req, res) {
                           (floorStats && floorStats.length > 0) || 
                           (appStats && appStats.length > 0) ||
                           Object.values(totalStats).some(val => val > 0);
+
+        console.log('📊 Data availability check:', {
+            structuredVideos: structuredVideos.length,
+            floorStats: floorStats?.length || 0,
+            appStats: appStats?.length || 0,
+            totalStatsValues: Object.values(totalStats),
+            hasAnyData
+        });
 
         if (!hasAnyData) {
             console.log('📊 Keine Daten vorhanden, sende leere Statistiken');

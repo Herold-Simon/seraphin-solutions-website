@@ -62,24 +62,30 @@ ALTER TABLE public.device_statistics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.device_video_statistics ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for device statistics
+DROP POLICY IF EXISTS "Device statistics are viewable by related admin" ON public.device_statistics;
 CREATE POLICY "Device statistics are viewable by related admin" ON public.device_statistics
     FOR SELECT USING (true); -- For API access
 
+DROP POLICY IF EXISTS "Device statistics can be updated by related admin" ON public.device_statistics;
 CREATE POLICY "Device statistics can be updated by related admin" ON public.device_statistics
     FOR ALL USING (true); -- For API access
 
 -- RLS Policies for device video statistics
+DROP POLICY IF EXISTS "Device video statistics are viewable by related admin" ON public.device_video_statistics;
 CREATE POLICY "Device video statistics are viewable by related admin" ON public.device_video_statistics
     FOR SELECT USING (true); -- For API access
 
+DROP POLICY IF EXISTS "Device video statistics can be updated by related admin" ON public.device_video_statistics;
 CREATE POLICY "Device video statistics can be updated by related admin" ON public.device_video_statistics
     FOR ALL USING (true); -- For API access
 
 -- Add triggers for updated_at
+DROP TRIGGER IF EXISTS update_device_statistics_updated_at ON public.device_statistics;
 CREATE TRIGGER update_device_statistics_updated_at
     BEFORE UPDATE ON public.device_statistics
     FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_device_video_statistics_updated_at ON public.device_video_statistics;
 CREATE TRIGGER update_device_video_statistics_updated_at
     BEFORE UPDATE ON public.device_video_statistics
     FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
@@ -135,23 +141,17 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     WITH video_aggregation AS (
-        -- Aggregiere Videos mit gleichem Titel
+        -- Aggregiere Videos nach video_id (nicht nach Titel) um alle Videos einzeln zu behalten
         SELECT 
-            CASE 
-                WHEN COUNT(DISTINCT dvs.video_id) > 1 THEN 
-                    -- Wenn mehrere Videos mit gleichem Titel existieren, verwende den ersten video_id
-                    MIN(dvs.video_id)
-                ELSE 
-                    dvs.video_id
-            END as video_id,
+            dvs.video_id,
             dvs.video_title,
             COALESCE(SUM(dvs.views), 0) as total_views,
             COUNT(DISTINCT dvs.device_id) as device_count,
             MAX(dvs.last_viewed) as last_viewed,
-            COUNT(DISTINCT dvs.video_id) > 1 as aggregated_by_title
+            false as aggregated_by_title
         FROM public.device_video_statistics dvs
         WHERE dvs.admin_user_id = p_admin_user_id
-        GROUP BY dvs.video_title
+        GROUP BY dvs.video_id, dvs.video_title
     )
     SELECT 
         va.video_id,
