@@ -1372,38 +1372,46 @@
             const resetDateBtn = document.getElementById('resetDateBtn');
             if (resetDateBtn) {
                 resetDateBtn.addEventListener('click', function() {
-                    // Setze Standard-Zeitraum basierend auf "Gesamter Zeitraum"
-                    const history = statistics?.history || [];
-                    if (history && history.length > 0) {
-                        // Sortiere Daten chronologisch
-                        const sortedDates = history
-                            .map(item => new Date(item.date))
-                            .sort((a, b) => a - b);
-                        
-                        // Verwende den gleichen Zeitraum wie "Gesamter Zeitraum"
-                        const startDate = new Date(sortedDates[0]);
-                        startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
-                        const endDate = new Date(sortedDates[sortedDates.length - 1]);
-                        endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
-                        
-                        // Aktualisiere die Eingabefelder
-                        startDateInput.value = startDate.toISOString().split('T')[0];
-                        endDateInput.value = endDate.toISOString().split('T')[0];
-                        
-                        // Aktualisiere die benutzerdefinierten Datumsbereiche
-                        customDateRange.startDate = startDateInput.value;
-                        customDateRange.endDate = endDateInput.value;
+                    // Verwende den gespeicherten Zeitraum von "Gesamter Zeitraum"
+                    if (allTimeRangeData) {
+                        startDateInput.value = allTimeRangeData.startDate;
+                        endDateInput.value = allTimeRangeData.endDate;
+                        customDateRange.startDate = allTimeRangeData.startDate;
+                        customDateRange.endDate = allTimeRangeData.endDate;
                     } else {
-                        // Fallback zu letzte 30 Tage wenn keine Historie verfügbar
-                        const today = new Date();
-                        const thirtyDaysAgo = new Date();
-                        thirtyDaysAgo.setDate(today.getDate() - 30);
-                        
-                        startDateInput.value = thirtyDaysAgo.toISOString().split('T')[0];
-                        endDateInput.value = today.toISOString().split('T')[0];
-                        
-                        customDateRange.startDate = startDateInput.value;
-                        customDateRange.endDate = endDateInput.value;
+                        // Fallback: Setze Standard-Zeitraum basierend auf "Gesamter Zeitraum"
+                        const history = statistics?.history || [];
+                        if (history && history.length > 0) {
+                            // Sortiere Daten chronologisch
+                            const sortedDates = history
+                                .map(item => new Date(item.date))
+                                .sort((a, b) => a - b);
+                            
+                            // Verwende den gleichen Zeitraum wie "Gesamter Zeitraum"
+                            const startDate = new Date(sortedDates[0]);
+                            startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
+                            const endDate = new Date(sortedDates[sortedDates.length - 1]);
+                            endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
+                            
+                            // Aktualisiere die Eingabefelder
+                            startDateInput.value = startDate.toISOString().split('T')[0];
+                            endDateInput.value = endDate.toISOString().split('T')[0];
+                            
+                            // Aktualisiere die benutzerdefinierten Datumsbereiche
+                            customDateRange.startDate = startDateInput.value;
+                            customDateRange.endDate = endDateInput.value;
+                        } else {
+                            // Fallback zu letzte 30 Tage wenn keine Historie verfügbar
+                            const today = new Date();
+                            const thirtyDaysAgo = new Date();
+                            thirtyDaysAgo.setDate(today.getDate() - 30);
+                            
+                            startDateInput.value = thirtyDaysAgo.toISOString().split('T')[0];
+                            endDateInput.value = today.toISOString().split('T')[0];
+                            
+                            customDateRange.startDate = startDateInput.value;
+                            customDateRange.endDate = endDateInput.value;
+                        }
                     }
                     
                     // Aktualisiere die Charts
