@@ -2150,8 +2150,9 @@
                 const sortedDates = Array.from(allDates).sort();
                 console.log('📈 Available dates from viewHistory:', sortedDates);
                 
+                let timeRangeResult = null;
                 try {
-                    const timeRangeResult = calculateTimeRange(sortedDates, currentTimeRange);
+                    timeRangeResult = calculateTimeRange(sortedDates, currentTimeRange);
                     timePoints = timeRangeResult.timePoints;
                     console.log('📈 Calculated timePoints:', timePoints);
                 } catch (error) {
@@ -2735,8 +2736,9 @@
                 const sortedDates = Array.from(allDates).sort();
                 console.log('🏁 Available dates from viewHistory:', sortedDates);
                 
+                let timeRangeResult = null;
                 try {
-                    const timeRangeResult = calculateTimeRange(sortedDates, currentTimeRange);
+                    timeRangeResult = calculateTimeRange(sortedDates, currentTimeRange);
                     timePoints = timeRangeResult.timePoints;
                     console.log('🏁 Calculated timePoints:', timePoints);
                 } catch (error) {
