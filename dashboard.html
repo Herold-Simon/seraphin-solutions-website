@@ -2067,6 +2067,8 @@
             const timeRangeStart = currentStats?.current?.time_range_start;
             const timeRangeEnd = currentStats?.current?.time_range_end;
             
+            console.log('📈 Line Chart - timeRange data:', { timeRangeStart, timeRangeEnd, currentTimeRange });
+            
             console.log('📈 Line Chart - Video-Daten:', mergedVideos);
             console.log('📈 Line Chart - Video Count:', lineChartVideoCount);
             console.log('📈 Line Chart - Zeitraum:', { timeRangeStart, timeRangeEnd });
@@ -2166,25 +2168,34 @@
                 // Fallback: Verwende simulierte Daten basierend auf Gesamtaufrufen
                 console.log('📈 Using simulated data (no viewHistory available)');
                 
-                // Erstelle Zeitpunkte basierend auf ausgewähltem Zeitraum mit Offset
+                // Erstelle Zeitpunkte basierend auf ausgewähltem Zeitraum
                 const today = new Date();
                 let daysToShow = 7; // Standard
                 
+                console.log('📈 Simulated data - currentTimeRange:', currentTimeRange);
+                
                 if (currentTimeRange === '7') {
                     daysToShow = 7;
+                } else if (currentTimeRange === '30') {
+                    daysToShow = 30;
                 } else if (currentTimeRange === 'custom') {
                     // Benutzerdefinierter Zeitraum
                     if (customDateRange.startDate && customDateRange.endDate) {
                         const startDate = new Date(customDateRange.startDate);
                         const endDate = new Date(customDateRange.endDate);
                         daysToShow = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                        console.log('📈 Custom date range:', { startDate: customDateRange.startDate, endDate: customDateRange.endDate, daysToShow });
                     } else {
                         daysToShow = 30; // Fallback
+                        console.log('📈 Custom date range fallback to 30 days');
                     }
                 } else {
-                    // Alle Zeit - zeige 365 Tage als Maximum
-                    daysToShow = 365;
+                    // Alle Zeit - zeige 30 Tage als Standard (nicht 365)
+                    daysToShow = 30;
+                    console.log('📈 All time range, using 30 days');
                 }
+                
+                console.log('📈 Simulated data - daysToShow:', daysToShow);
                 
                 // Erstelle Zeitpunkte ohne Offset
                 const totalDays = daysToShow;
@@ -2626,6 +2637,8 @@
             const timeRangeStart = currentStats?.current?.time_range_start;
             const timeRangeEnd = currentStats?.current?.time_range_end;
             
+            console.log('🏁 Line Race - timeRange data:', { timeRangeStart, timeRangeEnd, currentTimeRange });
+            
             console.log('🏁 Line Race Chart - Video-Daten:', mergedVideos);
             console.log('🏁 Line Race Chart - Video Count:', lineRaceVideoCount);
             console.log('🏁 Line Race Chart - Zeitraum:', { timeRangeStart, timeRangeEnd });
@@ -2727,25 +2740,34 @@
                 // Fallback: Verwende simulierte Daten
                 console.log('🏁 Using simulated data for Line Race (no viewHistory available)');
                 
-                // Erstelle Zeitpunkte basierend auf ausgewähltem Zeitraum mit Offset
+                // Erstelle Zeitpunkte basierend auf ausgewähltem Zeitraum
                 const today = new Date();
                 let daysToShow = 7; // Standard
                 
+                console.log('🏁 Simulated data - currentTimeRange:', currentTimeRange);
+                
                 if (currentTimeRange === '7') {
                     daysToShow = 7;
+                } else if (currentTimeRange === '30') {
+                    daysToShow = 30;
                 } else if (currentTimeRange === 'custom') {
                     // Benutzerdefinierter Zeitraum
                     if (customDateRange.startDate && customDateRange.endDate) {
                         const startDate = new Date(customDateRange.startDate);
                         const endDate = new Date(customDateRange.endDate);
                         daysToShow = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                        console.log('🏁 Custom date range:', { startDate: customDateRange.startDate, endDate: customDateRange.endDate, daysToShow });
                     } else {
                         daysToShow = 30; // Fallback
+                        console.log('🏁 Custom date range fallback to 30 days');
                     }
                 } else {
-                    // Alle Zeit - zeige 365 Tage als Maximum
-                    daysToShow = 365;
+                    // Alle Zeit - zeige 30 Tage als Standard (nicht 365)
+                    daysToShow = 30;
+                    console.log('🏁 All time range, using 30 days');
                 }
+                
+                console.log('🏁 Simulated data - daysToShow:', daysToShow);
                 
                 // Erstelle Zeitpunkte ohne Offset
                 const totalDays = daysToShow;
