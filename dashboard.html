@@ -2214,7 +2214,8 @@
                 // Erstelle Series mit simulierten Daten
                 videoData = filteredVideos.map((video, idx) => {
                     const totalViews = video.views || 0;
-                    const dailyViews = Math.round(totalViews / daysToShow);
+                    // Verwende mindestens 1 für dailyViews, auch bei kleinen Werten
+                    const dailyViews = Math.max(1, Math.round(totalViews / daysToShow));
                     const data = timePoints.map((date, dayIndex) => {
                         // Keine Offset-Bereiche mehr - alle Tage haben Daten
                         const variation = Math.random() * 0.4 + 0.8; // 80-120% der Durchschnittsaufrufe
@@ -2243,7 +2244,7 @@
                     // Keine Offset-Bereiche mehr - alle Tage haben Daten
                     const totalViews = filteredVideos.reduce((sum, video) => {
                         const totalViews = video.views || 0;
-                        const dailyViews = Math.round(totalViews / daysToShow);
+                        const dailyViews = Math.max(1, Math.round(totalViews / daysToShow));
                         const variation = Math.random() * 0.4 + 0.8;
                         return sum + Math.round(dailyViews * variation);
                     }, 0);
@@ -2793,7 +2794,8 @@
                 // Für jedes Video: Kumulierte Aufrufe pro Tag mit simulierten Daten
                 series = filteredVideos.map((video, idx) => {
                     const totalViews = video.views || 0;
-                    const dailyViews = Math.round(totalViews / daysToShow);
+                    // Verwende mindestens 1 für dailyViews, auch bei kleinen Werten
+                    const dailyViews = Math.max(1, Math.round(totalViews / daysToShow));
                     
                     // Erstelle die Daten: Kumulierte Aufrufe pro Tag
                     const data = timePoints.map((date, dayIndex) => {
