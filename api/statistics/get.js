@@ -321,25 +321,41 @@ module.exports = async function handler(req, res) {
                 videoStats = deviceVideoStats;
             }
         } else {
-            // Aggregierte Video-Statistiken (alle Geräte)
-            console.log('📊 Loading aggregated video statistics for all devices');
-            const { data: aggregatedVideoStats, error: aggregatedVideoError } = await supabase
-                .rpc('get_aggregated_device_video_statistics', {
-                    p_admin_user_id: adminUserId
-                });
+            // Aggregierte Video-Statistiken (alle Geräte) - verwende device_video_statistics für viewHistory
+            console.log('📊 Loading device video statistics for all devices (for viewHistory data)');
+            const { data: deviceVideoStats, error: deviceVideoError } = await supabase
+                .from('device_video_statistics')
+                .select('*, view_history')
+                .eq('admin_user_id', adminUserId)
+                .order('views', { ascending: false });
             
-            console.log('📊 Aggregated video stats result:', { aggregatedVideoStats, aggregatedVideoError });
+            console.log('📊 Device video stats result:', { 
+                count: deviceVideoStats?.length || 0, 
+                error: deviceVideoError,
+                firstVideo: deviceVideoStats?.[0]
+            });
             
-            if (aggregatedVideoError || !aggregatedVideoStats || aggregatedVideoStats.length === 0) {
-                console.log('📊 No aggregated video stats found, trying multiple fallback strategies');
-                console.log('📊 Aggregated error details:', aggregatedVideoError);
+            if (deviceVideoError || !deviceVideoStats || deviceVideoStats.length === 0) {
+                console.log('📊 No device video stats found, trying fallback strategies');
+                console.log('📊 Device video error details:', deviceVideoError);
                 
-                // Fallback 1: Normale Video-Statistiken
-                const { data: fallbackVideoStats, error: fallbackVideoError } = await supabase
-                    .from('video_statistics')
-                    .select('*, view_history')
-                    .eq('admin_user_id', adminUserId)
-                    .order('views', { ascending: false });
+                // Fallback 1: Aggregierte Video-Statistiken
+                const { data: aggregatedVideoStats, error: aggregatedVideoError } = await supabase
+                    .rpc('get_aggregated_device_video_statistics', {
+                        p_admin_user_id: adminUserId
+                    });
+                
+                console.log('📊 Aggregated video stats result:', { aggregatedVideoStats, aggregatedVideoError });
+                
+                if (aggregatedVideoError || !aggregatedVideoStats || aggregatedVideoStats.length === 0) {
+                    console.log('📊 No aggregated video stats found, trying video_statistics fallback');
+                    
+                    // Fallback 2: Normale Video-Statistiken
+                    const { data: fallbackVideoStats, error: fallbackVideoError } = await supabase
+                        .from('video_statistics')
+                        .select('*, view_history')
+                        .eq('admin_user_id', adminUserId)
+                        .order('views', { ascending: false });
                 
                 console.log('📊 Fallback video stats result:', { 
                     count: fallbackVideoStats?.length || 0, 
@@ -374,17 +390,21 @@ module.exports = async function handler(req, res) {
                         videoStats = appVideoStats || [];
                     }
                 }
+                } else {
+                    // Konvertiere aggregierte Video-Daten in das erwartete Format
+                    videoStats = aggregatedVideoStats.map(video => ({
+                        admin_user_id: adminUserId,
+                        video_id: video.video_id,
+                        video_title: video.video_title,
+                        views: video.total_views,
+                        last_viewed: video.last_viewed,
+                        device_count: video.device_count,
+                        aggregated_by_title: video.aggregated_by_title
+                    }));
+                }
             } else {
-                // Konvertiere aggregierte Video-Daten in das erwartete Format
-                videoStats = aggregatedVideoStats.map(video => ({
-                    admin_user_id: adminUserId,
-                    video_id: video.video_id,
-                    video_title: video.video_title,
-                    views: video.total_views,
-                    last_viewed: video.last_viewed,
-                    device_count: video.device_count,
-                    aggregated_by_title: video.aggregated_by_title
-                }));
+                videoStats = deviceVideoStats;
+                console.log('📊 Using device video statistics (with viewHistory):', videoStats.length, 'videos');
             }
         }
 
