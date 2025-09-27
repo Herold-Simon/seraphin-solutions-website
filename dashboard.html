@@ -1908,6 +1908,13 @@
             const totalFloors = current.total_floors || total.total_floors || floors.length;
             const totalRooms = current.total_rooms || total.total_rooms || floors.reduce((sum, floor) => sum + (floor.room_count || 0), 0);
             
+            console.log('📊 Video count comparison:', {
+                currentVideos: current.total_videos,
+                currentVideosWithViews: current.videos_with_views,
+                actualVideos: videos.length,
+                totalVideos: total.total_videos
+            });
+            
             // Aktualisiere die UI-Elemente
             try {
                 const totalViewsElement = document.getElementById('totalViews');
@@ -2049,7 +2056,8 @@
             const mergedVideos = mergeVideosByTitle(videos);
             console.log('📈 Liniendiagramm - Videos-Anzahl nach Merge:', mergedVideos.length);
             
-            const lineChartVideoCount = currentStats?.current?.line_chart_video_count || 7;
+            // Verwende die korrekte Anzahl der Videos aus den current-Daten
+            const lineChartVideoCount = currentStats?.current?.videos_with_views || currentStats?.current?.line_chart_video_count || 7;
             const timeRangeStart = currentStats?.current?.time_range_start;
             const timeRangeEnd = currentStats?.current?.time_range_end;
             
@@ -2351,7 +2359,8 @@
             const mergedVideos = mergeVideosByTitle(videos);
             console.log('📊 Balkendiagramm - Videos-Anzahl nach Merge:', mergedVideos.length);
             
-            const barChartVideoCount = currentStats?.current?.bar_chart_video_count || 7;
+            // Verwende die korrekte Anzahl der Videos aus den current-Daten
+            const barChartVideoCount = currentStats?.current?.videos_with_views || currentStats?.current?.bar_chart_video_count || 7;
             
             console.log('📊 Bar Chart - Video-Daten:', mergedVideos);
             console.log('📊 Bar Chart - Video Count:', barChartVideoCount);
@@ -2597,7 +2606,8 @@
             const mergedVideos = mergeVideosByTitle(videos);
             console.log('🏃 Line Race - Videos-Anzahl nach Merge:', mergedVideos.length);
             
-            const lineRaceVideoCount = currentStats?.current?.line_race_video_count || 7;
+            // Verwende die korrekte Anzahl der Videos aus den current-Daten
+            const lineRaceVideoCount = currentStats?.current?.videos_with_views || currentStats?.current?.line_race_video_count || 7;
             const timeRangeStart = currentStats?.current?.time_range_start;
             const timeRangeEnd = currentStats?.current?.time_range_end;
             
@@ -2875,7 +2885,8 @@
             const mergedVideos = mergeVideosByTitle(videos);
             console.log('🥧 Tortendiagramm - Videos-Anzahl nach Merge:', mergedVideos.length);
             
-            const pieChartVideoCount = currentStats?.current?.pie_chart_video_count || 7;
+            // Verwende die korrekte Anzahl der Videos aus den current-Daten
+            const pieChartVideoCount = currentStats?.current?.videos_with_views || currentStats?.current?.pie_chart_video_count || 7;
             
             console.log('🥧 Pie Chart - Video-Daten:', mergedVideos);
             console.log('🥧 Pie Chart - Video Count:', pieChartVideoCount);
