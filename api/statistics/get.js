@@ -337,7 +337,7 @@ module.exports = async function handler(req, res) {
                 // Fallback 1: Normale Video-Statistiken
                 const { data: fallbackVideoStats, error: fallbackVideoError } = await supabase
                     .from('video_statistics')
-                    .select('*')
+                    .select('*, view_history')
                     .eq('admin_user_id', adminUserId)
                     .order('views', { ascending: false });
                 
@@ -354,7 +354,7 @@ module.exports = async function handler(req, res) {
                     // Fallback 2: Device Video Statistics (falls vorhanden)
                     const { data: deviceVideoStats, error: deviceVideoError } = await supabase
                         .from('device_video_statistics')
-                        .select('*')
+                        .select('*, view_history')
                         .eq('admin_user_id', adminUserId)
                         .order('views', { ascending: false });
                     
@@ -366,7 +366,7 @@ module.exports = async function handler(req, res) {
                         // Fallback 3: App Video Statistics (falls vorhanden)
                         const { data: appVideoStats, error: appVideoError } = await supabase
                             .from('app_video_statistics')
-                            .select('*')
+                            .select('*, view_history')
                             .eq('admin_user_id', adminUserId)
                             .order('views', { ascending: false });
                         
@@ -429,12 +429,25 @@ module.exports = async function handler(req, res) {
             lastViewed: video.last_viewed || null,
             createdAt: video.created_at || null,
             updatedAt: video.updated_at || null,
-            viewHistory: video.view_history || {} // Falls view_history in der DB gespeichert ist
+            viewHistory: video.view_history || video.viewHistory || {} // Beide Varianten unterstützen
         }));
 
         console.log('📊 Structured Videos:', structuredVideos.length, 'videos');
         console.log('📊 Total Stats:', totalStats);
         console.log('📊 Current Stats:', currentStats);
+        
+        // Debug: Prüfe viewHistory-Daten
+        const videosWithViewHistory = structuredVideos.filter(video => 
+            video.viewHistory && Object.keys(video.viewHistory).length > 0
+        );
+        console.log('📊 Videos with viewHistory:', videosWithViewHistory.length);
+        if (videosWithViewHistory.length > 0) {
+            console.log('📊 First video with viewHistory:', {
+                title: videosWithViewHistory[0].title,
+                viewHistoryKeys: Object.keys(videosWithViewHistory[0].viewHistory),
+                sampleData: Object.entries(videosWithViewHistory[0].viewHistory).slice(0, 3)
+            });
+        }
 
         // Prüfe ob überhaupt Daten vorhanden sind
         const hasAnyData = structuredVideos.length > 0 || 
