@@ -1166,6 +1166,7 @@
             startDate: null,
             endDate: null
         };
+        let allTimeRangeData = null; // Speichert den Zeitraum von "Gesamter Zeitraum"
         let charts = {};
         // Chart States entfernt - alle Charts werden immer angezeigt
         
@@ -1243,42 +1244,54 @@
                         
                         // Setze Standard-Datumswerte basierend auf "Gesamter Zeitraum"
                         if (!customDateRange.startDate || !customDateRange.endDate) {
-                            // Berechne den Zeitraum wie bei "Gesamter Zeitraum"
-                            const history = statistics?.history || [];
-                            if (history && history.length > 0) {
-                                // Sortiere Daten chronologisch
-                                const sortedDates = history
-                                    .map(item => new Date(item.date))
-                                    .sort((a, b) => a - b);
-                                
-                                // Verwende den gleichen Zeitraum wie "Gesamter Zeitraum"
-                                const startDate = new Date(sortedDates[0]);
-                                startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
-                                const endDate = new Date(sortedDates[sortedDates.length - 1]);
-                                endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
-                                
-                                // Setze die Eingabefelder auf den "Gesamter Zeitraum"-Zeitraum
+                            // Verwende den gespeicherten Zeitraum von "Gesamter Zeitraum"
+                            if (allTimeRangeData) {
                                 const startDateInput = document.getElementById('startDate');
                                 const endDateInput = document.getElementById('endDate');
                                 if (startDateInput && endDateInput) {
-                                    startDateInput.value = startDate.toISOString().split('T')[0];
-                                    endDateInput.value = endDate.toISOString().split('T')[0];
+                                    startDateInput.value = allTimeRangeData.startDate;
+                                    endDateInput.value = allTimeRangeData.endDate;
                                 }
-                                
-                                // Setze auch die customDateRange Objekte
-                                customDateRange.startDate = startDate.toISOString().split('T')[0];
-                                customDateRange.endDate = endDate.toISOString().split('T')[0];
+                                customDateRange.startDate = allTimeRangeData.startDate;
+                                customDateRange.endDate = allTimeRangeData.endDate;
                             } else {
-                                // Fallback zu 30 Tagen wenn keine Historie-Daten
-                        const today = new Date();
-                        const thirtyDaysAgo = new Date();
-                        thirtyDaysAgo.setDate(today.getDate() - 30);
-                        
-                        document.getElementById('endDate').value = today.toISOString().split('T')[0];
-                        document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
-                                
-                                customDateRange.startDate = thirtyDaysAgo.toISOString().split('T')[0];
-                                customDateRange.endDate = today.toISOString().split('T')[0];
+                                // Fallback: Berechne den Zeitraum wie bei "Gesamter Zeitraum"
+                                const history = statistics?.history || [];
+                                if (history && history.length > 0) {
+                                    // Sortiere Daten chronologisch
+                                    const sortedDates = history
+                                        .map(item => new Date(item.date))
+                                        .sort((a, b) => a - b);
+                                    
+                                    // Verwende den gleichen Zeitraum wie "Gesamter Zeitraum"
+                                    const startDate = new Date(sortedDates[0]);
+                                    startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
+                                    const endDate = new Date(sortedDates[sortedDates.length - 1]);
+                                    endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
+                                    
+                                    // Setze die Eingabefelder auf den "Gesamter Zeitraum"-Zeitraum
+                                    const startDateInput = document.getElementById('startDate');
+                                    const endDateInput = document.getElementById('endDate');
+                                    if (startDateInput && endDateInput) {
+                                        startDateInput.value = startDate.toISOString().split('T')[0];
+                                        endDateInput.value = endDate.toISOString().split('T')[0];
+                                    }
+                                    
+                                    // Setze auch die customDateRange Objekte
+                                    customDateRange.startDate = startDate.toISOString().split('T')[0];
+                                    customDateRange.endDate = endDate.toISOString().split('T')[0];
+                                } else {
+                                    // Fallback zu 30 Tagen wenn keine Historie-Daten
+                                    const today = new Date();
+                                    const thirtyDaysAgo = new Date();
+                                    thirtyDaysAgo.setDate(today.getDate() - 30);
+                                    
+                                    document.getElementById('endDate').value = today.toISOString().split('T')[0];
+                                    document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+                                    
+                                    customDateRange.startDate = thirtyDaysAgo.toISOString().split('T')[0];
+                                    customDateRange.endDate = today.toISOString().split('T')[0];
+                                }
                             }
                         }
                     } else {
@@ -3168,25 +3181,48 @@
             if (timeRange === 'all') {
                 const startDate = new Date(sortedDates[0]);
                 startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
-                return {
+                const endDate = new Date(sortedDates[sortedDates.length - 1]);
+                endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
+                
+                const result = {
                     startDate: startDate,
                     timePoints: sortedDates,
                     addEndOffset: true
                 };
+                
+                // Speichere den Zeitraum für "Benutzerdefiniert"
+                allTimeRangeData = {
+                    startDate: startDate.toISOString().split('T')[0],
+                    endDate: endDate.toISOString().split('T')[0]
+                };
+                
+                return result;
             } else if (timeRange === 'custom') {
                 // Benutzerdefinierter Zeitraum
                 if (!customDateRange.startDate || !customDateRange.endDate) {
-                    // Fallback: Verwende den gleichen Zeitraum wie "Gesamter Zeitraum"
-                    const startDate = new Date(sortedDates[0]);
-                    startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
-                    const endDate = new Date(sortedDates[sortedDates.length - 1]);
-                    endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
-                    
-                    return {
-                        startDate: startDate,
-                        timePoints: sortedDates,
-                        addEndOffset: true
-                    };
+                    // Fallback: Verwende den gespeicherten Zeitraum von "Gesamter Zeitraum"
+                    if (allTimeRangeData) {
+                        customDateRange.startDate = allTimeRangeData.startDate;
+                        customDateRange.endDate = allTimeRangeData.endDate;
+                        
+                        // Aktualisiere auch die UI-Elemente
+                        const startDateInput = document.getElementById('startDate');
+                        const endDateInput = document.getElementById('endDate');
+                        if (startDateInput) startDateInput.value = allTimeRangeData.startDate;
+                        if (endDateInput) endDateInput.value = allTimeRangeData.endDate;
+                    } else {
+                        // Fallback: Verwende den gleichen Zeitraum wie "Gesamter Zeitraum"
+                        const startDate = new Date(sortedDates[0]);
+                        startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
+                        const endDate = new Date(sortedDates[sortedDates.length - 1]);
+                        endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
+                        
+                        return {
+                            startDate: startDate,
+                            timePoints: sortedDates,
+                            addEndOffset: true
+                        };
+                    }
                 }
                 
                 const customStartDate = new Date(customDateRange.startDate);
