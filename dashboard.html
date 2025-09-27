@@ -2221,6 +2221,8 @@
                         return Math.round(dailyViews * variation);
                     });
                     
+                    console.log(`📈 Video ${idx}: ${video.title}, totalViews: ${totalViews}, dailyViews: ${dailyViews}, data:`, data.slice(0, 5));
+                    
                     return {
                         name: video.title,
                         type: 'line',
@@ -2247,6 +2249,9 @@
                     }, 0);
                     return Math.round(totalViews / filteredVideos.length * 10) / 10;
                 });
+                
+                console.log('📈 Generated videoData series:', videoData.length);
+                console.log('📈 Generated averageData:', averageData.slice(0, 5));
             }
             
             const series = [
@@ -2804,6 +2809,8 @@
                         return cumulativeViews;
                     });
                     
+                    console.log(`🏁 Video ${idx}: ${video.title}, totalViews: ${totalViews}, dailyViews: ${dailyViews}, data:`, data.slice(0, 5));
+                    
                     return {
                         name: video.title,
                         type: 'line',
@@ -2818,6 +2825,8 @@
                         emphasis: { focus: 'series' }
                     };
                 });
+                
+                console.log('🏁 Generated series:', series.length);
             }
             
             const option = {
