@@ -2106,6 +2106,19 @@
                 firstVideoViewHistoryKeys: filteredVideos[0]?.viewHistory ? Object.keys(filteredVideos[0].viewHistory).slice(0, 3) : []
             });
             
+            // Debug: Prüfe alle Video-Objekte auf viewHistory-Daten
+            console.log('📈 Debug: Checking all video objects for viewHistory data...');
+            filteredVideos.slice(0, 3).forEach((video, idx) => {
+                console.log(`📈 Video ${idx}:`, {
+                    title: video.title,
+                    hasViewHistory: !!(video.viewHistory && Object.keys(video.viewHistory).length > 0),
+                    hasViewHistoryAlt: !!(video.view_history && Object.keys(video.view_history).length > 0),
+                    viewHistoryKeys: video.viewHistory ? Object.keys(video.viewHistory).length : 0,
+                    viewHistoryAltKeys: video.view_history ? Object.keys(video.view_history).length : 0,
+                    rawVideoObject: video
+                });
+            });
+            
             let timePoints = [];
             let videoData = [];
             let averageData = [];
