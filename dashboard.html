@@ -1971,10 +1971,16 @@
                 videoData: v // Debug: Zeige vollständige Video-Daten
             })));
             
-            if (!hasVideoData || !hasViewHistoryData) {
-                console.log('⚠️ Keine ausreichenden Daten für Charts verfügbar');
+            // Charts auch ohne viewHistory anzeigen, wenn Videos vorhanden sind
+            if (!hasVideoData) {
+                console.log('⚠️ Keine Video-Daten für Charts verfügbar');
                 showNoDataMessage();
                 return;
+            }
+            
+            // Warnung für fehlende viewHistory, aber Charts trotzdem anzeigen
+            if (!hasViewHistoryData) {
+                console.log('⚠️ Keine viewHistory-Daten verfügbar, zeige Charts trotzdem an');
             }
             
             // Charts erstellen (wie in der App)
