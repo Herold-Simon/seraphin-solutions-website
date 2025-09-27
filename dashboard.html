@@ -2209,6 +2209,8 @@
                     timePoints.push(`${day}.${month}.${year}`);
                 }
                 
+                console.log('📈 Simulated timePoints:', timePoints.slice(0, 5), '...', timePoints.slice(-5));
+                
                 // Erstelle Series mit simulierten Daten
                 videoData = filteredVideos.map((video, idx) => {
                     const totalViews = video.views || 0;
@@ -2781,6 +2783,8 @@
                     timePoints.push(`${day}.${month}.${year}`);
                 }
                 
+                console.log('🏁 Simulated timePoints:', timePoints.slice(0, 5), '...', timePoints.slice(-5));
+                
                 // Für jedes Video: Kumulierte Aufrufe pro Tag mit simulierten Daten
                 series = filteredVideos.map((video, idx) => {
                     const totalViews = video.views || 0;
@@ -3061,6 +3065,11 @@
         
         // Hilfsfunktion für Datumsformatierung
         function formatDateToGerman(dateString) {
+            // Prüfe ob bereits im deutschen Format (DD.MM.YYYY)
+            if (dateString.includes('.') && dateString.split('.').length === 3) {
+                return dateString; // Bereits im deutschen Format
+            }
+            
             // Konvertiert "2025-08-30" zu "30.08.2025"
             const date = new Date(dateString);
             const day = date.getDate().toString().padStart(2, '0');
