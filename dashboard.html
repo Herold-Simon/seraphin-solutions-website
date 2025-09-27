@@ -2095,6 +2095,16 @@
                 (video.view_history && Object.keys(video.view_history).length > 0)
             );
             
+            console.log('📈 Line Chart - hasViewHistory check:', {
+                hasViewHistory,
+                totalVideos: filteredVideos.length,
+                videosWithViewHistory: filteredVideos.filter(v => 
+                    (v.viewHistory && Object.keys(v.viewHistory).length > 0) ||
+                    (v.view_history && Object.keys(v.view_history).length > 0)
+                ).length,
+                firstVideoViewHistory: filteredVideos[0]?.viewHistory ? Object.keys(filteredVideos[0].viewHistory).length : 0,
+                firstVideoViewHistoryKeys: filteredVideos[0]?.viewHistory ? Object.keys(filteredVideos[0].viewHistory).slice(0, 3) : []
+            });
             
             let timePoints = [];
             let videoData = [];
