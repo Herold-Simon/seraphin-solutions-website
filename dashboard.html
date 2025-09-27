@@ -2123,13 +2123,21 @@
             let videoData = [];
             let averageData = [];
             
-            if (hasViewHistory) {
+            // Versuche immer echte viewHistory-Daten zu verwenden, auch wenn hasViewHistory false ist
+            const videosWithRealData = filteredVideos.filter(video => 
+                (video.viewHistory && Object.keys(video.viewHistory).length > 0) ||
+                (video.view_history && Object.keys(video.view_history).length > 0)
+            );
+            
+            console.log('📈 Videos with real viewHistory data:', videosWithRealData.length);
+            
+            if (videosWithRealData.length > 0) {
                 // Verwende echte viewHistory-Daten
-                console.log('📈 Using real viewHistory data');
+                console.log('📈 Using real viewHistory data from', videosWithRealData.length, 'videos');
                 
                 // Sammle alle verfügbaren Daten aus viewHistory
                 const allDates = new Set();
-                filteredVideos.forEach(video => {
+                videosWithRealData.forEach(video => {
                     const viewHistory = video.viewHistory || video.view_history;
                     if (viewHistory) {
                         Object.keys(viewHistory).forEach(date => allDates.add(date));
@@ -2158,11 +2166,13 @@
                 }
                 
                 // Erstelle Series für jedes Video mit echten Daten
-                videoData = filteredVideos.map((video, idx) => {
+                videoData = videosWithRealData.map((video, idx) => {
                     const viewHistory = video.viewHistory || video.view_history;
                     const data = timePoints.map(date => {
                         return viewHistory && viewHistory[date] ? viewHistory[date] : 0;
                     });
+                    
+                    console.log(`📈 Real data for ${video.title}:`, data.slice(0, 5));
                     
                     return {
                         name: video.title,
@@ -2181,11 +2191,11 @@
                 
                 // Berechne Durchschnittslinie mit echten Daten
                 averageData = timePoints.map(date => {
-                    const totalViews = filteredVideos.reduce((sum, video) => {
+                    const totalViews = videosWithRealData.reduce((sum, video) => {
                         const viewHistory = video.viewHistory || video.view_history;
                         return sum + (viewHistory && viewHistory[date] ? viewHistory[date] : 0);
                     }, 0);
-                    return Math.round(totalViews / filteredVideos.length * 10) / 10;
+                    return Math.round(totalViews / videosWithRealData.length * 10) / 10;
                 });
             } else {
                 // Fallback: Verwende simulierte Daten basierend auf Gesamtaufrufen
@@ -2690,23 +2700,24 @@
                 return;
             }
             
-            // Prüfe ob viewHistory-Daten verfügbar sind
-            const hasViewHistory = filteredVideos.some(video => 
+            // Versuche immer echte viewHistory-Daten zu verwenden, auch wenn hasViewHistory false ist
+            const videosWithRealData = filteredVideos.filter(video => 
                 (video.viewHistory && Object.keys(video.viewHistory).length > 0) ||
                 (video.view_history && Object.keys(video.view_history).length > 0)
             );
             
+            console.log('🏁 Videos with real viewHistory data for Line Race:', videosWithRealData.length);
             
             let timePoints = [];
             let series = [];
             
-            if (hasViewHistory) {
+            if (videosWithRealData.length > 0) {
                 // Verwende echte viewHistory-Daten
-                console.log('🏁 Using real viewHistory data for Line Race');
+                console.log('🏁 Using real viewHistory data for Line Race from', videosWithRealData.length, 'videos');
                 
                 // Sammle alle verfügbaren Daten aus viewHistory
                 const allDates = new Set();
-                filteredVideos.forEach(video => {
+                videosWithRealData.forEach(video => {
                     const viewHistory = video.viewHistory || video.view_history;
                     if (viewHistory) {
                         Object.keys(viewHistory).forEach(date => allDates.add(date));
@@ -2735,7 +2746,7 @@
                 }
                 
                 // Für jedes Video: Kumulierte Aufrufe pro Tag mit echten Daten
-                series = filteredVideos.map((video, idx) => {
+                series = videosWithRealData.map((video, idx) => {
                     const viewHistory = video.viewHistory || video.view_history;
                     
                     // Erstelle die Daten: Kumulierte Aufrufe pro Tag
@@ -2752,6 +2763,8 @@
                         
                         return cumulativeViews;
                     });
+                    
+                    console.log(`🏁 Real data for ${video.title}:`, data.slice(0, 5));
                     
                     return {
                         name: video.title,
