@@ -2113,11 +2113,20 @@
                 
                 // Sortiere Daten und filtere basierend auf ausgewähltem Zeitraum
                 const sortedDates = Array.from(allDates).sort();
-                const timeRangeResult = calculateTimeRange(sortedDates, currentTimeRange);
-                timePoints = timeRangeResult.timePoints;
+                console.log('📈 Available dates from viewHistory:', sortedDates);
+                
+                try {
+                    const timeRangeResult = calculateTimeRange(sortedDates, currentTimeRange);
+                    timePoints = timeRangeResult.timePoints;
+                    console.log('📈 Calculated timePoints:', timePoints);
+                } catch (error) {
+                    console.error('📈 Error calculating timeRange, using fallback:', error);
+                    // Fallback zu simulierten Daten
+                    hasViewHistory = false;
+                }
                 
                 // Für "Alle Zeit" füge auch Offset nach dem letzten Datum hinzu
-                if (timeRangeResult.addEndOffset && timePoints.length > 0) {
+                if (timeRangeResult && timeRangeResult.addEndOffset && timePoints.length > 0) {
                     const lastDate = new Date(timePoints[timePoints.length - 1]);
                     lastDate.setDate(lastDate.getDate() + 2);
                     timePoints.push(lastDate.toISOString().split('T')[0]);
@@ -2662,11 +2671,20 @@
                 
                 // Sortiere Daten und filtere basierend auf ausgewähltem Zeitraum
                 const sortedDates = Array.from(allDates).sort();
-                const timeRangeResult = calculateTimeRange(sortedDates, currentTimeRange);
-                timePoints = timeRangeResult.timePoints;
+                console.log('🏁 Available dates from viewHistory:', sortedDates);
+                
+                try {
+                    const timeRangeResult = calculateTimeRange(sortedDates, currentTimeRange);
+                    timePoints = timeRangeResult.timePoints;
+                    console.log('🏁 Calculated timePoints:', timePoints);
+                } catch (error) {
+                    console.error('🏁 Error calculating timeRange, using fallback:', error);
+                    // Fallback zu simulierten Daten
+                    hasViewHistory = false;
+                }
                 
                 // Für "Alle Zeit" füge auch Offset nach dem letzten Datum hinzu
-                if (timeRangeResult.addEndOffset && timePoints.length > 0) {
+                if (timeRangeResult && timeRangeResult.addEndOffset && timePoints.length > 0) {
                     const lastDate = new Date(timePoints[timePoints.length - 1]);
                     lastDate.setDate(lastDate.getDate() + 2);
                     timePoints.push(lastDate.toISOString().split('T')[0]);
