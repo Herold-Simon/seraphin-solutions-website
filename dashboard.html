@@ -1549,8 +1549,25 @@
                     // Synchronisiere den benutzerdefinierten Zeitraum mit dem Gesamten Zeitraum
                     setTimeout(() => {
                         syncCustomTimeRangeWithAllTime();
+                        
+                        // Automatisch zu "Gesamter Zeitraum" wechseln
+                        currentTimeRange = 'all';
+                        
+                        // Aktualisiere die Button-Auswahl
+                        document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+                        const allTimeBtn = document.querySelector('.time-btn[data-range="all"]');
+                        if (allTimeBtn) {
+                            allTimeBtn.classList.add('active');
+                        }
+                        
+                        // Verstecke benutzerdefinierte Datumsauswahl
+                        const customDateRangeElement = document.getElementById('customDateRange');
+                        if (customDateRangeElement) {
+                            customDateRangeElement.style.display = 'none';
+                        }
+                        
                         updateCharts();
-                        console.log('🔄 Benutzerdefinierter Zeitraum als Standard gesetzt und synchronisiert');
+                        console.log('🔄 Automatisch zu "Gesamter Zeitraum" gewechselt');
                     }, 200); // 200ms Verzögerung
                     
                 } else {
