@@ -1181,13 +1181,13 @@
                 const endDate = new Date(sortedDates[sortedDates.length - 1]);
                 endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
                 
-                // Aktualisiere allTimeRangeData
+                // Aktualisiere allTimeRangeData IMMER (auch wenn sie schon gesetzt war)
                 allTimeRangeData = {
                     startDate: startDate.toISOString().split('T')[0],
                     endDate: endDate.toISOString().split('T')[0]
                 };
                 
-                // Aktualisiere den benutzerdefinierten Zeitraum
+                // Aktualisiere den benutzerdefinierten Zeitraum IMMER
                 customDateRange.startDate = allTimeRangeData.startDate;
                 customDateRange.endDate = allTimeRangeData.endDate;
                 
@@ -1198,6 +1198,8 @@
                 if (endDateInput) endDateInput.value = allTimeRangeData.endDate;
                 
                 console.log('🔄 Benutzerdefinierter Zeitraum synchronisiert mit Gesamter Zeitraum:', allTimeRangeData);
+            } else {
+                console.warn('⚠️ Keine Statistiken oder Historie-Daten verfügbar für Synchronisierung');
             }
         }
         let charts = {};
@@ -2999,6 +3001,23 @@
         
         // Hilfsfunktion für Zeitraum-Berechnung
         function calculateTimeRange(sortedDates, timeRange) {
+            // Berechne IMMER den "Gesamter Zeitraum" und speichere ihn in allTimeRangeData
+            // (unabhängig vom aktuellen timeRange-Parameter)
+            if (sortedDates && sortedDates.length > 0) {
+                const allTimeStartDate = new Date(sortedDates[0]);
+                allTimeStartDate.setDate(allTimeStartDate.getDate() - 2); // Offset vor dem ersten Datum
+                const allTimeEndDate = new Date(sortedDates[sortedDates.length - 1]);
+                allTimeEndDate.setDate(allTimeEndDate.getDate() + 2); // Offset nach dem letzten Datum
+                
+                // Speichere den Zeitraum für "Benutzerdefiniert" (immer aktualisieren)
+                allTimeRangeData = {
+                    startDate: allTimeStartDate.toISOString().split('T')[0],
+                    endDate: allTimeEndDate.toISOString().split('T')[0]
+                };
+                
+                console.log('📅 AllTimeRangeData aktualisiert:', allTimeRangeData);
+            }
+            
             if (timeRange === 'all') {
                 const startDate = new Date(sortedDates[0]);
                 startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
@@ -3009,12 +3028,6 @@
                     startDate: startDate,
                     timePoints: sortedDates,
                     addEndOffset: true
-                };
-
-                // Speichere den Zeitraum für "Benutzerdefiniert"
-                allTimeRangeData = {
-                    startDate: startDate.toISOString().split('T')[0],
-                    endDate: endDate.toISOString().split('T')[0]
                 };
                 
                 // Synchronisiere auch den benutzerdefinierten Zeitraum, falls er aktiv ist
@@ -3033,17 +3046,30 @@
             } else if (timeRange === 'custom') {
                 // Benutzerdefinierter Zeitraum
                 if (!customDateRange.startDate || !customDateRange.endDate) {
-                    // Fallback: Verwende den gleichen Zeitraum wie "Gesamter Zeitraum"
-                    const startDate = new Date(sortedDates[0]);
-                    startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
-                    const endDate = new Date(sortedDates[sortedDates.length - 1]);
-                    endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
-                    
-                    return {
-                        startDate: startDate,
-                        timePoints: sortedDates,
-                        addEndOffset: true
-                    };
+                    // Fallback: Verwende den gespeicherten Zeitraum von "Gesamter Zeitraum"
+                    if (allTimeRangeData) {
+                        customDateRange.startDate = allTimeRangeData.startDate;
+                        customDateRange.endDate = allTimeRangeData.endDate;
+                        
+                        // Aktualisiere auch die UI-Elemente
+                        const startDateInput = document.getElementById('startDate');
+                        const endDateInput = document.getElementById('endDate');
+                        if (startDateInput) startDateInput.value = allTimeRangeData.startDate;
+                        if (endDateInput) endDateInput.value = allTimeRangeData.endDate;
+                        
+                        console.log('🔄 Custom-Zeitraum auf AllTimeRangeData gesetzt:', allTimeRangeData);
+                    } else {
+                        // Fallback: Berechne den Zeitraum wie bei "Gesamter Zeitraum"
+                        const startDate = new Date(sortedDates[0]);
+                        startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
+                        const endDate = new Date(sortedDates[sortedDates.length - 1]);
+                        endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
+                        
+                        customDateRange.startDate = startDate.toISOString().split('T')[0];
+                        customDateRange.endDate = endDate.toISOString().split('T')[0];
+                        
+                        console.log('🔄 Custom-Zeitraum berechnet (Fallback):', customDateRange);
+                    }
                 }
                 
                 const customStartDate = new Date(customDateRange.startDate);
@@ -3152,9 +3178,9 @@
         
         // Charts aktualisieren
         function updateCharts() {
-
-            // Synchronisiere den benutzerdefinierten Zeitraum, wenn er leer ist oder wenn sich Daten geändert haben
+            // Synchronisiere den benutzerdefinierten Zeitraum immer, wenn er leer ist
             if (currentTimeRange === 'custom' && (!customDateRange.startDate || !customDateRange.endDate)) {
+                console.log('🔄 Synchronisiere benutzerdefinierten Zeitraum (leer)');
                 syncCustomTimeRangeWithAllTime();
             }
             
@@ -3288,78 +3314,6 @@
                 }
             } catch (error) {
                 console.error('❌ Fehler in showNoDataMessage:', error);
-            }
-        }
-        
-        // CSV-Download Funktion
-        async function downloadCSV() {
-            try {
-                const csvDownloadBtn = document.getElementById('csvDownloadBtn');
-                const csvDownloadStatus = document.getElementById('csvDownloadStatus');
-                
-                if (csvDownloadBtn) {
-                    csvDownloadBtn.disabled = true;
-                    csvDownloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Lade CSV...';
-                }
-                
-                if (csvDownloadStatus) {
-                    csvDownloadStatus.textContent = 'CSV wird vorbereitet...';
-                    csvDownloadStatus.style.color = 'var(--primary-blue)';
-                }
-                
-                // Hole Admin-User-ID aus den Statistiken
-                let adminUserId = null;
-                
-                // Fallback: Admin-User-ID aus Statistiken verwenden
-                if (!adminUserId && statistics && statistics.current) {
-                    adminUserId = statistics.current.admin_user_id;
-                }
-                
-                if (!adminUserId) {
-                    throw new Error('Keine Admin-User-ID gefunden');
-                }
-                
-                // Lade CSV-Daten
-                const csvResponse = await fetch(`/api/statistics/csv?admin_user_id=${adminUserId}`, {
-                    method: 'GET',
-                    credentials: 'include'
-                });
-                
-                if (!csvResponse.ok) {
-                    const errorData = await csvResponse.json();
-                    throw new Error(errorData.error || 'Fehler beim Laden der CSV-Daten');
-                }
-                
-                // Erstelle Download-Link
-                const csvBlob = await csvResponse.blob();
-                const url = window.URL.createObjectURL(csvBlob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `video_statistics_${new Date().toISOString().split('T')[0]}.csv`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-                
-                if (csvDownloadStatus) {
-                    csvDownloadStatus.textContent = 'CSV erfolgreich heruntergeladen!';
-                    csvDownloadStatus.style.color = 'var(--success-color)';
-                }
-                
-            } catch (error) {
-                console.error('❌ CSV Download Error:', error);
-                
-                const csvDownloadStatus = document.getElementById('csvDownloadStatus');
-                if (csvDownloadStatus) {
-                    csvDownloadStatus.textContent = `Fehler: ${error.message}`;
-                    csvDownloadStatus.style.color = 'var(--error-color)';
-                }
-            } finally {
-                const csvDownloadBtn = document.getElementById('csvDownloadBtn');
-                if (csvDownloadBtn) {
-                    csvDownloadBtn.disabled = false;
-                    csvDownloadBtn.innerHTML = '<i class="fas fa-download"></i> Video-Statistiken als CSV herunterladen';
-                }
             }
         }
         
