@@ -1170,6 +1170,25 @@
         
         // Funktion zum Synchronisieren des benutzerdefinierten Zeitraums mit dem Gesamten Zeitraum
         function syncCustomTimeRangeWithAllTime() {
+            // Prüfe zuerst, ob allTimeRangeData bereits verfügbar ist
+            if (allTimeRangeData && allTimeRangeData.startDate && allTimeRangeData.endDate) {
+                console.log('🔄 Verwende vorhandene allTimeRangeData:', allTimeRangeData);
+                
+                // Aktualisiere den benutzerdefinierten Zeitraum
+                customDateRange.startDate = allTimeRangeData.startDate;
+                customDateRange.endDate = allTimeRangeData.endDate;
+                
+                // Aktualisiere die UI-Elemente
+                const startDateInput = document.getElementById('startDate');
+                const endDateInput = document.getElementById('endDate');
+                if (startDateInput) startDateInput.value = allTimeRangeData.startDate;
+                if (endDateInput) endDateInput.value = allTimeRangeData.endDate;
+                
+                console.log('🔄 Benutzerdefinierter Zeitraum auf allTimeRangeData gesetzt:', allTimeRangeData);
+                return;
+            }
+            
+            // Fallback: Berechne allTimeRangeData neu
             if (statistics && statistics.history && statistics.history.length > 0) {
                 const sortedDates = statistics.history
                     .map(item => new Date(item.date))
@@ -1181,13 +1200,13 @@
                 const endDate = new Date(sortedDates[sortedDates.length - 1]);
                 endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
                 
-                // Aktualisiere allTimeRangeData IMMER (auch wenn sie schon gesetzt war)
+                // Aktualisiere allTimeRangeData
                 allTimeRangeData = {
                     startDate: startDate.toISOString().split('T')[0],
                     endDate: endDate.toISOString().split('T')[0]
                 };
                 
-                // Aktualisiere den benutzerdefinierten Zeitraum IMMER
+                // Aktualisiere den benutzerdefinierten Zeitraum
                 customDateRange.startDate = allTimeRangeData.startDate;
                 customDateRange.endDate = allTimeRangeData.endDate;
                 
@@ -1197,7 +1216,7 @@
                 if (startDateInput) startDateInput.value = allTimeRangeData.startDate;
                 if (endDateInput) endDateInput.value = allTimeRangeData.endDate;
                 
-                console.log('🔄 Benutzerdefinierter Zeitraum synchronisiert mit Gesamter Zeitraum:', allTimeRangeData);
+                console.log('🔄 Benutzerdefinierter Zeitraum berechnet und synchronisiert:', allTimeRangeData);
             } else {
                 console.warn('⚠️ Keine Statistiken oder Historie-Daten verfügbar für Synchronisierung');
             }
@@ -1507,6 +1526,25 @@
                     
                     // Event Listeners nach dem Laden der Statistiken einrichten
                     setupEventListeners();
+                    
+                    // Berechne und setze allTimeRangeData sofort nach dem Laden der Statistiken
+                    if (statistics && statistics.history && statistics.history.length > 0) {
+                        const sortedDates = statistics.history
+                            .map(item => new Date(item.date))
+                            .sort((a, b) => a - b);
+                        
+                        const startDate = new Date(sortedDates[0]);
+                        startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
+                        const endDate = new Date(sortedDates[sortedDates.length - 1]);
+                        endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
+                        
+                        allTimeRangeData = {
+                            startDate: startDate.toISOString().split('T')[0],
+                            endDate: endDate.toISOString().split('T')[0]
+                        };
+                        
+                        console.log('📅 AllTimeRangeData initial gesetzt:', allTimeRangeData);
+                    }
                     
                     // Synchronisiere den benutzerdefinierten Zeitraum mit dem Gesamten Zeitraum
                     setTimeout(() => {
