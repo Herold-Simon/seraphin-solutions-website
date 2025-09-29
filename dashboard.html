@@ -909,13 +909,13 @@
                 <div class="time-range-selector">
                     <h3 style="margin: 0; color: var(--text-dark);">Zeitraum:</h3>
                     <div class="time-range-buttons">
-                        <button class="time-btn active" data-range="7">Letzte 7 Tage</button>
+                        <button class="time-btn" data-range="7">Letzte 7 Tage</button>
                         <button class="time-btn" data-range="all">Gesamter Zeitraum</button>
-                        <button class="time-btn" data-range="custom" id="customRangeBtn">Benutzerdefiniert</button>
+                        <button class="time-btn active" data-range="custom" id="customRangeBtn">Benutzerdefiniert</button>
                     </div>
                     
                     <!-- Benutzerdefinierte Datumsauswahl -->
-                    <div class="custom-date-range" id="customDateRange" style="display: none;">
+                    <div class="custom-date-range" id="customDateRange" style="display: block;">
                         <div class="date-inputs">
                             <div class="date-input-group">
                                 <label for="startDate">Von:</label>
@@ -1009,12 +1009,45 @@
     <script>
         let currentUser = null;
         let statistics = null;
-        let currentTimeRange = '7';
+        let currentTimeRange = 'custom';
         let customDateRange = {
             startDate: null,
             endDate: null
         };
         let allTimeRangeData = null; // Speichert den Zeitraum von "Gesamter Zeitraum"
+        
+        // Funktion zum Synchronisieren des benutzerdefinierten Zeitraums mit dem Gesamten Zeitraum
+        function syncCustomTimeRangeWithAllTime() {
+            if (statistics && statistics.history && statistics.history.length > 0) {
+                const sortedDates = statistics.history
+                    .map(item => new Date(item.date))
+                    .sort((a, b) => a - b);
+                
+                // Berechne den gleichen Zeitraum wie "Gesamter Zeitraum"
+                const startDate = new Date(sortedDates[0]);
+                startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
+                const endDate = new Date(sortedDates[sortedDates.length - 1]);
+                endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
+                
+                // Aktualisiere allTimeRangeData
+                allTimeRangeData = {
+                    startDate: startDate.toISOString().split('T')[0],
+                    endDate: endDate.toISOString().split('T')[0]
+                };
+                
+                // Aktualisiere den benutzerdefinierten Zeitraum
+                customDateRange.startDate = allTimeRangeData.startDate;
+                customDateRange.endDate = allTimeRangeData.endDate;
+                
+                // Aktualisiere die UI-Elemente
+                const startDateInput = document.getElementById('startDate');
+                const endDateInput = document.getElementById('endDate');
+                if (startDateInput) startDateInput.value = allTimeRangeData.startDate;
+                if (endDateInput) endDateInput.value = allTimeRangeData.endDate;
+                
+                console.log('🔄 Benutzerdefinierter Zeitraum synchronisiert mit Gesamter Zeitraum:', allTimeRangeData);
+            }
+        }
         let charts = {};
         let chartStates = {
             lineChart: true,
@@ -1214,50 +1247,13 @@
             const resetDateBtn = document.getElementById('resetDateBtn');
             if (resetDateBtn) {
                 resetDateBtn.addEventListener('click', function() {
-                    // Verwende den gespeicherten Zeitraum von "Gesamter Zeitraum"
-                    if (allTimeRangeData) {
-                        startDateInput.value = allTimeRangeData.startDate;
-                        endDateInput.value = allTimeRangeData.endDate;
-                        customDateRange.startDate = allTimeRangeData.startDate;
-                        customDateRange.endDate = allTimeRangeData.endDate;
-                    } else {
-                        // Fallback: Setze Standard-Zeitraum basierend auf "Gesamter Zeitraum"
-                        const history = statistics?.history || [];
-                        if (history && history.length > 0) {
-                            // Sortiere Daten chronologisch
-                            const sortedDates = history
-                                .map(item => new Date(item.date))
-                                .sort((a, b) => a - b);
-                            
-                            // Verwende den gleichen Zeitraum wie "Gesamter Zeitraum"
-                            const startDate = new Date(sortedDates[0]);
-                            startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
-                            const endDate = new Date(sortedDates[sortedDates.length - 1]);
-                            endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
-                            
-                            // Aktualisiere die Eingabefelder
-                            startDateInput.value = startDate.toISOString().split('T')[0];
-                            endDateInput.value = endDate.toISOString().split('T')[0];
-                            
-                            // Aktualisiere die benutzerdefinierten Datumsbereiche
-                            customDateRange.startDate = startDateInput.value;
-                            customDateRange.endDate = endDateInput.value;
-                        } else {
-                            // Fallback zu letzte 30 Tage wenn keine Historie verfügbar
-                            const today = new Date();
-                            const thirtyDaysAgo = new Date();
-                            thirtyDaysAgo.setDate(today.getDate() - 30);
-                            
-                            startDateInput.value = thirtyDaysAgo.toISOString().split('T')[0];
-                            endDateInput.value = today.toISOString().split('T')[0];
-                            
-                            customDateRange.startDate = startDateInput.value;
-                            customDateRange.endDate = endDateInput.value;
-                        }
-                    }
+                    // Setze den benutzerdefinierten Zeitraum auf den dynamischen Gesamten Zeitraum zurück
+                    syncCustomTimeRangeWithAllTime();
                     
                     // Aktualisiere die Charts
                     updateCharts();
+                    
+                    console.log('🔄 Benutzerdefinierter Zeitraum auf Standard zurückgesetzt');
                 });
             }
             
@@ -1381,17 +1377,11 @@
                     // Event Listeners nach dem Laden der Statistiken einrichten
                     setupEventListeners();
                     
-                    // Automatisch zu "Alle Zeit" wechseln nach dem Laden der Statistiken
+                    // Synchronisiere den benutzerdefinierten Zeitraum mit dem Gesamten Zeitraum
                     setTimeout(() => {
-                        currentTimeRange = 'all';
-                        // Aktualisiere die Button-Auswahl
-                        document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
-                        const allTimeBtn = document.querySelector('.time-btn[data-range="all"]');
-                        if (allTimeBtn) {
-                            allTimeBtn.classList.add('active');
-                        }
+                        syncCustomTimeRangeWithAllTime();
                         updateCharts();
-                        console.log('🔄 Automatisch zu "Alle Zeit" gewechselt');
+                        console.log('🔄 Benutzerdefinierter Zeitraum als Standard gesetzt und synchronisiert');
                     }, 200); // 200ms Verzögerung
                     
                 } else {
@@ -2549,6 +2539,18 @@
                     endDate: endDate.toISOString().split('T')[0]
                 };
                 
+                // Synchronisiere auch den benutzerdefinierten Zeitraum, falls er aktiv ist
+                if (currentTimeRange === 'custom') {
+                    customDateRange.startDate = allTimeRangeData.startDate;
+                    customDateRange.endDate = allTimeRangeData.endDate;
+                    
+                    // Aktualisiere auch die UI-Elemente
+                    const startDateInput = document.getElementById('startDate');
+                    const endDateInput = document.getElementById('endDate');
+                    if (startDateInput) startDateInput.value = allTimeRangeData.startDate;
+                    if (endDateInput) endDateInput.value = allTimeRangeData.endDate;
+                }
+                
                 return result;
             } else if (timeRange === 'custom') {
                 // Benutzerdefinierter Zeitraum
@@ -2672,6 +2674,11 @@
         
         // Charts aktualisieren
         function updateCharts() {
+            // Synchronisiere den benutzerdefinierten Zeitraum, wenn er leer ist oder wenn sich Daten geändert haben
+            if (currentTimeRange === 'custom' && (!customDateRange.startDate || !customDateRange.endDate)) {
+                syncCustomTimeRangeWithAllTime();
+            }
+            
             if (chartStates.lineChart) createLineChart();
             if (chartStates.barChart) createBarChart();
             if (chartStates.pieChart) createPieChart();
