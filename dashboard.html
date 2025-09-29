@@ -177,21 +177,145 @@
             padding: 0 2rem 4rem;
         }
 
-        /* Geräte-ID-Header */
-        .device-id-header {
+        /* Modern Device Selector */
+        .device-selector-container {
             background: var(--white);
-            padding: 1rem 1.5rem;
+            padding: 1.5rem;
             border-radius: 12px;
             box-shadow: var(--shadow);
-            margin-bottom: 1.5rem;
-        }
-        
-        .device-id-container {
+            margin-bottom: 2rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.9rem;
         }
+        
+        
+        .device-dropdown {
+            position: relative;
+            min-width: 280px;
+            width: 100%;
+        }
+        
+        .device-dropdown-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: var(--white);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-dark);
+            min-height: 48px;
+            width: 100%;
+        }
+        
+        .device-dropdown-trigger:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .device-dropdown-trigger:active {
+            transform: translateY(0);
+        }
+        
+        .device-dropdown-trigger.open {
+            border-color: var(--primary-blue);
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .device-dropdown-text {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .device-dropdown-icon {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.2s ease;
+            color: var(--text-light);
+        }
+        
+        .device-dropdown-icon.open {
+            transform: rotate(180deg);
+        }
+        
+        .device-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--white);
+            border-radius: 0 0 8px 8px;
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            max-height: 300px;
+            overflow-y: auto;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+            border: 2px solid var(--border-color);
+            border-top: none;
+        }
+        
+        .device-dropdown-menu.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .device-dropdown-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .device-dropdown-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 6px 6px;
+        }
+        
+        .device-dropdown-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .device-dropdown-item-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            color: #9e9e9e;
+            flex-shrink: 0;
+        }
+        
+        .device-dropdown-item-text {
+            color: #424242;
+            font-size: 14px;
+            font-weight: 500;
+            flex: 1;
+        }
+        
+        .device-dropdown-item.selected {
+            background: var(--light-gray);
+            color: var(--primary-blue);
+        }
+        
+        .device-dropdown-item.selected .device-dropdown-item-text {
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+        
+        .device-dropdown-item.selected .device-dropdown-item-icon {
+            color: var(--primary-blue);
+        }
+        
 
         /* Statistiken-Karten im AdminPanel-Stil */
         .stats-overview {
@@ -202,22 +326,27 @@
             cursor: pointer;
             transition: all 0.3s ease;
             border-radius: 12px;
-            padding: 1rem;
+            padding: 1.5rem;
             position: relative;
+            background: var(--white);
+            box-shadow: var(--shadow);
         }
         
         
         .stat-card {
-            background: var(--white);
+            background: var(--light-gray);
             padding: 1.5rem;
             border-radius: 12px;
-            box-shadow: var(--shadow);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             text-align: center;
             transition: transform 0.3s ease;
+            border: 1px solid var(--border-color);
         }
         
         .stat-card:hover {
             transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background: var(--white);
         }
         
         .stat-icon {
@@ -613,16 +742,28 @@
                 text-align: center;
             }
             
-            .device-id-header {
-                padding: 0.8rem 1rem;
-                margin-bottom: 1rem;
+            .device-selector-header {
+                padding: 1.25rem 1.5rem;
+                margin-bottom: 1.5rem;
+                border-radius: 16px;
             }
             
-            .device-id-container {
-                font-size: 0.8rem;
-                flex-direction: column;
-                gap: 0.5rem;
+            .device-selector-container {
+                align-items: stretch;
             }
+            
+            .device-dropdown {
+                min-width: auto;
+                width: 100%;
+            }
+            
+            .device-dropdown-trigger {
+                font-size: 16px; /* Verhindert Zoom auf iOS */
+                padding: 1.25rem 1.5rem;
+                text-align: center;
+                border: 2px solid var(--border-color);
+            }
+            
             
             .stats-overview {
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -834,6 +975,7 @@
                 transform: scale(1);
             }
         }
+
     </style>
 </head>
 <body>
@@ -876,14 +1018,27 @@
             <div id="errorMessage" class="error-message" style="display: none;"></div>
             
             <div id="dashboardContent" style="display: none;">
-                <!-- Geräte-ID-Anzeige -->
-                <div class="device-id-header" id="deviceIdHeader" style="display: none;">
-                    <div class="device-id-container">
-                        <i class="fas fa-mobile-alt" style="margin-right: 8px; color: var(--primary-color);"></i>
-                        <span style="font-weight: 500; color: var(--text-color);">Geräte-ID:</span>
-                        <span id="deviceIdValue" style="font-family: monospace; background: var(--card-bg); padding: 2px 8px; border-radius: 4px; margin-left: 8px; color: var(--primary-color);"></span>
+            <!-- Modern Device Selector -->
+            <div class="device-selector-container" id="deviceSelectorHeader" style="display: none;">
+                <div class="device-dropdown" id="deviceDropdown">
+                    <button class="device-dropdown-trigger" id="deviceDropdownTrigger">
+                        <span class="device-dropdown-text" id="deviceDropdownText">Alle Geräte</span>
+                        <svg class="device-dropdown-icon" id="deviceDropdownIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6,9 12,15 18,9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="device-dropdown-menu" id="deviceDropdownMenu">
+                        <div class="device-dropdown-item" data-value="all">
+                            <svg class="device-dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                <line x1="8" y1="21" x2="16" y2="21"></line>
+                                <line x1="12" y1="17" x2="12" y2="21"></line>
+                            </svg>
+                            <span class="device-dropdown-item-text">Alle Geräte</span>
+                        </div>
                     </div>
                 </div>
+            </div>
 
                 <!-- Statistiken-Übersicht -->
                 <div class="stats-overview">
@@ -909,13 +1064,13 @@
                 <div class="time-range-selector">
                     <h3 style="margin: 0; color: var(--text-dark);">Zeitraum:</h3>
                     <div class="time-range-buttons">
-                        <button class="time-btn active" data-range="7">Letzte 7 Tage</button>
+                        <button class="time-btn" data-range="7">Letzte 7 Tage</button>
                         <button class="time-btn" data-range="all">Gesamter Zeitraum</button>
-                        <button class="time-btn" data-range="custom" id="customRangeBtn">Benutzerdefiniert</button>
+                        <button class="time-btn active" data-range="custom" id="customRangeBtn">Benutzerdefiniert</button>
                     </div>
                     
                     <!-- Benutzerdefinierte Datumsauswahl -->
-                    <div class="custom-date-range" id="customDateRange" style="display: none;">
+                    <div class="custom-date-range" id="customDateRange" style="display: block;">
                         <div class="date-inputs">
                             <div class="date-input-group">
                                 <label for="startDate">Von:</label>
@@ -951,13 +1106,13 @@
                     </div>
                 </div>
                 
+                
                 <!-- Charts -->
                 <div class="charts-section" id="chartsSection">
                     <!-- Liniendiagramm (wie in der App) -->
                     <div class="chart-card">
-                        <div class="chart-header" onclick="toggleChart('lineChart')">
+                        <div class="chart-header">
                             <h3 class="chart-title">Liniendiagramm</h3>
-                            <span class="chart-toggle" id="lineChartToggle">▶</span>
                         </div>
                         <div class="chart-container" id="lineChartContainer">
                             <div id="lineChart" style="width: 100%; height: 100%;"></div>
@@ -966,9 +1121,8 @@
 
                     <!-- Tortendiagramm (wie in der App) -->
                     <div class="chart-card">
-                        <div class="chart-header" onclick="toggleChart('pieChart')">
+                        <div class="chart-header">
                             <h3 class="chart-title">Tortendiagramm</h3>
-                            <span class="chart-toggle" id="pieChartToggle">▶</span>
                         </div>
                         <div class="chart-container pie-chart" id="pieChartContainer">
                             <div id="pieChart" style="width: 100%; height: 100%;"></div>
@@ -977,9 +1131,8 @@
 
                     <!-- Balkendiagramm (wie in der App) -->
                     <div class="chart-card">
-                        <div class="chart-header" onclick="toggleChart('barChart')">
+                        <div class="chart-header">
                             <h3 class="chart-title">Balkendiagramm</h3>
-                            <span class="chart-toggle" id="barChartToggle">▶</span>
                         </div>
                         <div class="chart-container bar-chart" id="barChartContainer">
                             <div id="barChart" style="width: 100%; height: 100%;"></div>
@@ -988,9 +1141,8 @@
 
                     <!-- Line Race (wie in der App) -->
                     <div class="chart-card">
-                        <div class="chart-header" onclick="toggleChart('lineRaceChart')">
+                        <div class="chart-header">
                             <h3 class="chart-title">Line Race</h3>
-                            <span class="chart-toggle" id="lineRaceChartToggle">▶</span>
                         </div>
                         <div class="chart-container" id="lineRaceChartContainer">
                             <div id="lineRaceChart" style="width: 100%; height: 100%;"></div>
@@ -1009,24 +1161,29 @@
     <script>
         let currentUser = null;
         let statistics = null;
-        let currentTimeRange = '7';
+        let currentTimeRange = 'custom';
         let customDateRange = {
             startDate: null,
             endDate: null
         };
-        let allTimeRangeData = null; // Speichert den Zeitraum von "Gesamter Zeitraum"
         let charts = {};
-        let chartStates = {
-            lineChart: true,
-            barChart: true,
-            pieChart: true,
-            lineRaceChart: true
-        };
+        // Chart States entfernt - alle Charts werden immer angezeigt
+        
+        // Device selector variables - NEUE EINFACHE IMPLEMENTIERUNG
+        let devices = [];
+        let selectedDeviceId = 'all';
+        let deviceStatistics = null;
+        let isLoadingDevices = false;
         
         // Dashboard initialisieren
         document.addEventListener('DOMContentLoaded', async function() {
             await loadDashboard();
             setupNavigation();
+            
+            // Setup device dropdown events wird jetzt in loadDevices() aufgerufen
+            // setupDeviceDropdownEvents();
+            
+            // Entfernt: syncDeviceSelector nicht mehr benötigt
         });
         
         // Navigation einrichten
@@ -1080,64 +1237,52 @@
                     currentTimeRange = this.dataset.range;
                     
                     // Zeige/verstecke benutzerdefinierte Datumsauswahl
-                    const customDateRange = document.getElementById('customDateRange');
+                    const customDateRangeElement = document.getElementById('customDateRange');
                     if (currentTimeRange === 'custom') {
                         customDateRangeElement.style.display = 'block';
                         
                         // Setze Standard-Datumswerte basierend auf "Gesamter Zeitraum"
                         if (!customDateRange.startDate || !customDateRange.endDate) {
-                            // Verwende den gespeicherten Zeitraum von "Gesamter Zeitraum"
-                            if (allTimeRangeData) {
+                            // Berechne den Zeitraum wie bei "Gesamter Zeitraum"
+                            const history = statistics?.history || [];
+                            if (history && history.length > 0) {
+                                // Sortiere Daten chronologisch
+                                const sortedDates = history
+                                    .map(item => new Date(item.date))
+                                    .sort((a, b) => a - b);
+                                
+                                // Verwende den gleichen Zeitraum wie "Gesamter Zeitraum"
+                                const startDate = new Date(sortedDates[0]);
+                                startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
+                                const endDate = new Date(sortedDates[sortedDates.length - 1]);
+                                endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
+                                
+                                // Setze die Eingabefelder auf den "Gesamter Zeitraum"-Zeitraum
                                 const startDateInput = document.getElementById('startDate');
                                 const endDateInput = document.getElementById('endDate');
                                 if (startDateInput && endDateInput) {
-                                    startDateInput.value = allTimeRangeData.startDate;
-                                    endDateInput.value = allTimeRangeData.endDate;
+                                    startDateInput.value = startDate.toISOString().split('T')[0];
+                                    endDateInput.value = endDate.toISOString().split('T')[0];
                                 }
-                                customDateRange.startDate = allTimeRangeData.startDate;
-                                customDateRange.endDate = allTimeRangeData.endDate;
+                                
+                                // Setze auch die customDateRange Objekte
+                                customDateRange.startDate = startDate.toISOString().split('T')[0];
+                                customDateRange.endDate = endDate.toISOString().split('T')[0];
                             } else {
-                                // Fallback: Berechne den Zeitraum wie bei "Gesamter Zeitraum"
-                                const history = statistics?.history || [];
-                                if (history && history.length > 0) {
-                                    // Sortiere Daten chronologisch
-                                    const sortedDates = history
-                                        .map(item => new Date(item.date))
-                                        .sort((a, b) => a - b);
-                                    
-                                    // Verwende den gleichen Zeitraum wie "Gesamter Zeitraum"
-                                    const startDate = new Date(sortedDates[0]);
-                                    startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
-                                    const endDate = new Date(sortedDates[sortedDates.length - 1]);
-                                    endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
-                                    
-                                    // Setze die Eingabefelder auf den "Gesamter Zeitraum"-Zeitraum
-                                    const startDateInput = document.getElementById('startDate');
-                                    const endDateInput = document.getElementById('endDate');
-                                    if (startDateInput && endDateInput) {
-                                        startDateInput.value = startDate.toISOString().split('T')[0];
-                                        endDateInput.value = endDate.toISOString().split('T')[0];
-                                    }
-                                    
-                                    // Setze auch die customDateRange Objekte
-                                    customDateRange.startDate = startDate.toISOString().split('T')[0];
-                                    customDateRange.endDate = endDate.toISOString().split('T')[0];
-                                } else {
-                                    // Fallback zu 30 Tagen wenn keine Historie-Daten
-                                    const today = new Date();
-                                    const thirtyDaysAgo = new Date();
-                                    thirtyDaysAgo.setDate(today.getDate() - 30);
-                                    
-                                    document.getElementById('endDate').value = today.toISOString().split('T')[0];
-                                    document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
-                                    
-                                    customDateRange.startDate = thirtyDaysAgo.toISOString().split('T')[0];
-                                    customDateRange.endDate = today.toISOString().split('T')[0];
-                                }
+                                // Fallback zu 30 Tagen wenn keine Historie-Daten
+                        const today = new Date();
+                        const thirtyDaysAgo = new Date();
+                        thirtyDaysAgo.setDate(today.getDate() - 30);
+                        
+                        document.getElementById('endDate').value = today.toISOString().split('T')[0];
+                        document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+                                
+                                customDateRange.startDate = thirtyDaysAgo.toISOString().split('T')[0];
+                                customDateRange.endDate = today.toISOString().split('T')[0];
                             }
                         }
                     } else {
-                        customDateRange.style.display = 'none';
+                        customDateRangeElement.style.display = 'none';
                     }
                     
                     updateCharts();
@@ -1214,46 +1359,38 @@
             const resetDateBtn = document.getElementById('resetDateBtn');
             if (resetDateBtn) {
                 resetDateBtn.addEventListener('click', function() {
-                    // Verwende den gespeicherten Zeitraum von "Gesamter Zeitraum"
-                    if (allTimeRangeData) {
-                        startDateInput.value = allTimeRangeData.startDate;
-                        endDateInput.value = allTimeRangeData.endDate;
-                        customDateRange.startDate = allTimeRangeData.startDate;
-                        customDateRange.endDate = allTimeRangeData.endDate;
+                    // Setze Standard-Zeitraum basierend auf "Gesamter Zeitraum"
+                    const history = statistics?.history || [];
+                    if (history && history.length > 0) {
+                        // Sortiere Daten chronologisch
+                        const sortedDates = history
+                            .map(item => new Date(item.date))
+                            .sort((a, b) => a - b);
+                        
+                        // Verwende den gleichen Zeitraum wie "Gesamter Zeitraum"
+                        const startDate = new Date(sortedDates[0]);
+                        startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
+                        const endDate = new Date(sortedDates[sortedDates.length - 1]);
+                        endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
+                        
+                        // Aktualisiere die Eingabefelder
+                        startDateInput.value = startDate.toISOString().split('T')[0];
+                        endDateInput.value = endDate.toISOString().split('T')[0];
+                        
+                        // Aktualisiere die benutzerdefinierten Datumsbereiche
+                        customDateRange.startDate = startDateInput.value;
+                        customDateRange.endDate = endDateInput.value;
                     } else {
-                        // Fallback: Setze Standard-Zeitraum basierend auf "Gesamter Zeitraum"
-                        const history = statistics?.history || [];
-                        if (history && history.length > 0) {
-                            // Sortiere Daten chronologisch
-                            const sortedDates = history
-                                .map(item => new Date(item.date))
-                                .sort((a, b) => a - b);
-                            
-                            // Verwende den gleichen Zeitraum wie "Gesamter Zeitraum"
-                            const startDate = new Date(sortedDates[0]);
-                            startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
-                            const endDate = new Date(sortedDates[sortedDates.length - 1]);
-                            endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
-                            
-                            // Aktualisiere die Eingabefelder
-                            startDateInput.value = startDate.toISOString().split('T')[0];
-                            endDateInput.value = endDate.toISOString().split('T')[0];
-                            
-                            // Aktualisiere die benutzerdefinierten Datumsbereiche
-                            customDateRange.startDate = startDateInput.value;
-                            customDateRange.endDate = endDateInput.value;
-                        } else {
-                            // Fallback zu letzte 30 Tage wenn keine Historie verfügbar
-                            const today = new Date();
-                            const thirtyDaysAgo = new Date();
-                            thirtyDaysAgo.setDate(today.getDate() - 30);
-                            
-                            startDateInput.value = thirtyDaysAgo.toISOString().split('T')[0];
-                            endDateInput.value = today.toISOString().split('T')[0];
-                            
-                            customDateRange.startDate = startDateInput.value;
-                            customDateRange.endDate = endDateInput.value;
-                        }
+                        // Fallback zu letzte 30 Tage wenn keine Historie verfügbar
+                        const today = new Date();
+                        const thirtyDaysAgo = new Date();
+                        thirtyDaysAgo.setDate(today.getDate() - 30);
+                        
+                        startDateInput.value = thirtyDaysAgo.toISOString().split('T')[0];
+                        endDateInput.value = today.toISOString().split('T')[0];
+                        
+                        customDateRange.startDate = startDateInput.value;
+                        customDateRange.endDate = endDateInput.value;
                     }
                     
                     // Aktualisiere die Charts
@@ -1349,9 +1486,12 @@
                 
                 // Session ist gültig, jetzt Statistiken laden
                 console.log('📊 Lade Statistiken...');
-                const response = await fetch('/api/statistics/get', {
+                // Cache-Busting durch Timestamp hinzufügen
+                const timestamp = new Date().getTime();
+                const response = await fetch(`/api/statistics/get?_t=${timestamp}`, {
                     method: 'GET',
-                    credentials: 'include'
+                    credentials: 'include',
+                    cache: 'no-cache'
                 });
                 
                 console.log('📊 Statistiken-API Status:', response.status);
@@ -1375,13 +1515,26 @@
                 if (data.success) {
                     statistics = data.statistics;
                     console.log('✅ Statistiken erfolgreich geladen:', statistics);
+                    
                     displayStatistics();
+                    
+                    // Lade Geräte-Liste nach displayStatistics
+                    console.log('📱 ===== STARTE GERÄTE-LADEN =====');
+                    console.log('📱 Rufe loadDevices() auf...');
+                    try {
+                    await loadDevices();
+                        console.log('📱 loadDevices() abgeschlossen');
+                    } catch (error) {
+                        console.error('❌ Fehler in loadDevices():', error);
+                    }
+                    console.log('📱 ===== GERÄTE-LADEN ABGESCHLOSSEN =====');
+                    
                     hideLoading();
                     
                     // Event Listeners nach dem Laden der Statistiken einrichten
                     setupEventListeners();
                     
-                    // Automatisch zu "Alle Zeit" wechseln nach dem Laden der Statistiken
+                    // Automatisch zu "Gesamter Zeitraum" wechseln nach dem Laden der Statistiken
                     setTimeout(() => {
                         currentTimeRange = 'all';
                         // Aktualisiere die Button-Auswahl
@@ -1390,9 +1543,16 @@
                         if (allTimeBtn) {
                             allTimeBtn.classList.add('active');
                         }
+                        
+                        // Verstecke benutzerdefinierte Datumsauswahl
+                        const customDateRangeElement = document.getElementById('customDateRange');
+                        if (customDateRangeElement) {
+                            customDateRangeElement.style.display = 'none';
+                        }
+                        
                         updateCharts();
-                        console.log('🔄 Automatisch zu "Alle Zeit" gewechselt');
-                    }, 200); // 200ms Verzögerung
+                        console.log('🔄 Automatisch zu "Gesamter Zeitraum" gewechselt');
+                    }, 0); // 500ms Verzögerung
                     
                 } else {
                     console.error('❌ API Fehler:', data.error);
@@ -1427,41 +1587,312 @@
             }
         }
         
+        // NEUE EINFACHE GERÄTE-LADUNG
+        async function loadDevices() {
+            if (isLoadingDevices) {
+                console.log('📱 Geräte werden bereits geladen, überspringe...');
+                return;
+            }
+            
+            isLoadingDevices = true;
+            
+            try {
+                console.log('📱 Lade Geräte-Liste...');
+                const response = await fetch('/api/devices/list', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.devices) {
+                        devices = data.devices;
+                        console.log('📱 Geräte geladen:', devices.length);
+                        
+                        // Dropdown befüllen
+                        populateDeviceSelector();
+                        
+                        // Zeige/verstecke Geräte-Selector
+                        const deviceSelectorHeader = document.getElementById('deviceSelectorHeader');
+                        if (deviceSelectorHeader) {
+                            deviceSelectorHeader.style.display = devices.length > 0 ? 'block' : 'none';
+                        }
+                    } else {
+                        console.error('❌ Fehler beim Laden der Geräte:', data.error);
+                        devices = [];
+                    }
+                } else {
+                    console.error('❌ API-Fehler beim Laden der Geräte:', response.status);
+                    devices = [];
+                }
+            } catch (error) {
+                console.error('❌ Fehler beim Laden der Geräte:', error);
+                devices = [];
+            } finally {
+                isLoadingDevices = false;
+            }
+        }
+        
+        // NEUE EINFACHE DROPDOWN-BEFÜLLUNG
+        function populateDeviceSelector() {
+            const deviceDropdownMenu = document.getElementById('deviceDropdownMenu');
+            const deviceDropdownText = document.getElementById('deviceDropdownText');
+            
+            if (!deviceDropdownMenu || !deviceDropdownText) {
+                console.error('❌ Dropdown-Elemente nicht gefunden');
+                return;
+            }
+            
+            // Lösche alle vorhandenen Geräte-Einträge (außer "Alle Geräte")
+            const existingItems = deviceDropdownMenu.querySelectorAll('.device-dropdown-item[data-value]');
+            existingItems.forEach(item => {
+                if (item.getAttribute('data-value') !== 'all') {
+                    item.remove();
+                }
+            });
+            
+            // Füge Geräte hinzu
+            devices.forEach(device => {
+                const deviceItem = document.createElement('div');
+                deviceItem.className = 'device-dropdown-item';
+                deviceItem.setAttribute('data-value', device.device_id);
+                
+                // Einfaches Icon für alle Geräte
+                const iconSvg = `
+                    <svg class="device-dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                `;
+                
+                deviceItem.innerHTML = `
+                    ${iconSvg}
+                    <span class="device-dropdown-item-text">${device.device_id}</span>
+                `;
+                deviceDropdownMenu.appendChild(deviceItem);
+            });
+            
+            // Setze den korrekten Wert
+            updateDeviceDropdownDisplay();
+            
+            // Event Listener einrichten
+            setupDeviceDropdownEvents();
+        }
+        
+        // NEUE EINFACHE DROPDOWN-EVENTS
+        function setupDeviceDropdownEvents() {
+            const trigger = document.getElementById('deviceDropdownTrigger');
+            const menu = document.getElementById('deviceDropdownMenu');
+            
+            if (!trigger || !menu) {
+                console.error('❌ Dropdown-Elemente nicht gefunden');
+                return;
+            }
+            
+            // Entferne alte Event Listener
+            trigger.removeEventListener('click', handleTriggerClick);
+            menu.removeEventListener('click', handleMenuClick);
+            
+            // Neue Event Listener
+            trigger.addEventListener('click', handleTriggerClick);
+            menu.addEventListener('click', handleMenuClick);
+            
+            // Außerhalb klicken schließt Dropdown
+            if (!document.hasDeviceDropdownOutsideListener) {
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.device-dropdown')) {
+                        closeDeviceDropdown();
+                    }
+                });
+                document.hasDeviceDropdownOutsideListener = true;
+            }
+        }
+        
+        // Separate event handler functions
+        function handleTriggerClick(e) {
+            e.stopPropagation();
+            console.log('🔽 Dropdown trigger clicked');
+            const menu = document.getElementById('deviceDropdownMenu');
+            const isOpen = menu.classList.contains('open');
+            
+            if (isOpen) {
+                console.log('🔽 Closing dropdown');
+                closeDeviceDropdown();
+            } else {
+                console.log('🔽 Opening dropdown');
+                openDeviceDropdown();
+            }
+        }
+        
+        function handleMenuClick(e) {
+            const item = e.target.closest('.device-dropdown-item');
+            if (item) {
+                const value = item.getAttribute('data-value');
+                selectDevice(value);
+                closeDeviceDropdown();
+            }
+        }
+        
+        // Open device dropdown
+        function openDeviceDropdown() {
+            const trigger = document.getElementById('deviceDropdownTrigger');
+            const menu = document.getElementById('deviceDropdownMenu');
+            const icon = document.getElementById('deviceDropdownIcon');
+            
+            console.log('🔽 Opening dropdown - elements found:', { trigger: !!trigger, menu: !!menu, icon: !!icon });
+            
+            if (trigger && menu && icon) {
+                trigger.classList.add('open');
+                menu.classList.add('open');
+                icon.classList.add('open');
+                console.log('🔽 Dropdown opened successfully');
+            } else {
+                console.error('🔽 Failed to open dropdown - missing elements');
+            }
+        }
+        
+        // Close device dropdown
+        function closeDeviceDropdown() {
+            const trigger = document.getElementById('deviceDropdownTrigger');
+            const menu = document.getElementById('deviceDropdownMenu');
+            const icon = document.getElementById('deviceDropdownIcon');
+            
+            console.log('🔽 Closing dropdown - elements found:', { trigger: !!trigger, menu: !!menu, icon: !!icon });
+            
+            if (trigger && menu && icon) {
+                trigger.classList.remove('open');
+                menu.classList.remove('open');
+                icon.classList.remove('open');
+                console.log('🔽 Dropdown closed successfully');
+            } else {
+                console.error('🔽 Failed to close dropdown - missing elements');
+            }
+        }
+        
+        // Update dropdown display text
+        function updateDeviceDropdownDisplay() {
+            const deviceDropdownText = document.getElementById('deviceDropdownText');
+            const menu = document.getElementById('deviceDropdownMenu');
+            
+            if (!deviceDropdownText || !menu) return;
+            
+            // Remove selected class from all items
+            const items = menu.querySelectorAll('.device-dropdown-item');
+            items.forEach(item => item.classList.remove('selected'));
+            
+            // Find and highlight selected item
+            const selectedItem = menu.querySelector(`[data-value="${selectedDeviceId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('selected');
+                const text = selectedItem.querySelector('.device-dropdown-item-text').textContent;
+                deviceDropdownText.textContent = text;
+            } else {
+                deviceDropdownText.textContent = 'Alle Geräte';
+            }
+        }
+        
+        // NEUE EINFACHE GERÄTE-AUSWAHL
+        async function selectDevice(deviceId) {
+            selectedDeviceId = deviceId;
+            console.log('📱 Gerät gewechselt zu:', selectedDeviceId);
+            
+            // Update display
+            updateDeviceDropdownDisplay();
+            
+            // Lade geräte-spezifische Statistiken
+            await loadDeviceStatistics();
+            
+            // Aktualisiere Anzeige
+            displayStatistics();
+            updateCharts();
+            
+            console.log('✅ Geräte-Auswahl abgeschlossen');
+        }
+        
+        // Entfernt: syncDeviceSelector nicht mehr benötigt
+        
+        // Entfernt: checkSelectedDeviceStillExists nicht mehr benötigt
+        
+        
+        // NEUE EINFACHE GERÄTE-STATISTIKEN
+        async function loadDeviceStatistics() {
+            if (selectedDeviceId === 'all') {
+                deviceStatistics = null;
+                return;
+            }
+            
+            try {
+                console.log('📱 Lade Statistiken für Gerät:', selectedDeviceId);
+                const response = await fetch(`/api/statistics/get?device_id=${selectedDeviceId}`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        deviceStatistics = data.statistics;
+                        console.log('✅ Geräte-Statistiken geladen');
+                    } else {
+                        console.error('❌ Fehler beim Laden der Geräte-Statistiken:', data.error);
+                        deviceStatistics = null;
+                    }
+                } else {
+                    console.error('❌ API-Fehler beim Laden der Geräte-Statistiken:', response.status);
+                    deviceStatistics = null;
+                }
+            } catch (error) {
+                console.error('❌ Fehler beim Laden der Geräte-Statistiken:', error);
+                deviceStatistics = null;
+            }
+        }
+        
         // Statistiken anzeigen
         function displayStatistics() {
-            if (!statistics) {
-                console.log('❌ Keine Statistiken verfügbar');
+            // Verwende die richtigen Statistiken basierend auf der Geräte-Auswahl
+            let currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
+            
+            // Fallback: Wenn deviceStatistics nicht verfügbar ist, aber statistics vorhanden sind,
+            // verwende statistics (besonders wichtig bei einzelnen Geräten)
+            if (!currentStats && statistics) {
+                console.log('📊 DeviceStatistics nicht verfügbar, verwende allgemeine Statistiken für:', selectedDeviceId);
+                currentStats = statistics;
+            }
+            
+            if (!currentStats) {
+                console.log('❌ Keine Statistiken verfügbar für:', selectedDeviceId);
                 showNoDataMessage();
                 return;
             }
             
             // Prüfe ob überhaupt Daten vorhanden sind
-            const hasAnyData = statistics.videos?.length > 0 || 
-                              statistics.floors?.length > 0 || 
-                              statistics.history?.length > 0 ||
-                              (statistics.current && Object.values(statistics.current).some(val => val > 0));
+            const hasAnyData = currentStats.videos?.length > 0 || 
+                              currentStats.floors?.length > 0 || 
+                              currentStats.history?.length > 0 ||
+                              (currentStats.current && Object.values(currentStats.current).some(val => val > 0));
             
-            console.log('📊 Data check:', {
-                hasVideos: statistics.videos?.length > 0,
-                hasFloors: statistics.floors?.length > 0,
-                hasHistory: statistics.history?.length > 0,
-                hasCurrent: statistics.current && Object.values(statistics.current).some(val => val > 0),
+            console.log('📊 Data check für Gerät', selectedDeviceId, ':', {
+                hasVideos: currentStats.videos?.length > 0,
+                hasFloors: currentStats.floors?.length > 0,
+                hasHistory: currentStats.history?.length > 0,
+                hasCurrent: currentStats.current && Object.values(currentStats.current).some(val => val > 0),
                 hasAnyData: hasAnyData
             });
             
             if (!hasAnyData) {
-                console.log('❌ Keine Daten in den Statistiken');
+                console.log('❌ Keine Daten in den Statistiken für Gerät:', selectedDeviceId);
                 showNoDataMessage();
                 return;
             }
             
-            console.log('📊 Statistiken-Daten:', statistics);
+            console.log('📊 Statistiken-Daten für Gerät', selectedDeviceId, ':', currentStats);
             
-            const current = statistics.current || {};
-            const total = statistics.total || {};
-            const videos = statistics.videos || [];
-            const floors = statistics.floors || [];
-            const history = statistics.history || [];
+            const current = currentStats.current || {};
+            const total = currentStats.total || {};
+            const videos = currentStats.videos || [];
+            const floors = currentStats.floors || [];
+            const history = currentStats.history || [];
             
             // Debug: Zeige verfügbare Daten
             console.log('📈 Current Stats:', current);
@@ -1489,17 +1920,7 @@
                     videosWithViewsElement.textContent = videosWithViews.toLocaleString('de-DE');
                 }
                 
-                // Zeige Geräte-ID an, falls verfügbar
-                const deviceId = statistics.device_id;
-                const deviceIdHeader = document.getElementById('deviceIdHeader');
-                const deviceIdValue = document.getElementById('deviceIdValue');
-                
-                if (deviceId && deviceIdHeader && deviceIdValue) {
-                    deviceIdValue.textContent = deviceId;
-                    deviceIdHeader.style.display = 'block';
-                } else if (deviceIdHeader) {
-                    deviceIdHeader.style.display = 'none';
-                }
+                // Geräte-ID wird jetzt über das Dropdown verwaltet
                 
                 // Zusätzliche Statistiken anzeigen, falls Elemente existieren
                 const totalVideosElement = document.getElementById('totalVideos');
@@ -1564,6 +1985,42 @@
             }
         }
         
+        // Hilfsfunktion: Videos mit gleichem Titel zusammenfassen
+        function mergeVideosByTitle(videos) {
+            const mergedVideos = {};
+            
+            videos.forEach(video => {
+                const title = video.title || video.video_title || 'Unbenanntes Video';
+                
+                if (!mergedVideos[title]) {
+                    mergedVideos[title] = {
+                        title: title,
+                        views: 0,
+                        viewHistory: {},
+                        view_history: {},
+                        devices: []
+                    };
+                }
+                
+                // Summiere Views
+                mergedVideos[title].views += (video.views || 0);
+                
+                // Merge viewHistory
+                const videoViewHistory = video.viewHistory || video.view_history || {};
+                Object.keys(videoViewHistory).forEach(date => {
+                    if (!mergedVideos[title].viewHistory[date]) {
+                        mergedVideos[title].viewHistory[date] = 0;
+                    }
+                    mergedVideos[title].viewHistory[date] += videoViewHistory[date];
+                });
+                
+                // Speichere Geräte-Info für Debugging
+                mergedVideos[title].devices.push(video.device_id || 'Unknown');
+            });
+            
+            return Object.values(mergedVideos);
+        }
+        
         // Liniendiagramm erstellen (wie in der App)
         function createLineChart() {
             const chartElement = document.getElementById('lineChart');
@@ -1573,22 +2030,40 @@
                 charts.lineChart.dispose();
             }
             
-            const videos = statistics?.videos || [];
-            const lineChartVideoCount = statistics?.current?.line_chart_video_count || 7;
-            const timeRangeStart = statistics?.current?.time_range_start;
-            const timeRangeEnd = statistics?.current?.time_range_end;
+            // Verwende geräte-spezifische Daten falls verfügbar
+            let currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
             
-            console.log('📈 Line Chart - Video-Daten:', videos);
+            // Fallback: Wenn deviceStatistics nicht verfügbar ist, aber statistics vorhanden sind,
+            // verwende statistics (besonders wichtig bei einzelnen Geräten)
+            if (!currentStats && statistics) {
+                console.log('📈 DeviceStatistics nicht verfügbar, verwende allgemeine Statistiken für Liniendiagramm:', selectedDeviceId);
+                currentStats = statistics;
+            }
+            
+            const videos = currentStats?.videos || [];
+            
+            console.log('📈 Liniendiagramm - Verwende Daten für Gerät:', selectedDeviceId);
+            console.log('📈 Liniendiagramm - Videos-Anzahl vor Merge:', videos.length);
+            
+            // Videos mit gleichem Titel zusammenfassen
+            const mergedVideos = mergeVideosByTitle(videos);
+            console.log('📈 Liniendiagramm - Videos-Anzahl nach Merge:', mergedVideos.length);
+            
+            const lineChartVideoCount = currentStats?.current?.line_chart_video_count || 7;
+            const timeRangeStart = currentStats?.current?.time_range_start;
+            const timeRangeEnd = currentStats?.current?.time_range_end;
+            
+            console.log('📈 Line Chart - Video-Daten:', mergedVideos);
             console.log('📈 Line Chart - Video Count:', lineChartVideoCount);
             console.log('📈 Line Chart - Zeitraum:', { timeRangeStart, timeRangeEnd });
             
-            if (!videos || videos.length === 0) {
+            if (!mergedVideos || mergedVideos.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
                 return;
             }
             
             // Filtere Videos mit Aufrufen und sortiere nach Aufrufen (wie in der App)
-            const filteredVideos = videos
+            const filteredVideos = mergedVideos
                 .filter(video => (video.views || 0) > 0)
                 .sort((a, b) => (b.views || 0) - (a.views || 0))
                 .slice(0, lineChartVideoCount);
@@ -1624,18 +2099,8 @@
                 
                 // Sortiere Daten und filtere basierend auf ausgewähltem Zeitraum
                 const sortedDates = Array.from(allDates).sort();
-                console.log('📈 Available dates from viewHistory:', sortedDates);
-                
-                let timeRangeResult = null;
-                try {
-                    timeRangeResult = calculateTimeRange(sortedDates, currentTimeRange);
-                    timePoints = timeRangeResult.timePoints;
-                    console.log('📈 Calculated timePoints:', timePoints);
-                } catch (error) {
-                    console.error('📈 Error calculating timeRange, using fallback:', error);
-                    // Fallback zu simulierten Daten
-                    hasViewHistory = false;
-                }
+                const timeRangeResult = calculateTimeRange(sortedDates, currentTimeRange);
+                timePoints = timeRangeResult.timePoints;
                 
                 // Für "Alle Zeit" füge auch Offset nach dem letzten Datum hinzu
                 if (timeRangeResult.addEndOffset && timePoints.length > 0) {
@@ -1652,7 +2117,7 @@
                     });
                     
                     return {
-                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        name: video.title,
                         type: 'line',
                         data: data,
                         smooth: true,
@@ -1721,7 +2186,7 @@
                     });
                     
                     return {
-                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        name: video.title,
                         type: 'line',
                         data: data,
                         smooth: true,
@@ -1867,20 +2332,38 @@
                 charts.barChart.dispose();
             }
             
-            const videos = statistics?.videos || [];
-            const barChartVideoCount = statistics?.current?.bar_chart_video_count || 7;
+            // Verwende geräte-spezifische Daten falls verfügbar
+            let currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
             
-            console.log('📊 Bar Chart - Video-Daten:', videos);
+            // Fallback: Wenn deviceStatistics nicht verfügbar ist, aber statistics vorhanden sind,
+            // verwende statistics (besonders wichtig bei einzelnen Geräten)
+            if (!currentStats && statistics) {
+                console.log('📊 DeviceStatistics nicht verfügbar, verwende allgemeine Statistiken für Balkendiagramm:', selectedDeviceId);
+                currentStats = statistics;
+            }
+            
+            const videos = currentStats?.videos || [];
+            
+            console.log('📊 Balkendiagramm - Verwende Daten für Gerät:', selectedDeviceId);
+            console.log('📊 Balkendiagramm - Videos-Anzahl vor Merge:', videos.length);
+            
+            // Videos mit gleichem Titel zusammenfassen
+            const mergedVideos = mergeVideosByTitle(videos);
+            console.log('📊 Balkendiagramm - Videos-Anzahl nach Merge:', mergedVideos.length);
+            
+            const barChartVideoCount = currentStats?.current?.bar_chart_video_count || 7;
+            
+            console.log('📊 Bar Chart - Video-Daten:', mergedVideos);
             console.log('📊 Bar Chart - Video Count:', barChartVideoCount);
             console.log('📊 Bar Chart - Zeitraum:', currentTimeRange);
             
-            if (!videos || videos.length === 0) {
+            if (!mergedVideos || mergedVideos.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
                 return;
             }
             
             // Filtere Videos basierend auf Zeitraum und Aufrufen
-            let filteredVideos = videos.filter(video => (video.views || 0) > 0);
+            let filteredVideos = mergedVideos.filter(video => (video.views || 0) > 0);
             
             // Wenn viewHistory verfügbar ist, filtere basierend auf Zeitraum
             const hasViewHistory = filteredVideos.some(video => 
@@ -2034,7 +2517,7 @@
                     
                     // Erstelle erweiterte Version mit allen Videos
                     const allLabels = filteredVideos.map(video => {
-                        const title = video.title || video.video_title || 'Unbenanntes Video';
+                        const title = video.title;
                         return title.length > 10 ? title.substring(0, 10) + '...' : title;
                     });
                     const allData = filteredVideos.map((video, idx) => ({
@@ -2095,22 +2578,40 @@
                 charts.lineRaceChart.dispose();
             }
             
-            const videos = statistics?.videos || [];
-            const lineRaceVideoCount = statistics?.current?.line_race_video_count || 7;
-            const timeRangeStart = statistics?.current?.time_range_start;
-            const timeRangeEnd = statistics?.current?.time_range_end;
+            // Verwende geräte-spezifische Daten falls verfügbar
+            let currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
             
-            console.log('🏁 Line Race Chart - Video-Daten:', videos);
+            // Fallback: Wenn deviceStatistics nicht verfügbar ist, aber statistics vorhanden sind,
+            // verwende statistics (besonders wichtig bei einzelnen Geräten)
+            if (!currentStats && statistics) {
+                console.log('🏃 DeviceStatistics nicht verfügbar, verwende allgemeine Statistiken für Line Race:', selectedDeviceId);
+                currentStats = statistics;
+            }
+            
+            const videos = currentStats?.videos || [];
+            
+            console.log('🏃 Line Race - Verwende Daten für Gerät:', selectedDeviceId);
+            console.log('🏃 Line Race - Videos-Anzahl vor Merge:', videos.length);
+            
+            // Videos mit gleichem Titel zusammenfassen
+            const mergedVideos = mergeVideosByTitle(videos);
+            console.log('🏃 Line Race - Videos-Anzahl nach Merge:', mergedVideos.length);
+            
+            const lineRaceVideoCount = currentStats?.current?.line_race_video_count || 7;
+            const timeRangeStart = currentStats?.current?.time_range_start;
+            const timeRangeEnd = currentStats?.current?.time_range_end;
+            
+            console.log('🏁 Line Race Chart - Video-Daten:', mergedVideos);
             console.log('🏁 Line Race Chart - Video Count:', lineRaceVideoCount);
             console.log('🏁 Line Race Chart - Zeitraum:', { timeRangeStart, timeRangeEnd });
             
-            if (!videos || videos.length === 0) {
+            if (!mergedVideos || mergedVideos.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
                 return;
             }
             
             // Filtere Videos mit Aufrufen und sortiere nach Aufrufen (wie in der App)
-            const filteredVideos = videos
+            const filteredVideos = mergedVideos
                 .filter(video => (video.views || 0) > 0)
                 .sort((a, b) => (b.views || 0) - (a.views || 0))
                 .slice(0, lineRaceVideoCount);
@@ -2145,18 +2646,8 @@
                 
                 // Sortiere Daten und filtere basierend auf ausgewähltem Zeitraum
                 const sortedDates = Array.from(allDates).sort();
-                console.log('🏁 Available dates from viewHistory:', sortedDates);
-                
-                let timeRangeResult = null;
-                try {
-                    timeRangeResult = calculateTimeRange(sortedDates, currentTimeRange);
-                    timePoints = timeRangeResult.timePoints;
-                    console.log('🏁 Calculated timePoints:', timePoints);
-                } catch (error) {
-                    console.error('🏁 Error calculating timeRange, using fallback:', error);
-                    // Fallback zu simulierten Daten
-                    hasViewHistory = false;
-                }
+                const timeRangeResult = calculateTimeRange(sortedDates, currentTimeRange);
+                timePoints = timeRangeResult.timePoints;
                 
                 // Für "Alle Zeit" füge auch Offset nach dem letzten Datum hinzu
                 if (timeRangeResult.addEndOffset && timePoints.length > 0) {
@@ -2185,7 +2676,7 @@
                     });
                     
                     return {
-                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        name: video.title,
                         type: 'line',
                         data: data,
                         smooth: true,
@@ -2254,7 +2745,7 @@
                     });
                     
                     return {
-                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        name: video.title,
                         type: 'line',
                         data: data,
                         smooth: true,
@@ -2365,20 +2856,38 @@
                 charts.pieChart.dispose();
             }
             
-            const videos = statistics?.videos || [];
-            const pieChartVideoCount = statistics?.current?.pie_chart_video_count || 7;
+            // Verwende geräte-spezifische Daten falls verfügbar
+            let currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
             
-            console.log('🥧 Pie Chart - Video-Daten:', videos);
+            // Fallback: Wenn deviceStatistics nicht verfügbar ist, aber statistics vorhanden sind,
+            // verwende statistics (besonders wichtig bei einzelnen Geräten)
+            if (!currentStats && statistics) {
+                console.log('🥧 DeviceStatistics nicht verfügbar, verwende allgemeine Statistiken für Tortendiagramm:', selectedDeviceId);
+                currentStats = statistics;
+            }
+            
+            const videos = currentStats?.videos || [];
+            
+            console.log('🥧 Tortendiagramm - Verwende Daten für Gerät:', selectedDeviceId);
+            console.log('🥧 Tortendiagramm - Videos-Anzahl vor Merge:', videos.length);
+            
+            // Videos mit gleichem Titel zusammenfassen
+            const mergedVideos = mergeVideosByTitle(videos);
+            console.log('🥧 Tortendiagramm - Videos-Anzahl nach Merge:', mergedVideos.length);
+            
+            const pieChartVideoCount = currentStats?.current?.pie_chart_video_count || 7;
+            
+            console.log('🥧 Pie Chart - Video-Daten:', mergedVideos);
             console.log('🥧 Pie Chart - Video Count:', pieChartVideoCount);
             console.log('🥧 Pie Chart - Zeitraum:', currentTimeRange);
             
-            if (!videos || videos.length === 0) {
+            if (!mergedVideos || mergedVideos.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
                 return;
             }
             
             // Filtere Videos basierend auf Zeitraum und Aufrufen
-            let filteredVideos = videos.filter(video => (video.views || 0) > 0);
+            let filteredVideos = mergedVideos.filter(video => (video.views || 0) > 0);
             
             // Wenn viewHistory verfügbar ist, filtere basierend auf Zeitraum
             const hasViewHistory = filteredVideos.some(video => 
@@ -2431,7 +2940,7 @@
                     radius: ['40%', '70%'],
                     center: ['50%', '50%'],
                     data: filteredVideos.map((video, index) => ({
-                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        name: video.title,
                         value: video.views || 0,
                         itemStyle: {
                             color: getChartColor(index)
@@ -2453,7 +2962,7 @@
                 }],
                 legend: {
                     data: filteredVideos.map((video, index) => ({
-                        name: video.title || video.video_title || 'Unbenanntes Video',
+                        name: video.title,
                         icon: 'circle',
                         textStyle: { color: getChartColor(index) }
                     })),
@@ -2534,48 +3043,25 @@
             if (timeRange === 'all') {
                 const startDate = new Date(sortedDates[0]);
                 startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
-                const endDate = new Date(sortedDates[sortedDates.length - 1]);
-                endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
-                
-                const result = {
+                return {
                     startDate: startDate,
                     timePoints: sortedDates,
                     addEndOffset: true
                 };
-                
-                // Speichere den Zeitraum für "Benutzerdefiniert"
-                allTimeRangeData = {
-                    startDate: startDate.toISOString().split('T')[0],
-                    endDate: endDate.toISOString().split('T')[0]
-                };
-                
-                return result;
             } else if (timeRange === 'custom') {
                 // Benutzerdefinierter Zeitraum
                 if (!customDateRange.startDate || !customDateRange.endDate) {
-                    // Fallback: Verwende den gespeicherten Zeitraum von "Gesamter Zeitraum"
-                    if (allTimeRangeData) {
-                        customDateRange.startDate = allTimeRangeData.startDate;
-                        customDateRange.endDate = allTimeRangeData.endDate;
-                        
-                        // Aktualisiere auch die UI-Elemente
-                        const startDateInput = document.getElementById('startDate');
-                        const endDateInput = document.getElementById('endDate');
-                        if (startDateInput) startDateInput.value = allTimeRangeData.startDate;
-                        if (endDateInput) endDateInput.value = allTimeRangeData.endDate;
-                    } else {
-                        // Fallback: Verwende den gleichen Zeitraum wie "Gesamter Zeitraum"
-                        const startDate = new Date(sortedDates[0]);
-                        startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
-                        const endDate = new Date(sortedDates[sortedDates.length - 1]);
-                        endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
-                        
-                        return {
-                            startDate: startDate,
-                            timePoints: sortedDates,
-                            addEndOffset: true
-                        };
-                    }
+                    // Fallback: Verwende den gleichen Zeitraum wie "Gesamter Zeitraum"
+                    const startDate = new Date(sortedDates[0]);
+                    startDate.setDate(startDate.getDate() - 2); // Offset vor dem ersten Datum
+                    const endDate = new Date(sortedDates[sortedDates.length - 1]);
+                    endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
+                    
+                    return {
+                        startDate: startDate,
+                        timePoints: sortedDates,
+                        addEndOffset: true
+                    };
                 }
                 
                 const customStartDate = new Date(customDateRange.startDate);
@@ -2672,14 +3158,23 @@
         
         // Charts aktualisieren
         function updateCharts() {
-            if (chartStates.lineChart) createLineChart();
-            if (chartStates.barChart) createBarChart();
-            if (chartStates.pieChart) createPieChart();
-            if (chartStates.lineRaceChart) createLineRaceChart();
+            console.log('🔄 Aktualisiere Charts für Gerät:', selectedDeviceId);
+            console.log('📊 Verwende Statistiken:', selectedDeviceId === 'all' ? 'statistics (aggregiert)' : 'deviceStatistics (geräte-spezifisch)');
+            
+            // Alle Charts werden immer angezeigt (kein Toggle mehr)
+            console.log('📈 Erstelle Liniendiagramm neu...');
+            createLineChart();
+            console.log('📊 Erstelle Balkendiagramm neu...');
+            createBarChart();
+            console.log('🥧 Erstelle Tortendiagramm neu...');
+            createPieChart();
+            console.log('🏃 Erstelle Line Race neu...');
+            createLineRaceChart();
         }
         
         // Chart-Größe bei Fenster-Resize anpassen
         window.addEventListener('resize', function() {
+            // Alle Charts werden immer angezeigt (kein Toggle mehr)
             if (charts.lineChart) {
                 charts.lineChart.resize();
             }
@@ -2695,60 +3190,7 @@
         });
         
         // Chart ein-/ausklappen
-        function toggleChart(chartName) {
-            console.log('🔄 Toggle Chart:', chartName);
-            
-            const container = document.getElementById(chartName + 'Container');
-            const toggle = document.getElementById(chartName + 'Toggle');
-            
-            if (!container) {
-                console.error('❌ Container nicht gefunden:', chartName + 'Container');
-                return;
-            }
-            
-            if (!toggle) {
-                console.error('❌ Toggle nicht gefunden:', chartName + 'Toggle');
-                return;
-            }
-            
-            // Toggle den Zustand
-            chartStates[chartName] = !chartStates[chartName];
-            console.log('📊 Chart State:', chartName, '=', chartStates[chartName]);
-            
-            if (chartStates[chartName]) {
-                // Chart ausklappen
-                container.classList.remove('collapsed');
-                toggle.classList.add('expanded');
-                console.log('✅ Chart ausgeklappt:', chartName);
-                
-                // Stelle sicher, dass der Container eine Höhe hat
-                if (chartName === 'barChart') {
-                    // Für Bar Chart: dynamische Höhe basierend auf Videos
-                    const videos = statistics?.videos || [];
-                    const barChartVideoCount = statistics?.current?.bar_chart_video_count || 7;
-                    const filteredVideos = videos.filter(video => (video.views || 0) > 0).slice(0, barChartVideoCount);
-                    const maxVisible = 5;
-                    const visibleVideos = filteredVideos.slice(0, maxVisible);
-                    const barHeight = 50 * visibleVideos.length + 80;
-                    container.style.height = barHeight + 'px';
-                } else {
-                    // Für andere Charts: Standard-Höhe
-                    container.style.height = '400px';
-                }
-            } else {
-                // Chart einklappen
-                container.classList.add('collapsed');
-                toggle.classList.remove('expanded');
-                console.log('✅ Chart eingeklappt:', chartName);
-            }
-            
-            // Resize Charts nach Toggle
-            setTimeout(() => {
-                if (charts[chartName]) {
-                    charts[chartName].resize();
-                }
-            }, 300); // Warte auf CSS-Transition
-        }
+        // Toggle-Funktionalität entfernt - alle Charts werden immer angezeigt
         
         
         // Abmelden
@@ -2953,11 +3395,7 @@
         }
         
         // Globale Funktionen für externe Aufrufe
-        window.toggleChart = toggleChart;
-        window.toggleBarChart = () => toggleChart('barChart');
-        window.toggleLineChart = () => toggleChart('lineChart');
-        window.togglePieChart = () => toggleChart('pieChart');
-        window.toggleLineRaceChart = () => toggleChart('lineRaceChart');
+        // Toggle-Funktionen entfernt - alle Charts werden immer angezeigt
         window.scrollToCharts = scrollToCharts;
     </script>
 
