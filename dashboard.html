@@ -3062,10 +3062,20 @@
                 const endDate = new Date(sortedDates[sortedDates.length - 1]);
                 endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
                 
+                // Erstelle timePoints mit Offset (wie bei benutzerdefiniertem Zeitraum)
+                const timePointsWithOffset = [];
+                const currentDate = new Date(startDate);
+                
+                while (currentDate <= endDate) {
+                    const dateString = currentDate.toISOString().split('T')[0];
+                    timePointsWithOffset.push(dateString);
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+                
                 const result = {
                     startDate: startDate,
-                    timePoints: sortedDates,
-                    addEndOffset: true
+                    timePoints: timePointsWithOffset,
+                    addEndOffset: false // Offset ist bereits in timePoints enthalten
                 };
                 
                 // Synchronisiere auch den benutzerdefinierten Zeitraum, falls er aktiv ist
