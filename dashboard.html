@@ -1277,6 +1277,11 @@
                         
                         // Synchronisiere den benutzerdefinierten Zeitraum mit dem Gesamten Zeitraum
                         syncCustomTimeRangeWithAllTime();
+                    } else if (currentTimeRange === 'all') {
+                        customDateRangeElement.style.display = 'none';
+                        
+                        // Aktualisiere auch den benutzerdefinierten Zeitraum, wenn "Gesamter Zeitraum" gewählt wird
+                        syncCustomTimeRangeWithAllTime();
                     } else {
                         customDateRangeElement.style.display = 'none';
                     }
@@ -3112,25 +3117,37 @@
             
             if (currentTimeRange === '7') {
                 startDate.setDate(now.getDate() - 7);
+                // Für 7 Tage: begrenze auf 30 Einträge für Performance
+                const filtered = history
+                    .filter(item => new Date(item.date) >= startDate)
+                    .slice(0, 30)
+                    .reverse();
+                console.log('📅 Gefilterte Historie-Daten (7 Tage):', filtered);
+                return filtered;
             } else if (currentTimeRange === 'custom') {
                 // Benutzerdefinierter Zeitraum
-                if (customDateRange.startDate) {
+                if (customDateRange.startDate && customDateRange.endDate) {
                     startDate = new Date(customDateRange.startDate);
+                    const endDate = new Date(customDateRange.endDate);
+                    
+                    const filtered = history
+                        .filter(item => {
+                            const itemDate = new Date(item.date);
+                            return itemDate >= startDate && itemDate <= endDate;
+                        })
+                        .reverse();
+                    console.log('📅 Gefilterte Historie-Daten (Custom):', filtered);
+                    return filtered;
                 } else {
-                    startDate.setDate(now.getDate() - 30); // Fallback
+                    // Fallback: verwende alle Daten
+                    console.log('📅 Keine Custom-Daten, verwende alle Historie-Daten');
+                    return history.slice().reverse();
                 }
             } else {
-                // Alle Zeit
-                return history.slice(0, 30).reverse();
+                // Alle Zeit - verwende ALLE Daten ohne Begrenzung
+                console.log('📅 Verwende alle Historie-Daten (Gesamter Zeitraum)');
+                return history.slice().reverse();
             }
-            
-            const filtered = history
-                .filter(item => new Date(item.date) >= startDate)
-                .slice(0, 30)
-                .reverse();
-                
-            console.log('📅 Gefilterte Historie-Daten:', filtered);
-            return filtered;
         }
         
         // Charts aktualisieren
