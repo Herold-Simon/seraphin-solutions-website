@@ -1867,6 +1867,7 @@
                     selectedVideoCount = parseInt(this.value);
                     videoCountValue.textContent = selectedVideoCount;
                     console.log('🎛️ Slider changed to:', selectedVideoCount);
+                    console.log('🎛️ selectedVideos.size:', selectedVideos.size);
                     updateInfoField();
                     updateCharts();
                 });
@@ -1995,6 +1996,7 @@
                 // Keine Begrenzung durch Slider wenn individuelle Videos ausgewählt sind
             } else {
                 // Begrenze auf die gewählte Anzahl nur wenn keine individuellen Videos ausgewählt sind
+                console.log('🎯 Before slice - available videos:', filteredVideos.length, 'selectedVideoCount:', selectedVideoCount);
                 filteredVideos = filteredVideos.slice(0, selectedVideoCount);
                 console.log('🎯 No individual selection, using slider limit:', selectedVideoCount, 'Showing videos:', filteredVideos.length);
             }
