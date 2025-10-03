@@ -1431,7 +1431,7 @@
                         <!-- Video-Anzahl Slider -->
                         <div class="video-count-setting">
                             <label for="videoCountSlider" class="setting-label">
-                                Maximale Anzahl Videos in den Diagrammen: <span id="videoCountValue">10</span>
+                                Bestimmen Sie mit dem Slider die Anzahl der Videos, die in den Diagrammen angezeigt werden sollen.</span>
                             </label>
                             <div class="slider-container">
                                 <input type="range" id="videoCountSlider" min="3" max="10" value="10" class="video-count-slider">
@@ -1445,7 +1445,7 @@
                         <!-- Video-Auswahl -->
                         <div class="video-selection-setting">
                             <label class="setting-label">
-                                Bestimmte Videos in den Diagrammen hervorheben:
+                                Wählen Sie bestimmte Videos aus, um alle anderen auszuschließen.
                             </label>
                             
                             <!-- Suchleiste für Videos -->
@@ -1971,10 +1971,11 @@
                     const videoId = video.id || video.video_id || `video_${index}`;
                     return selectedVideos.has(videoId);
                 });
+                // Keine Begrenzung durch Slider wenn individuelle Videos ausgewählt sind
+            } else {
+                // Begrenze auf die gewählte Anzahl nur wenn keine individuellen Videos ausgewählt sind
+                filteredVideos = filteredVideos.slice(0, selectedVideoCount);
             }
-            
-            // Begrenze auf die gewählte Anzahl
-            filteredVideos = filteredVideos.slice(0, selectedVideoCount);
             
             return filteredVideos;
         }
