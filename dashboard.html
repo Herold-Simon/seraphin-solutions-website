@@ -1419,13 +1419,13 @@
                         <!-- Video-Anzahl Slider -->
                         <div class="video-count-setting">
                             <label for="videoCountSlider" class="setting-label">
-                                Anzahl Videos anzeigen: <span id="videoCountValue">7</span>
+                                Videos, die angezeigt werden: <span id="videoCountValue">7</span>
                             </label>
                             <div class="slider-container">
-                                <input type="range" id="videoCountSlider" min="3" max="20" value="7" class="video-count-slider">
+                                <input type="range" id="videoCountSlider" min="3" max="7" value="7" class="video-count-slider">
                                 <div class="slider-labels">
                                     <span>3</span>
-                                    <span>20</span>
+                                    <span id="sliderMaxValue">7</span>
                                 </div>
                             </div>
                         </div>
@@ -1701,6 +1701,9 @@
                 return;
             }
             
+            // Aktualisiere Slider Maximum basierend auf verfügbaren Videos
+            updateSliderMaximum();
+            
             // Sortiere Videos nach Aufrufen (absteigend)
             const sortedVideos = [...allAvailableVideos].sort((a, b) => (b.views || 0) - (a.views || 0));
             
@@ -1746,6 +1749,28 @@
                 
                 checkboxesContainer.appendChild(checkboxItem);
             });
+        }
+        
+        function updateSliderMaximum() {
+            const slider = document.getElementById('videoCountSlider');
+            const maxValueSpan = document.getElementById('sliderMaxValue');
+            
+            if (!slider || !maxValueSpan) return;
+            
+            // Berechne die Anzahl der Videos mit Aufrufen
+            const videosWithViews = allAvailableVideos.filter(video => (video.views || 0) > 0);
+            const maxVideos = Math.max(3, videosWithViews.length); // Minimum 3
+            
+            // Aktualisiere Slider Maximum
+            slider.max = maxVideos;
+            maxValueSpan.textContent = maxVideos;
+            
+            // Stelle sicher, dass der aktuelle Wert nicht über dem Maximum liegt
+            if (selectedVideoCount > maxVideos) {
+                selectedVideoCount = maxVideos;
+                slider.value = maxVideos;
+                document.getElementById('videoCountValue').textContent = maxVideos;
+            }
         }
         
         function setupAdvancedSettingsListeners() {
@@ -1888,6 +1913,9 @@
             
             // Speichere alle verfügbaren Videos für die Checkbox-Auswahl
             allAvailableVideos = [...filteredVideos];
+            
+            // Aktualisiere Slider Maximum basierend auf verfügbaren Videos
+            updateSliderMaximum();
             
             // Wenn Videos ausgewählt sind, filtere nach ausgewählten Videos
             if (selectedVideos.size > 0) {
