@@ -1420,7 +1420,7 @@
                             <div>
                                 <h3 style="margin: 0; color: var(--text-dark);">Erweiterte Einstellungen</h3>
                                 <div class="advanced-settings-info" id="advancedSettingsInfo">
-                                    <span id="infoText">Momentan werden nur die Top <span id="infoVideoCount">10</span> Videos angezeigt.</span>
+                                    <span>Im Moment werden nur die Top <span id="infoVideoCount">10</span> Videos angezeigt.</span>
                                 </div>
                             </div>
                             <i class="fas fa-chevron-down" id="advancedSettingsIcon"></i>
@@ -1431,7 +1431,7 @@
                         <!-- Video-Anzahl Slider -->
                         <div class="video-count-setting">
                             <label for="videoCountSlider" class="setting-label">
-                                Bestimmen Sie mit dem Slider die Anzahl der Videos, die in den Diagrammen angezeigt werden sollen.</span>
+                                Maximale Anzahl Videos in den Diagrammen: <span id="videoCountValue">10</span>
                             </label>
                             <div class="slider-container">
                                 <input type="range" id="videoCountSlider" min="3" max="10" value="10" class="video-count-slider">
@@ -1445,7 +1445,7 @@
                         <!-- Video-Auswahl -->
                         <div class="video-selection-setting">
                             <label class="setting-label">
-                                Wählen Sie bestimmte Videos aus, um alle anderen auszuschließen.
+                                Bestimmte Videos in den Diagrammen hervorheben:
                             </label>
                             
                             <!-- Suchleiste für Videos -->
@@ -1728,7 +1728,7 @@
                 checkboxItem.className = 'video-checkbox-item';
                 checkboxItem.innerHTML = `
                     <input type="checkbox" class="video-checkbox" id="video_${videoId}" value="${videoId}">
-                    <span class="video-checkbox-label">${videoTitle}</span>
+                    <label for="video_${videoId}" class="video-checkbox-label">${videoTitle}</label>
                     <span class="video-views-count">${videoViews} Aufrufe</span>
                 `;
                 
@@ -1748,12 +1748,10 @@
                 
                 // Click auf das gesamte Item
                 checkboxItem.addEventListener('click', function(e) {
-                    // Verhindere doppelte Auslösung wenn direkt auf Checkbox geklickt wird
-                    if (e.target === checkbox) return;
-                    
-                    // Toggle checkbox und trigger change event
-                    checkbox.checked = !checkbox.checked;
-                    checkbox.dispatchEvent(new Event('change'));
+                    if (e.target !== checkbox) {
+                        checkbox.checked = !checkbox.checked;
+                        checkbox.dispatchEvent(new Event('change'));
+                    }
                 });
                 
                 // Setze initialen Zustand
@@ -1784,26 +1782,13 @@
             if (selectedVideoCount > maxVideos) {
                 selectedVideoCount = maxVideos;
                 slider.value = maxVideos;
-                const videoCountValue = document.getElementById('videoCountValue');
-                if (videoCountValue) {
-                    videoCountValue.textContent = maxVideos;
-                }
-                console.log('🎛️ Slider value adjusted to maximum:', maxVideos);
-            } else {
-                // Behalte den aktuellen Wert bei, aber stelle sicher, dass der Slider synchron ist
-                slider.value = selectedVideoCount;
-                const videoCountValue = document.getElementById('videoCountValue');
-                if (videoCountValue) {
-                    videoCountValue.textContent = selectedVideoCount;
-                }
-                console.log('🎛️ Slider value maintained at:', selectedVideoCount);
+                document.getElementById('videoCountValue').textContent = maxVideos;
             }
         }
         
         function updateInfoField() {
             const infoVideoCount = document.getElementById('infoVideoCount');
             const infoSelectedCount = document.getElementById('infoSelectedCount');
-            const infoText = document.getElementById('infoText');
             const videoCountSetting = document.querySelector('.video-count-setting');
             
             if (infoVideoCount) {
@@ -1814,26 +1799,12 @@
                 infoSelectedCount.textContent = selectedVideos.size;
             }
             
-            // Verstecke/zeige Slider basierend auf Video-Auswahl
+            // Hide slider when videos are selected, show when no videos are selected
             if (videoCountSetting) {
                 if (selectedVideos.size > 0) {
                     videoCountSetting.style.display = 'none';
                 } else {
-                    videoCountSetting.style.display = 'block';
-                    // Stelle sicher, dass der Slider-Wert korrekt ist wenn er wieder angezeigt wird
-                    const slider = document.getElementById('videoCountSlider');
-                    if (slider) {
-                        slider.value = selectedVideoCount;
-                    }
-                }
-            }
-            
-            // Aktualisiere Info-Text basierend auf Video-Auswahl
-            if (infoText) {
-                if (selectedVideos.size > 0) {
-                    infoText.innerHTML = `Es werden nur die <span id="infoSelectedCount">${selectedVideos.size}</span> ausgewählten Videos angezeigt.`;
-                } else {
-                    infoText.innerHTML = `Im Moment werden nur die Top <span id="infoVideoCount">${selectedVideoCount}</span> Videos angezeigt.`;
+                    videoCountSetting.style.display = 'flex';
                 }
             }
         }
@@ -1866,8 +1837,6 @@
                 videoCountSlider.addEventListener('input', function() {
                     selectedVideoCount = parseInt(this.value);
                     videoCountValue.textContent = selectedVideoCount;
-                    console.log('🎛️ Slider changed to:', selectedVideoCount);
-                    console.log('🎛️ selectedVideos.size:', selectedVideos.size);
                     updateInfoField();
                     updateCharts();
                 });
@@ -1992,14 +1961,12 @@
                     const videoId = video.id || video.video_id || `video_${index}`;
                     return selectedVideos.has(videoId);
                 });
-                console.log('🎯 Individual videos selected:', selectedVideos.size, 'Showing all selected videos:', filteredVideos.length);
-                // Keine Begrenzung durch Slider wenn individuelle Videos ausgewählt sind
-            } else {
-                // Begrenze auf die gewählte Anzahl nur wenn keine individuellen Videos ausgewählt sind
-                console.log('🎯 Before slice - available videos:', filteredVideos.length, 'selectedVideoCount:', selectedVideoCount);
-                filteredVideos = filteredVideos.slice(0, selectedVideoCount);
-                console.log('🎯 No individual selection, using slider limit:', selectedVideoCount, 'Showing videos:', filteredVideos.length);
+                // Wenn Videos ausgewählt sind, zeige alle ausgewählten Videos (ignoriere Slider-Wert)
+                return filteredVideos;
             }
+            
+            // Begrenze auf die gewählte Anzahl (nur wenn keine Videos ausgewählt sind)
+            filteredVideos = filteredVideos.slice(0, selectedVideoCount);
             
             return filteredVideos;
         }
