@@ -1420,7 +1420,7 @@
                             <div>
                                 <h3 style="margin: 0; color: var(--text-dark);">Erweiterte Einstellungen</h3>
                                 <div class="advanced-settings-info" id="advancedSettingsInfo">
-                                    <span>Im Moment werden nur die Top <span id="infoVideoCount">10</span> Videos angezeigt.</span>
+                                    <span id="infoText">Momentan werden nur die Top <span id="infoVideoCount">10</span> Videos angezeigt.</span>
                                 </div>
                             </div>
                             <i class="fas fa-chevron-down" id="advancedSettingsIcon"></i>
@@ -1431,7 +1431,7 @@
                         <!-- Video-Anzahl Slider -->
                         <div class="video-count-setting">
                             <label for="videoCountSlider" class="setting-label">
-                                Anzahl der Videos, die angezeigt werden: <span id="videoCountValue">10</span>
+                                Maximale Anzahl Videos in den Diagrammen: <span id="videoCountValue">10</span>
                             </label>
                             <div class="slider-container">
                                 <input type="range" id="videoCountSlider" min="3" max="10" value="10" class="video-count-slider">
@@ -1445,7 +1445,7 @@
                         <!-- Video-Auswahl -->
                         <div class="video-selection-setting">
                             <label class="setting-label">
-                                Videos auswählen:
+                                Bestimmte Videos in den Diagrammen hervorheben:
                             </label>
                             
                             <!-- Suchleiste für Videos -->
@@ -1789,6 +1789,8 @@
         function updateInfoField() {
             const infoVideoCount = document.getElementById('infoVideoCount');
             const infoSelectedCount = document.getElementById('infoSelectedCount');
+            const infoText = document.getElementById('infoText');
+            const videoCountSetting = document.querySelector('.video-count-setting');
             
             if (infoVideoCount) {
                 infoVideoCount.textContent = selectedVideoCount;
@@ -1796,6 +1798,24 @@
             
             if (infoSelectedCount) {
                 infoSelectedCount.textContent = selectedVideos.size;
+            }
+            
+            // Verstecke/zeige Slider basierend auf Video-Auswahl
+            if (videoCountSetting) {
+                if (selectedVideos.size > 0) {
+                    videoCountSetting.style.display = 'none';
+                } else {
+                    videoCountSetting.style.display = 'block';
+                }
+            }
+            
+            // Aktualisiere Info-Text basierend auf Video-Auswahl
+            if (infoText) {
+                if (selectedVideos.size > 0) {
+                    infoText.innerHTML = `Es werden nur die <span id="infoSelectedCount">${selectedVideos.size}</span> ausgewählten Videos angezeigt.`;
+                } else {
+                    infoText.innerHTML = `Im Moment werden nur die Top <span id="infoVideoCount">${selectedVideoCount}</span> Videos angezeigt.`;
+                }
             }
         }
         
