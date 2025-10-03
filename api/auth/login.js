@@ -67,7 +67,7 @@ module.exports = async (req, res) => {
       console.error('❌ Fehler beim Abrufen des Users:', userError);
       res.status(500).json({
         success: false,
-        error: 'Datenbankfehler'
+        error: 'Benutzername oder Passwort sind falsch'
       });
       return;
     }
