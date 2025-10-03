@@ -375,6 +375,175 @@
             font-size: 0.9rem;
         }
 
+        /* Erweiterte Einstellungen */
+        .advanced-settings {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .setting-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.75rem;
+            font-size: 14px;
+        }
+
+        .video-count-setting {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slider-container {
+            position: relative;
+            margin-top: 0.5rem;
+        }
+
+        .video-count-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--light-gray);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .video-count-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 140, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .video-count-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 140, 255, 0.4);
+        }
+
+        .video-count-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(0, 140, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .video-count-slider::-moz-range-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 140, 255, 0.4);
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .video-selection-setting {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .video-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--light-gray);
+        }
+
+        .video-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+        }
+
+        .video-checkbox-item:hover {
+            background: rgba(0, 140, 255, 0.1);
+        }
+
+        .video-checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-blue);
+            cursor: pointer;
+        }
+
+        .video-checkbox-label {
+            font-size: 13px;
+            color: var(--text-dark);
+            cursor: pointer;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .video-views-count {
+            font-size: 11px;
+            color: var(--text-light);
+            background: var(--white);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        .video-selection-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            background: var(--white);
+            color: var(--text-dark);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: var(--primary-blue);
+            color: var(--white);
+            border-color: var(--primary-blue);
+        }
+
         /* Zeitraum-Auswahl */
         .time-range-selector {
             background: var(--white);
@@ -859,6 +1028,53 @@
                 font-size: 15px;
             }
             
+            /* Erweiterte Einstellungen mobile Optimierungen */
+            .advanced-settings {
+                padding: 1rem;
+                gap: 1rem;
+            }
+            
+            .video-checkboxes {
+                grid-template-columns: 1fr;
+                max-height: 150px;
+                gap: 0.5rem;
+            }
+            
+            .video-checkbox-item {
+                padding: 0.75rem;
+                font-size: 14px;
+            }
+            
+            .video-selection-actions {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .action-btn {
+                width: 100%;
+                justify-content: center;
+                padding: 0.75rem 1rem;
+                font-size: 14px;
+            }
+            
+            .slider-container {
+                margin-top: 1rem;
+            }
+            
+            .video-count-slider {
+                height: 8px;
+            }
+            
+            .video-count-slider::-webkit-slider-thumb {
+                width: 24px;
+                height: 24px;
+            }
+            
+            .video-count-slider::-moz-range-thumb {
+                width: 24px;
+                height: 24px;
+            }
+            
             /* Benutzerdefinierte Datumsauswahl für mobile Geräte */
             .custom-date-range {
                 margin-top: 1rem;
@@ -1060,6 +1276,49 @@
                 </div>
 
 
+                <!-- Erweiterte Einstellungen -->
+                <div class="advanced-settings">
+                    <h3 style="margin: 0; color: var(--text-dark); display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-cog"></i>
+                        Erweiterte Einstellungen
+                    </h3>
+                    
+                    <!-- Video-Anzahl Slider -->
+                    <div class="video-count-setting">
+                        <label for="videoCountSlider" class="setting-label">
+                            Anzahl Videos anzeigen: <span id="videoCountValue">7</span>
+                        </label>
+                        <div class="slider-container">
+                            <input type="range" id="videoCountSlider" min="3" max="20" value="7" class="video-count-slider">
+                            <div class="slider-labels">
+                                <span>3</span>
+                                <span>20</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Video-Auswahl -->
+                    <div class="video-selection-setting">
+                        <label class="setting-label">
+                            <i class="fas fa-video"></i>
+                            Videos auswählen:
+                        </label>
+                        <div class="video-checkboxes" id="videoCheckboxes">
+                            <!-- Videos werden hier dynamisch eingefügt -->
+                        </div>
+                        <div class="video-selection-actions">
+                            <button type="button" id="selectAllVideos" class="action-btn">
+                                <i class="fas fa-check-double"></i>
+                                Alle auswählen
+                            </button>
+                            <button type="button" id="deselectAllVideos" class="action-btn">
+                                <i class="fas fa-times"></i>
+                                Alle abwählen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Zeitraum-Auswahl -->
                 <div class="time-range-selector">
                     <h3 style="margin: 0; color: var(--text-dark);">Zeitraum:</h3>
@@ -1166,6 +1425,11 @@
             startDate: null,
             endDate: null
         };
+        
+        // Erweiterte Einstellungen Variablen
+        let selectedVideoCount = 7;
+        let selectedVideos = new Set(); // Set of video IDs that are selected
+        let allAvailableVideos = []; // All available videos for selection
         let allTimeRangeData = null; // Speichert den Zeitraum von "Gesamter Zeitraum"
         
         // Funktion zum Synchronisieren des benutzerdefinierten Zeitraums mit dem Gesamten Zeitraum
@@ -1282,6 +1546,167 @@
             window.addEventListener('scroll', requestTick);
         }
         
+        // Erweiterte Einstellungen Funktionen
+        function populateVideoCheckboxes() {
+            const checkboxesContainer = document.getElementById('videoCheckboxes');
+            if (!checkboxesContainer) return;
+            
+            // Leere den Container
+            checkboxesContainer.innerHTML = '';
+            
+            if (allAvailableVideos.length === 0) {
+                checkboxesContainer.innerHTML = '<div style="text-align: center; color: var(--text-light); padding: 1rem;">Keine Videos verfügbar</div>';
+                return;
+            }
+            
+            // Sortiere Videos nach Aufrufen (absteigend)
+            const sortedVideos = [...allAvailableVideos].sort((a, b) => (b.views || 0) - (a.views || 0));
+            
+            sortedVideos.forEach((video, index) => {
+                const videoId = video.id || video.video_id || `video_${index}`;
+                const videoTitle = video.title || video.video_title || `Video ${index + 1}`;
+                const videoViews = video.views || 0;
+                
+                const checkboxItem = document.createElement('div');
+                checkboxItem.className = 'video-checkbox-item';
+                checkboxItem.innerHTML = `
+                    <input type="checkbox" class="video-checkbox" id="video_${videoId}" value="${videoId}">
+                    <label for="video_${videoId}" class="video-checkbox-label">${videoTitle}</label>
+                    <span class="video-views-count">${videoViews} Aufrufe</span>
+                `;
+                
+                // Event Listener für Checkbox
+                const checkbox = checkboxItem.querySelector('.video-checkbox');
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        selectedVideos.add(videoId);
+                    } else {
+                        selectedVideos.delete(videoId);
+                    }
+                    updateCharts();
+                });
+                
+                // Setze initialen Zustand
+                if (selectedVideos.has(videoId)) {
+                    checkbox.checked = true;
+                }
+                
+                checkboxesContainer.appendChild(checkboxItem);
+            });
+        }
+        
+        function setupAdvancedSettingsListeners() {
+            // Video Count Slider
+            const videoCountSlider = document.getElementById('videoCountSlider');
+            const videoCountValue = document.getElementById('videoCountValue');
+            
+            if (videoCountSlider && videoCountValue) {
+                videoCountSlider.addEventListener('input', function() {
+                    selectedVideoCount = parseInt(this.value);
+                    videoCountValue.textContent = selectedVideoCount;
+                    updateCharts();
+                });
+            }
+            
+            // Select All Videos Button
+            const selectAllBtn = document.getElementById('selectAllVideos');
+            if (selectAllBtn) {
+                selectAllBtn.addEventListener('click', function() {
+                    selectedVideos.clear();
+                    allAvailableVideos.forEach((video, index) => {
+                        const videoId = video.id || video.video_id || `video_${index}`;
+                        selectedVideos.add(videoId);
+                    });
+                    
+                    // Update checkboxes
+                    document.querySelectorAll('.video-checkbox').forEach(checkbox => {
+                        checkbox.checked = true;
+                    });
+                    
+                    updateCharts();
+                });
+            }
+            
+            // Deselect All Videos Button
+            const deselectAllBtn = document.getElementById('deselectAllVideos');
+            if (deselectAllBtn) {
+                deselectAllBtn.addEventListener('click', function() {
+                    selectedVideos.clear();
+                    
+                    // Update checkboxes
+                    document.querySelectorAll('.video-checkbox').forEach(checkbox => {
+                        checkbox.checked = false;
+                    });
+                    
+                    updateCharts();
+                });
+            }
+        }
+        
+        function getFilteredVideosForCharts() {
+            let currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
+            
+            if (!currentStats && statistics) {
+                currentStats = statistics;
+            }
+            
+            const videos = currentStats?.videos || [];
+            const mergedVideos = mergeVideosByTitle(videos);
+            
+            // Filtere Videos basierend auf Zeitraum und Aufrufen
+            let filteredVideos = mergedVideos.filter(video => (video.views || 0) > 0);
+            
+            // Zeitraum-Filter anwenden (falls vorhanden)
+            const hasViewHistory = filteredVideos.some(video => 
+                (video.viewHistory && Object.keys(video.viewHistory).length > 0) ||
+                (video.view_history && Object.keys(video.view_history).length > 0)
+            );
+            
+            if (hasViewHistory && currentTimeRange !== 'all') {
+                const today = new Date();
+                let startDate = new Date();
+                
+                if (currentTimeRange === '7') {
+                    startDate.setDate(today.getDate() - 7);
+                } else if (currentTimeRange === 'custom') {
+                    if (customDateRange.startDate) {
+                        startDate = new Date(customDateRange.startDate);
+                    } else {
+                        startDate.setDate(today.getDate() - 30);
+                    }
+                }
+                
+                filteredVideos = filteredVideos.filter(video => {
+                    const viewHistory = video.viewHistory || video.view_history;
+                    if (!viewHistory) return false;
+                    
+                    return Object.keys(viewHistory).some(date => {
+                        const dateObj = new Date(date);
+                        return dateObj >= startDate;
+                    });
+                });
+            }
+            
+            // Sortiere nach Aufrufen
+            filteredVideos = filteredVideos.sort((a, b) => (b.views || 0) - (a.views || 0));
+            
+            // Speichere alle verfügbaren Videos für die Checkbox-Auswahl
+            allAvailableVideos = [...filteredVideos];
+            
+            // Wenn Videos ausgewählt sind, filtere nach ausgewählten Videos
+            if (selectedVideos.size > 0) {
+                filteredVideos = filteredVideos.filter((video, index) => {
+                    const videoId = video.id || video.video_id || `video_${index}`;
+                    return selectedVideos.has(videoId);
+                });
+            }
+            
+            // Begrenze auf die gewählte Anzahl
+            filteredVideos = filteredVideos.slice(0, selectedVideoCount);
+            
+            return filteredVideos;
+        }
+
         // Event Listeners einrichten
         function setupEventListeners() {
             // Zeitraum-Buttons
@@ -1526,6 +1951,10 @@
                     
                     // Event Listeners nach dem Laden der Statistiken einrichten
                     setupEventListeners();
+                    setupAdvancedSettingsListeners();
+                    
+                    // Populiere Video-Checkboxes nach dem Laden der Statistiken
+                    populateVideoCheckboxes();
                     
                     // Berechne und setze allTimeRangeData sofort nach dem Laden der Statistiken
                     if (statistics && statistics.history && statistics.history.length > 0) {
@@ -2078,11 +2507,8 @@
                 return;
             }
             
-            // Filtere Videos mit Aufrufen und sortiere nach Aufrufen (wie in der App)
-            const filteredVideos = mergedVideos
-                .filter(video => (video.views || 0) > 0)
-                .sort((a, b) => (b.views || 0) - (a.views || 0))
-                .slice(0, lineChartVideoCount);
+            // Verwende die neue Filterfunktion für erweiterte Einstellungen
+            const filteredVideos = getFilteredVideosForCharts();
             
             if (filteredVideos.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Videos mit Aufrufen verfügbar</div>';
@@ -2378,48 +2804,8 @@
                 return;
             }
             
-            // Filtere Videos basierend auf Zeitraum und Aufrufen
-            let filteredVideos = mergedVideos.filter(video => (video.views || 0) > 0);
-            
-            // Wenn viewHistory verfügbar ist, filtere basierend auf Zeitraum
-            const hasViewHistory = filteredVideos.some(video => 
-                (video.viewHistory && Object.keys(video.viewHistory).length > 0) ||
-                (video.view_history && Object.keys(video.view_history).length > 0)
-            );
-            
-            if (hasViewHistory && currentTimeRange !== 'all') {
-                const today = new Date();
-                let startDate = new Date();
-                
-                // Berechne Startdatum basierend auf ausgewähltem Zeitraum
-                if (currentTimeRange === '7') {
-                    startDate.setDate(today.getDate() - 7);
-                } else if (currentTimeRange === 'custom') {
-                    // Benutzerdefinierter Zeitraum
-                    if (customDateRange.startDate) {
-                        startDate = new Date(customDateRange.startDate);
-                    } else {
-                        startDate.setDate(today.getDate() - 30); // Fallback
-                    }
-                }
-                
-                // Filtere Videos basierend auf Zeitraum
-                filteredVideos = filteredVideos.filter(video => {
-                    const viewHistory = video.viewHistory || video.view_history;
-                    if (!viewHistory) return false;
-                    
-                    // Prüfe ob Video in dem Zeitraum Aufrufe hatte
-                    return Object.keys(viewHistory).some(date => {
-                        const dateObj = new Date(date);
-                        return dateObj >= startDate;
-                    });
-                });
-            }
-            
-            // Sortiere nach Aufrufen und begrenze Anzahl
-            filteredVideos = filteredVideos
-                .sort((a, b) => (b.views || 0) - (a.views || 0))
-                .slice(0, barChartVideoCount);
+            // Verwende die neue Filterfunktion für erweiterte Einstellungen
+            const filteredVideos = getFilteredVideosForCharts();
             
             if (filteredVideos.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Videos mit Aufrufen verfügbar</div>';
@@ -2572,7 +2958,21 @@
                                 type: 'bar',
                                 data: allData
                             }],
-                            tooltip: option.tooltip,
+                            tooltip: {
+                                trigger: 'item',
+                                show: true,
+                                confine: true,
+                                extraCssText: 'word-wrap: break-word; white-space: nowrap;',
+                                formatter: function(params) {
+                                    if (!params) return '';
+                                    
+                                    // Finde die vollständige Videobeschreibung für das Tooltip
+                                    const videoIndex = params.dataIndex;
+                                    const fullVideoTitle = filteredVideos[videoIndex]?.title || filteredVideos[videoIndex]?.video_title || `Video ${videoIndex + 1}`;
+                                    
+                                    return `${fullVideoTitle}<br/>Aufrufe: ${params.value}`;
+                                }
+                            },
                             grid: {
                                 left: '3%',
                                 right: '4%',
@@ -2931,48 +3331,8 @@
                 return;
             }
             
-            // Filtere Videos basierend auf Zeitraum und Aufrufen
-            let filteredVideos = mergedVideos.filter(video => (video.views || 0) > 0);
-            
-            // Wenn viewHistory verfügbar ist, filtere basierend auf Zeitraum
-            const hasViewHistory = filteredVideos.some(video => 
-                (video.viewHistory && Object.keys(video.viewHistory).length > 0) ||
-                (video.view_history && Object.keys(video.view_history).length > 0)
-            );
-            
-            if (hasViewHistory && currentTimeRange !== 'all') {
-                const today = new Date();
-                let startDate = new Date();
-                
-                // Berechne Startdatum basierend auf ausgewähltem Zeitraum
-                if (currentTimeRange === '7') {
-                    startDate.setDate(today.getDate() - 7);
-                } else if (currentTimeRange === 'custom') {
-                    // Benutzerdefinierter Zeitraum
-                    if (customDateRange.startDate) {
-                        startDate = new Date(customDateRange.startDate);
-                    } else {
-                        startDate.setDate(today.getDate() - 30); // Fallback
-                    }
-                }
-                
-                // Filtere Videos basierend auf Zeitraum
-                filteredVideos = filteredVideos.filter(video => {
-                    const viewHistory = video.viewHistory || video.view_history;
-                    if (!viewHistory) return false;
-                    
-                    // Prüfe ob Video in dem Zeitraum Aufrufe hatte
-                    return Object.keys(viewHistory).some(date => {
-                        const dateObj = new Date(date);
-                        return dateObj >= startDate;
-                    });
-                });
-            }
-            
-            // Sortiere nach Aufrufen und begrenze Anzahl
-            filteredVideos = filteredVideos
-                .sort((a, b) => (b.views || 0) - (a.views || 0))
-                .slice(0, pieChartVideoCount);
+            // Verwende die neue Filterfunktion für erweiterte Einstellungen
+            const filteredVideos = getFilteredVideosForCharts();
             
             if (filteredVideos.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Videos mit Aufrufen verfügbar</div>';
