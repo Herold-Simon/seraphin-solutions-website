@@ -1808,6 +1808,11 @@
                     videoCountSetting.style.display = 'none';
                 } else {
                     videoCountSetting.style.display = 'block';
+                    // Stelle sicher, dass der Slider-Wert korrekt ist wenn er wieder angezeigt wird
+                    const slider = document.getElementById('videoCountSlider');
+                    if (slider) {
+                        slider.value = selectedVideoCount;
+                    }
                 }
             }
             
@@ -1973,10 +1978,12 @@
                     const videoId = video.id || video.video_id || `video_${index}`;
                     return selectedVideos.has(videoId);
                 });
+                console.log('🎯 Individual videos selected:', selectedVideos.size, 'Showing all selected videos:', filteredVideos.length);
                 // Keine Begrenzung durch Slider wenn individuelle Videos ausgewählt sind
             } else {
                 // Begrenze auf die gewählte Anzahl nur wenn keine individuellen Videos ausgewählt sind
                 filteredVideos = filteredVideos.slice(0, selectedVideoCount);
+                console.log('🎯 No individual selection, using slider limit:', selectedVideoCount, 'Showing videos:', filteredVideos.length);
             }
             
             return filteredVideos;
