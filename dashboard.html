@@ -3251,11 +3251,8 @@
                 return;
             }
             
-            // Filtere Videos mit Aufrufen und sortiere nach Aufrufen (wie in der App)
-            const filteredVideos = mergedVideos
-                .filter(video => (video.views || 0) > 0)
-                .sort((a, b) => (b.views || 0) - (a.views || 0))
-                .slice(0, lineRaceVideoCount);
+            // Verwende die neue Filterfunktion für erweiterte Einstellungen
+            const filteredVideos = getFilteredVideosForCharts();
             
             if (filteredVideos.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Videos mit Aufrufen verfügbar</div>';
