@@ -378,13 +378,42 @@
         /* Erweiterte Einstellungen */
         .advanced-settings {
             background: var(--white);
-            padding: 1.5rem;
             border-radius: 12px;
             box-shadow: var(--shadow);
             margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .advanced-settings-header {
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid transparent;
+        }
+
+        .advanced-settings-header:hover {
+            background: rgba(0, 140, 255, 0.05);
+        }
+
+        .advanced-settings-header.active {
+            border-bottom-color: var(--border-color);
+        }
+
+        .advanced-settings-content {
+            padding: 1.5rem;
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
+        }
+
+        #advancedSettingsIcon {
+            transition: transform 0.3s ease;
+            font-size: 14px;
+            color: var(--primary-blue);
+        }
+
+        .advanced-settings-header.active #advancedSettingsIcon {
+            transform: rotate(180deg);
         }
 
         .setting-label {
@@ -464,31 +493,111 @@
             flex-direction: column;
         }
 
-        .video-checkboxes {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 0.75rem;
+        /* Video Search */
+        .video-search-container {
             margin-bottom: 1rem;
-            max-height: 200px;
+        }
+
+        .video-search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .video-search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--white);
+            transition: all 0.3s ease;
+        }
+
+        .video-search-input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(0, 140, 255, 0.1);
+        }
+
+        .video-search-box i.fa-search {
+            position: absolute;
+            left: 0.75rem;
+            color: var(--text-light);
+            font-size: 14px;
+            z-index: 1;
+        }
+
+        .clear-search-btn {
+            position: absolute;
+            right: 0.5rem;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .clear-search-btn:hover {
+            color: var(--primary-blue);
+            background: rgba(0, 140, 255, 0.1);
+        }
+
+        .video-checkboxes {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            max-height: 300px;
             overflow-y: auto;
-            padding: 0.5rem;
+            padding: 0.75rem;
             border: 1px solid var(--border-color);
             border-radius: 8px;
+            background: var(--white);
+        }
+
+        .video-checkboxes::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .video-checkboxes::-webkit-scrollbar-track {
             background: var(--light-gray);
+            border-radius: 3px;
+        }
+
+        .video-checkboxes::-webkit-scrollbar-thumb {
+            background: var(--primary-blue);
+            border-radius: 3px;
+        }
+
+        .video-checkboxes::-webkit-scrollbar-thumb:hover {
+            background: #0066CC;
         }
 
         .video-checkbox-item {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem;
-            border-radius: 6px;
-            transition: background-color 0.2s ease;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
             cursor: pointer;
+            border: 1px solid transparent;
+            background: var(--light-gray);
         }
 
         .video-checkbox-item:hover {
             background: rgba(0, 140, 255, 0.1);
+            border-color: rgba(0, 140, 255, 0.2);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 140, 255, 0.15);
+        }
+
+        .video-checkbox-item.selected {
+            background: rgba(0, 140, 255, 0.1);
+            border-color: var(--primary-blue);
         }
 
         .video-checkbox {
@@ -499,22 +608,26 @@
         }
 
         .video-checkbox-label {
-            font-size: 13px;
+            font-size: 14px;
             color: var(--text-dark);
             cursor: pointer;
             flex: 1;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            font-weight: 500;
+            line-height: 1.4;
         }
 
         .video-views-count {
-            font-size: 11px;
-            color: var(--text-light);
-            background: var(--white);
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-weight: 500;
+            font-size: 12px;
+            color: var(--white);
+            background: var(--gradient-primary);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            min-width: fit-content;
+            box-shadow: 0 2px 4px rgba(0, 140, 255, 0.3);
         }
 
         .video-selection-actions {
@@ -1029,20 +1142,33 @@
             }
             
             /* Erweiterte Einstellungen mobile Optimierungen */
-            .advanced-settings {
+            .advanced-settings-header {
+                padding: 1rem;
+            }
+            
+            .advanced-settings-content {
                 padding: 1rem;
                 gap: 1rem;
             }
             
             .video-checkboxes {
-                grid-template-columns: 1fr;
-                max-height: 150px;
+                max-height: 200px;
                 gap: 0.5rem;
+                padding: 0.5rem;
             }
             
             .video-checkbox-item {
                 padding: 0.75rem;
-                font-size: 14px;
+                gap: 0.5rem;
+            }
+            
+            .video-checkbox-label {
+                font-size: 13px;
+            }
+            
+            .video-views-count {
+                font-size: 11px;
+                padding: 3px 6px;
             }
             
             .video-selection-actions {
@@ -1055,6 +1181,10 @@
                 justify-content: center;
                 padding: 0.75rem 1rem;
                 font-size: 14px;
+            }
+            
+            .video-search-input {
+                font-size: 16px; /* Verhindert Zoom auf iOS */
             }
             
             .slider-container {
@@ -1278,43 +1408,55 @@
 
                 <!-- Erweiterte Einstellungen -->
                 <div class="advanced-settings">
-                    <h3 style="margin: 0; color: var(--text-dark); display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="fas fa-cog"></i>
-                        Erweiterte Einstellungen
-                    </h3>
-                    
-                    <!-- Video-Anzahl Slider -->
-                    <div class="video-count-setting">
-                        <label for="videoCountSlider" class="setting-label">
-                            Anzahl Videos anzeigen: <span id="videoCountValue">7</span>
-                        </label>
-                        <div class="slider-container">
-                            <input type="range" id="videoCountSlider" min="3" max="20" value="7" class="video-count-slider">
-                            <div class="slider-labels">
-                                <span>3</span>
-                                <span>20</span>
-                            </div>
-                        </div>
+                    <div class="advanced-settings-header" id="advancedSettingsHeader">
+                        <h3 style="margin: 0; color: var(--text-dark); display: flex; align-items: center; gap: 0.5rem;">
+                            Erweiterte Einstellungen
+                            <i class="fas fa-chevron-down" id="advancedSettingsIcon"></i>
+                        </h3>
                     </div>
                     
-                    <!-- Video-Auswahl -->
-                    <div class="video-selection-setting">
-                        <label class="setting-label">
-                            <i class="fas fa-video"></i>
-                            Videos auswählen:
-                        </label>
-                        <div class="video-checkboxes" id="videoCheckboxes">
-                            <!-- Videos werden hier dynamisch eingefügt -->
+                    <div class="advanced-settings-content" id="advancedSettingsContent" style="display: none;">
+                        <!-- Video-Anzahl Slider -->
+                        <div class="video-count-setting">
+                            <label for="videoCountSlider" class="setting-label">
+                                Anzahl Videos anzeigen: <span id="videoCountValue">7</span>
+                            </label>
+                            <div class="slider-container">
+                                <input type="range" id="videoCountSlider" min="3" max="20" value="7" class="video-count-slider">
+                                <div class="slider-labels">
+                                    <span>3</span>
+                                    <span>20</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="video-selection-actions">
-                            <button type="button" id="selectAllVideos" class="action-btn">
-                                <i class="fas fa-check-double"></i>
-                                Alle auswählen
-                            </button>
-                            <button type="button" id="deselectAllVideos" class="action-btn">
-                                <i class="fas fa-times"></i>
-                                Alle abwählen
-                            </button>
+                        
+                        <!-- Video-Auswahl -->
+                        <div class="video-selection-setting">
+                            <label class="setting-label">
+                                Videos auswählen:
+                            </label>
+                            
+                            <!-- Suchleiste für Videos -->
+                            <div class="video-search-container">
+                                <div class="video-search-box">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="videoSearchInput" placeholder="Videos durchsuchen..." class="video-search-input">
+                                    <button type="button" id="clearSearchBtn" class="clear-search-btn" style="display: none;">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="video-checkboxes" id="videoCheckboxes">
+                                <!-- Videos werden hier dynamisch eingefügt -->
+                            </div>
+                            
+                            <div class="video-selection-actions">
+                                <button type="button" id="deselectAllVideos" class="action-btn">
+                                    <i class="fas fa-times"></i>
+                                    Alle abwählen
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1580,15 +1722,26 @@
                 checkbox.addEventListener('change', function() {
                     if (this.checked) {
                         selectedVideos.add(videoId);
+                        checkboxItem.classList.add('selected');
                     } else {
                         selectedVideos.delete(videoId);
+                        checkboxItem.classList.remove('selected');
                     }
                     updateCharts();
+                });
+                
+                // Click auf das gesamte Item
+                checkboxItem.addEventListener('click', function(e) {
+                    if (e.target !== checkbox) {
+                        checkbox.checked = !checkbox.checked;
+                        checkbox.dispatchEvent(new Event('change'));
+                    }
                 });
                 
                 // Setze initialen Zustand
                 if (selectedVideos.has(videoId)) {
                     checkbox.checked = true;
+                    checkboxItem.classList.add('selected');
                 }
                 
                 checkboxesContainer.appendChild(checkboxItem);
@@ -1596,6 +1749,25 @@
         }
         
         function setupAdvancedSettingsListeners() {
+            // Collapsible Header
+            const header = document.getElementById('advancedSettingsHeader');
+            const content = document.getElementById('advancedSettingsContent');
+            const icon = document.getElementById('advancedSettingsIcon');
+            
+            if (header && content && icon) {
+                header.addEventListener('click', function() {
+                    const isVisible = content.style.display !== 'none';
+                    
+                    if (isVisible) {
+                        content.style.display = 'none';
+                        header.classList.remove('active');
+                    } else {
+                        content.style.display = 'flex';
+                        header.classList.add('active');
+                    }
+                });
+            }
+            
             // Video Count Slider
             const videoCountSlider = document.getElementById('videoCountSlider');
             const videoCountValue = document.getElementById('videoCountValue');
@@ -1608,22 +1780,27 @@
                 });
             }
             
-            // Select All Videos Button
-            const selectAllBtn = document.getElementById('selectAllVideos');
-            if (selectAllBtn) {
-                selectAllBtn.addEventListener('click', function() {
-                    selectedVideos.clear();
-                    allAvailableVideos.forEach((video, index) => {
-                        const videoId = video.id || video.video_id || `video_${index}`;
-                        selectedVideos.add(videoId);
-                    });
+            // Video Search
+            const searchInput = document.getElementById('videoSearchInput');
+            const clearSearchBtn = document.getElementById('clearSearchBtn');
+            
+            if (searchInput && clearSearchBtn) {
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    filterVideoCheckboxes(searchTerm);
                     
-                    // Update checkboxes
-                    document.querySelectorAll('.video-checkbox').forEach(checkbox => {
-                        checkbox.checked = true;
-                    });
-                    
-                    updateCharts();
+                    // Show/hide clear button
+                    if (searchTerm.length > 0) {
+                        clearSearchBtn.style.display = 'block';
+                    } else {
+                        clearSearchBtn.style.display = 'none';
+                    }
+                });
+                
+                clearSearchBtn.addEventListener('click', function() {
+                    searchInput.value = '';
+                    clearSearchBtn.style.display = 'none';
+                    filterVideoCheckboxes('');
                 });
             }
             
@@ -1633,14 +1810,33 @@
                 deselectAllBtn.addEventListener('click', function() {
                     selectedVideos.clear();
                     
-                    // Update checkboxes
+                    // Update checkboxes and remove selected class
                     document.querySelectorAll('.video-checkbox').forEach(checkbox => {
                         checkbox.checked = false;
+                    });
+                    
+                    document.querySelectorAll('.video-checkbox-item').forEach(item => {
+                        item.classList.remove('selected');
                     });
                     
                     updateCharts();
                 });
             }
+        }
+        
+        function filterVideoCheckboxes(searchTerm) {
+            const checkboxes = document.querySelectorAll('.video-checkbox-item');
+            
+            checkboxes.forEach(item => {
+                const label = item.querySelector('.video-checkbox-label');
+                const videoTitle = label.textContent.toLowerCase();
+                
+                if (videoTitle.includes(searchTerm)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
         }
         
         function getFilteredVideosForCharts() {
