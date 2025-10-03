@@ -409,11 +409,26 @@
         #advancedSettingsIcon {
             transition: transform 0.3s ease;
             font-size: 14px;
-            color: var(--primary-blue);
+            color: var(--text-dark);
         }
 
         .advanced-settings-header.active #advancedSettingsIcon {
             transform: rotate(180deg);
+        }
+
+        .advanced-settings-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 13px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .advanced-settings-info i {
+            color: var(--primary-blue);
+            font-size: 12px;
         }
 
         .setting-label {
@@ -1409,20 +1424,26 @@
                 <!-- Erweiterte Einstellungen -->
                 <div class="advanced-settings">
                     <div class="advanced-settings-header" id="advancedSettingsHeader">
-                        <h3 style="margin: 0; color: var(--text-dark); display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                            <span>Erweiterte Einstellungen</span>
+                        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                            <div>
+                                <h3 style="margin: 0; color: var(--text-dark);">Erweiterte Einstellungen</h3>
+                                <div class="advanced-settings-info" id="advancedSettingsInfo">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span>Video-Anzahl: <span id="infoVideoCount">10</span> | Ausgewählte Videos: <span id="infoSelectedCount">0</span></span>
+                                </div>
+                            </div>
                             <i class="fas fa-chevron-down" id="advancedSettingsIcon"></i>
-                        </h3>
+                        </div>
                     </div>
                     
                     <div class="advanced-settings-content" id="advancedSettingsContent" style="display: none;">
                         <!-- Video-Anzahl Slider -->
                         <div class="video-count-setting">
                             <label for="videoCountSlider" class="setting-label">
-                                Videos, die angezeigt werden: <span id="videoCountValue">7</span>
+                                Anzahl der Videos, die angezeigt werden: <span id="videoCountValue">10</span>
                             </label>
                             <div class="slider-container">
-                                <input type="range" id="videoCountSlider" min="3" max="7" value="7" class="video-count-slider">
+                                <input type="range" id="videoCountSlider" min="3" max="10" value="10" class="video-count-slider">
                                 <div class="slider-labels">
                                     <span>3</span>
                                     <span id="sliderMaxValue">7</span>
@@ -1569,7 +1590,7 @@
         };
         
         // Erweiterte Einstellungen Variablen
-        let selectedVideoCount = 7;
+        let selectedVideoCount = 10;
         let selectedVideos = new Set(); // Set of video IDs that are selected
         let allAvailableVideos = []; // All available videos for selection
         let allTimeRangeData = null; // Speichert den Zeitraum von "Gesamter Zeitraum"
@@ -1730,6 +1751,7 @@
                         selectedVideos.delete(videoId);
                         checkboxItem.classList.remove('selected');
                     }
+                    updateInfoField();
                     updateCharts();
                 });
                 
@@ -1773,6 +1795,19 @@
             }
         }
         
+        function updateInfoField() {
+            const infoVideoCount = document.getElementById('infoVideoCount');
+            const infoSelectedCount = document.getElementById('infoSelectedCount');
+            
+            if (infoVideoCount) {
+                infoVideoCount.textContent = selectedVideoCount;
+            }
+            
+            if (infoSelectedCount) {
+                infoSelectedCount.textContent = selectedVideos.size;
+            }
+        }
+        
         function setupAdvancedSettingsListeners() {
             // Collapsible Header
             const header = document.getElementById('advancedSettingsHeader');
@@ -1801,6 +1836,7 @@
                 videoCountSlider.addEventListener('input', function() {
                     selectedVideoCount = parseInt(this.value);
                     videoCountValue.textContent = selectedVideoCount;
+                    updateInfoField();
                     updateCharts();
                 });
             }
@@ -1844,6 +1880,7 @@
                         item.classList.remove('selected');
                     });
                     
+                    updateInfoField();
                     updateCharts();
                 });
             }
@@ -2179,6 +2216,9 @@
                     
                     // Populiere Video-Checkboxes nach dem Laden der Statistiken
                     populateVideoCheckboxes();
+                    
+                    // Aktualisiere Info-Feld
+                    updateInfoField();
                     
                     // Berechne und setze allTimeRangeData sofort nach dem Laden der Statistiken
                     if (statistics && statistics.history && statistics.history.length > 0) {
