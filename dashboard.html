@@ -1728,7 +1728,7 @@
                 checkboxItem.className = 'video-checkbox-item';
                 checkboxItem.innerHTML = `
                     <input type="checkbox" class="video-checkbox" id="video_${videoId}" value="${videoId}">
-                    <label for="video_${videoId}" class="video-checkbox-label">${videoTitle}</label>
+                    <span class="video-checkbox-label">${videoTitle}</span>
                     <span class="video-views-count">${videoViews} Aufrufe</span>
                 `;
                 
@@ -1748,10 +1748,12 @@
                 
                 // Click auf das gesamte Item
                 checkboxItem.addEventListener('click', function(e) {
-                    if (e.target !== checkbox) {
-                        checkbox.checked = !checkbox.checked;
-                        checkbox.dispatchEvent(new Event('change'));
-                    }
+                    // Verhindere doppelte Auslösung wenn direkt auf Checkbox geklickt wird
+                    if (e.target === checkbox) return;
+                    
+                    // Toggle checkbox und trigger change event
+                    checkbox.checked = !checkbox.checked;
+                    checkbox.dispatchEvent(new Event('change'));
                 });
                 
                 // Setze initialen Zustand
