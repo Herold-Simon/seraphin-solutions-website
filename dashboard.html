@@ -2489,15 +2489,24 @@
             
             
             // Resize das Chart, um die neue Breite zu berücksichtigen
-            setTimeout(() => {
-                if (charts.barChart) {
-                    charts.barChart.resize();
-                }
-            }, 100);
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    if (charts.barChart && !charts.barChart.isDisposed()) {
+                        charts.barChart.resize();
+                    }
+                }, 100);
+            });
             
             // Füge "Mehr anzeigen" Button hinzu, wenn es mehr als 5 Videos gibt
             if (hiddenVideos.length > 0) {
+                // Entferne existierenden Button falls vorhanden
+                const existingButton = chartElement.querySelector('.expand-button');
+                if (existingButton) {
+                    existingButton.remove();
+                }
+                
                 const expandButton = document.createElement('button');
+                expandButton.className = 'expand-button';
                 expandButton.textContent = `+${hiddenVideos.length} weitere anzeigen`;
                 expandButton.style.cssText = `
                     position: absolute;
@@ -2515,6 +2524,7 @@
                     box-shadow: 0 2px 8px rgba(0, 140, 255, 0.3);
                     transition: all 0.3s ease;
                 `;
+                
                 // Hover-Effekt hinzufügen
                 expandButton.addEventListener('mouseenter', () => {
                     expandButton.style.transform = 'translateY(-1px)';
@@ -2527,57 +2537,76 @@
                 });
                 
                 expandButton.onclick = () => {
-                    // Berechne neue Höhe für alle Videos - ohne Legende
-                    const newHeight = 50 * filteredVideos.length + 80; // Reduzierte Höhe pro Balken und weniger Padding ohne Legende
-                    chartContainer.style.height = newHeight + 'px';
+                    // Verhindere mehrfache Klicks
+                    if (expandButton.disabled) return;
+                    expandButton.disabled = true;
+                    expandButton.textContent = 'Lädt...';
                     
-                    // Erstelle erweiterte Version mit allen Videos
-                    const allLabels = filteredVideos.map(video => {
-                        const title = video.title;
-                        return title.length > 10 ? title.substring(0, 10) + '...' : title;
-                    });
-                    const allData = filteredVideos.map((video, idx) => ({
-                        value: video.views || 0,
-                        itemStyle: {
-                            color: getChartColor(idx)
-                        }
-                    }));
-                    
-                    // Erstelle neue Option mit allen Videos
-                    const expandedOption = {
-                        xAxis: option.xAxis,
-                        yAxis: {
-                            type: 'category',
-                            data: allLabels, // Verwende echte Video-Titel
-                            axisLabel: { color: '#666', fontSize: 16 },
-                            inverse: true
-                        },
-                        series: [{
-                            type: 'bar',
-                            data: allData
-                        }],
-                        tooltip: option.tooltip,
-                        grid: {
-                            left: '3%',
-                            right: '4%',
-                            bottom: '5%',
-                            containLabel: true
-                        },
-                        color: getChartColors(),
-                        zoom: false
-                    };
-                    
-                    charts.barChart.setOption(expandedOption);
-                    
-                    
-                    // Resize das Chart, um die neue Breite zu berücksichtigen
-                    setTimeout(() => {
+                    try {
+                        // Berechne neue Höhe für alle Videos - ohne Legende
+                        const newHeight = 50 * filteredVideos.length + 80;
+                        chartContainer.style.height = newHeight + 'px';
+                        
+                        // Erstelle erweiterte Version mit allen Videos
+                        const allLabels = filteredVideos.map(video => {
+                            const title = video.title || video.video_title || 'Unbekanntes Video';
+                            return title.length > 10 ? title.substring(0, 10) + '...' : title;
+                        });
+                        const allData = filteredVideos.map((video, idx) => ({
+                            value: video.views || 0,
+                            itemStyle: {
+                                color: getChartColor(idx)
+                            }
+                        }));
+                        
+                        // Erstelle neue Option mit allen Videos
+                        const expandedOption = {
+                            xAxis: option.xAxis,
+                            yAxis: {
+                                type: 'category',
+                                data: allLabels,
+                                axisLabel: { color: '#666', fontSize: 16 },
+                                inverse: true
+                            },
+                            series: [{
+                                type: 'bar',
+                                data: allData
+                            }],
+                            tooltip: option.tooltip,
+                            grid: {
+                                left: '3%',
+                                right: '4%',
+                                bottom: '5%',
+                                containLabel: true
+                            },
+                            color: getChartColors(),
+                            zoom: false
+                        };
+                        
+                        // Setze die neue Option
                         if (charts.barChart) {
-                            charts.barChart.resize();
+                            charts.barChart.setOption(expandedOption, true); // true = notMerge, ersetzt komplett
+                            
+                            // Warte auf DOM-Update und resize dann
+                            requestAnimationFrame(() => {
+                                setTimeout(() => {
+                                    if (charts.barChart && !charts.barChart.isDisposed()) {
+                                        charts.barChart.resize();
+                                    }
+                                }, 150); // Längere Wartezeit für stabilere Performance
+                            });
                         }
-                    }, 100);
-                    
-                    expandButton.remove();
+                        
+                        // Entferne Button nach erfolgreichem Update
+                        setTimeout(() => {
+                            expandButton.remove();
+                        }, 200);
+                        
+                    } catch (error) {
+                        console.error('Fehler beim Erweitern des Charts:', error);
+                        expandButton.disabled = false;
+                        expandButton.textContent = `+${hiddenVideos.length} weitere anzeigen`;
+                    }
                 };
                 
                 chartElement.style.position = 'relative';
