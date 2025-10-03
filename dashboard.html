@@ -1785,6 +1785,12 @@
                 selectedVideoCount = maxVideos;
                 slider.value = maxVideos;
                 document.getElementById('videoCountValue').textContent = maxVideos;
+                console.log('🎛️ Slider value adjusted to maximum:', maxVideos);
+            } else {
+                // Behalte den aktuellen Wert bei, aber stelle sicher, dass der Slider synchron ist
+                slider.value = selectedVideoCount;
+                document.getElementById('videoCountValue').textContent = selectedVideoCount;
+                console.log('🎛️ Slider value maintained at:', selectedVideoCount);
             }
         }
         
@@ -1854,6 +1860,7 @@
                 videoCountSlider.addEventListener('input', function() {
                     selectedVideoCount = parseInt(this.value);
                     videoCountValue.textContent = selectedVideoCount;
+                    console.log('🎛️ Slider changed to:', selectedVideoCount);
                     updateInfoField();
                     updateCharts();
                 });
