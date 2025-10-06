@@ -47,7 +47,7 @@ module.exports = async function handler(req, res) {
     }
 
     try {
-        const { username, password } = req.body;
+        const { username, password, device_id } = req.body;
 
         if (!username || !password) {
             return res.status(400).json({ error: 'Benutzername und Passwort sind erforderlich' });
@@ -81,7 +81,8 @@ module.exports = async function handler(req, res) {
             .insert({
                 username,
                 password_hash: hashedPassword,
-                full_name: username
+                full_name: username,
+                device_id: device_id || null
             })
             .select()
             .single();
