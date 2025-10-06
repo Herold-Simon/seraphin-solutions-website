@@ -111,12 +111,12 @@ module.exports = async (req, res) => {
       }
     }
 
-    // Aktualisiere last_login für Admin-User
+    // Aktualisiere last_login für Admin-User (NICHT die device_id überschreiben!)
     const { error: updateError } = await supabase
       .from('admin_users')
       .update({ 
-        last_login: new Date().toISOString(),
-        device_id: device_id || adminUser.device_id
+        last_login: new Date().toISOString()
+        // device_id wird NICHT überschrieben, um das ursprüngliche Gerät zu behalten
       })
       .eq('id', adminUser.id);
 
