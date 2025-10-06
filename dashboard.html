@@ -244,6 +244,12 @@
             transform: rotate(180deg);
         }
         
+        .device-dropdown-loading {
+            display: flex;
+            align-items: center;
+            margin-right: 8px;
+        }
+        
         .device-dropdown-menu {
             position: absolute;
             top: 100%;
@@ -1376,6 +1382,9 @@
                 <div class="device-dropdown" id="deviceDropdown">
                     <button class="device-dropdown-trigger" id="deviceDropdownTrigger">
                         <span class="device-dropdown-text" id="deviceDropdownText">Alle Geräte</span>
+                        <div class="device-dropdown-loading" id="deviceDropdownLoading" style="display: none;">
+                            <div class="loading-spinner" style="width: 16px; height: 16px; border-width: 2px;"></div>
+                        </div>
                         <svg class="device-dropdown-icon" id="deviceDropdownIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="6,9 12,15 18,9"></polyline>
                         </svg>
@@ -2455,6 +2464,9 @@
             console.log('🔽 Opening dropdown - elements found:', { trigger: !!trigger, menu: !!menu, icon: !!icon });
             
             if (trigger && menu && icon) {
+                // Verstecke Ladeanzeige falls sie noch angezeigt wird
+                hideDeviceLoading();
+                
                 trigger.classList.add('open');
                 menu.classList.add('open');
                 icon.classList.add('open');
@@ -2509,17 +2521,55 @@
             selectedDeviceId = deviceId;
             console.log('📱 Gerät gewechselt zu:', selectedDeviceId);
             
+            // Zeige Ladeanzeige
+            showDeviceLoading();
+            
             // Update display
             updateDeviceDropdownDisplay();
             
-            // Lade geräte-spezifische Statistiken
-            await loadDeviceStatistics();
+            try {
+                // Lade geräte-spezifische Statistiken
+                await loadDeviceStatistics();
+                
+                // Aktualisiere Anzeige
+                displayStatistics();
+                updateCharts();
+                
+                console.log('✅ Geräte-Auswahl abgeschlossen');
+            } catch (error) {
+                console.error('❌ Fehler beim Laden der Geräte-Statistiken:', error);
+            } finally {
+                // Verstecke Ladeanzeige
+                hideDeviceLoading();
+            }
+        }
+        
+        // Zeige Ladeanzeige im Geräte-Dropdown
+        function showDeviceLoading() {
+            const loadingElement = document.getElementById('deviceDropdownLoading');
+            const iconElement = document.getElementById('deviceDropdownIcon');
+            const triggerElement = document.getElementById('deviceDropdownTrigger');
             
-            // Aktualisiere Anzeige
-            displayStatistics();
-            updateCharts();
+            if (loadingElement && iconElement && triggerElement) {
+                loadingElement.style.display = 'flex';
+                iconElement.style.display = 'none';
+                triggerElement.style.cursor = 'wait';
+                triggerElement.disabled = true;
+            }
+        }
+        
+        // Verstecke Ladeanzeige im Geräte-Dropdown
+        function hideDeviceLoading() {
+            const loadingElement = document.getElementById('deviceDropdownLoading');
+            const iconElement = document.getElementById('deviceDropdownIcon');
+            const triggerElement = document.getElementById('deviceDropdownTrigger');
             
-            console.log('✅ Geräte-Auswahl abgeschlossen');
+            if (loadingElement && iconElement && triggerElement) {
+                loadingElement.style.display = 'none';
+                iconElement.style.display = 'block';
+                triggerElement.style.cursor = 'pointer';
+                triggerElement.disabled = false;
+            }
         }
         
         // Entfernt: syncDeviceSelector nicht mehr benötigt
