@@ -394,6 +394,148 @@
         .password-requirements li {
             margin-bottom: 0.25rem;
         }
+        /*ich will nicht mehr leben 😒*/
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+
+        .modal-content {
+            background: var(--white);
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modal-header h3 i {
+            color: #dc3545;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--light-gray);
+            color: var(--text-dark);
+        }
+
+        .modal-body {
+            padding: 1.5rem 2rem;
+        }
+
+        .warning-icon {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .warning-icon i {
+            font-size: 3rem;
+            color: #dc3545;
+            opacity: 0.8;
+        }
+
+        .modal-text {
+            font-size: 1.1rem;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .modal-description {
+            color: var(--text-light);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .modal-list {
+            background: #fff5f5;
+            border: 2px solid #fed7d7;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .modal-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        .modal-list li i {
+            color: #dc3545;
+            width: 16px;
+        }
+
+
+        .modal-footer {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 2rem 2rem;
+            justify-content: flex-end;
+        }
+
+        .modal-footer .btn {
+            min-width: 140px;
+        }
 
         /* Mobile Optimierungen */
         @media (max-width: 768px) {
@@ -418,6 +560,27 @@
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 0.25rem;
+            }
+
+            .modal-content {
+                margin: 1rem;
+                max-width: calc(100% - 2rem);
+            }
+
+            .modal-header,
+            .modal-body,
+            .modal-footer {
+                padding-left: 1.5rem;
+                padding-right: 1.5rem;
+            }
+
+            .modal-footer {
+                flex-direction: column;
+            }
+
+            .modal-footer .btn {
+                min-width: auto;
+                width: 100%;
             }
         }
     </style>
@@ -457,6 +620,45 @@
 
             <!-- Alerts -->
             <div id="errorAlert" class="alert alert-error"></div>
+
+            <!-- Custom Confirmation Modal -->
+            <div id="deleteConfirmModal" class="modal-overlay" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Account löschen</h3>
+                        <button class="modal-close" onclick="closeDeleteModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="warning-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <p class="modal-text">
+                            <strong>Sind Sie sicher, dass Sie Ihren Account löschen möchten?</strong>
+                        </p>
+                        <p class="modal-description">
+                            Diese Aktion kann nicht rückgängig gemacht werden. Alle Ihre Daten werden unwiderruflich gelöscht:
+                        </p>
+                        <ul class="modal-list">
+                            <li><i class="fas fa-chart-bar"></i> Alle Statistiken und Berichte</li>
+                            <li><i class="fas fa-mobile-alt"></i> Alle Geräte-Sessions</li>
+                            <li><i class="fas fa-user"></i> Account-Informationen</li>
+                            <li><i class="fas fa-history"></i> Alle Verlaufsdaten</li>
+                        </ul>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">
+                            <i class="fas fa-times"></i>
+                            Abbrechen
+                        </button>
+                        <button type="button" class="btn btn-danger" id="confirmDeleteBtn" onclick="proceedWithDelete()">
+                            <i class="fas fa-trash-alt"></i>
+                            Account unwiderruflich löschen
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             <!-- Account-Informationen -->
             <div class="account-card">
@@ -557,9 +759,10 @@
         // Keyboard shortcuts
         function setupKeyboardShortcuts() {
             document.addEventListener('keydown', function(e) {
-                // Escape key closes success overlay
+                // Escape key closes success overlay or modal
                 if (e.key === 'Escape') {
                     closeSuccessOverlay();
+                    closeDeleteModal();
                 }
             });
         }
@@ -843,20 +1046,48 @@
 
         // Passwort-Validierung wurde entfernt
 
-        // Account löschen bestätigen
+        // Account löschen bestätigen - Öffne benutzerdefinierte Modal
         function confirmDeleteAccount() {
-            if (confirm('Sind Sie sicher, dass Sie Ihren Account löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.')) {
-                if (confirm('Letzte Bestätigung: Möchten Sie wirklich alle Ihre Daten unwiderruflich löschen?')) {
-                    deleteAccount();
-                }
+            openDeleteModal();
+        }
+
+        // Modal öffnen
+        function openDeleteModal() {
+            const modal = document.getElementById('deleteConfirmModal');
+            
+            if (modal) {
+                modal.style.display = 'flex';
             }
+        }
+
+        // Modal schließen
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteConfirmModal');
+            
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Mit Löschung fortfahren
+        function proceedWithDelete() {
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            
+            // Button deaktivieren und Loading-State anzeigen
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<div class="loading-spinner"></div> Account wird gelöscht...';
+            
+            deleteAccount();
         }
 
         // Account löschen
         async function deleteAccount() {
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            
             try {
                 if (!accountData || !accountData.hasAccount) {
                     showError('Kein Account zum Löschen gefunden');
+                    resetDeleteButton();
                     return;
                 }
 
@@ -874,17 +1105,30 @@
                 const data = await response.json();
 
                 if (response.ok && data.success) {
+                    // Modal schließen
+                    closeDeleteModal();
                     showSuccess('Account erfolgreich gelöscht. Sie werden zur Login-Seite weitergeleitet.');
                     setTimeout(() => {
                         window.location.href = 'login.html';
                     }, 2000);
                 } else {
                     showError(data.error || 'Fehler beim Löschen des Accounts');
+                    resetDeleteButton();
                 }
 
             } catch (error) {
                 console.error('Error deleting account:', error);
                 showError('Fehler beim Löschen des Accounts: ' + error.message);
+                resetDeleteButton();
+            }
+        }
+
+        // Button-Status zurücksetzen
+        function resetDeleteButton() {
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Account unwiderruflich löschen';
             }
         }
 
