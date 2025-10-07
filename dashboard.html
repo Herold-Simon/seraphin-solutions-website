@@ -2663,12 +2663,29 @@
             console.log('🏢 Floors:', floors.length);
             console.log('📅 History:', history.length);
             
-            // Statistiken-Karten aktualisieren mit Fallback-Werten
-            const totalViews = current.total_views || total.total_views || 0;
-            const videosWithViews = current.videos_with_views || total.videos_with_views || 0;
-            const totalVideos = current.total_videos || total.total_videos || videos.length;
-            const totalFloors = current.total_floors || total.total_floors || floors.length;
-            const totalRooms = current.total_rooms || total.total_rooms || floors.reduce((sum, floor) => sum + (floor.room_count || 0), 0);
+            // WICHTIG: Berechne Statistiken DIREKT aus den tatsächlichen Video-Daten
+            // Dies gewährleistet, dass die angezeigten Zahlen immer korrekt sind
+            const totalViews = videos.reduce((sum, video) => {
+                const views = parseInt(video.views) || 0;
+                return sum + views;
+            }, 0);
+            
+            const videosWithViews = videos.filter(video => {
+                const views = parseInt(video.views) || 0;
+                return views > 0;
+            }).length;
+            
+            const totalVideos = videos.length;
+            const totalFloors = floors.length;
+            const totalRooms = floors.reduce((sum, floor) => sum + (floor.room_count || 0), 0);
+            
+            // Debug: Zeige berechnete Werte
+            console.log('🔢 Berechnete Statistiken (direkt aus Video-Daten):');
+            console.log('  ├─ Gesamte Aufrufe:', totalViews);
+            console.log('  ├─ Videos mit Aufrufen:', videosWithViews);
+            console.log('  ├─ Gesamte Videos:', totalVideos);
+            console.log('  ├─ Gesamte Stockwerke:', totalFloors);
+            console.log('  └─ Gesamte Räume:', totalRooms);
             
             // Aktualisiere die UI-Elemente
             try {
