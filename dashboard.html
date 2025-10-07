@@ -2665,15 +2665,28 @@
             
             // WICHTIG: Berechne Statistiken DIREKT aus den tatsächlichen Video-Daten
             // Dies gewährleistet, dass die angezeigten Zahlen immer korrekt sind
+            
+            // Gesamte Aufrufe: Summe aller Aufrufe
             const totalViews = videos.reduce((sum, video) => {
                 const views = parseInt(video.views) || 0;
                 return sum + views;
             }, 0);
             
-            const videosWithViews = videos.filter(video => {
+            // Videos mit Aufrufen: Gruppiere nach Titel und zähle eindeutige Titel mit Aufrufen
+            // Gleichnamige Videos werden als ein Video gezählt
+            const videosByTitle = {};
+            videos.forEach(video => {
+                const title = video.title || video.video_title || 'Unbenanntes Video';
                 const views = parseInt(video.views) || 0;
-                return views > 0;
-            }).length;
+                
+                if (!videosByTitle[title]) {
+                    videosByTitle[title] = 0;
+                }
+                videosByTitle[title] += views;
+            });
+            
+            // Zähle eindeutige Videotitel, die mindestens einen Aufruf haben
+            const videosWithViews = Object.values(videosByTitle).filter(totalViews => totalViews > 0).length;
             
             const totalVideos = videos.length;
             const totalFloors = floors.length;
@@ -2682,10 +2695,11 @@
             // Debug: Zeige berechnete Werte
             console.log('🔢 Berechnete Statistiken (direkt aus Video-Daten):');
             console.log('  ├─ Gesamte Aufrufe:', totalViews);
-            console.log('  ├─ Videos mit Aufrufen:', videosWithViews);
+            console.log('  ├─ Videos mit Aufrufen (eindeutige Titel):', videosWithViews);
             console.log('  ├─ Gesamte Videos:', totalVideos);
             console.log('  ├─ Gesamte Stockwerke:', totalFloors);
             console.log('  └─ Gesamte Räume:', totalRooms);
+            console.log('  └─ Gruppierte Videos nach Titel:', videosByTitle);
             
             // Aktualisiere die UI-Elemente
             try {
