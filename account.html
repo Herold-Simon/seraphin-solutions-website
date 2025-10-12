@@ -1011,22 +1011,21 @@
 
                 console.log('🔍 API-Antwort Status:', response.status);
                 
-                if (!response.ok) {
-                    console.error('❌ API-Antwort nicht OK:', response.status, response.statusText);
-                    showError(`API-Fehler: ${response.status} ${response.statusText}. Öffnen Sie die Browser-Konsole (F12) für weitere Details.`);
-                    return;
-                }
-                
                 const data = await response.json();
                 console.log('🔍 API-Antwort Daten:', data);
 
-                if (data.success) {
+                if (response.ok && data.success) {
                     showSuccess('Passwort erfolgreich geändert');
                     document.getElementById('currentPassword').value = '';
                     document.getElementById('newPassword').value = '';
                     document.getElementById('confirmPassword').value = '';
                 } else {
-                    showError(data.error || 'Fehler beim Ändern des Passworts');
+                    // Spezifische Fehlermeldung für falsches aktuelles Passwort
+                    if (response.status === 401) {
+                        showError('Das eingegebene aktuelle Passwort ist falsch. Bitte überprüfen Sie Ihre Eingabe.');
+                    } else {
+                        showError(data.error || 'Fehler beim Ändern des Passworts');
+                    }
                 }
 
             } catch (error) {
