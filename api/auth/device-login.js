@@ -1,5 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
-const bcrypt = require('bcryptjs');
+const cookie = require('cookie');
 
 // CORS-Header setzen
 function setCorsHeaders(res) {
@@ -29,7 +29,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { username, password, device_id } = req.body;
+    const { username, password } = req.body;
 
     if (!username || !password) {
       res.status(400).json({
@@ -55,23 +55,23 @@ module.exports = async (req, res) => {
     // Supabase-Client erstellen
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Admin-User aus der Datenbank abrufen
-    const { data: adminUser, error: userError } = await supabase
-      .from('admin_users')
+    // Website-User aus der Datenbank abrufen
+    const { data: websiteUser, error: userError } = await supabase
+      .from('website_users')
       .select('*')
       .eq('username', username)
       .single();
 
     if (userError) {
-      console.error('❌ Fehler beim Abrufen des Admin-Users:', userError);
+      console.error('❌ Fehler beim Abrufen des Users:', userError);
       res.status(500).json({
         success: false,
-        error: 'Datenbankfehler'
+        error: 'Benutzername oder Passwort sind falsch'
       });
       return;
     }
 
-    if (!adminUser) {
+    if (!websiteUser) {
       res.status(401).json({
         success: false,
         error: 'Ungültige Anmeldedaten'
@@ -79,10 +79,8 @@ module.exports = async (req, res) => {
       return;
     }
 
-    // Passwort überprüfen
-    const passwordMatch = await bcrypt.compare(password, adminUser.password_hash);
-    
-    if (!passwordMatch) {
+    // Passwort überprüfen (Klartext-Vergleich)
+    if (password !== websiteUser.password_hash) {
       res.status(401).json({
         success: false,
         error: 'Ungültige Anmeldedaten'
@@ -90,53 +88,51 @@ module.exports = async (req, res) => {
       return;
     }
 
-    // Geräte-Session aktualisieren oder erstellen
-    let deviceSessionId = null;
-    if (device_id) {
-      console.log('📱 Updating device session for admin user:', adminUser.id, 'device:', device_id);
-      
-      const { data: sessionData, error: sessionError } = await supabase
-        .rpc('update_device_activity', {
-          p_admin_user_id: adminUser.id,
-          p_device_id: device_id,
-          p_device_name: `Device ${device_id.substring(0, 8)}`
-        });
+    // Session-Token generieren
+    const sessionToken = require('crypto').randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 Stunden
 
-      if (sessionError) {
-        console.error('❌ Error updating device session:', sessionError);
-        // Nicht kritisch, weiter mit Login
-      } else {
-        deviceSessionId = sessionData;
-        console.log('✅ Device session updated successfully:', deviceSessionId);
-      }
+    // Session in der Datenbank speichern
+    const { error: sessionError } = await supabase
+      .from('website_sessions')
+      .insert({
+        user_id: websiteUser.id,
+        session_token: sessionToken,
+        expires_at: expiresAt.toISOString()
+      });
+
+    if (sessionError) {
+      console.error('❌ Fehler beim Speichern der Session:', sessionError);
+      res.status(500).json({
+        success: false,
+        error: 'Fehler beim Erstellen der Session'
+      });
+      return;
     }
 
-    // Aktualisiere last_login für Admin-User (NICHT die device_id überschreiben!)
-    const { error: updateError } = await supabase
-      .from('admin_users')
-      .update({ 
-        last_login: new Date().toISOString()
-        // device_id wird NICHT überschrieben, um das ursprüngliche Gerät zu behalten
-      })
-      .eq('id', adminUser.id);
+    // Session-Cookie setzen
+    const sessionCookie = cookie.serialize('session_token', sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Lax',
+      maxAge: 60 * 60 * 24 * 7, // 1 Woche
+      path: '/'
+    });
 
-    if (updateError) {
-      console.error('❌ Error updating admin user last_login:', updateError);
-      // Nicht kritisch, Login kann trotzdem erfolgreich sein
-    }
-
-    console.log('✅ Device login successful for admin user:', adminUser.id);
+    res.setHeader('Set-Cookie', sessionCookie);
+    console.log('🍪 Session-Cookie gesetzt:', sessionToken);
 
     res.status(200).json({
       success: true,
       message: 'Login erfolgreich',
-      admin_user_id: adminUser.id,
-      username: adminUser.username,
-      device_session_id: deviceSessionId
+      user: {
+        username: websiteUser.username,
+        admin_user_id: websiteUser.admin_user_id
+      }
     });
 
   } catch (error) {
-    console.error('❌ Unerwarteter Fehler im Device-Login:', error);
+    console.error('❌ Unerwarteter Fehler im Login:', error);
     res.status(500).json({
       success: false,
       error: 'Interner Serverfehler'
