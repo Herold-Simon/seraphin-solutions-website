@@ -1157,6 +1157,12 @@
             window.location.href = 'dashboard.html';
         }
 
+        // Funktion zum Schließen des Success-Overlays (für Kompatibilität)
+        function closeSuccessOverlay() {
+            // Diese Funktion existiert für Kompatibilität mit dem Event-Listener
+            // Da wir direkt zum Dashboard weiterleiten, ist hier keine Aktion nötig
+        }
+
         function showError(message) {
             const alert = document.getElementById('errorAlert');
             alert.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
