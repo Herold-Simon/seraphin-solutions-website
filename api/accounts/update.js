@@ -1,6 +1,5 @@
 // api/accounts/update.js - Account-Daten aktualisieren
 const { createClient } = require('@supabase/supabase-js');
-const bcrypt = require('bcryptjs');
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -188,22 +187,18 @@ module.exports = async function handler(req, res) {
 
         // Passwort ändern
         if (currentPassword && newPassword) {
-            // Validiere aktuelles Passwort
-            const isCurrentPasswordValid = await bcrypt.compare(currentPassword, adminUser.password_hash);
-            
-            if (!isCurrentPasswordValid) {
+            // Validiere aktuelles Passwort (Klartext-Vergleich)
+            if (currentPassword !== adminUser.password_hash) {
                 return res.status(401).json({ error: 'Aktuelles Passwort ist falsch' });
             }
 
             // Passwort-Anforderungen wurden entfernt
 
-            // Hash neues Passwort
-            const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-
+            // Speichere neues Passwort als Klartext
             // Aktualisiere Admin-User
             const { error: adminUpdateError } = await supabase
                 .from('admin_users')
-                .update({ password_hash: hashedNewPassword })
+                .update({ password_hash: newPassword })
                 .eq('id', adminUserId);
 
             if (adminUpdateError) {
@@ -214,7 +209,7 @@ module.exports = async function handler(req, res) {
             // Aktualisiere Website-User (falls Passwort dort gespeichert ist)
             const { error: websiteUpdateError } = await supabase
                 .from('website_users')
-                .update({ password_hash: hashedNewPassword })
+                .update({ password_hash: newPassword })
                 .eq('admin_user_id', adminUserId);
 
             if (websiteUpdateError) {
