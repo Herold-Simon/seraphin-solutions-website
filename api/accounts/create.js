@@ -1,6 +1,5 @@
 // api/accounts/create.js - Account-Erstellung aus App
 const { createClient } = require('@supabase/supabase-js');
-const bcrypt = require('bcryptjs');
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -72,15 +71,13 @@ module.exports = async function handler(req, res) {
             return res.status(409).json({ error: 'Benutzername bereits vergeben' });
         }
 
-        // Hash das Passwort
-        const hashedPassword = await bcrypt.hash(password, 10);
-        
+        // Speichere Passwort als Klartext
         // Erstelle Admin-Benutzer (Trigger erstellt automatisch Website-Benutzer)
         const { data: adminUser, error: adminError } = await supabase
             .from('admin_users')
             .insert({
                 username,
-                password_hash: hashedPassword,
+                password_hash: password,
                 full_name: username,
                 device_id: device_id || null
             })
