@@ -1,5 +1,4 @@
 const { createClient } = require('@supabase/supabase-js');
-const bcrypt = require('bcryptjs');
 const cookie = require('cookie');
 
 // CORS-Header setzen
@@ -80,10 +79,8 @@ module.exports = async (req, res) => {
       return;
     }
 
-    // Passwort überprüfen
-    const passwordMatch = await bcrypt.compare(password, websiteUser.password_hash);
-    
-    if (!passwordMatch) {
+    // Passwort überprüfen (Klartext-Vergleich)
+    if (password !== websiteUser.password_hash) {
       res.status(401).json({
         success: false,
         error: 'Ungültige Anmeldedaten'
