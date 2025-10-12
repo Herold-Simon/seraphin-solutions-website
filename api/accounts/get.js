@@ -36,10 +36,10 @@ module.exports = async function handler(req, res) {
     }
 
     try {
-        // Hole alle Admin-Benutzer
+        // Hole alle Admin-Benutzer (inkl. Passwort, da es jetzt im Klartext gespeichert ist)
         const { data: adminUsers, error: adminError } = await supabase
             .from('admin_users')
-            .select('id, username, created_at')
+            .select('id, username, password_hash, created_at')
             .order('created_at', { ascending: false });
 
         if (adminError) {
@@ -65,11 +65,13 @@ module.exports = async function handler(req, res) {
             account: {
                 id: adminUsers[0].id,
                 username: adminUsers[0].username,
+                password: adminUsers[0].password_hash,
                 created_at: adminUsers[0].created_at
             },
             accounts: adminUsers.map(user => ({
                 id: user.id,
                 username: user.username,
+                password: user.password_hash,
                 created_at: user.created_at
             }))
         });
