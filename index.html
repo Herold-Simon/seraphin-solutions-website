@@ -226,86 +226,80 @@
     <section id="pricing" class="pricing">
         <div class="container">
             <div class="section-header">
-                <h2>Transparente Preise - Keine versteckten Kosten</h2>
-                <p>Seraphin Solutions bietet faire und transparente Preise für Ihr Gebäudenavi-Projekt</p>
+                <h2>Preisrechner</h2>
+                <p>Berechnen Sie den Preis für Ihr Gebäudenavi</p>
             </div>
-            <div class="pricing-grid">
+
+            <div class="pricing-grid calc-grid">
+                <!-- Input Card -->
                 <div class="pricing-card">
                     <div class="pricing-header">
                         <div class="pricing-icon">
-                            <i class="fas fa-clipboard-list"></i>
+                            <i class="fas fa-calculator"></i>
                         </div>
-                        <h3>Grundgebühr</h3>
-                        <div class="price">
-                            <span class="amount">300€</span>
-                            <span class="period">einmalig</span>
+                        <h3>Eingaben</h3>
+                    </div>
+                    <div class="calc-fields">
+                        <div class="form-group calc-field">
+                            <label for="areaInput">Gebäudefläche (m²)</label>
+                            <div class="input-with-range">
+                                <input id="areaInput" type="text" inputmode="numeric" placeholder="z.B. 2.000" />
+                                <input id="areaRange" type="range" min="0" max="100000" step="100" />
+                            </div>
                         </div>
+                        <div class="form-group calc-field">
+                            <label for="kioskInput">Anzahl Kiosks</label>
+                            <div class="input-with-range">
+                                <input id="kioskInput" type="text" inputmode="numeric" placeholder="z.B. 3" />
+                                <input id="kioskRange" type="range" min="0" max="50" step="1" />
+                            </div>
+                        </div>
+                        
                     </div>
-                    <div class="pricing-features">
-                        <ul>
-                            <li><i class="fas fa-check"></i> Projektplanung und Beratung</li>
-                            <li><i class="fas fa-check"></i> Integration-Analyse Ihres Gebäudes</li>
-                            <li><i class="fas fa-check"></i> Kostenlose Kiosk-Kaufempfehlung</li>
-                            <li><i class="fas fa-check"></i> Technische Machbarkeitsstudie</li>
-                            <li><i class="fas fa-check"></i> Detailliertes Projektkonzept</li>
-                        </ul>
-                    </div>
-                    <div class="pricing-description">
-                        <p>In dieser Phase analysieren wir Ihr Gebäude und erstellen einen maßgeschneiderten Plan für die Integration des Gebäudenavis. Sie erhalten eine kostenlose Kaufempfehlung für den passenden digitalen Kiosk.</p>
-                    </div>
+                    <p class="calc-note">Hinweis: Die genannten Preise beziehen sich ausschließlich auf die Installation. Die Anschaffungskosten für die digitalen Kiosks sind nicht Bestandteil dieses Angebots.</p>
                 </div>
 
+                <!-- Result Card -->
                 <div class="pricing-card">
                     <div class="pricing-header">
                         <div class="pricing-icon">
-                            <i class="fas fa-drafting-compass"></i>
+                            <i class="fas fa-receipt"></i>
                         </div>
-                        <h3>3D-Grundriss</h3>
-                        <div class="price">
-                            <span class="amount">0,50€</span>
-                            <span class="period">pro m²</span>
+                        <h3>Ergebnis</h3>
+                    </div>
+                    <div class="pricing-summary calc-summary">
+                        <div class="summary-card">
+                            <h3>Preisübersicht</h3>
+                            <div class="summary-breakdown">
+                                <div class="summary-item">
+                                    <span>qm-Preis</span>
+                                    <span id="outRate">–</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Flächenanteil</span>
+                                    <span id="outAreaCost">–</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Grundgebühr</span>
+                                    <span id="outBase">–</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Installation (pro Kiosk)</span>
+                                    <span id="outInstallPer">–</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Installationen gesamt</span>
+                                    <span id="outInstallTotal">–</span>
+                                </div>
+                                <div class="summary-total">
+                                    <span>Gesamtpreis</span>
+                                    <span id="outTotal">–</span>
+                                </div>
+                            </div>
+                            <div class="summary-note">
+                                Richtwerte – finale Angebote können je nach Projekt variieren.
+                            </div>
                         </div>
-                    </div>
-                    <div class="pricing-features">
-                        <ul>
-                            <li><i class="fas fa-check"></i> Interaktiver 3D-Grundriss</li>
-                            <li><i class="fas fa-check"></i> Jeder Raum wird berücksichtigt</li>
-                            <li><i class="fas fa-check"></i> Maßgeschneidert an Ihre Vorstellungen</li>
-                            <li><i class="fas fa-check"></i> Professionelle 3D-Visualisierung</li>
-                            <li><i class="fas fa-check"></i> Responsive Design für alle Geräte</li>
-                        </ul>
-                    </div>
-                    <div class="pricing-description">
-                        <p>Wir erstellen einen detaillierten, interaktiven 3D-Grundriss Ihres Gebäudes. Jeder Quadratmeter wird professionell erfasst und visualisiert - genau nach Ihren Wünschen und Anforderungen.</p>
-                    </div>
-                    <div class="pricing-example">
-                        <h4>Beispielrechnung:</h4>
-                        <p>Gebäude mit 2.000 m² = 1.000€ für den 3D-Grundriss</p>
-                    </div>
-                </div>
-
-                <div class="pricing-card">
-                    <div class="pricing-header">
-                        <div class="pricing-icon">
-                            <i class="fas fa-tools"></i>
-                        </div>
-                        <h3>Installation</h3>
-                        <div class="price">
-                            <span class="amount">50€</span>
-                            <span class="period">pro Kiosk</span>
-                        </div>
-                    </div>
-                    <div class="pricing-features">
-                        <ul>
-                            <li><i class="fas fa-check"></i> Professionelle Installation</li>
-                            <li><i class="fas fa-check"></i> Systemkonfiguration</li>
-                            <li><i class="fas fa-check"></i> Funktionstest</li>
-                            <li><i class="fas fa-check"></i> Einweisung des Personals</li>
-                            <li><i class="fas fa-check"></i> Technischer Support</li>
-                        </ul>
-                    </div>
-                    <div class="pricing-description">
-                        <p>Unser erfahrenes Team installiert das Gebäudenavi auf Ihrem digitalen Kiosk. Jeder aufgestellte Kiosk wird professionell eingerichtet und getestet.</p>
                     </div>
                 </div>
             </div>
