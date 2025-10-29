@@ -512,8 +512,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (areaInput && kioskInput) {
-        if (!areaInput.value) setFormatted(areaInput, 2000);
-        if (!kioskInput.value) setFormatted(kioskInput, 3);
+        if (!areaInput.value) setFormatted(areaInput, 15000);
+        if (!kioskInput.value) setFormatted(kioskInput, 2);
         if (areaRange) areaRange.value = String(parseIntInput(areaInput));
         if (kioskRange) kioskRange.value = String(parseIntInput(kioskInput));
 
