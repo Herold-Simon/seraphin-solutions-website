@@ -452,4 +452,94 @@ revealStyle.textContent = `
         transform: none;
     }
 `;
-document.head.appendChild(revealStyle); 
+document.head.appendChild(revealStyle);  
+
+// Price calculator logic
+document.addEventListener('DOMContentLoaded', () => {
+    const areaInput = document.getElementById('areaInput');
+    const kioskInput = document.getElementById('kioskInput');
+    const areaRange = document.getElementById('areaRange');
+    const kioskRange = document.getElementById('kioskRange');
+    const calcBtn = document.getElementById('calcBtn');
+
+    const outRate = document.getElementById('outRate');
+    const outAreaCost = document.getElementById('outAreaCost');
+    const outBase = document.getElementById('outBase');
+    const outInstallPer = document.getElementById('outInstallPer');
+    const outInstallTotal = document.getElementById('outInstallTotal');
+    const outTotal = document.getElementById('outTotal');
+
+    const fmt = (n) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+    const fmtPer = (n) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n) + ' / m²';
+    const fmtInt = (n) => new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 }).format(Math.max(0, Math.round(n || 0)));
+    const parseIntInput = (el) => {
+        if (!el) return 0;
+        const raw = (el.value || '').toString().replace(/\./g, '').replace(/[^0-9]/g, '');
+        return raw ? parseInt(raw, 10) : 0;
+    };
+    const setFormatted = (el, n) => {
+        if (!el) return;
+        el.value = fmtInt(n);
+    };
+
+    function compute(A, kiosks) {
+        const area = Math.max(0, Number.isFinite(A) ? A : 0);
+        const k = Math.max(0, Math.floor(Number.isFinite(kiosks) ? kiosks : 0));
+
+        // Pricing functions per agreed model (qm-Preis: 4.00 -> 0.50 bis ~20.000 m²)
+        const r = 0.50 + 3.50 * Math.exp(-area / 4000); // €/m², 0.50..4.00, ~0.52 bei 20.000 m²
+        const b = 500 + 2500 * (area / (area + 3000));   // €, 500..3000
+        const i = (200 + 800 * Math.min(1, area / 20000)) / 2; // € per kiosk, 100..500 (halbiert)
+
+        const areaCost = area * r;
+        const installTotal = k * i;
+        const total = areaCost + b + installTotal;
+
+        return { r, b, i, areaCost, installTotal, total };
+    }
+
+    function update() {
+        const A = parseIntInput(areaInput);
+        const kiosks = parseIntInput(kioskInput);
+        const { r, b, i, areaCost, installTotal, total } = compute(A, kiosks);
+
+        if (outRate) outRate.textContent = fmtPer(r);
+        if (outAreaCost) outAreaCost.textContent = fmt(areaCost);
+        if (outBase) outBase.textContent = fmt(b);
+        if (outInstallPer) outInstallPer.textContent = fmt(i);
+        if (outInstallTotal) outInstallTotal.textContent = fmt(installTotal);
+        if (outTotal) outTotal.textContent = fmt(total);
+    }
+
+    if (areaInput && kioskInput) {
+        if (!areaInput.value) setFormatted(areaInput, 2000);
+        if (!kioskInput.value) setFormatted(kioskInput, 3);
+        if (areaRange) areaRange.value = String(parseIntInput(areaInput));
+        if (kioskRange) kioskRange.value = String(parseIntInput(kioskInput));
+
+        const syncFromInputs = () => {
+            const a = parseIntInput(areaInput);
+            const k = parseIntInput(kioskInput);
+            setFormatted(areaInput, a);
+            setFormatted(kioskInput, k);
+            if (areaRange) areaRange.value = String(Math.max(0, Math.min(100000, a)));
+            if (kioskRange) kioskRange.value = String(Math.max(0, Math.min(50, k)));
+            update();
+        };
+        const syncFromRanges = () => {
+            if (areaRange && areaInput) setFormatted(areaInput, parseInt(areaRange.value || '0', 10));
+            if (kioskRange && kioskInput) setFormatted(kioskInput, parseInt(kioskRange.value || '0', 10));
+            update();
+        };
+
+        areaInput.addEventListener('input', syncFromInputs);
+        kioskInput.addEventListener('input', syncFromInputs);
+        if (areaRange) areaRange.addEventListener('input', syncFromRanges);
+        if (kioskRange) kioskRange.addEventListener('input', syncFromRanges);
+
+        // No presets anymore
+    }
+    if (calcBtn) calcBtn.addEventListener('click', update);
+
+    update();
+});
