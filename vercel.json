@@ -32,6 +32,10 @@
     {
       "source": "/account",
       "destination": "/account.html"
+    },
+    {
+      "source": "/support",
+      "destination": "/support.html"
     }
   ]
 }
