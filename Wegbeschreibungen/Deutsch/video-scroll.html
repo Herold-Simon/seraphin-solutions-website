@@ -80,14 +80,15 @@ body.loading #scroller { pointer-events: none; }
   const loading = document.getElementById('loading');
 
   const EPS_END = 0.08; // clamp a bit before end to avoid black frame on some devices
-  const TARGET_FPS = 30; // throttle seeks to ~30 fps
-  const TIME_QUANT = 1 / 30; // quantize target time to reduce decoder load
+  const TIME_QUANT = 1 / 60; // finer quantization for smoother visual motion
 
   let duration = 0;
   let userInteracted = false;
   let rafPending = false;
   let pendingTime = null;
-  let lastSeekAt = 0;
+  let targetProgress = 0; // 0..1 from scroll position
+  let currentProgress = 0; // smoothed progress for display
+  let lastRafTime = performance.now();
 
   // Keep video paused; we will drive currentTime directly
   function ensurePaused() {
@@ -123,6 +124,7 @@ body.loading #scroller { pointer-events: none; }
     const maxScroll = Math.max(1, (scroller.scrollHeight - scroller.clientHeight));
     const clamped = Math.max(0, Math.min(scrollY, maxScroll));
     const progress = maxScroll > 0 ? (clamped / maxScroll) : 0;
+    targetProgress = progress;
     let targetTime = progress * Math.max(0, duration - EPS_END);
     // Quantize to reduce number of distinct frames requested
     targetTime = Math.max(0, Math.min(duration, Math.round(targetTime / TIME_QUANT) * TIME_QUANT));
@@ -154,17 +156,27 @@ body.loading #scroller { pointer-events: none; }
   scroller.addEventListener('scroll', function() {
     if (scrollHint && scroller.scrollTop > 2) scrollHint.classList.add('hidden');
     const y = scroller.scrollTop;
-    const now = performance.now();
-    // Throttle to TARGET_FPS
-    if (now - lastSeekAt < (1000 / TARGET_FPS)) return;
-    lastSeekAt = now;
-    if (rafPending) return;
-    rafPending = true;
-    requestAnimationFrame(function() {
-      rafPending = false;
-      setTimeFromScroll(y);
-    });
+    // Only update the target; actual seek is handled in RAF for smoothness
+    setTimeFromScroll(y);
   }, { passive: true });
+
+  // Smoothly interpolate toward target progress and drive the video time in RAF
+  function rafTick(now) {
+    const dt = Math.max(0, Math.min(100, now - lastRafTime));
+    lastRafTime = now;
+    if (duration && isFinite(duration)) {
+      // Exponential smoothing toward target; time constant ≈ 120ms
+      const alpha = 1 - Math.exp(-dt / 120);
+      currentProgress += (targetProgress - currentProgress) * alpha;
+      const targetTime = Math.max(0, Math.min(duration - EPS_END, currentProgress * (duration - EPS_END)));
+      // Only update if a meaningful change to reduce decoder load
+      if (Math.abs(video.currentTime - targetTime) > 0.02) {
+        try { video.currentTime = Math.round(targetTime / TIME_QUANT) * TIME_QUANT; } catch(e) {}
+      }
+    }
+    requestAnimationFrame(rafTick);
+  }
+  requestAnimationFrame(rafTick);
 
   window.addEventListener('resize', updateScrollSpaceHeight, { passive: true });
   window.addEventListener('touchstart', onFirstUserGesture, { passive: true });
