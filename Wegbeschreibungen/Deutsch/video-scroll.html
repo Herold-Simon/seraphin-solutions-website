@@ -291,7 +291,7 @@ body.loading #scroller { pointer-events: none; }
   const hintBox = scrollHint?.querySelector('.hint-box');
   if (hintBox) {
     hintBox.addEventListener('click', function(e) {
-      e.stopPropagation();
+      e.stopPropagation(); 
       onFirstUserGesture();
       const scrollAmount = scroller.clientHeight * 0.25;
       scroller.scrollBy({ top: scrollAmount, behavior: 'smooth' });
@@ -314,21 +314,62 @@ body.loading #scroller { pointer-events: none; }
   }, { passive: true });
 
   // Fully preload the video as a Blob for smooth scrubbing
-  const SOURCE_URL = 'video1.mp4';
+  // Try multiple possible paths for the video
+  const possiblePaths = [
+    'video1.mp4',  // Same directory
+    './video1.mp4', // Explicit relative
+    '../video1.mp4', // Parent directory (in case video is in parent)
+    '/video1.mp4',  // Root (if hosted at root)
+  ];
+  
   async function preloadFully() {
     try {
       document.body.classList.add('loading');
       if (loading) loading.classList.remove('hidden');
-      const response = await fetch(SOURCE_URL, { cache: 'force-cache' });
-      const blob = await response.blob();
-      const objectUrl = URL.createObjectURL(blob);
-      video.src = objectUrl;
-      await new Promise(resolve => {
-        if (video.readyState >= 1) return resolve();
-        video.addEventListener('loadedmetadata', resolve, { once: true });
-      });
-      updateScrollSpaceHeight();
+      
+      let videoLoaded = false;
+      let lastError = null;
+      
+      // Try each possible path
+      for (const SOURCE_URL of possiblePaths) {
+        try {
+          const response = await fetch(SOURCE_URL, { cache: 'force-cache' });
+          if (!response.ok) continue;
+          const blob = await response.blob();
+          const objectUrl = URL.createObjectURL(blob);
+          video.src = objectUrl;
+          await new Promise(resolve => {
+            if (video.readyState >= 1) return resolve();
+            video.addEventListener('loadedmetadata', resolve, { once: true });
+          });
+          updateScrollSpaceHeight();
+          videoLoaded = true;
+          break;
+        } catch (e) {
+          lastError = e;
+          continue;
+        }
+      }
+      
+      // If all paths failed, fallback to source element
+      if (!videoLoaded) {
+        // Let the browser handle the <source> tag - ensure it's set correctly
+        const sourceElement = video.querySelector('source');
+        if (sourceElement && sourceElement.src) {
+          video.src = sourceElement.src;
+        } else {
+          // Try setting src directly as last resort
+          video.src = 'video1.mp4';
+        }
+        // Wait a bit for browser to load from source element
+        await new Promise(resolve => setTimeout(resolve, 100));
+        if (video.readyState >= 1 || video.readyState === 0) {
+          updateScrollSpaceHeight();
+        }
+        console.warn('Using video source element instead of blob preload');
+      }
     } catch (e) {
+      console.error('Error preloading video:', e);
       // Fallback: keep using source element
     } finally {
       document.body.classList.remove('loading');
