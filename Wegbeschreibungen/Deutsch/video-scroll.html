@@ -13,11 +13,13 @@
 html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
 body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#000; color:#fff; }
 
-/* Scroll space no longer used for native scrolling */
-#scroll-space { height: 0; }
+/* Dedicated scroller for natural gesture, body stays locked */
+#scroller { position: fixed; inset: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+/* Height is set via JS based on duration */
+#scroll-space { height: 100vh; }
 
-/* Fixed viewport video to ensure consistent behavior */
-#stage { position: fixed; top: 0; left: 0; height: 100vh; width: 100vw; overflow: hidden; }
+/* Sticky video inside scroller */
+#stage { position: sticky; top: 0; height: 100vh; width: 100vw; overflow: hidden; }
 #video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; }
 
 /* No additional UI */
@@ -37,19 +39,27 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-seri
 @media (prefers-reduced-motion: reduce) { #scroll-hint .chevron, #scroll-hint .hint-box { animation: none; } }
 
 /* No scroll locking to avoid blocking scroll */
+
+/* Loading overlay while prebuffering the video */
+body.loading #scroller { pointer-events: none; }
+#loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.6); color: #fff; font-weight: 700; letter-spacing: .2px; font-size: 16px; text-shadow: 0 2px 8px rgba(0,0,0,.6); }
+#loading.hidden { display: none; }
 </style>
 </head>
 <body>
-  <!-- Sticky stage with the video -->
-  <div id="stage" aria-label="Scroll gesteuertes Video">
-    <video id="video" playsinline preload="metadata" muted>
-      <source src="video1.mp4" type="video/mp4">
-      Ihr Browser unterstützt das Video-Format nicht.
-    </video>
-  </div>
+  <div id="scroller">
+    <!-- Sticky stage with the video -->
+    <div id="stage" aria-label="Scroll gesteuertes Video">
+      <video id="video" playsinline preload="auto" muted>
+        <source src="video1.mp4" type="video/mp4">
+        Ihr Browser unterstützt das Video-Format nicht.
+      </video>
+    </div>
 
-  <!-- Legacy element (not used for native scroll anymore) -->
-  <div id="scroll-space"></div>
+    <!-- Scroll area to control playback by scroll position -->
+    <div id="scroll-space"></div>
+  </div>
+  <div id="loading" role="status" aria-live="polite">Video wird geladen …</div>
   <div id="scroll-hint">
     <div class="hint-box" aria-hidden="true">
       <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true">
@@ -64,24 +74,17 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-seri
 <script>
 (function() {
   const video = document.getElementById('video');
+  const scroller = document.getElementById('scroller');
   const scrollSpace = document.getElementById('scroll-space');
   const scrollHint = document.getElementById('scroll-hint');
+  const loading = document.getElementById('loading');
 
-  // Prefer preloading for smoother scrubbing
-  try { video.preload = 'auto'; } catch(e) {}
-
-  // Pixels per second of video to scroll through (tune for feel)
-  // Virtual scrubbing config
-  const SCROLL_PIXELS_FOR_FULL = 1500; // drag amount to cover entire video
   const EPS_END = 0.08; // clamp a bit before end to avoid black frame on some devices
 
   let duration = 0;
   let userInteracted = false;
-  let progress = 0; // 0..1
   let rafPending = false;
   let pendingTime = null;
-  let isPointerDown = false;
-  let lastY = 0;
 
   // Keep video paused; we will drive currentTime directly
   function ensurePaused() {
@@ -105,26 +108,30 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-seri
     });
   }
 
-  function applyProgress() {
+  function updateScrollSpaceHeight() {
     if (!duration || !isFinite(duration)) return;
-    const clampedProgress = Math.max(0, Math.min(1, progress));
-    const target = clampedProgress * Math.max(0, duration - EPS_END);
-    scheduleSeek(target);
+    const totalPixels = Math.max(1, Math.round(duration * 300));
+    const targetHeight = totalPixels + (scroller.clientHeight || 0);
+    scrollSpace.style.height = targetHeight + 'px';
   }
 
-  function nudgeProgress(deltaPixels) {
-    const delta = deltaPixels / SCROLL_PIXELS_FOR_FULL;
-    progress = Math.max(0, Math.min(1, progress + delta));
-    if (scrollHint && Math.abs(deltaPixels) > 1) scrollHint.classList.add('hidden');
-    applyProgress();
+  function setTimeFromScroll(scrollY) {
+    if (!duration || !isFinite(duration)) return;
+    const maxScroll = Math.max(1, (scroller.scrollHeight - scroller.clientHeight));
+    const clamped = Math.max(0, Math.min(scrollY, maxScroll));
+    const progress = maxScroll > 0 ? (clamped / maxScroll) : 0;
+    const targetTime = progress * Math.max(0, duration - EPS_END);
+    if (Math.abs(video.currentTime - targetTime) > 0.02) {
+      try { video.currentTime = targetTime; } catch(e) {}
+    }
   }
 
   // Handle metadata load to know duration
   function onLoadedMeta() {
     duration = Number(video.duration) || 0;
     // Start at beginning
-    progress = 0;
-    applyProgress();
+    scroller.scrollTo(0, 0);
+    setTimeFromScroll(0);
     ensurePaused();
     if (scrollHint) scrollHint.classList.remove('hidden');
   }
@@ -138,59 +145,51 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-seri
     if (scrollHint) scrollHint.classList.add('hidden');
   }
 
-  // Event wiring
-  // Input: wheel
-  window.addEventListener('wheel', function(e) {
-    e.preventDefault();
-    onFirstUserGesture();
-    const scale = (e.ctrlKey || e.metaKey) ? 0.25 : 1; // finer control with pinch/ctrl
-    nudgeProgress(e.deltaY * 0.0015 * scale * (window.innerHeight / 700));
-  }, { passive: false });
+  // Use scroller's native scroll for control, body stays fixed
+  scroller.addEventListener('scroll', function() {
+    if (scrollHint && scroller.scrollTop > 2) scrollHint.classList.add('hidden');
+    const y = scroller.scrollTop;
+    if (rafPending) return;
+    rafPending = true;
+    requestAnimationFrame(function() {
+      rafPending = false;
+      setTimeFromScroll(y);
+    });
+  }, { passive: true });
 
-  // Input: touch / pointer drag
-  window.addEventListener('touchstart', function(e) {
-    onFirstUserGesture();
-    if (e.touches && e.touches[0]) {
-      lastY = e.touches[0].clientY;
-      isPointerDown = true;
+  window.addEventListener('resize', updateScrollSpaceHeight, { passive: true });
+  window.addEventListener('touchstart', onFirstUserGesture, { passive: true });
+  window.addEventListener('pointerdown', onFirstUserGesture, { passive: true });
+
+  // Fully preload the video as a Blob for smooth scrubbing
+  const SOURCE_URL = 'video1.mp4';
+  async function preloadFully() {
+    try {
+      document.body.classList.add('loading');
+      if (loading) loading.classList.remove('hidden');
+      const response = await fetch(SOURCE_URL, { cache: 'force-cache' });
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      video.src = objectUrl;
+      await new Promise(resolve => {
+        if (video.readyState >= 1) return resolve();
+        video.addEventListener('loadedmetadata', resolve, { once: true });
+      });
+      updateScrollSpaceHeight();
+    } catch (e) {
+      // Fallback: keep using source element
+    } finally {
+      document.body.classList.remove('loading');
+      if (loading) loading.classList.add('hidden');
     }
-  }, { passive: true });
+  }
 
-  window.addEventListener('touchmove', function(e) {
-    if (!isPointerDown) return;
-    if (e.touches && e.touches[0]) {
-      const y = e.touches[0].clientY;
-      const dy = lastY - y;
-      lastY = y;
-      nudgeProgress(dy);
-      e.preventDefault();
-    }
-  }, { passive: false });
+  preloadFully();
 
-  window.addEventListener('touchend', function() { isPointerDown = false; }, { passive: true });
-
-  window.addEventListener('pointerdown', function(e) {
-    if (e.pointerType === 'mouse') return; // mouse handled by wheel typically
-    onFirstUserGesture();
-    isPointerDown = true;
-    lastY = e.clientY;
-  }, { passive: true });
-
-  window.addEventListener('pointermove', function(e) {
-    if (!isPointerDown) return;
-    const y = e.clientY;
-    const dy = lastY - y;
-    lastY = y;
-    nudgeProgress(dy);
-  }, { passive: true });
-
-  window.addEventListener('pointerup', function() { isPointerDown = false; }, { passive: true });
   document.addEventListener('visibilitychange', ensurePaused);
 
   video.addEventListener('loadedmetadata', onLoadedMeta);
   video.addEventListener('play', ensurePaused); // keep it paused
-
-  // No scroll locking
 
   // Fallback: if metadata never loads, attempt after small delay
   setTimeout(() => { if (!duration) onLoadedMeta(); }, 1500);
