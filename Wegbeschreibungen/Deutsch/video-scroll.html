@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scroll-Video</title>
+<meta name="description" content="Vertical Scroll-Video (mobile optimiert)">
+<link rel="icon" href="favicon.ico">
+<style>
+/* Mobile-first, keep CSS minimal and self-contained */
+:root { overscroll-behavior-y: contain; }
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; padding: 0; }
+body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#000; color:#fff; }
+
+/* Scroll space that maps to video duration */
+#scroll-space { height: 200vh; }
+
+/* Fixed viewport video to ensure consistent behavior */
+#stage { position: fixed; top: 0; left: 0; height: 100vh; width: 100vw; overflow: hidden; }
+#video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; }
+
+/* No additional UI */
+/* Prominent scroll hint */
+#scroll-hint { position: fixed; inset: 0; display: flex; align-items: flex-end; justify-content: center; pointer-events: none; transition: opacity .35s ease; }
+#scroll-hint.hidden { opacity: 0; }
+#scroll-hint .hint-box { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: calc(env(safe-area-inset-bottom) + 72px); background: rgba(0,0,0,.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.18); box-shadow: 0 8px 24px rgba(0,0,0,.35); border-radius: 20px; padding: 16px 20px; transform: translateY(0); animation: hint-float 2s ease-in-out infinite; }
+#scroll-hint .hint-text { font-size: 18px; line-height: 1.2; font-weight: 700; letter-spacing: .2px; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.6); }
+#scroll-hint .chevron { width: 36px; height: 36px; stroke: #fff; stroke-width: 3; fill: none; opacity: .95; animation: hint-bounce 1.1s ease-in-out infinite; }
+
+@keyframes hint-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+@keyframes hint-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
+
+@media (min-width: 480px) { #scroll-hint .hint-text { font-size: 20px; } #scroll-hint .chevron { width: 40px; height: 40px; } }
+@media (min-width: 768px) { #scroll-hint .hint-text { font-size: 22px; } #scroll-hint .hint-box { padding: 18px 24px; } }
+
+@media (prefers-reduced-motion: reduce) { #scroll-hint .chevron, #scroll-hint .hint-box { animation: none; } }
+
+/* No scroll locking to avoid blocking scroll */
+</style>
+</head>
+<body>
+  <!-- Sticky stage with the video -->
+  <div id="stage" aria-label="Scroll gesteuertes Video">
+    <video id="video" playsinline preload="metadata" muted>
+      <source src="video1.mp4" type="video/mp4">
+      Ihr Browser unterstützt das Video-Format nicht.
+    </video>
+  </div>
+
+  <!-- Scroll area below to control playback by scroll position -->
+  <div id="scroll-space"></div>
+  <div id="scroll-hint">
+    <div class="hint-box" aria-hidden="true">
+      <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+      <div class="hint-text">Bitte Runterwischen</div>
+    </div>
+  </div>
+
+  
+
+<script>
+(function() {
+  const video = document.getElementById('video');
+  const scrollSpace = document.getElementById('scroll-space');
+  const scrollHint = document.getElementById('scroll-hint');
+
+  // Pixels per second of video to scroll through (tune for feel)
+  const PIXELS_PER_SECOND = 250; // higher = more scrolling for same time
+
+  let duration = 0;
+  let lastKnownScrollY = 0;
+  let ticking = false;
+  let userInteracted = false;
+
+  // Keep video paused; we will drive currentTime directly
+  function ensurePaused() {
+    if (!video.paused) {
+      video.pause().catch(() => {});
+    }
+  }
+
+  function updateScrollSpaceHeight() {
+    if (!duration || !isFinite(duration)) return;
+    const totalPixels = Math.max(1, Math.round(duration * PIXELS_PER_SECOND));
+    // Add viewport height so the user can scroll to the very end
+    const targetHeight = totalPixels + (window.innerHeight || 0);
+    scrollSpace.style.height = targetHeight + 'px';
+  }
+
+  function setTimeFromScroll(scrollY) {
+    if (!duration || !isFinite(duration)) return;
+    // Map against the actual max scrollable distance
+    const maxScroll = Math.max(1, (scrollSpace.offsetHeight - (window.innerHeight || 0)));
+    const clamped = Math.max(0, Math.min(scrollY, maxScroll));
+    const t = (clamped / maxScroll) * duration;
+    // Avoid thrash: only set if meaningfully different
+    if (Math.abs(video.currentTime - t) > 0.02) {
+      try { video.currentTime = t; } catch(e) {}
+    }
+  }
+
+  function onScroll() {
+    lastKnownScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+    if (scrollHint && lastKnownScrollY > 2) {
+      scrollHint.classList.add('hidden');
+    }
+    if (!ticking) {
+      window.requestAnimationFrame(function() {
+        setTimeFromScroll(lastKnownScrollY);
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }
+
+  // Handle metadata load to know duration
+  function onLoadedMeta() {
+    duration = Number(video.duration) || 0;
+    updateScrollSpaceHeight();
+    // Start at beginning
+    setTimeFromScroll(window.scrollY || 0);
+    ensurePaused();
+    if ((window.scrollY || 0) > 2 && scrollHint) scrollHint.classList.add('hidden');
+  }
+
+  // Some browsers require a user gesture for precise seeking; unlock on first gesture
+  function onFirstUserGesture() {
+    if (userInteracted) return;
+    userInteracted = true;
+    video.play().then(() => video.pause()).catch(() => {});
+    ensurePaused();
+    if (scrollHint) scrollHint.classList.add('hidden');
+  }
+
+  // Event wiring
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', updateScrollSpaceHeight);
+  window.addEventListener('touchstart', onFirstUserGesture, { passive: true });
+  window.addEventListener('pointerdown', onFirstUserGesture, { passive: true });
+  document.addEventListener('visibilitychange', ensurePaused);
+
+  video.addEventListener('loadedmetadata', onLoadedMeta);
+  video.addEventListener('play', ensurePaused); // keep it paused
+
+  // No scroll locking
+
+  // Fallback: if metadata never loads, attempt after small delay
+  setTimeout(() => { if (!duration) onLoadedMeta(); }, 1500);
+
+  // Init
+})();
+</script>
+</body>
+</html>
+
