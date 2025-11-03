@@ -20,17 +20,18 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-seri
 
 /* Sticky video inside scroller */
 #stage { position: sticky; top: 0; height: 100vh; width: 100vw; overflow: hidden; }
-#video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; }
+#video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; opacity: 0; visibility: hidden; }
+#frameCanvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; background: #000; }
 
 /* No additional UI */
 /* Prominent scroll hint */
 #scroll-hint { position: fixed; inset: 0; display: flex; align-items: flex-end; justify-content: center; pointer-events: none; transition: opacity .35s ease; }
 #scroll-hint.hidden { opacity: 0; }
-#scroll-hint .hint-box { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: calc(env(safe-area-inset-bottom) + 72px); background: rgba(0,0,0,.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.18); box-shadow: 0 8px 24px rgba(0,0,0,.35); border-radius: 20px; padding: 16px 20px; transform: translateY(0); animation: hint-float 2s ease-in-out infinite; }
+#scroll-hint .hint-box { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: calc(env(safe-area-inset-bottom) + 72px); background: rgba(0,0,0,.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.18); box-shadow: 0 8px 24px rgba(0,0,0,.35); border-radius: 20px; padding: 16px 20px; transform: translateY(0); animation: hint-float 2s ease-in-out infinite; pointer-events: all; cursor: pointer; }
 #scroll-hint .hint-text { font-size: 18px; line-height: 1.2; font-weight: 700; letter-spacing: .2px; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.6); }
 #scroll-hint .chevron { width: 36px; height: 36px; stroke: #fff; stroke-width: 3; fill: none; opacity: .95; animation: hint-bounce 1.1s ease-in-out infinite; }
 
-@keyframes hint-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+@keyframes hint-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 @keyframes hint-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
 
 @media (min-width: 480px) { #scroll-hint .hint-text { font-size: 20px; } #scroll-hint .chevron { width: 40px; height: 40px; } }
@@ -54,6 +55,7 @@ body.loading #scroller { pointer-events: none; }
         <source src="video1.mp4" type="video/mp4">
         Ihr Browser unterstützt das Video-Format nicht.
       </video>
+      <canvas id="frameCanvas"></canvas>
     </div>
 
     <!-- Scroll area to control playback by scroll position -->
@@ -63,7 +65,7 @@ body.loading #scroller { pointer-events: none; }
   <div id="scroll-hint">
     <div class="hint-box" aria-hidden="true">
       <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M12 15l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round" transform="rotate(90 12 12)"></path>
       </svg>
       <div class="hint-text">Bitte Hochwischen</div>
     </div>
@@ -74,10 +76,13 @@ body.loading #scroller { pointer-events: none; }
 <script>
 (function() {
   const video = document.getElementById('video');
+  const stage = document.getElementById('stage');
   const scroller = document.getElementById('scroller');
   const scrollSpace = document.getElementById('scroll-space');
   const scrollHint = document.getElementById('scroll-hint');
   const loading = document.getElementById('loading');
+  const frameCanvas = document.getElementById('frameCanvas');
+  const frameCtx = frameCanvas.getContext('2d', { alpha: false });
 
   const EPS_END = 0.08; // clamp a bit before end to avoid black frame on some devices
   const TIME_QUANT_BASE_FINE = 1 / 30; // used bei langsamer Bewegung
@@ -92,6 +97,8 @@ body.loading #scroller { pointer-events: none; }
   let lastRafTime = performance.now();
   let seeking = false;
   let queuedTargetTime = null;
+  let lastSeekTime = 0;
+  const MIN_SEEK_INTERVAL = 50; // Minimum milliseconds between seeks
 
   // Keep video paused; we will drive currentTime directly
   function ensurePaused() {
@@ -121,6 +128,29 @@ body.loading #scroller { pointer-events: none; }
     const targetHeight = totalPixels + (scroller.clientHeight || 0);
     scrollSpace.style.height = targetHeight + 'px';
   }
+  function resizeCanvas() {
+    const w = stage.clientWidth;
+    const h = stage.clientHeight;
+    if (!w || !h) return;
+    frameCanvas.width = w;
+    frameCanvas.height = h;
+  }
+  function drawCurrentFrameToCanvas() {
+    if (!video.videoWidth || !video.videoHeight) return;
+    const cw = frameCanvas.width;
+    const ch = frameCanvas.height;
+    if (!cw || !ch) return;
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+    const scale = Math.min(cw / vw, ch / vh);
+    const drawW = Math.round(vw * scale);
+    const drawH = Math.round(vh * scale);
+    const dx = Math.round((cw - drawW) / 2);
+    const dy = Math.round((ch - drawH) / 2);
+    frameCtx.fillStyle = '#000';
+    frameCtx.fillRect(0, 0, cw, ch);
+    try { frameCtx.drawImage(video, dx, dy, drawW, drawH); } catch(e) {}
+  }
 
   function setTimeFromScroll(scrollY) {
     if (!duration || !isFinite(duration)) return;
@@ -140,6 +170,7 @@ body.loading #scroller { pointer-events: none; }
     setTimeFromScroll(0);
     ensurePaused();
     if (scrollHint) scrollHint.classList.remove('hidden');
+    resizeCanvas();
   }
 
   // Some browsers require a user gesture for precise seeking; unlock on first gesture
@@ -164,9 +195,9 @@ body.loading #scroller { pointer-events: none; }
     const dt = Math.max(0, Math.min(100, now - lastRafTime));
     lastRafTime = now;
     if (duration && isFinite(duration)) {
-      // Adaptive Glättung: bei größerer Differenz stärker dämpfen
+      // Minimale Glättung nur für Seeks, nicht für Canvas-Anzeige
       const diff = Math.abs(targetProgress - currentProgress);
-      const tauMs = diff > 0.2 ? 220 : 140; // Zeitkonstante
+      const tauMs = diff > 0.2 ? 100 : 60; // Schnellere Reaktion
       const alpha = 1 - Math.exp(-dt / tauMs);
       currentProgress += (targetProgress - currentProgress) * alpha;
 
@@ -177,24 +208,110 @@ body.loading #scroller { pointer-events: none; }
 
       const desiredTimeRaw = queuedTargetTime != null ? queuedTargetTime : smoothedTime;
       const desiredTime = Math.round(desiredTimeRaw / quant) * quant;
-      if (!seeking && Math.abs(video.currentTime - desiredTime) > 0.02) {
+      const now = performance.now();
+      const timeSinceLastSeek = now - lastSeekTime;
+      
+      // Only draw canvas when video time matches desired time (not during seek or lag)
+      // This prevents showing frames that don't match the scroll position
+      if (!seeking && Math.abs(video.currentTime - desiredTime) < 0.05) {
+        drawCurrentFrameToCanvas();
+      }
+      
+      if (!seeking && timeSinceLastSeek >= MIN_SEEK_INTERVAL && Math.abs(video.currentTime - desiredTime) > 0.03) {
+        // Draw current frame to canvas before seeking to prevent flicker
+        drawCurrentFrameToCanvas();
+        
         seeking = true;
+        lastSeekTime = now;
         queuedTargetTime = null;
+        
+        let seekCompleted = false;
         const onSeeked = () => {
           video.removeEventListener('seeked', onSeeked);
-          seeking = false;
+          if (seekCompleted) return;
+          seekCompleted = true;
+          // Update canvas with new frame immediately when seek completes
+          requestAnimationFrame(() => {
+            drawCurrentFrameToCanvas();
+            requestAnimationFrame(() => {
+              seeking = false;
+            });
+          });
         };
         video.addEventListener('seeked', onSeeked);
-        try { video.currentTime = desiredTime; } catch(e) { seeking = false; }
+        
+        try { 
+          video.currentTime = desiredTime;
+          // Fallback timeout
+          setTimeout(() => {
+            if (!seekCompleted) {
+              seekCompleted = true;
+              drawCurrentFrameToCanvas();
+              seeking = false;
+            }
+          }, 150);
+        } catch(e) { 
+          seeking = false;
+        }
       }
     }
     requestAnimationFrame(rafTick);
   }
   requestAnimationFrame(rafTick);
 
-  window.addEventListener('resize', updateScrollSpaceHeight, { passive: true });
+  window.addEventListener('resize', function(){ updateScrollSpaceHeight(); resizeCanvas(); }, { passive: true });
   window.addEventListener('touchstart', onFirstUserGesture, { passive: true });
   window.addEventListener('pointerdown', onFirstUserGesture, { passive: true });
+
+  // Auto-scroll on click/tap anywhere on screen
+  let tapStartY = null;
+  let tapStartTime = 0;
+  const doAutoScroll = (e) => {
+    // Only trigger if it was a quick tap, not a scroll gesture
+    const now = performance.now();
+    const timeSinceTap = now - tapStartTime;
+    if (tapStartY !== null && timeSinceTap < 300 && Math.abs((e.changedTouches?.[0]?.clientY || e.clientY) - tapStartY) < 10) {
+      onFirstUserGesture();
+      const scrollAmount = scroller.clientHeight * 0.25; // Scroll 25% of viewport height
+      scroller.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+    }
+    tapStartY = null;
+  };
+
+  document.addEventListener('touchstart', function(e) {
+    if (e.touches && e.touches[0]) {
+      tapStartY = e.touches[0].clientY;
+      tapStartTime = performance.now();
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', doAutoScroll, { passive: true });
+
+  // Click handler for hint box
+  const hintBox = scrollHint?.querySelector('.hint-box');
+  if (hintBox) {
+    hintBox.addEventListener('click', function(e) {
+      e.stopPropagation();
+      onFirstUserGesture();
+      const scrollAmount = scroller.clientHeight * 0.25;
+      scroller.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+    }, { passive: true });
+    hintBox.addEventListener('touchend', function(e) {
+      e.stopPropagation();
+      onFirstUserGesture();
+      const scrollAmount = scroller.clientHeight * 0.25;
+      scroller.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+    }, { passive: true });
+  }
+
+  document.addEventListener('click', function(e) {
+    // Only if not clicking on hint box (which has its own handler)
+    if (!scrollHint?.querySelector('.hint-box')?.contains(e.target)) {
+      onFirstUserGesture();
+      const scrollAmount = scroller.clientHeight * 0.25;
+      scroller.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+    }
+  }, { passive: true });
 
   // Fully preload the video as a Blob for smooth scrubbing
   const SOURCE_URL = 'video1.mp4';
