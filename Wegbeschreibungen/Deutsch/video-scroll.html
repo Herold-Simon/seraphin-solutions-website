@@ -80,7 +80,8 @@ body.loading #scroller { pointer-events: none; }
   const loading = document.getElementById('loading');
 
   const EPS_END = 0.08; // clamp a bit before end to avoid black frame on some devices
-  const TIME_QUANT = 1 / 24; // coarser quantization to reduce decoder load
+  const TIME_QUANT_BASE_FINE = 1 / 30; // used bei langsamer Bewegung
+  const TIME_QUANT_BASE_COARSE = 1 / 15; // used bei schneller Bewegung
 
   let duration = 0;
   let userInteracted = false;
@@ -127,10 +128,8 @@ body.loading #scroller { pointer-events: none; }
     const clamped = Math.max(0, Math.min(scrollY, maxScroll));
     const progress = maxScroll > 0 ? (clamped / maxScroll) : 0;
     targetProgress = progress;
-    let targetTime = progress * Math.max(0, duration - EPS_END);
-    // Quantize and queue (actual seek in RAF)
-    targetTime = Math.max(0, Math.min(duration, Math.round(targetTime / TIME_QUANT) * TIME_QUANT));
-    queuedTargetTime = targetTime;
+    // Nur Ziel setzen; Quantisierung passiert im RAF adaptiv
+    queuedTargetTime = progress * Math.max(0, duration - EPS_END);
   }
 
   // Handle metadata load to know duration
@@ -165,12 +164,19 @@ body.loading #scroller { pointer-events: none; }
     const dt = Math.max(0, Math.min(100, now - lastRafTime));
     lastRafTime = now;
     if (duration && isFinite(duration)) {
-      // Exponential smoothing toward target; time constant ≈ 120ms
-      const alpha = 1 - Math.exp(-dt / 120);
+      // Adaptive Glättung: bei größerer Differenz stärker dämpfen
+      const diff = Math.abs(targetProgress - currentProgress);
+      const tauMs = diff > 0.2 ? 220 : 140; // Zeitkonstante
+      const alpha = 1 - Math.exp(-dt / tauMs);
       currentProgress += (targetProgress - currentProgress) * alpha;
+
+      // Adaptive Quantisierung: grober bei schnellen Bewegungen, feiner bei langsamen
+      const quant = diff > 0.2 ? TIME_QUANT_BASE_COARSE : TIME_QUANT_BASE_FINE;
       let smoothedTime = Math.max(0, Math.min(duration - EPS_END, currentProgress * (duration - EPS_END)));
-      smoothedTime = Math.round(smoothedTime / TIME_QUANT) * TIME_QUANT;
-      const desiredTime = queuedTargetTime != null ? queuedTargetTime : smoothedTime;
+      smoothedTime = Math.round(smoothedTime / quant) * quant;
+
+      const desiredTimeRaw = queuedTargetTime != null ? queuedTargetTime : smoothedTime;
+      const desiredTime = Math.round(desiredTimeRaw / quant) * quant;
       if (!seeking && Math.abs(video.currentTime - desiredTime) > 0.02) {
         seeking = true;
         queuedTargetTime = null;
