@@ -10,11 +10,11 @@
 /* Mobile-first, keep CSS minimal and self-contained */
 :root { overscroll-behavior-y: contain; }
 * { box-sizing: border-box; }
-html, body { height: 100%; margin: 0; padding: 0; }
+html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
 body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#000; color:#fff; }
 
-/* Scroll space that maps to video duration */
-#scroll-space { height: 200vh; }
+/* Scroll space no longer used for native scrolling */
+#scroll-space { height: 0; }
 
 /* Fixed viewport video to ensure consistent behavior */
 #stage { position: fixed; top: 0; left: 0; height: 100vh; width: 100vw; overflow: hidden; }
@@ -48,7 +48,7 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-seri
     </video>
   </div>
 
-  <!-- Scroll area below to control playback by scroll position -->
+  <!-- Legacy element (not used for native scroll anymore) -->
   <div id="scroll-space"></div>
   <div id="scroll-hint">
     <div class="hint-box" aria-hidden="true">
@@ -67,13 +67,21 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-seri
   const scrollSpace = document.getElementById('scroll-space');
   const scrollHint = document.getElementById('scroll-hint');
 
+  // Prefer preloading for smoother scrubbing
+  try { video.preload = 'auto'; } catch(e) {}
+
   // Pixels per second of video to scroll through (tune for feel)
-  const PIXELS_PER_SECOND = 250; // higher = more scrolling for same time
+  // Virtual scrubbing config
+  const SCROLL_PIXELS_FOR_FULL = 1500; // drag amount to cover entire video
+  const EPS_END = 0.08; // clamp a bit before end to avoid black frame on some devices
 
   let duration = 0;
-  let lastKnownScrollY = 0;
-  let ticking = false;
   let userInteracted = false;
+  let progress = 0; // 0..1
+  let rafPending = false;
+  let pendingTime = null;
+  let isPointerDown = false;
+  let lastY = 0;
 
   // Keep video paused; we will drive currentTime directly
   function ensurePaused() {
@@ -82,48 +90,43 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-seri
     }
   }
 
-  function updateScrollSpaceHeight() {
-    if (!duration || !isFinite(duration)) return;
-    const totalPixels = Math.max(1, Math.round(duration * PIXELS_PER_SECOND));
-    // Add viewport height so the user can scroll to the very end
-    const targetHeight = totalPixels + (window.innerHeight || 0);
-    scrollSpace.style.height = targetHeight + 'px';
+  function scheduleSeek(time) {
+    pendingTime = time;
+    if (rafPending) return;
+    rafPending = true;
+    window.requestAnimationFrame(function() {
+      rafPending = false;
+      if (pendingTime == null) return;
+      const t = pendingTime;
+      pendingTime = null;
+      if (Math.abs(video.currentTime - t) > 0.02) {
+        try { video.currentTime = t; } catch(e) {}
+      }
+    });
   }
 
-  function setTimeFromScroll(scrollY) {
+  function applyProgress() {
     if (!duration || !isFinite(duration)) return;
-    // Map against the actual max scrollable distance
-    const maxScroll = Math.max(1, (scrollSpace.offsetHeight - (window.innerHeight || 0)));
-    const clamped = Math.max(0, Math.min(scrollY, maxScroll));
-    const t = (clamped / maxScroll) * duration;
-    // Avoid thrash: only set if meaningfully different
-    if (Math.abs(video.currentTime - t) > 0.02) {
-      try { video.currentTime = t; } catch(e) {}
-    }
+    const clampedProgress = Math.max(0, Math.min(1, progress));
+    const target = clampedProgress * Math.max(0, duration - EPS_END);
+    scheduleSeek(target);
   }
 
-  function onScroll() {
-    lastKnownScrollY = window.scrollY || document.documentElement.scrollTop || 0;
-    if (scrollHint && lastKnownScrollY > 2) {
-      scrollHint.classList.add('hidden');
-    }
-    if (!ticking) {
-      window.requestAnimationFrame(function() {
-        setTimeFromScroll(lastKnownScrollY);
-        ticking = false;
-      });
-      ticking = true;
-    }
+  function nudgeProgress(deltaPixels) {
+    const delta = deltaPixels / SCROLL_PIXELS_FOR_FULL;
+    progress = Math.max(0, Math.min(1, progress + delta));
+    if (scrollHint && Math.abs(deltaPixels) > 1) scrollHint.classList.add('hidden');
+    applyProgress();
   }
 
   // Handle metadata load to know duration
   function onLoadedMeta() {
     duration = Number(video.duration) || 0;
-    updateScrollSpaceHeight();
     // Start at beginning
-    setTimeFromScroll(window.scrollY || 0);
+    progress = 0;
+    applyProgress();
     ensurePaused();
-    if ((window.scrollY || 0) > 2 && scrollHint) scrollHint.classList.add('hidden');
+    if (scrollHint) scrollHint.classList.remove('hidden');
   }
 
   // Some browsers require a user gesture for precise seeking; unlock on first gesture
@@ -136,10 +139,52 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-seri
   }
 
   // Event wiring
-  window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', updateScrollSpaceHeight);
-  window.addEventListener('touchstart', onFirstUserGesture, { passive: true });
-  window.addEventListener('pointerdown', onFirstUserGesture, { passive: true });
+  // Input: wheel
+  window.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    onFirstUserGesture();
+    const scale = (e.ctrlKey || e.metaKey) ? 0.25 : 1; // finer control with pinch/ctrl
+    nudgeProgress(e.deltaY * 0.0015 * scale * (window.innerHeight / 700));
+  }, { passive: false });
+
+  // Input: touch / pointer drag
+  window.addEventListener('touchstart', function(e) {
+    onFirstUserGesture();
+    if (e.touches && e.touches[0]) {
+      lastY = e.touches[0].clientY;
+      isPointerDown = true;
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchmove', function(e) {
+    if (!isPointerDown) return;
+    if (e.touches && e.touches[0]) {
+      const y = e.touches[0].clientY;
+      const dy = lastY - y;
+      lastY = y;
+      nudgeProgress(dy);
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  window.addEventListener('touchend', function() { isPointerDown = false; }, { passive: true });
+
+  window.addEventListener('pointerdown', function(e) {
+    if (e.pointerType === 'mouse') return; // mouse handled by wheel typically
+    onFirstUserGesture();
+    isPointerDown = true;
+    lastY = e.clientY;
+  }, { passive: true });
+
+  window.addEventListener('pointermove', function(e) {
+    if (!isPointerDown) return;
+    const y = e.clientY;
+    const dy = lastY - y;
+    lastY = y;
+    nudgeProgress(dy);
+  }, { passive: true });
+
+  window.addEventListener('pointerup', function() { isPointerDown = false; }, { passive: true });
   document.addEventListener('visibilitychange', ensurePaused);
 
   video.addEventListener('loadedmetadata', onLoadedMeta);
