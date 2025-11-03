@@ -80,7 +80,7 @@ body.loading #scroller { pointer-events: none; }
   const loading = document.getElementById('loading');
 
   const EPS_END = 0.08; // clamp a bit before end to avoid black frame on some devices
-  const TIME_QUANT = 1 / 20; // finer quantization for smoother visual motion
+  const TIME_QUANT = 1 / 24; // coarser quantization to reduce decoder load
 
   let duration = 0;
   let userInteracted = false;
@@ -89,6 +89,8 @@ body.loading #scroller { pointer-events: none; }
   let targetProgress = 0; // 0..1 from scroll position
   let currentProgress = 0; // smoothed progress for display
   let lastRafTime = performance.now();
+  let seeking = false;
+  let queuedTargetTime = null;
 
   // Keep video paused; we will drive currentTime directly
   function ensurePaused() {
@@ -126,11 +128,9 @@ body.loading #scroller { pointer-events: none; }
     const progress = maxScroll > 0 ? (clamped / maxScroll) : 0;
     targetProgress = progress;
     let targetTime = progress * Math.max(0, duration - EPS_END);
-    // Quantize to reduce number of distinct frames requested
+    // Quantize and queue (actual seek in RAF)
     targetTime = Math.max(0, Math.min(duration, Math.round(targetTime / TIME_QUANT) * TIME_QUANT));
-    if (Math.abs(video.currentTime - targetTime) > 0.05) {
-      try { video.currentTime = targetTime; } catch(e) {}
-    }
+    queuedTargetTime = targetTime;
   }
 
   // Handle metadata load to know duration
@@ -168,10 +168,18 @@ body.loading #scroller { pointer-events: none; }
       // Exponential smoothing toward target; time constant ≈ 120ms
       const alpha = 1 - Math.exp(-dt / 120);
       currentProgress += (targetProgress - currentProgress) * alpha;
-      const targetTime = Math.max(0, Math.min(duration - EPS_END, currentProgress * (duration - EPS_END)));
-      // Only update if a meaningful change to reduce decoder load
-      if (Math.abs(video.currentTime - targetTime) > 0.02) {
-        try { video.currentTime = Math.round(targetTime / TIME_QUANT) * TIME_QUANT; } catch(e) {}
+      let smoothedTime = Math.max(0, Math.min(duration - EPS_END, currentProgress * (duration - EPS_END)));
+      smoothedTime = Math.round(smoothedTime / TIME_QUANT) * TIME_QUANT;
+      const desiredTime = queuedTargetTime != null ? queuedTargetTime : smoothedTime;
+      if (!seeking && Math.abs(video.currentTime - desiredTime) > 0.02) {
+        seeking = true;
+        queuedTargetTime = null;
+        const onSeeked = () => {
+          video.removeEventListener('seeked', onSeeked);
+          seeking = false;
+        };
+        video.addEventListener('seeked', onSeeked);
+        try { video.currentTime = desiredTime; } catch(e) { seeking = false; }
       }
     }
     requestAnimationFrame(rafTick);
