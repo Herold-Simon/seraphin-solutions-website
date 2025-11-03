@@ -211,9 +211,9 @@ body.loading #scroller { pointer-events: none; }
       const now = performance.now();
       const timeSinceLastSeek = now - lastSeekTime;
       
-      // Only draw canvas when video time matches desired time (not during seek or lag)
-      // This prevents showing frames that don't match the scroll position
-      if (!seeking && Math.abs(video.currentTime - desiredTime) < 0.05) {
+      // Always draw canvas when not seeking - this ensures smooth display
+      // The video is hidden anyway, so canvas must always show current frame
+      if (!seeking) {
         drawCurrentFrameToCanvas();
       }
       
