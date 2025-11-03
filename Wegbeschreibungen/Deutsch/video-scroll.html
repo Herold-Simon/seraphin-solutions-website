@@ -80,7 +80,7 @@ body.loading #scroller { pointer-events: none; }
   const loading = document.getElementById('loading');
 
   const EPS_END = 0.08; // clamp a bit before end to avoid black frame on some devices
-  const TIME_QUANT = 1 / 60; // finer quantization for smoother visual motion
+  const TIME_QUANT = 1 / 20; // finer quantization for smoother visual motion
 
   let duration = 0;
   let userInteracted = false;
