@@ -21,23 +21,15 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-seri
 /* Sticky video inside scroller */
 #stage { position: sticky; top: 0; height: 100vh; width: 100vw; overflow: hidden; }
 #video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; opacity: 0; visibility: hidden; }
+#video.fallback { opacity: 1; visibility: visible; }
 #frameCanvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; background: #000; }
+#frameCanvas.fallback { display: none; }
 
-/* No additional UI */
-/* Prominent scroll hint */
-#scroll-hint { position: fixed; inset: 0; display: flex; align-items: flex-end; justify-content: center; pointer-events: none; transition: opacity .35s ease; }
-#scroll-hint.hidden { opacity: 0; }
-#scroll-hint .hint-box { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: calc(env(safe-area-inset-bottom) + 72px); background: rgba(0,0,0,.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.18); box-shadow: 0 8px 24px rgba(0,0,0,.35); border-radius: 20px; padding: 16px 20px; transform: translateY(0); animation: hint-float 2s ease-in-out infinite; pointer-events: all; cursor: pointer; }
-#scroll-hint .hint-text { font-size: 18px; line-height: 1.2; font-weight: 700; letter-spacing: .2px; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.6); }
-#scroll-hint .chevron { width: 36px; height: 36px; stroke: #fff; stroke-width: 3; fill: none; opacity: .95; animation: hint-bounce 1.1s ease-in-out infinite; }
-
-@keyframes hint-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-@keyframes hint-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
-
-@media (min-width: 480px) { #scroll-hint .hint-text { font-size: 20px; } #scroll-hint .chevron { width: 40px; height: 40px; } }
-@media (min-width: 768px) { #scroll-hint .hint-text { font-size: 22px; } #scroll-hint .hint-box { padding: 18px 24px; } }
-
-@media (prefers-reduced-motion: reduce) { #scroll-hint .chevron, #scroll-hint .hint-box { animation: none; } }
+/* Back button */
+#back-button { position: fixed; top: calc(env(safe-area-inset-top) + 16px); left: calc(env(safe-area-inset-left) + 16px); z-index: 1001; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.2); border-radius: 50%; cursor: pointer; transition: background .2s, transform .1s; }
+#back-button:hover { background: rgba(0,0,0,.75); }
+#back-button:active { transform: scale(.95); }
+#back-button svg { width: 24px; height: 24px; stroke: #fff; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 
 /* No scroll locking to avoid blocking scroll */
 
@@ -45,6 +37,30 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-seri
 body.loading #scroller { pointer-events: none; }
 #loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.6); color: #fff; font-weight: 700; letter-spacing: .2px; font-size: 16px; text-shadow: 0 2px 8px rgba(0,0,0,.6); }
 #loading.hidden { display: none; }
+
+/* Tutorial overlay */
+#tutorial-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.75); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; transition: opacity .4s ease, visibility .4s; pointer-events: all; }
+#tutorial-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+#tutorial-content { text-align: center; color: #fff; max-width: 320px; padding: 24px; }
+#tutorial-title { font-size: 22px; font-weight: 700; margin-bottom: 12px; text-shadow: 0 2px 8px rgba(0,0,0,.6); }
+#tutorial-text { font-size: 16px; line-height: 1.5; margin-bottom: 32px; opacity: .95; text-shadow: 0 1px 4px rgba(0,0,0,.6); }
+#tutorial-arrow-container { position: relative; width: 100%; height: 200px; margin-bottom: 24px; }
+#tutorial-arrow { position: absolute; left: 50%; transform: translateX(-50%); width: 48px; height: 48px; fill: #fff; animation: arrow-fly 2s ease-in-out infinite; }
+#tutorial-close { background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3); border-radius: 12px; padding: 12px 24px; color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; transition: background .2s, transform .1s; }
+#tutorial-close:active { transform: scale(.95); }
+
+@keyframes arrow-fly {
+  0% { bottom: 0; opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { bottom: 100%; opacity: 0; }
+}
+
+@media (min-width: 480px) {
+  #tutorial-title { font-size: 24px; }
+  #tutorial-text { font-size: 17px; }
+  #tutorial-content { max-width: 400px; }
+}
 </style>
 </head>
 <body>
@@ -62,12 +78,21 @@ body.loading #scroller { pointer-events: none; }
     <div id="scroll-space"></div>
   </div>
   <div id="loading" role="status" aria-live="polite">Video wird geladen …</div>
-  <div id="scroll-hint">
-    <div class="hint-box" aria-hidden="true">
-      <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 15l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round" transform="rotate(90 12 12)"></path>
-      </svg>
-      <div class="hint-text">Bitte Hochwischen</div>
+  <a id="back-button" href="../../index.html" aria-label="Zurück zur Startseite">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M15 18l-6-6 6-6"></path>
+    </svg>
+  </a>
+  <div id="tutorial-overlay" role="dialog" aria-labelledby="tutorial-title" aria-modal="true">
+    <div id="tutorial-content">
+      <div id="tutorial-title">So funktioniert's</div>
+      <div id="tutorial-text">Tippe  oder Wische mehrmals nach oben, um die Navigation fortzusetzen.</div>
+      <div id="tutorial-arrow-container">
+        <svg id="tutorial-arrow" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 11.24V7.5a2.5 2.5 0 0 1 5 0v3.74c1.21-.81 2-2.18 2-3.74C16 5.01 13.99 3 11.5 3S7 5.01 7 7.5c0 1.56.79 2.93 2 3.74zm9.84 4.63l-4.54-2.26c-.17-.07-.35-.11-.54-.11H13v-6c0-.83-.67-1.5-1.5-1.5S10 6.67 10 7.5v10.74l-3.43-.72c-.08-.01-.15-.03-.24-.03-.31 0-.59.13-.79.33l-.79.8 4.94 4.94c.27.27.65.44 1.06.44h6.79c.75 0 1.33-.55 1.44-1.28l.75-5.27c.01-.07.02-.14.02-.2 0-.62-.38-1.16-.91-1.38z" fill="currentColor"></path>
+        </svg>
+      </div>
+      <button id="tutorial-close" type="button">Verstanden</button>
     </div>
   </div>
 
@@ -79,8 +104,9 @@ body.loading #scroller { pointer-events: none; }
   const stage = document.getElementById('stage');
   const scroller = document.getElementById('scroller');
   const scrollSpace = document.getElementById('scroll-space');
-  const scrollHint = document.getElementById('scroll-hint');
   const loading = document.getElementById('loading');
+  const tutorialOverlay = document.getElementById('tutorial-overlay');
+  const tutorialClose = document.getElementById('tutorial-close');
   const frameCanvas = document.getElementById('frameCanvas');
   const frameCtx = frameCanvas.getContext('2d', { alpha: false });
 
@@ -128,28 +154,55 @@ body.loading #scroller { pointer-events: none; }
     const targetHeight = totalPixels + (scroller.clientHeight || 0);
     scrollSpace.style.height = targetHeight + 'px';
   }
+  let lastDpr = 1;
   function resizeCanvas() {
     const w = stage.clientWidth;
     const h = stage.clientHeight;
     if (!w || !h) return;
-    frameCanvas.width = w;
-    frameCanvas.height = h;
+    // Use devicePixelRatio for sharper rendering on mobile, but cap it for performance
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    // Only resize if dimensions or DPR changed
+    if (frameCanvas.width === w * dpr && frameCanvas.height === h * dpr && lastDpr === dpr) {
+      return;
+    }
+    lastDpr = dpr;
+    frameCanvas.width = w * dpr;
+    frameCanvas.height = h * dpr;
+    frameCanvas.style.width = w + 'px';
+    frameCanvas.style.height = h + 'px';
+    // Reset transform and apply scale
+    frameCtx.setTransform(1, 0, 0, 1, 0, 0);
+    frameCtx.scale(dpr, dpr);
+    // Redraw after resize
+    if (video.videoWidth && video.videoHeight) {
+      drawCurrentFrameToCanvas();
+    }
   }
   function drawCurrentFrameToCanvas() {
     if (!video.videoWidth || !video.videoHeight) return;
     const cw = frameCanvas.width;
     const ch = frameCanvas.height;
-    if (!cw || !ch) return;
+    if (!cw || !ch) {
+      // Ensure canvas is sized
+      resizeCanvas();
+      return;
+    }
     const vw = video.videoWidth;
     const vh = video.videoHeight;
-    const scale = Math.min(cw / vw, ch / vh);
+    // Account for devicePixelRatio scaling
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const displayW = cw / dpr;
+    const displayH = ch / dpr;
+    const scale = Math.min(displayW / vw, displayH / vh);
     const drawW = Math.round(vw * scale);
     const drawH = Math.round(vh * scale);
-    const dx = Math.round((cw - drawW) / 2);
-    const dy = Math.round((ch - drawH) / 2);
+    const dx = Math.round((displayW - drawW) / 2);
+    const dy = Math.round((displayH - drawH) / 2);
     frameCtx.fillStyle = '#000';
-    frameCtx.fillRect(0, 0, cw, ch);
-    try { frameCtx.drawImage(video, dx, dy, drawW, drawH); } catch(e) {}
+    frameCtx.fillRect(0, 0, displayW, displayH);
+    try { frameCtx.drawImage(video, dx, dy, drawW, drawH); } catch(e) {
+      console.warn('Error drawing frame to canvas:', e);
+    }
   }
 
   function setTimeFromScroll(scrollY) {
@@ -169,8 +222,11 @@ body.loading #scroller { pointer-events: none; }
     scroller.scrollTo(0, 0);
     setTimeFromScroll(0);
     ensurePaused();
-    if (scrollHint) scrollHint.classList.remove('hidden');
     resizeCanvas();
+    // Force initial draw on mobile
+    requestAnimationFrame(() => {
+      drawCurrentFrameToCanvas();
+    });
   }
 
   // Some browsers require a user gesture for precise seeking; unlock on first gesture
@@ -179,12 +235,35 @@ body.loading #scroller { pointer-events: none; }
     userInteracted = true;
     video.play().then(() => video.pause()).catch(() => {});
     ensurePaused();
-    if (scrollHint) scrollHint.classList.add('hidden');
+    // Hide tutorial on first interaction
+    hideTutorial();
+  }
+
+  // Tutorial management
+  const TUTORIAL_KEY = 'video-scroll-tutorial-seen';
+  function showTutorial() {
+    const hasSeenTutorial = localStorage.getItem(TUTORIAL_KEY);
+    if (!hasSeenTutorial && tutorialOverlay) {
+      tutorialOverlay.classList.remove('hidden');
+    }
+  }
+
+  function hideTutorial() {
+    if (tutorialOverlay && !tutorialOverlay.classList.contains('hidden')) {
+      tutorialOverlay.classList.add('hidden');
+      localStorage.setItem(TUTORIAL_KEY, 'true');
+    }
+  }
+
+  // Close button handler
+  if (tutorialClose) {
+    tutorialClose.addEventListener('click', hideTutorial, { passive: true });
   }
 
   // Use scroller's native scroll for control, body stays fixed
   scroller.addEventListener('scroll', function() {
-    if (scrollHint && scroller.scrollTop > 2) scrollHint.classList.add('hidden');
+    // Hide tutorial on scroll
+    if (scroller.scrollTop > 5) hideTutorial();
     const y = scroller.scrollTop;
     // Only update the target; actual seek is handled in RAF for smoothness
     setTimeFromScroll(y);
@@ -266,13 +345,14 @@ body.loading #scroller { pointer-events: none; }
   // Auto-scroll on click/tap anywhere on screen
   let tapStartY = null;
   let tapStartTime = 0;
+  const SCROLL_AMOUNT_RATIO = 0.6; // Scroll 60% of viewport height on click/tap
   const doAutoScroll = (e) => {
     // Only trigger if it was a quick tap, not a scroll gesture
     const now = performance.now();
     const timeSinceTap = now - tapStartTime;
     if (tapStartY !== null && timeSinceTap < 300 && Math.abs((e.changedTouches?.[0]?.clientY || e.clientY) - tapStartY) < 10) {
       onFirstUserGesture();
-      const scrollAmount = scroller.clientHeight * 0.25; // Scroll 25% of viewport height
+      const scrollAmount = scroller.clientHeight * SCROLL_AMOUNT_RATIO;
       scroller.scrollBy({ top: scrollAmount, behavior: 'smooth' });
     }
     tapStartY = null;
@@ -287,30 +367,10 @@ body.loading #scroller { pointer-events: none; }
 
   document.addEventListener('touchend', doAutoScroll, { passive: true });
 
-  // Click handler for hint box
-  const hintBox = scrollHint?.querySelector('.hint-box');
-  if (hintBox) {
-    hintBox.addEventListener('click', function(e) {
-      e.stopPropagation(); 
-      onFirstUserGesture();
-      const scrollAmount = scroller.clientHeight * 0.25;
-      scroller.scrollBy({ top: scrollAmount, behavior: 'smooth' });
-    }, { passive: true });
-    hintBox.addEventListener('touchend', function(e) {
-      e.stopPropagation();
-      onFirstUserGesture();
-      const scrollAmount = scroller.clientHeight * 0.25;
-      scroller.scrollBy({ top: scrollAmount, behavior: 'smooth' });
-    }, { passive: true });
-  }
-
   document.addEventListener('click', function(e) {
-    // Only if not clicking on hint box (which has its own handler)
-    if (!scrollHint?.querySelector('.hint-box')?.contains(e.target)) {
-      onFirstUserGesture();
-      const scrollAmount = scroller.clientHeight * 0.25;
-      scroller.scrollBy({ top: scrollAmount, behavior: 'smooth' });
-    }
+    onFirstUserGesture();
+    const scrollAmount = scroller.clientHeight * SCROLL_AMOUNT_RATIO;
+    scroller.scrollBy({ top: scrollAmount, behavior: 'smooth' });
   }, { passive: true });
 
   // Fully preload the video as a Blob for smooth scrubbing
@@ -343,6 +403,11 @@ body.loading #scroller { pointer-events: none; }
             video.addEventListener('loadedmetadata', resolve, { once: true });
           });
           updateScrollSpaceHeight();
+          // Ensure canvas is ready on mobile
+          resizeCanvas();
+          requestAnimationFrame(() => {
+            drawCurrentFrameToCanvas();
+          });
           videoLoaded = true;
           break;
         } catch (e) {
@@ -366,7 +431,15 @@ body.loading #scroller { pointer-events: none; }
         if (video.readyState >= 1 || video.readyState === 0) {
           updateScrollSpaceHeight();
         }
-        console.warn('Using video source element instead of blob preload');
+        // On mobile, if canvas might not work, show video directly as fallback
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+          video.classList.add('fallback');
+          frameCanvas.classList.add('fallback');
+          console.warn('Using video element directly on mobile (canvas fallback)');
+        } else {
+          console.warn('Using video source element instead of blob preload');
+        }
       }
     } catch (e) {
       console.error('Error preloading video:', e);
@@ -386,6 +459,11 @@ body.loading #scroller { pointer-events: none; }
 
   // Fallback: if metadata never loads, attempt after small delay
   setTimeout(() => { if (!duration) onLoadedMeta(); }, 1500);
+
+  // Show tutorial after page load
+  window.addEventListener('load', function() {
+    setTimeout(showTutorial, 500);
+  }, { once: true });
 
   // Init
 })();
