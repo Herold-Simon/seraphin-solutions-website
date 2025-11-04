@@ -33,6 +33,199 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
+    <!-- Mobile Responsive Styles for Support Page -->
+    <style>
+        /* Mobile Styles for Support Section */
+        @media (max-width: 768px) {
+            .support-section {
+                padding-top: 80px !important;
+                padding-bottom: 3rem !important;
+                min-height: auto !important;
+            }
+            
+            .support-content {
+                padding: 0 10px !important;
+            }
+            
+            .section-header {
+                text-align: center;
+            }
+            
+            .section-header h1 {
+                font-size: 2rem !important;
+                margin-bottom: 0.75rem !important;
+            }
+            
+            .section-header p {
+                font-size: 1rem !important;
+            }
+            
+            /* Support cards container */
+            .support-content > div[style*="display: grid"] {
+                gap: 1.5rem !important;
+                margin-top: 2rem !important;
+            }
+            
+            .support-card {
+                padding: 1.5rem !important;
+                border-radius: 15px !important;
+            }
+            
+            /* Card content wrapper */
+            .support-card > div[style*="display: flex"] {
+                flex-direction: column !important;
+                align-items: center !important;
+                text-align: center !important;
+                gap: 1rem !important;
+            }
+            
+            .support-icon {
+                width: 60px !important;
+                height: 60px !important;
+                font-size: 1.5rem !important;
+                margin: 0 auto 0.5rem !important;
+            }
+            
+            .support-card > div[style*="display: flex"] > div[style*="flex: 1"] {
+                width: 100%;
+                text-align: center;
+            }
+            
+            .support-card h3 {
+                font-size: 1.3rem !important;
+                margin-bottom: 0.75rem !important;
+            }
+            
+            .support-card p {
+                font-size: 0.95rem !important;
+                margin-bottom: 1rem !important;
+            }
+            
+            .contact-detail {
+                flex-direction: column !important;
+                gap: 0.75rem !important;
+                padding: 1rem !important;
+                width: 100% !important;
+                text-align: center !important;
+            }
+            
+            .contact-detail a {
+                font-size: 1.1rem !important;
+                word-break: break-all;
+                display: block;
+            }
+            
+            .contact-detail i {
+                font-size: 1.1rem !important;
+            }
+            
+            /* Additional Info Section - last div in support-content */
+            .support-content > div:last-child {
+                margin-top: 2rem !important;
+            }
+            
+            .support-content > div:last-child[style*="padding: 2rem"] {
+                padding: 1.5rem !important;
+                border-radius: 12px !important;
+            }
+            
+            .support-content > div:last-child h3 {
+                font-size: 1.1rem !important;
+                margin-bottom: 0.75rem !important;
+            }
+            
+            .support-content > div:last-child p {
+                font-size: 0.9rem !important;
+            }
+            
+            .support-content > div:last-child i {
+                font-size: 1rem !important;
+                margin-right: 0.4rem !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .support-section {
+                padding-top: 70px !important;
+                padding-bottom: 2rem !important;
+            }
+            
+            .support-content {
+                padding: 0 8px !important;
+            }
+            
+            .section-header h1 {
+                font-size: 1.75rem !important;
+            }
+            
+            .section-header h1 i {
+                margin-right: 0.4rem !important;
+            }
+            
+            .section-header p {
+                font-size: 0.95rem !important;
+            }
+            
+            /* Support cards container */
+            .support-content > div[style*="display: grid"] {
+                gap: 1.25rem !important;
+                margin-top: 1.5rem !important;
+            }
+            
+            .support-card {
+                padding: 1.25rem !important;
+                border-radius: 12px !important;
+            }
+            
+            .support-icon {
+                width: 50px !important;
+                height: 50px !important;
+                font-size: 1.25rem !important;
+            }
+            
+            .support-card h3 {
+                font-size: 1.15rem !important;
+            }
+            
+            .support-card p {
+                font-size: 0.9rem !important;
+            }
+            
+            .contact-detail {
+                padding: 0.875rem !important;
+                gap: 0.5rem !important;
+            }
+            
+            .contact-detail a {
+                font-size: 1rem !important;
+            }
+            
+            /* Additional Info Section - last div in support-content */
+            .support-content > div:last-child {
+                margin-top: 1.5rem !important;
+            }
+            
+            .support-content > div:last-child[style*="padding: 2rem"] {
+                padding: 1.25rem !important;
+                border-radius: 12px !important;
+            }
+            
+            .support-content > div:last-child h3 {
+                font-size: 1rem !important;
+                margin-bottom: 0.75rem !important;
+            }
+            
+            .support-content > div:last-child p {
+                font-size: 0.85rem !important;
+            }
+            
+            .support-content > div:last-child i {
+                font-size: 0.9rem !important;
+                margin-right: 0.35rem !important;
+            }
+        }
+    </style>
+    
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-W5MJXCE4XC"></script>
     <script>
