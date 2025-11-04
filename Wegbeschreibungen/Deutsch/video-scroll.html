@@ -345,6 +345,7 @@ body.loading #scroller { pointer-events: none; }
   // Auto-scroll on click/tap anywhere on screen
   let tapStartY = null;
   let tapStartTime = 0;
+  let lastTouchY = null;
   const SCROLL_AMOUNT_RATIO = 0.6; // Scroll 60% of viewport height on click/tap
   const doAutoScroll = (e) => {
     // Only trigger if it was a quick tap, not a scroll gesture
@@ -356,12 +357,26 @@ body.loading #scroller { pointer-events: none; }
       scroller.scrollBy({ top: scrollAmount, behavior: 'smooth' });
     }
     tapStartY = null;
+    lastTouchY = null;
   };
 
   document.addEventListener('touchstart', function(e) {
     if (e.touches && e.touches[0]) {
       tapStartY = e.touches[0].clientY;
+      lastTouchY = e.touches[0].clientY;
       tapStartTime = performance.now();
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchmove', function(e) {
+    if (e.touches && e.touches[0] && lastTouchY !== null) {
+      const currentY = e.touches[0].clientY;
+      const deltaY = lastTouchY - currentY; // Positive = swiping up
+      // Hide tutorial if swiping up (more than 20px)
+      if (deltaY > 20) {
+        hideTutorial();
+      }
+      lastTouchY = currentY;
     }
   }, { passive: true });
 
