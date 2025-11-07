@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Scroll-Video</title>
-<meta name="description" content="Vertical Scroll-Video (mobile optimiert)">
+<title>Video1</title>
+<meta name="description" content="Ihre Wegbeschreibung zu Ihrem Ziel im Gebäude">
 <link rel="icon" href="favicon.ico">
 <style>
 /* Mobile-first, keep CSS minimal and self-contained */
@@ -26,7 +26,7 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-seri
 #frameCanvas.fallback { display: none; }
 
 /* Back button */
-#back-button { position: fixed; top: calc(env(safe-area-inset-top) + 16px); left: calc(env(safe-area-inset-left) + 16px); z-index: 1001; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.2); border-radius: 50%; cursor: pointer; transition: background .2s, transform .1s; }
+#back-button { position: fixed; top: calc(env(safe-area-inset-top) + 16px); left: calc(ev(safe-area-inset-left) + 16px); z-index: 1001; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.2); border-radius: 50%; cursor: pointer; transition: background .2s, transform .1s; }
 #back-button:hover { background: rgba(0,0,0,.75); }
 #back-button:active { transform: scale(.95); }
 #back-button svg { width: 24px; height: 24px; stroke: #fff; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
@@ -65,7 +65,7 @@ body.loading #scroller { pointer-events: none; }
     <!-- Sticky stage with the video -->
     <div id="stage" aria-label="Scroll gesteuertes Video">
       <video id="video" playsinline preload="auto" muted>
-        <source src="video1.mp4" type="video/mp4">
+        <source src="Video1.mp4" type="video/mp4">
         Ihr Browser unterstützt das Video-Format nicht.
       </video>
       <canvas id="frameCanvas"></canvas>
@@ -380,10 +380,10 @@ body.loading #scroller { pointer-events: none; }
   // Fully preload the video as a Blob for smooth scrubbing
   // Try multiple possible paths for the video
   const possiblePaths = [
-    'video1.mp4',  // Same directory
-    './video1.mp4', // Explicit relative
-    '../video1.mp4', // Parent directory (in case video is in parent)
-    '/video1.mp4',  // Root (if hosted at root)
+    'Video1.mp4',  // Same directory
+    './Video1.mp4', // Explicit relative
+    '../Video1.mp4', // Parent directory (in case video is in parent)
+    '/Video1.mp4',  // Root (if hosted at root)
   ];
   
   async function preloadFully() {
@@ -428,7 +428,7 @@ body.loading #scroller { pointer-events: none; }
           video.src = sourceElement.src;
         } else {
           // Try setting src directly as last resort
-          video.src = 'video1.mp4';
+          video.src = 'Video1.mp4';
         }
         // Wait a bit for browser to load from source element
         await new Promise(resolve => setTimeout(resolve, 100));
