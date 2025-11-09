@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wegbeschreibungen | Seraphin Solutions</title>
+    <link rel="icon" type="image/x-icon" href="../favicon.ico" />
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.ico" />
+    <link rel="apple-touch-icon" href="../favicon.ico" />
+    <meta
+      name="description"
+      content="Übersicht aller Wegbeschreibung-Seiten des Gebäudenavis. Direkt zu jeder HTML-Datei navigieren oder nach Namen suchen."
+    />
+    <meta name="robots" content="noindex, nofollow" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      integrity="sha512-9usAa10IRO0HhonpyA0X1+8z0p0hV5p1Z+53q2HhZ0n5m1EVl2D9GQMSXh6Eo5eQvM77ZJd/nj4dyY7Psv0X0A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="../styles.css" />
+    <style>
+      body {
+        background: var(--light-gray);
+      }
+
+      .directory-hero {
+        min-height: 70vh;
+        padding-top: 160px;
+        background: var(--gradient-primary);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .directory-hero .hero-container {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 2rem;
+      }
+
+      .directory-hero .hero-title {
+        font-size: 3rem;
+      }
+
+      .directory-hero .hero-subtitle {
+        max-width: 720px;
+        margin: 0 auto;
+      }
+
+      .directory-search {
+        margin-top: 2.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+      }
+
+      .directory-search .search-field {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 999px;
+        padding: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        width: min(520px, 90vw);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(10px);
+      }
+
+      .directory-search .search-field i {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1.1rem;
+      }
+
+      .directory-search input {
+        border: none;
+        background: transparent;
+        color: #ffffff;
+        font-size: 1rem;
+        width: 100%;
+        outline: none;
+      }
+
+      .directory-search input::placeholder {
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .directory-search .meta-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 600;
+      }
+
+      .directory-search .meta-info i {
+        font-size: 1rem;
+      }
+
+      .directory-section {
+        margin-top: -120px;
+        padding: 0 0 4rem;
+        position: relative;
+        z-index: 2;
+      }
+
+      .directory-card {
+        background: var(--white);
+        border-radius: 18px;
+        padding: 2rem;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .directory-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .directory-card h3 {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: var(--text-dark);
+      }
+
+      .directory-card p {
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+      }
+
+      .directory-card .btn {
+        align-self: flex-start;
+      }
+
+      .directory-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 1.75rem;
+        margin-top: 2.5rem;
+      }
+
+      .empty-state {
+        text-align: center;
+        color: var(--text-light);
+        font-size: 1.05rem;
+        margin-top: 3rem;
+      }
+
+      .helper-card {
+        margin-top: 3rem;
+        background: var(--light-gray);
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: var(--shadow);
+      }
+
+      .helper-card h4 {
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+        color: var(--text-dark);
+      }
+
+      .helper-list {
+        list-style: none;
+        display: grid;
+        gap: 0.75rem;
+        padding: 0;
+      }
+
+      .helper-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        color: var(--text-light);
+      }
+
+      .helper-list i {
+        color: var(--primary-green);
+        margin-top: 0.15rem;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      @media (max-width: 768px) {
+        .directory-hero {
+          min-height: auto;
+          padding-top: 130px;
+          padding-bottom: 80px;
+        }
+
+        .directory-hero .hero-title {
+          font-size: 2.4rem;
+        }
+
+        .directory-section {
+          margin-top: -80px;
+        }
+
+        .directory-card {
+          padding: 1.75rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="nav-logo">
+          <a href="../index.html">
+            <img src="../favicon.ico" alt="Seraphin Solutions Logo" class="logo-image" />
+            <span class="logo-text">Seraphin Solutions</span>
+          </a>
+        </div>
+        <ul class="nav-menu">
+          <li><a href="../index.html#home">Start</a></li>
+          <li><a href="../index.html#references">Referenzen</a></li>
+          <li><a href="../index.html#pricing">Preise</a></li>
+          <li><a href="../index.html#contact">Kontakt</a></li>
+          <li><a href="../info.html" class="btn-nav">Mehr Informationen</a></li>
+        </ul>
+        <div class="hamburger" aria-label="Menü öffnen" role="button" tabindex="0">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </nav>
+
+    <section class="hero directory-hero">
+      <div class="hero-container">
+        <div class="hero-content">
+          <h1 class="hero-title">Wegbeschreibungen</h1>
+          <p class="hero-subtitle">
+            Finden Sie hier alle Wegbeschreibung-Seiten des Gebäudenavis auf einen Blick. Nutzen Sie die Suchfunktion, um gezielt nach Räumen oder Bereichen zu filtern, und öffnen Sie die gewünschte HTML-Datei direkt per Klick.
+          </p>
+          <div class="directory-search">
+            <div class="search-field">
+              <i class="fas fa-search" aria-hidden="true"></i>
+              <input
+                id="searchInput"
+                type="search"
+                placeholder="Nach Dateinamen oder Begriffen suchen ..."
+                autocomplete="off"
+              />
+            </div>
+            <div class="meta-info">
+              <i class="fas fa-layer-group" aria-hidden="true"></i>
+              <span id="resultCount">0 Einträge</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-wave">
+        <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+          <path
+            d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
+            opacity=".25"
+            class="shape-fill"
+          ></path>
+          <path
+            d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
+            opacity=".5"
+            class="shape-fill"
+          ></path>
+          <path
+            d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"
+            class="shape-fill"
+          ></path>
+        </svg>
+      </div>
+    </section>
+
+    <main class="directory-section">
+      <div class="container">
+        <div class="helper-card hidden" id="fallbackCard">
+          <h4>Keine Liste gefunden?</h4>
+          <ul class="helper-list">
+            <li>
+              <i class="fas fa-info-circle" aria-hidden="true"></i>
+              <span>
+                Diese Seite versucht automatisch, eine Verzeichnisliste vom Server abzurufen.
+                Falls Ihr Server keine Directory Listings erlaubt, können Sie den Ordner manuell auswählen.
+              </span>
+            </li>
+            <li>
+              <i class="fas fa-folder-open" aria-hidden="true"></i>
+              <span>
+                Klicken Sie auf <strong>Ordner auswählen</strong>, wählen Sie anschließend das Verzeichnis mit den Wegbeschreibungen,
+                und die Buttons werden direkt aus den Dateien erstellt.
+              </span>
+            </li>
+            <li>
+              <i class="fas fa-shield-alt" aria-hidden="true"></i>
+              <span>
+                Aus Sicherheitsgründen funktioniert diese Option nur in modernen Chromium-Browsern (z. B. Chrome oder Edge).
+              </span>
+            </li>
+          </ul>
+          <button id="directoryPickerButton" class="btn btn-secondary">
+            <i class="fas fa-folder-open" aria-hidden="true"></i>
+            Ordner auswählen
+          </button>
+        </div>
+
+        <div id="fileList" class="directory-grid" aria-live="polite"></div>
+        <p id="emptyState" class="empty-state hidden">
+          Keine HTML-Dateien gefunden. Bitte überprüfen Sie die Suche oder laden Sie die Seite neu.
+        </p>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-section">
+            <div class="footer-logo">
+              <img src="../favicon.png" alt="Seraphin Solutions Logo" class="logo-image" />
+              <span class="logo-text">Seraphin Solutions</span>
+            </div>
+            <p>
+              Die intelligente Lösung für die Navigation in großen Gebäuden, entwickelt von Seraphin Solutions.
+            </p>
+          </div>
+          <div class="footer-section">
+            <h4>Produkt</h4>
+            <ul>
+              <li><a href="../index.html#features">Features</a></li>
+              <li><a href="../index.html#admin">Admin-Panel</a></li>
+              <li><a href="../index.html#solution">Lösung</a></li>
+            </ul>
+          </div>
+          <div class="footer-section">
+            <h4>Unternehmen</h4>
+            <ul>
+              <li><a href="../index.html#pricing">Preise</a></li>
+            </ul>
+          </div>
+          <div class="footer-section">
+            <h4>Rechtliches</h4>
+            <ul>
+              <li><a href="../impressum.html">Impressum</a></li>
+              <li><a href="../datenschutz.html">Datenschutz</a></li>
+            </ul>
+          </div>
+          <div class="footer-section">
+            <h4>Zugang</h4>
+            <ul>
+              <li>
+                <a href="../login.html" class="footer-login-btn">
+                  <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
+                  Statistiken Login
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>&copy; 2024 Seraphin Solutions. Alle Rechte vorbehalten.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="../script.js" defer></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const fileListEl = document.getElementById('fileList');
+        const emptyStateEl = document.getElementById('emptyState');
+        const searchInput = document.getElementById('searchInput');
+        const resultCountEl = document.getElementById('resultCount');
+        const pickerButton = document.getElementById('directoryPickerButton');
+        const fallbackCard = document.getElementById('fallbackCard');
+
+        const currentFileName = window.location.pathname.split('/').pop();
+        let allFiles = [];
+
+        const escapeHtml = (unsafe = '') =>
+          unsafe
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+
+        const formatDisplayName = (fileName) =>
+          fileName
+            .replace(/\.html$/i, '')
+            .replace(/[-_]+/g, ' ')
+            .replace(/\b\w/g, (char) => char.toUpperCase());
+
+        const notify = (message, type = 'info') => {
+          if (typeof showNotification === 'function') {
+            showNotification(message, type);
+          } else {
+            console.warn(message);
+          }
+        };
+
+        const updateResultCount = (count) => {
+          resultCountEl.textContent = count === 1 ? '1 Eintrag' : \`\${count} Einträge\`;
+        };
+
+        const renderFiles = (files) => {
+          fileListEl.innerHTML = '';
+          if (!files.length) {
+            emptyStateEl.classList.remove('hidden');
+            updateResultCount(0);
+            return;
+          }
+
+          emptyStateEl.classList.add('hidden');
+          updateResultCount(files.length);
+
+          const fragment = document.createDocumentFragment();
+
+          files.forEach((file) => {
+            const card = document.createElement('article');
+            card.className = 'directory-card fade-in-up';
+            card.dataset.filename = file.name.toLowerCase();
+
+            card.innerHTML = \`
+              <h3>\${escapeHtml(file.displayName)}</h3>
+              <p>Dateiname: <strong>\${escapeHtml(file.name)}</strong></p>
+              <a class="btn btn-primary" href="\${encodeURI(file.name)}">
+                <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                Öffnen
+              </a>
+            \`;
+
+            fragment.appendChild(card);
+          });
+
+          fileListEl.appendChild(fragment);
+        };
+
+        const filterFiles = (query) => {
+          const normalized = query.trim().toLowerCase();
+          if (!normalized) {
+            renderFiles(allFiles);
+            return;
+          }
+
+          const filtered = allFiles.filter(
+            (file) =>
+              file.name.toLowerCase().includes(normalized) ||
+              file.displayName.toLowerCase().includes(normalized)
+          );
+          renderFiles(filtered);
+        };
+
+        const parseDirectoryListing = (htmlText) => {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(htmlText, 'text/html');
+          const anchors = Array.from(doc.querySelectorAll('a[href]'));
+
+          const fileNames = anchors
+            .map((anchor) => anchor.getAttribute('href') || '')
+            .map((href) => href.split('?')[0].split('#')[0])
+            .filter((href) => href.toLowerCase().endsWith('.html'))
+            .map((href) => decodeURIComponent(href.split('/').pop() || ''))
+            .filter((name) => name && name !== currentFileName);
+
+          return Array.from(new Set(fileNames)).sort((a, b) => a.localeCompare(b, 'de'));
+        };
+
+        const loadFromDirectoryListing = async () => {
+          const directoryUrl = new URL('./', window.location.href).toString();
+          const response = await fetch(directoryUrl, {
+            headers: { Accept: 'text/html,application/xhtml+xml' },
+          });
+
+          if (!response.ok) {
+            throw new Error(\`HTTP \${response.status}\`);
+          }
+
+          const text = await response.text();
+          const files = parseDirectoryListing(text);
+
+          if (!files.length) {
+            throw new Error('Keine Dateien in der Verzeichnisliste gefunden.');
+          }
+
+          return files;
+        };
+
+        const loadFromFileSystemAccess = async () => {
+          if (!window.showDirectoryPicker) {
+            notify(
+              'Ihr Browser unterstützt den Zugriff auf lokale Ordner nicht. Bitte verwenden Sie Chrome oder Edge.',
+              'error'
+            );
+            return;
+          }
+
+          try {
+            const directoryHandle = await window.showDirectoryPicker({
+              mode: 'read',
+            });
+
+            const fileNames = [];
+            for await (const entry of directoryHandle.values()) {
+              if (entry.kind === 'file' && entry.name.toLowerCase().endsWith('.html')) {
+                fileNames.push(entry.name);
+              }
+            }
+
+            if (!fileNames.length) {
+              notify('Der ausgewählte Ordner enthält keine HTML-Dateien.', 'error');
+              return;
+            }
+
+            allFiles = fileNames
+              .filter((name) => name !== currentFileName)
+              .sort((a, b) => a.localeCompare(b, 'de'))
+              .map((name) => ({
+                name,
+                displayName: formatDisplayName(name),
+              }));
+
+            renderFiles(allFiles);
+            fallbackCard.classList.add('hidden');
+            notify('Dateiliste erfolgreich aus dem ausgewählten Ordner geladen.', 'success');
+          } catch (error) {
+            if (error.name !== 'AbortError') {
+              notify('Der Ordner konnte nicht gelesen werden. Bitte versuchen Sie es erneut.', 'error');
+              console.error(error);
+            }
+          }
+        };
+
+        const initialize = async () => {
+          try {
+            const files = await loadFromDirectoryListing();
+            allFiles = files.map((name) => ({
+              name,
+              displayName: formatDisplayName(name),
+            }));
+            renderFiles(allFiles);
+          } catch (error) {
+            console.warn('Automatische Verzeichnisliste nicht verfügbar.', error);
+            fallbackCard.classList.remove('hidden');
+            updateResultCount(0);
+          }
+        };
+
+        searchInput.addEventListener('input', (event) => {
+          filterFiles(event.target.value);
+        });
+
+        if (pickerButton) {
+          pickerButton.addEventListener('click', () => {
+            loadFromFileSystemAccess();
+          });
+        }
+
+        initialize();
+      });
+    </script>
+  </body>
+</html>
+
+
