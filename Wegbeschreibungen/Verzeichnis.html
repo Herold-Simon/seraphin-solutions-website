@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wegbeschreibungen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1c2f80;
+      --primary-dark: #14215b;
+      --accent: #4d79ff;
+      --text: #0f1c35;
+      --text-muted: #5c6c85;
+      --surface: #ffffff;
+      --background: #ffffff;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--background);
+      color: var(--text);
+      padding: clamp(2rem, 6vw, 4rem) clamp(1rem, 4vw, 3rem);
+    }
+
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: clamp(1.5rem, 3vw, 2.5rem);
+      text-align: center;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 2.75rem);
+      font-weight: 600;
+    }
+
+    p {
+      margin: 0 auto;
+      color: var(--text-muted);
+      font-size: clamp(1rem, 2.5vw, 1.1rem);
+      line-height: 1.6;
+      max-width: 38rem;
+    }
+
+    .search-bar {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .search-input {
+      width: min(420px, 100%);
+      padding: 0.85rem 1.1rem;
+      border-radius: 0.9rem;
+      border: 1px solid rgba(15, 28, 53, 0.12);
+      background: rgba(255, 255, 255, 0.9);
+      font-size: 1rem;
+      font-family: inherit;
+      box-shadow: 0 18px 40px rgba(15, 28, 53, 0.08);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: rgba(28, 47, 128, 0.4);
+      box-shadow: 0 20px 45px rgba(15, 28, 53, 0.12);
+    }
+
+    .button-grid {
+      display: grid;
+      gap: clamp(1.2rem, 2.5vw, 1.8rem);
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      margin-top: 0.75rem;
+    }
+
+    a.button-link {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      color: inherit;
+      border-radius: 1.25rem;
+      padding: 1.45rem 1.6rem;
+      background: rgba(255, 255, 255, 0.95);
+      border: 3px solid rgba(0, 0, 0, 0.18);
+      box-shadow: 0 25px 55px rgba(15, 28, 53, 0.18);
+      backdrop-filter: blur(12px);
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border 0.25s ease;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    a.button-link:hover,
+    a.button-link:focus-visible {
+      transform: translateY(-6px) scale(1.01);
+      box-shadow: 0 30px 65px rgba(15, 28, 53, 0.22);
+      border: 3px solid transparent;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)) padding-box,
+        linear-gradient(135deg, #008cff, #32a71a) border-box;
+      background-clip: padding-box, border-box;
+      outline: none;
+    }
+
+    .button-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--primary-dark);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    footer {
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+
+    .button-grid > .button-link[hidden] {
+      display: none;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 2rem 1rem;
+      }
+
+      main {
+        border-radius: 1.1rem;
+        padding: 2rem 1.5rem;
+      }
+
+      .search-input {
+        width: 100%;
+      }
+
+      .button-grid {
+        grid-template-columns: 1fr;
+      }
+
+      footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Wegbeschreibungen</h1>
+      <p>Wählen Sie Ihren gewünschten Raum, um die passende Wegbeschreibung zu öffnen.</p>
+    </header>
+
+    <div class="search-bar">
+      <input
+        id="searchInput"
+        class="search-input"
+        type="search"
+        placeholder="Nach Räumen suchen (z. B. A36)"
+        aria-label="Nach Räumen suchen"
+      >
+    </div>
+
+    <div class="button-grid">
+      <a class="button-link" href="A36.html" data-label="A36">
+        <div class="button-title">A36</div>
+      </a>
+      <a class="button-link" href="A37.html" data-label="A37">
+        <div class="button-title">A37</div>
+      </a>
+      <a class="button-link" href="A38.html" data-label="A38">
+        <div class="button-title">A38</div>
+      </a>
+    </div>
+
+  <script>
+    const searchInput = document.getElementById('searchInput');
+    const buttons = Array.from(document.querySelectorAll('.button-link'));
+
+    function applyFilter(value) {
+      const term = value.trim().toLowerCase();
+
+      buttons.forEach((button) => {
+        const label = button.dataset.label?.toLowerCase() || button.textContent.toLowerCase();
+        const shouldShow = !term || label.includes(term);
+        button.hidden = !shouldShow;
+      });
+    }
+
+    searchInput.addEventListener('input', (event) => {
+      applyFilter(event.target.value);
+    });
+  </script>
+</body>
+</html>
+
