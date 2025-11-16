@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>3D-Modell Vorschau</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=reset_focus"
+    />
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100vh;
+        overflow: hidden;
+        background: #f0f0f0;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      #viewer {
+        width: 100vw;
+        height: 100vh;
+        display: block;
+        touch-action: none;
+      }
+
+      #resetView {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        width: 52px;
+        height: 52px;
+        border: none;
+        border-radius: 50%;
+        background-color: #ffffff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      #resetView:hover,
+      #resetView:focus {
+        outline: none;
+        transform: translateY(-1px);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+      }
+
+      #resetView .material-symbols-outlined {
+        font-family: "Material Symbols Outlined";
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+        font-size: 26px;
+        color: #000000;
+      }
+
+    </style>
+  </head>
+  <body>
+    <canvas id="viewer"></canvas>
+    <button id="resetView" type="button" aria-label="Ansicht zurücksetzen">
+      <span class="material-symbols-outlined" aria-hidden="true">reset_focus</span>
+    </button>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+      import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+
+      const canvas = document.getElementById("viewer");
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf0f0f0);
+
+      const camera = new THREE.PerspectiveCamera(
+        45,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        2000
+      );
+
+      const renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: true,
+        preserveDrawingBuffer: true,
+      });
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+
+      const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
+      hemisphereLight.position.set(0, 1, 0);
+      scene.add(hemisphereLight);
+
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      directionalLight.position.set(5, 10, 7);
+      scene.add(directionalLight);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enablePan = true;
+      controls.enableRotate = false;
+      controls.enableZoom = true;
+      controls.screenSpacePanning = false;
+      controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
+      controls.mouseButtons.RIGHT = THREE.MOUSE.PAN;
+      controls.touches.ONE = THREE.TOUCH.PAN;
+      controls.touches.TWO = THREE.TOUCH.DOLLY_PAN;
+      controls.minPolarAngle = 0;
+      controls.maxPolarAngle = 0;
+      controls.update();
+
+      const raycaster = new THREE.Raycaster();
+      const pointer = new THREE.Vector2();
+      let model = null;
+      let lastTapTime = 0;
+      const tapThresholdMs = 300;
+      const resetButton = document.getElementById("resetView");
+      const zoomState = {
+        active: false,
+        startTarget: new THREE.Vector3(),
+        endTarget: new THREE.Vector3(),
+        startPosition: new THREE.Vector3(),
+        endPosition: new THREE.Vector3(),
+        startTime: 0,
+        duration: 350,
+      };
+      let controlsStateChanged = false;
+
+      function approxEquals(vecA, vecB, epsilon = 1e-4) {
+        return (
+          Math.abs(vecA.x - vecB.x) <= epsilon &&
+          Math.abs(vecA.y - vecB.y) <= epsilon &&
+          Math.abs(vecA.z - vecB.z) <= epsilon
+        );
+      }
+
+      function startZoomAnimation(targetVec, positionVec, duration = 350) {
+        zoomState.active = false;
+        zoomState.startTarget.copy(controls.target);
+        zoomState.startPosition.copy(camera.position);
+        zoomState.endTarget.copy(targetVec);
+        zoomState.endPosition.copy(positionVec);
+        zoomState.duration = duration;
+        zoomState.startTime = performance.now();
+        zoomState.active = true;
+        controlsStateChanged = true;
+      }
+
+      function zoomToPoint(point, factor = 0.5) {
+        const direction = new THREE.Vector3().copy(camera.position).sub(controls.target);
+        const currentDistance = direction.length();
+        const desiredDistance = Math.max(currentDistance * factor, 0.5);
+        direction.setLength(desiredDistance);
+
+        const targetPoint = new THREE.Vector3().copy(point);
+        const endPosition = new THREE.Vector3().copy(point).add(direction);
+        startZoomAnimation(targetPoint, endPosition);
+      }
+
+      function handleZoomEvent(clientX, clientY) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+        pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+        raycaster.setFromCamera(pointer, camera);
+
+        let targetPoint = new THREE.Vector3();
+        const intersects = model ? raycaster.intersectObject(model, true) : [];
+
+        if (intersects.length > 0) {
+          targetPoint.copy(intersects[0].point);
+        } else {
+          const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+          if (!raycaster.ray.intersectPlane(groundPlane, targetPoint)) {
+            return;
+          }
+        }
+
+        zoomToPoint(targetPoint);
+      }
+
+      const loader = new GLTFLoader();
+      let fittedDistance = null;
+      loader.load(
+        "./Room A38.glb",
+        (gltf) => {
+          model = gltf.scene;
+          scene.add(model);
+
+          const box = new THREE.Box3().setFromObject(model);
+          const size = box.getSize(new THREE.Vector3());
+          const center = box.getCenter(new THREE.Vector3());
+
+          model.position.sub(center);
+
+          const fov = THREE.MathUtils.degToRad(camera.fov);
+          const aspect = camera.aspect || (window.innerWidth / window.innerHeight);
+
+          const halfSizeX = Math.max(size.x, 0.001) * 0.5;
+          const halfSizeZ = Math.max(size.z, 0.001) * 0.5;
+
+          const distanceForHeight = halfSizeZ / Math.tan(fov / 2);
+          const horizontalFov = 2 * Math.atan(Math.tan(fov / 2) * aspect);
+          const distanceForWidth = halfSizeX / Math.tan(horizontalFov / 2);
+
+          const distance = Math.max(distanceForHeight, distanceForWidth) * 1.2;
+          fittedDistance = distance;
+
+          const initialTarget = new THREE.Vector3(0, 0, 0);
+          const initialPosition = new THREE.Vector3(
+            initialTarget.x,
+            initialTarget.y + distance,
+            initialTarget.z
+          );
+
+          camera.position.copy(initialPosition);
+          camera.lookAt(initialTarget);
+
+          controls.target.copy(initialTarget);
+          controls.minDistance = 0;
+          controls.maxDistance = Infinity;
+          controls.update();
+          controls.saveState();
+
+          const focusMesh = model.getObjectByName("zooming");
+          if (focusMesh) {
+            const focusBox = new THREE.Box3().setFromObject(focusMesh);
+            const focusCenter = focusBox.getCenter(new THREE.Vector3());
+            const focusSize = focusBox.getSize(new THREE.Vector3());
+
+            const halfFocusX = Math.max(focusSize.x, 0.001) * 0.5;
+            const halfFocusZ = Math.max(focusSize.z, 0.001) * 0.5;
+
+            const focusDistanceForHeight = halfFocusZ / Math.tan(fov / 2);
+            const focusDistanceForWidth = halfFocusX / Math.tan(horizontalFov / 2);
+            const focusDistance =
+              Math.max(focusDistanceForHeight, focusDistanceForWidth) * 1.1;
+
+            const currentDirection = new THREE.Vector3()
+              .subVectors(camera.position, controls.target)
+              .normalize();
+            const focusPosition = new THREE.Vector3()
+              .copy(focusCenter)
+              .add(currentDirection.multiplyScalar(focusDistance));
+
+            focusMesh.traverse((child) => {
+              child.visible = false;
+            });
+
+            if (controls.target0) {
+              controls.target0.copy(focusCenter);
+            }
+            if (controls.position0) {
+              controls.position0.copy(focusPosition);
+            }
+            if (controls.zoom0 !== undefined) {
+              controls.zoom0 = camera.zoom;
+            }
+
+            const focusDelayMs = 600;
+            const focusDurationMs = 1600;
+            setTimeout(() => {
+              startZoomAnimation(focusCenter, focusPosition, focusDurationMs);
+            }, focusDelayMs);
+          }
+        },
+        undefined,
+        (error) => {
+          console.error("Fehler beim Laden der GLB-Datei:", error);
+        }
+      );
+
+      function animate() {
+        requestAnimationFrame(animate);
+        if (zoomState.active) {
+          const elapsed = performance.now() - zoomState.startTime;
+          let t = elapsed / zoomState.duration;
+          if (t >= 1) {
+            zoomState.active = false;
+            controls.target.copy(zoomState.endTarget);
+            camera.position.copy(zoomState.endPosition);
+          } else {
+            const eased = THREE.MathUtils.smoothstep(t, 0, 1);
+            controls.target
+              .copy(zoomState.startTarget)
+              .lerp(zoomState.endTarget, eased);
+            camera.position
+              .copy(zoomState.startPosition)
+              .lerp(zoomState.endPosition, eased);
+          }
+          controls.update();
+          updateResetButtonVisibility();
+        } else if (controlsStateChanged) {
+          updateResetButtonVisibility();
+          controlsStateChanged = false;
+        }
+        renderer.render(scene, camera);
+      }
+
+      animate();
+
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      renderer.domElement.addEventListener("dblclick", (event) => {
+        event.preventDefault();
+        handleZoomEvent(event.clientX, event.clientY);
+      });
+
+      renderer.domElement.addEventListener(
+        "touchend",
+        (event) => {
+          if (event.touches.length > 0) {
+            return;
+          }
+
+          const currentTime = performance.now();
+          if (currentTime - lastTapTime < tapThresholdMs) {
+            const touch = event.changedTouches[0];
+            handleZoomEvent(touch.clientX, touch.clientY);
+            lastTapTime = 0;
+          } else {
+            lastTapTime = currentTime;
+          }
+        },
+        { passive: false }
+      );
+
+      resetButton.addEventListener("click", () => {
+        const savedTarget = controls.target0 ? controls.target0.clone() : new THREE.Vector3();
+        const savedPosition = controls.position0
+          ? controls.position0.clone()
+          : new THREE.Vector3().copy(camera.position);
+        startZoomAnimation(savedTarget, savedPosition);
+      });
+
+      function updateResetButtonVisibility() {
+        const targetChanged = !approxEquals(controls.target, controls.target0);
+        const positionChanged = !approxEquals(camera.position, controls.position0);
+        const shouldBeVisible = targetChanged || positionChanged || zoomState.active;
+        resetButton.style.display = shouldBeVisible ? "flex" : "none";
+      }
+
+      controls.addEventListener("change", () => {
+        controlsStateChanged = true;
+      });
+
+      updateResetButtonVisibility();
+    </script>
+  </body>
+</html>
+
