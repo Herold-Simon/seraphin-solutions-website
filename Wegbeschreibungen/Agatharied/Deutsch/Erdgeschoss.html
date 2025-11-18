@@ -250,11 +250,16 @@
       const progressContainer = document.getElementById("progressContainer");
       const progressBar = document.getElementById("progressBar");
       const progressText = document.getElementById("progressText");
+      let isLoadingComplete = false;
       
       loader.load(
         "./Erdgeschoss.glb",
         (gltf) => {
-          // Progress bar ausblenden
+          // Loading abgeschlossen
+          isLoadingComplete = true;
+          // Progress bar auf 100% setzen und ausblenden
+          progressBar.style.width = "100%";
+          progressText.textContent = "Lade 3D-Modell... 100%";
           progressContainer.classList.add("hidden");
           setTimeout(() => {
             progressContainer.style.display = "none";
@@ -388,9 +393,9 @@
           }
         },
         (progress) => {
-          // Progress bar aktualisieren
-          if (progress.total > 0) {
-            const percent = (progress.loaded / progress.total) * 100;
+          // Progress bar aktualisieren (nur wenn noch nicht fertig geladen)
+          if (!isLoadingComplete && progress.total > 0) {
+            const percent = Math.min(Math.max((progress.loaded / progress.total) * 100, 0), 100);
             progressBar.style.width = percent + "%";
             progressText.textContent = `Lade 3D-Modell... ${Math.round(percent)}%`;
           }
