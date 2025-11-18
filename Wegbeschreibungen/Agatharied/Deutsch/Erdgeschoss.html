@@ -60,9 +60,60 @@
         color: #000000;
       }
 
+      #progressContainer {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(240, 240, 240, 0.95);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        transition: opacity 0.3s ease;
+      }
+
+      #progressContainer.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #progressBarWrapper {
+        width: 80%;
+        max-width: 400px;
+        background-color: #e0e0e0;
+        border-radius: 20px;
+        height: 24px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      #progressBar {
+        height: 100%;
+        background: linear-gradient(90deg, #4CAF50, #45a049);
+        width: 0%;
+        transition: width 0.2s ease;
+        border-radius: 20px;
+      }
+
+      #progressText {
+        margin-top: 20px;
+        font-size: 16px;
+        color: #333;
+        font-weight: 500;
+      }
+
     </style>
   </head>
   <body>
+    <div id="progressContainer">
+      <div id="progressBarWrapper">
+        <div id="progressBar"></div>
+      </div>
+      <div id="progressText">Lade 3D-Modell...</div>
+    </div>
     <canvas id="viewer"></canvas>
     <button id="resetView" type="button" aria-label="Ansicht zurücksetzen">
       <span class="material-symbols-outlined" aria-hidden="true">reset_focus</span>
@@ -196,9 +247,18 @@
 
       const loader = new GLTFLoader();
       let fittedDistance = null;
+      const progressContainer = document.getElementById("progressContainer");
+      const progressBar = document.getElementById("progressBar");
+      const progressText = document.getElementById("progressText");
+      
       loader.load(
         "./Erdgeschoss.glb",
         (gltf) => {
+          // Progress bar ausblenden
+          progressContainer.classList.add("hidden");
+          setTimeout(() => {
+            progressContainer.style.display = "none";
+          }, 300);
           model = gltf.scene;
           scene.add(model);
           model.traverse((child) => {
@@ -327,9 +387,18 @@
             }, focusDelayMs);
           }
         },
-        undefined,
+        (progress) => {
+          // Progress bar aktualisieren
+          if (progress.total > 0) {
+            const percent = (progress.loaded / progress.total) * 100;
+            progressBar.style.width = percent + "%";
+            progressText.textContent = `Lade 3D-Modell... ${Math.round(percent)}%`;
+          }
+        },
         (error) => {
           console.error("Fehler beim Laden der GLB-Datei:", error);
+          progressText.textContent = "Fehler beim Laden";
+          progressBar.style.background = "linear-gradient(90deg, #f44336, #d32f2f)";
         }
       );
 
