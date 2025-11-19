@@ -60,60 +60,10 @@
         color: #000000;
       }
 
-      #progressContainer {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: rgba(240, 240, 240, 0.95);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-        transition: opacity 0.3s ease;
-      }
-
-      #progressContainer.hidden {
-        opacity: 0;
-        pointer-events: none;
-      }
-
-      #progressBarWrapper {
-        width: 80%;
-        max-width: 400px;
-        background-color: #e0e0e0;
-        border-radius: 20px;
-        height: 24px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      }
-
-      #progressBar {
-        height: 100%;
-        background: linear-gradient(90deg, #4CAF50, #45a049);
-        width: 0%;
-        transition: width 0.2s ease;
-        border-radius: 20px;
-      }
-
-      #progressText {
-        margin-top: 20px;
-        font-size: 16px;
-        color: #333;
-        font-weight: 500;
-      }
 
     </style>
   </head>
   <body>
-    <div id="progressContainer">
-      <div id="progressBarWrapper">
-        <div id="progressBar"></div>
-      </div>
-      <div id="progressText">Lade 3D-Modell...</div>
-    </div>
     <canvas id="viewer"></canvas>
     <button id="resetView" type="button" aria-label="Ansicht zurücksetzen">
       <span class="material-symbols-outlined" aria-hidden="true">reset_focus</span>
@@ -247,35 +197,92 @@
 
       const loader = new GLTFLoader();
       let fittedDistance = null;
-      const progressContainer = document.getElementById("progressContainer");
-      const progressBar = document.getElementById("progressBar");
-      const progressText = document.getElementById("progressText");
-      let isLoadingComplete = false;
       
-      // Initialen Progress anzeigen
-      progressBar.style.width = "1%";
-      progressText.textContent = "Lade 3D-Modell... 1%";
+      // Funktion zum nacheinander Einblenden der Meshes
+      function animateMeshesAppearance(meshes, delayPerMesh = 20) {
+        meshes.forEach((mesh, index) => {
+          // Zunächst alle Meshes unsichtbar machen
+          mesh.visible = false;
+          
+          // Speichere die ursprüngliche Transparenz-Einstellung
+          let originalTransparent = false;
+          let originalOpacity = 1;
+          
+          if (mesh.material && Array.isArray(mesh.material)) {
+            const originalStates = mesh.material.map(mat => ({
+              transparent: mat.transparent || false,
+              opacity: mat.opacity !== undefined ? mat.opacity : 1
+            }));
+            
+            mesh.material.forEach((mat, matIndex) => {
+              mat.transparent = true;
+              mat.opacity = 0;
+            });
+            
+            // Mesh nach einer Verzögerung einblenden
+            setTimeout(() => {
+              mesh.visible = true;
+              // Fade-in-Animation für alle Materialien
+              const startTime = Date.now();
+              const duration = 300; // 300ms Fade-in
+              const fadeIn = () => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                mesh.material.forEach((mat, matIndex) => {
+                  mat.opacity = originalStates[matIndex].opacity * progress;
+                });
+                
+                if (progress < 1) {
+                  requestAnimationFrame(fadeIn);
+                } else {
+                  // Stelle ursprüngliche Transparenz-Einstellung wieder her
+                  mesh.material.forEach((mat, matIndex) => {
+                    mat.transparent = originalStates[matIndex].transparent;
+                    mat.opacity = originalStates[matIndex].opacity;
+                  });
+                }
+              };
+              requestAnimationFrame(fadeIn);
+            }, index * delayPerMesh);
+          } else if (mesh.material) {
+            originalTransparent = mesh.material.transparent || false;
+            originalOpacity = mesh.material.opacity !== undefined ? mesh.material.opacity : 1;
+            
+            mesh.material.transparent = true;
+            mesh.material.opacity = 0;
+            
+            // Mesh nach einer Verzögerung einblenden
+            setTimeout(() => {
+              mesh.visible = true;
+              const startTime = Date.now();
+              const duration = 300;
+              const fadeIn = () => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                mesh.material.opacity = originalOpacity * progress;
+                if (progress < 1) {
+                  requestAnimationFrame(fadeIn);
+                } else {
+                  // Stelle ursprüngliche Transparenz-Einstellung wieder her
+                  mesh.material.transparent = originalTransparent;
+                  mesh.material.opacity = originalOpacity;
+                }
+              };
+              requestAnimationFrame(fadeIn);
+            }, index * delayPerMesh);
+          } else {
+            // Fallback: Einfach sichtbar machen ohne Fade-in
+            setTimeout(() => {
+              mesh.visible = true;
+            }, index * delayPerMesh);
+          }
+        });
+      }
       
       // Custom loader für Git LFS Dateien
-      async function loadGLBWithLFS(url, onLoad, onProgress, onError) {
+      async function loadGLBWithLFS(url, onLoad, onError) {
         try {
-          // Wrapper für Progress: Download (50%) + GLTFLoader (50%)
-          let downloadProgress = 0;
-          
-          const combinedProgress = (progress) => {
-            if (progress && progress.total > 0) {
-              // GLTFLoader Progress (50-100% vom Gesamt)
-              // progress.loaded und progress.total kommen vom GLTFLoader
-              const gltfProgress = (progress.loaded / progress.total) * 50;
-              const totalProgress = downloadProgress + gltfProgress;
-              if (onProgress) {
-                onProgress({ 
-                  loaded: totalProgress, 
-                  total: 100 
-                });
-              }
-            }
-          };
           
           // Versuche die Datei zu laden
           const response = await fetch(url);
@@ -308,17 +315,6 @@
               const firstBlob = new Blob(chunks);
               text = await firstBlob.text();
               isPointerDetected = true;
-            }
-            
-            // Progress für Download (0-50%)
-            if (total > 0) {
-              downloadProgress = (received / total) * 50;
-              if (onProgress) {
-                onProgress({ 
-                  loaded: downloadProgress, 
-                  total: 100 
-                });
-              }
             }
           }
           
@@ -359,19 +355,8 @@
                     const { done, value } = await githubReader.read();
                     if (done) break;
                     
-                    githubChunks.push(value);
-                    githubReceived += value.length;
-                    
-                    // Progress für GitHub Download (0-50%)
-                    if (githubTotal > 0) {
-                      downloadProgress = (githubReceived / githubTotal) * 50;
-                      if (onProgress) {
-                        onProgress({ 
-                          loaded: downloadProgress, 
-                          total: 100 
-                        });
-                      }
-                    }
+                  githubChunks.push(value);
+                  githubReceived += value.length;
                   }
                   
                   const githubBlob = new Blob(githubChunks);
@@ -383,9 +368,9 @@
                     continue;
                   }
                   
-                  // Lade über GLTFLoader (50-100% Progress)
+                  // Lade über GLTFLoader
                   const objectUrl = URL.createObjectURL(githubBlob);
-                  loader.load(objectUrl, onLoad, combinedProgress, (error) => {
+                  loader.load(objectUrl, onLoad, undefined, (error) => {
                     URL.revokeObjectURL(objectUrl);
                     onError(error);
                   });
@@ -402,15 +387,9 @@
               throw new Error(`Konnte LFS-Datei nicht laden. GitHub Pages unterstützt Git LFS nicht direkt.`);
             }
           } else {
-            // Es ist keine LFS Pointer-Datei, Download ist fertig (50%)
-            downloadProgress = 50;
-            if (onProgress) {
-              onProgress({ loaded: 50, total: 100 });
-            }
-            
-            // Lade über GLTFLoader (50-100% Progress)
+            // Es ist keine LFS Pointer-Datei, lade direkt
             const objectUrl = URL.createObjectURL(blob);
-            loader.load(objectUrl, onLoad, combinedProgress, (error) => {
+            loader.load(objectUrl, onLoad, undefined, (error) => {
               URL.revokeObjectURL(objectUrl);
               onError(error);
             });
@@ -424,23 +403,21 @@
       loadGLBWithLFS(
         "./Erdgeschoss.glb",
         (gltf) => {
-          // Loading abgeschlossen
-          isLoadingComplete = true;
-          // Progress bar auf 100% setzen und ausblenden
-          progressBar.style.width = "100%";
-          progressText.textContent = "Lade 3D-Modell... 100%";
-          progressContainer.classList.add("hidden");
-          setTimeout(() => {
-            progressContainer.style.display = "none";
-          }, 300);
           model = gltf.scene;
           scene.add(model);
+          
+          // Sammle alle Meshes
+          const meshes = [];
           model.traverse((child) => {
             if (child.isMesh) {
               child.castShadow = true;
               child.receiveShadow = true;
+              meshes.push(child);
             }
           });
+          
+          // Zeige alle Meshes nacheinander an
+          animateMeshesAppearance(meshes, 20);
 
           const box = new THREE.Box3().setFromObject(model);
           const size = box.getSize(new THREE.Vector3());
@@ -561,18 +538,8 @@
             }, focusDelayMs);
           }
         },
-        (progress) => {
-          // Progress bar aktualisieren (nur wenn noch nicht fertig geladen)
-          if (!isLoadingComplete && progress.total > 0) {
-            const percent = Math.min(Math.max((progress.loaded / progress.total) * 100, 0), 100);
-            progressBar.style.width = percent + "%";
-            progressText.textContent = `Lade 3D-Modell... ${Math.round(percent)}%`;
-          }
-        },
         (error) => {
           console.error("Fehler beim Laden der GLB-Datei:", error);
-          progressText.textContent = "Fehler beim Laden";
-          progressBar.style.background = "linear-gradient(90deg, #f44336, #d32f2f)";
         }
       );
 
