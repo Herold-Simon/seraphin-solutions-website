@@ -252,9 +252,31 @@
       const progressText = document.getElementById("progressText");
       let isLoadingComplete = false;
       
+      // Initialen Progress anzeigen
+      progressBar.style.width = "1%";
+      progressText.textContent = "Lade 3D-Modell... 1%";
+      
       // Custom loader für Git LFS Dateien
       async function loadGLBWithLFS(url, onLoad, onProgress, onError) {
         try {
+          // Wrapper für Progress: Download (50%) + GLTFLoader (50%)
+          let downloadProgress = 0;
+          
+          const combinedProgress = (progress) => {
+            if (progress && progress.total > 0) {
+              // GLTFLoader Progress (50-100% vom Gesamt)
+              // progress.loaded und progress.total kommen vom GLTFLoader
+              const gltfProgress = (progress.loaded / progress.total) * 50;
+              const totalProgress = downloadProgress + gltfProgress;
+              if (onProgress) {
+                onProgress({ 
+                  loaded: totalProgress, 
+                  total: 100 
+                });
+              }
+            }
+          };
+          
           // Versuche die Datei zu laden
           const response = await fetch(url);
           
@@ -263,36 +285,58 @@
             throw new Error(`HTTP error! status: ${response.status}`);
           }
           
-          // Lade den Text-Inhalt um zu prüfen ob es eine LFS Pointer-Datei ist
-          const text = await response.text();
+          const contentLength = response.headers.get('content-length');
+          const total = contentLength ? parseInt(contentLength, 10) : 0;
+          const reader = response.body.getReader();
+          
+          // Lade die Datei mit Progress-Tracking
+          const chunks = [];
+          let received = 0;
+          let text = null;
+          let isPointerDetected = false;
+          
+          // Lese Stream-Chunk für Chunk
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            chunks.push(value);
+            received += value.length;
+            
+            // Prüfe auf Pointer-Datei, wenn wir genug Bytes haben
+            if (!isPointerDetected && received >= 500) {
+              const firstBlob = new Blob(chunks);
+              text = await firstBlob.text();
+              isPointerDetected = true;
+            }
+            
+            // Progress für Download (0-50%)
+            if (total > 0) {
+              downloadProgress = (received / total) * 50;
+              if (onProgress) {
+                onProgress({ 
+                  loaded: downloadProgress, 
+                  total: 100 
+                });
+              }
+            }
+          }
+          
+          const blob = new Blob(chunks);
+          
+          // Wenn wir noch keinen Text haben, hole ihn jetzt
+          if (!text) {
+            text = await blob.text();
+          }
           
           // Prüfe ob es eine Git LFS Pointer-Datei ist
           if (text.startsWith('version https://git-lfs.github.com/spec/v1')) {
-            // Es ist eine LFS Pointer-Datei, extrahiere die OID
-            const lines = text.split('\n');
-            let oid = null;
-            for (const line of lines) {
-              if (line.startsWith('oid sha256:')) {
-                oid = line.substring('oid sha256:'.length);
-                break;
-              }
-            }
-            
-            if (!oid) {
-              throw new Error('LFS Pointer-Datei konnte nicht geparst werden: OID nicht gefunden');
-            }
-            
-            // GitHub LFS Dateien müssen direkt von GitHub geladen werden
-            // GitHub Pages unterstützt kein LFS, daher müssen wir die Datei direkt von GitHub laden
+            // Es ist eine LFS Pointer-Datei, lade von GitHub
             const filePath = 'Wegbeschreibungen/Agatharied/Deutsch/Erdgeschoss.glb';
             
-            // Versuche verschiedene GitHub URLs (in Reihenfolge)
             const urls = [
-              // GitHub Media API (für große Dateien und LFS)
               `https://media.githubusercontent.com/media/Herold-Simon/seraphin-solutions-website/main/${encodeURIComponent(filePath)}`,
-              // GitHub Raw Content API (manchmal funktioniert es mit LFS)
               `https://raw.githubusercontent.com/Herold-Simon/seraphin-solutions-website/main/${encodeURIComponent(filePath)}`,
-              // Alternative: Direkte GitHub URL
               `https://github.com/Herold-Simon/seraphin-solutions-website/raw/main/${encodeURIComponent(filePath)}`
             ];
             
@@ -300,28 +344,48 @@
             for (const githubUrl of urls) {
               try {
                 const githubResponse = await fetch(githubUrl, {
-                  headers: {
-                    'Accept': 'application/octet-stream'
-                  }
+                  headers: { 'Accept': 'application/octet-stream' }
                 });
                 
                 if (githubResponse.ok) {
-                  const blob = await githubResponse.blob();
+                  const githubContentLength = githubResponse.headers.get('content-length');
+                  const githubTotal = githubContentLength ? parseInt(githubContentLength, 10) : 0;
+                  const githubReader = githubResponse.body.getReader();
+                  const githubChunks = [];
+                  let githubReceived = 0;
+                  
+                  // Lade von GitHub mit Progress
+                  while (true) {
+                    const { done, value } = await githubReader.read();
+                    if (done) break;
+                    
+                    githubChunks.push(value);
+                    githubReceived += value.length;
+                    
+                    // Progress für GitHub Download (0-50%)
+                    if (githubTotal > 0) {
+                      downloadProgress = (githubReceived / githubTotal) * 50;
+                      if (onProgress) {
+                        onProgress({ 
+                          loaded: downloadProgress, 
+                          total: 100 
+                        });
+                      }
+                    }
+                  }
+                  
+                  const githubBlob = new Blob(githubChunks);
                   
                   // Prüfe ob es nicht wieder eine Pointer-Datei ist
-                  // GLB-Dateien sollten mit "glTF" beginnen (im Binärformat)
-                  // Pointer-Dateien sind Text und beginnen mit "version https://git-lfs"
-                  const firstChunk = await blob.slice(0, 200).text();
-                  
-                  // Prüfe ob es eine Pointer-Datei ist
+                  const firstChunk = await githubBlob.slice(0, 200).text();
                   if (firstChunk.startsWith('version https://git-lfs.github.com/spec/v1')) {
                     console.warn(`URL ${githubUrl} lieferte noch eine Pointer-Datei, versuche nächste URL...`);
                     continue;
                   }
                   
-                  // Es scheint eine echte binäre Datei zu sein
-                  const objectUrl = URL.createObjectURL(blob);
-                  loader.load(objectUrl, onLoad, onProgress, (error) => {
+                  // Lade über GLTFLoader (50-100% Progress)
+                  const objectUrl = URL.createObjectURL(githubBlob);
+                  loader.load(objectUrl, onLoad, combinedProgress, (error) => {
                     URL.revokeObjectURL(objectUrl);
                     onError(error);
                   });
@@ -335,13 +399,18 @@
             }
             
             if (!loaded) {
-              throw new Error(`Konnte LFS-Datei nicht laden. GitHub Pages unterstützt Git LFS nicht direkt. Bitte stelle sicher, dass die GLB-Datei über einen alternativen Hosting-Service verfügbar ist, oder verwende die GitHub Media URL.`);
+              throw new Error(`Konnte LFS-Datei nicht laden. GitHub Pages unterstützt Git LFS nicht direkt.`);
             }
           } else {
-            // Es ist keine LFS Pointer-Datei, lade direkt
-            const blob = await response.blob();
+            // Es ist keine LFS Pointer-Datei, Download ist fertig (50%)
+            downloadProgress = 50;
+            if (onProgress) {
+              onProgress({ loaded: 50, total: 100 });
+            }
+            
+            // Lade über GLTFLoader (50-100% Progress)
             const objectUrl = URL.createObjectURL(blob);
-            loader.load(objectUrl, onLoad, onProgress, (error) => {
+            loader.load(objectUrl, onLoad, combinedProgress, (error) => {
               URL.revokeObjectURL(objectUrl);
               onError(error);
             });
