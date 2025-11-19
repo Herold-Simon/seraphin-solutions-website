@@ -198,87 +198,6 @@
       const loader = new GLTFLoader();
       let fittedDistance = null;
       
-      // Funktion zum nacheinander Einblenden der Meshes
-      function animateMeshesAppearance(meshes, delayPerMesh = 20) {
-        meshes.forEach((mesh, index) => {
-          // Zunächst alle Meshes unsichtbar machen
-          mesh.visible = false;
-          
-          // Speichere die ursprüngliche Transparenz-Einstellung
-          let originalTransparent = false;
-          let originalOpacity = 1;
-          
-          if (mesh.material && Array.isArray(mesh.material)) {
-            const originalStates = mesh.material.map(mat => ({
-              transparent: mat.transparent || false,
-              opacity: mat.opacity !== undefined ? mat.opacity : 1
-            }));
-            
-            mesh.material.forEach((mat, matIndex) => {
-              mat.transparent = true;
-              mat.opacity = 0;
-            });
-            
-            // Mesh nach einer Verzögerung einblenden
-            setTimeout(() => {
-              mesh.visible = true;
-              // Fade-in-Animation für alle Materialien
-              const startTime = Date.now();
-              const duration = 300; // 300ms Fade-in
-              const fadeIn = () => {
-                const elapsed = Date.now() - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                
-                mesh.material.forEach((mat, matIndex) => {
-                  mat.opacity = originalStates[matIndex].opacity * progress;
-                });
-                
-                if (progress < 1) {
-                  requestAnimationFrame(fadeIn);
-                } else {
-                  // Stelle ursprüngliche Transparenz-Einstellung wieder her
-                  mesh.material.forEach((mat, matIndex) => {
-                    mat.transparent = originalStates[matIndex].transparent;
-                    mat.opacity = originalStates[matIndex].opacity;
-                  });
-                }
-              };
-              requestAnimationFrame(fadeIn);
-            }, index * delayPerMesh);
-          } else if (mesh.material) {
-            originalTransparent = mesh.material.transparent || false;
-            originalOpacity = mesh.material.opacity !== undefined ? mesh.material.opacity : 1;
-            
-            mesh.material.transparent = true;
-            mesh.material.opacity = 0;
-            
-            // Mesh nach einer Verzögerung einblenden
-            setTimeout(() => {
-              mesh.visible = true;
-              const startTime = Date.now();
-              const duration = 300;
-              const fadeIn = () => {
-                const elapsed = Date.now() - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                mesh.material.opacity = originalOpacity * progress;
-                if (progress < 1) {
-                  requestAnimationFrame(fadeIn);
-                } else {
-                  // Stelle ursprüngliche Transparenz-Einstellung wieder her
-                  mesh.material.transparent = originalTransparent;
-                  mesh.material.opacity = originalOpacity;
-                }
-              };
-              requestAnimationFrame(fadeIn);
-            }, index * delayPerMesh);
-          } else {
-            // Fallback: Einfach sichtbar machen ohne Fade-in
-            setTimeout(() => {
-              mesh.visible = true;
-            }, index * delayPerMesh);
-          }
-        });
-      }
       
       // Custom loader für Git LFS Dateien
       async function loadGLBWithLFS(url, onLoad, onError) {
@@ -406,18 +325,13 @@
           model = gltf.scene;
           scene.add(model);
           
-          // Sammle alle Meshes
-          const meshes = [];
+          // Setze Shadow-Einstellungen für alle Meshes
           model.traverse((child) => {
             if (child.isMesh) {
               child.castShadow = true;
               child.receiveShadow = true;
-              meshes.push(child);
             }
           });
-          
-          // Zeige alle Meshes nacheinander an
-          animateMeshesAppearance(meshes, 20);
 
           const box = new THREE.Box3().setFromObject(model);
           const size = box.getSize(new THREE.Vector3());
