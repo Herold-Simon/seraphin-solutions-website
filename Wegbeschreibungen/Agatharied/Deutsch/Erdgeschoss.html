@@ -252,7 +252,107 @@
       const progressText = document.getElementById("progressText");
       let isLoadingComplete = false;
       
-      loader.load(
+      // Custom loader für Git LFS Dateien
+      async function loadGLBWithLFS(url, onLoad, onProgress, onError) {
+        try {
+          // Versuche die Datei zu laden
+          const response = await fetch(url);
+          
+          // Prüfe ob die Antwort erfolgreich war
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          // Lade den Text-Inhalt um zu prüfen ob es eine LFS Pointer-Datei ist
+          const text = await response.text();
+          
+          // Prüfe ob es eine Git LFS Pointer-Datei ist
+          if (text.startsWith('version https://git-lfs.github.com/spec/v1')) {
+            // Es ist eine LFS Pointer-Datei, extrahiere die OID
+            const lines = text.split('\n');
+            let oid = null;
+            for (const line of lines) {
+              if (line.startsWith('oid sha256:')) {
+                oid = line.substring('oid sha256:'.length);
+                break;
+              }
+            }
+            
+            if (!oid) {
+              throw new Error('LFS Pointer-Datei konnte nicht geparst werden: OID nicht gefunden');
+            }
+            
+            // GitHub LFS Dateien müssen direkt von GitHub geladen werden
+            // GitHub Pages unterstützt kein LFS, daher müssen wir die Datei direkt von GitHub laden
+            const filePath = 'Wegbeschreibungen/Agatharied/Deutsch/Erdgeschoss.glb';
+            
+            // Versuche verschiedene GitHub URLs (in Reihenfolge)
+            const urls = [
+              // GitHub Media API (für große Dateien und LFS)
+              `https://media.githubusercontent.com/media/Herold-Simon/seraphin-solutions-website/main/${encodeURIComponent(filePath)}`,
+              // GitHub Raw Content API (manchmal funktioniert es mit LFS)
+              `https://raw.githubusercontent.com/Herold-Simon/seraphin-solutions-website/main/${encodeURIComponent(filePath)}`,
+              // Alternative: Direkte GitHub URL
+              `https://github.com/Herold-Simon/seraphin-solutions-website/raw/main/${encodeURIComponent(filePath)}`
+            ];
+            
+            let loaded = false;
+            for (const githubUrl of urls) {
+              try {
+                const githubResponse = await fetch(githubUrl, {
+                  headers: {
+                    'Accept': 'application/octet-stream'
+                  }
+                });
+                
+                if (githubResponse.ok) {
+                  const blob = await githubResponse.blob();
+                  
+                  // Prüfe ob es nicht wieder eine Pointer-Datei ist
+                  // GLB-Dateien sollten mit "glTF" beginnen (im Binärformat)
+                  // Pointer-Dateien sind Text und beginnen mit "version https://git-lfs"
+                  const firstChunk = await blob.slice(0, 200).text();
+                  
+                  // Prüfe ob es eine Pointer-Datei ist
+                  if (firstChunk.startsWith('version https://git-lfs.github.com/spec/v1')) {
+                    console.warn(`URL ${githubUrl} lieferte noch eine Pointer-Datei, versuche nächste URL...`);
+                    continue;
+                  }
+                  
+                  // Es scheint eine echte binäre Datei zu sein
+                  const objectUrl = URL.createObjectURL(blob);
+                  loader.load(objectUrl, onLoad, onProgress, (error) => {
+                    URL.revokeObjectURL(objectUrl);
+                    onError(error);
+                  });
+                  loaded = true;
+                  break;
+                }
+              } catch (e) {
+                console.warn(`URL ${githubUrl} fehlgeschlagen:`, e);
+                continue;
+              }
+            }
+            
+            if (!loaded) {
+              throw new Error(`Konnte LFS-Datei nicht laden. GitHub Pages unterstützt Git LFS nicht direkt. Bitte stelle sicher, dass die GLB-Datei über einen alternativen Hosting-Service verfügbar ist, oder verwende die GitHub Media URL.`);
+            }
+          } else {
+            // Es ist keine LFS Pointer-Datei, lade direkt
+            const blob = await response.blob();
+            const objectUrl = URL.createObjectURL(blob);
+            loader.load(objectUrl, onLoad, onProgress, (error) => {
+              URL.revokeObjectURL(objectUrl);
+              onError(error);
+            });
+          }
+        } catch (error) {
+          console.error('Fehler beim Laden der GLB-Datei:', error);
+          onError(error);
+        }
+      }
+      
+      loadGLBWithLFS(
         "./Erdgeschoss.glb",
         (gltf) => {
           // Loading abgeschlossen
