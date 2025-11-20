@@ -125,7 +125,7 @@
       <div id="progressBarWrapper">
         <div id="progressBar"></div>
       </div>
-      <div id="progressText">Lade 3D-Modell...</div>
+      <div id="progressText">Lade Grundriss...</div>
       <div id="progressDetails"></div>
       <div id="progressSpeed"></div>
     </div>
@@ -277,12 +277,12 @@
         const phaseNames = {
           'check': 'Prüfe Datei...',
           'download': 'Lade Datei...',
-          'parse': 'Analysiere 3D-Modell...',
+          'parse': 'Analysiere Grundriss...',
           'init': 'Initialisiere Szene...',
           'complete': 'Fertig!'
         };
         
-        progressText.textContent = phaseNames[phase] || 'Lade 3D-Modell...';
+        progressText.textContent = phaseNames[phase] || 'Lade Grundriss...';
         if (totalPercent < 100) {
           progressText.textContent += ` ${Math.round(totalPercent)}%`;
         }
@@ -446,7 +446,7 @@
                   // Es scheint eine echte binäre Datei zu sein
                   const objectUrl = URL.createObjectURL(blob);
                   
-                  updateProgress('parse', 85, 'Parse 3D-Modell...');
+                  updateProgress('parse', 85, 'Initialisiere Grundriss...');
                   
                   // Erweiterten Progress-Callback für GLTFLoader
                   const enhancedProgress = (progress) => {
@@ -454,13 +454,13 @@
                       const parsePercent = (progress.loaded / progress.total) * 100;
                       const overallPercent = 85 + (parsePercent * 0.1); // 85-95% für Parse
                       updateProgress('parse', overallPercent, 
-                        `Parse Geometrien und Texturen... (${Math.round(parsePercent)}%)`);
+                        `Lade die einzelnen Räume... (${Math.round(parsePercent)}%)`);
                     }
                   };
                   
                   loader.load(objectUrl, (gltf) => {
                     URL.revokeObjectURL(objectUrl);
-                    updateProgress('init', 95, 'Initialisiere 3D-Szene...');
+                    updateProgress('init', 95, 'Überprüfe Grundriss...');
                     onLoad(gltf);
                   }, enhancedProgress, (error) => {
                     URL.revokeObjectURL(objectUrl);
@@ -527,7 +527,7 @@
             
             const blob = new Blob(chunks);
             
-            updateProgress('parse', 82, 'Parse 3D-Modell...');
+            updateProgress('parse', 82, 'Lade Grundriss...');
             
             const objectUrl = URL.createObjectURL(blob);
             
