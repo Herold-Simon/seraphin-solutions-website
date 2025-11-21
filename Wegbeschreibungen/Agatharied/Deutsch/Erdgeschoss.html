@@ -166,85 +166,55 @@
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.2; // Optimiert für realistische Helligkeit
+      renderer.toneMappingExposure = 1.1; // Leicht erhöht für besseren Kontrast
       renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Weiche, realistische Schatten
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Weiche, hochwertige Schatten
       renderer.shadowMap.autoUpdate = true;
-      renderer.useLegacyLights = false; // Moderne physikalisch basierte Beleuchtung
 
-      // Realistisches Lighting-Setup für Architektur-Visualisierung
-      // Simuliert natürliches Tageslicht mit realistischen Farbtemperaturen
+      // Professionelles Lighting-Setup für Architektur-Visualisierung
       
       // Hemispheric Light - simuliert natürliches Himmels- und Bodenlicht
-      // Kühles Himmelslicht (Nordhimmel, ~6500K) und wärmeres Bodenlicht
       const hemiLight = new THREE.HemisphereLight(
-        0xb8d4ff, // Kühles Himmelsblau (6500K - natürliches Tageslicht)
-        0x4a4a4a, // Warmes Bodenlicht (reflektiertes Umgebungslicht)
-        0.8       // Erhöhte Intensität für natürlichere Beleuchtung
+        0xd1e0ff, // Himmelsfarbe (warmes Blau-Weiß)
+        0x3d3d3d, // Bodenfarbe (dunkles Grau)
+        0.6       // Intensität
       );
       hemiLight.position.set(0, 50, 0);
       scene.add(hemiLight);
 
       // Haupt-Directional Light (Key Light) - Sonnenlicht
-      // Warmes Sonnenlicht (~5500K Mittagssonne, leicht gelblich)
-      const sunColor = new THREE.Color(0xfff4e6); // Warmes Sonnenlicht (5500K)
-      const mainLight = new THREE.DirectionalLight(sunColor, 1.5);
-      // Realistische Sonnenposition (45° Höhenwinkel, Süd-Ost Ausrichtung)
-      mainLight.position.set(12, 18, 10);
+      const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
+      mainLight.position.set(10, 15, 8);
       mainLight.castShadow = true;
       
-      // Optimierte Schatten-Konfiguration für realistische Schatten
+      // Schatten-Konfiguration für qualitativ hochwertige Schatten
       mainLight.shadow.mapSize.width = 4096;
       mainLight.shadow.mapSize.height = 4096;
-      mainLight.shadow.camera.near = 0.1;
-      mainLight.shadow.camera.far = 150;
-      mainLight.shadow.camera.left = -30;
-      mainLight.shadow.camera.right = 30;
-      mainLight.shadow.camera.top = 30;
-      mainLight.shadow.camera.bottom = -30;
-      mainLight.shadow.bias = -0.0002; // Optimiert gegen Shadow Acne
+      mainLight.shadow.camera.near = 0.5;
+      mainLight.shadow.camera.far = 100;
+      mainLight.shadow.camera.left = -20;
+      mainLight.shadow.camera.right = 20;
+      mainLight.shadow.camera.top = 20;
+      mainLight.shadow.camera.bottom = -20;
+      mainLight.shadow.bias = -0.0001;
       mainLight.shadow.normalBias = 0.02;
-      mainLight.shadow.radius = 6; // Weichere, realistischere Schatten
+      mainLight.shadow.radius = 4; // Weiche Schatten
       
       scene.add(mainLight);
 
-      // Indirektes Himmelslicht (Sky Light) - simuliert Licht von oben
-      // Kühles, weiches Licht vom Himmel
-      const skyLight = new THREE.DirectionalLight(0xa8c8ff, 0.5);
-      skyLight.position.set(0, 25, 0); // Direkt von oben
-      scene.add(skyLight);
-
       // Fill Light - weiche Aufhellung von der gegenüberliegenden Seite
-      // Kühleres indirektes Licht (Reflektion vom Himmel)
-      const fillLight = new THREE.DirectionalLight(0xc8e0ff, 0.3);
-      fillLight.position.set(-10, 10, -8);
+      const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+      fillLight.position.set(-8, 8, -6);
       scene.add(fillLight);
 
-      // Rim Light - subtile Kantenbeleuchtung für Tiefe
-      // Leicht warmes Reflektionslicht
-      const rimLight = new THREE.DirectionalLight(0xfff0d8, 0.25);
-      rimLight.position.set(-8, 8, -12);
+      // Rim Light - für bessere Kontur und Tiefe
+      const rimLight = new THREE.DirectionalLight(0xffffff, 0.3);
+      rimLight.position.set(-5, 5, -10);
       scene.add(rimLight);
 
-      // Sehr subtiles Ambient Light für absolute Dunkelheit
-      // Minimale Basisbeleuchtung ohne Schatten
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.15);
+      // Zusätzliches Ambient Light für sehr dunkle Bereiche (subtile Ergänzung)
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
       scene.add(ambientLight);
-
-      // Zusätzliche Point Lights für realistische indirekte Beleuchtung
-      // Simulieren reflektiertes Licht von Wänden und Oberflächen
-      const indirectLight1 = new THREE.PointLight(0xfff4e6, 0.3, 30);
-      indirectLight1.position.set(8, 5, 8);
-      scene.add(indirectLight1);
-      
-      const indirectLight2 = new THREE.PointLight(0xc8e0ff, 0.25, 30);
-      indirectLight2.position.set(-8, 5, -8);
-      scene.add(indirectLight2);
-      
-      // Zusätzliches weiches Licht für gleichmäßigere Ausleuchtung
-      const softLight = new THREE.DirectionalLight(0xffffff, 0.2);
-      softLight.position.set(0, 12, 0);
-      scene.add(softLight);
 
       const controls = new OrbitControls(camera, renderer.domElement);
       controls.enablePan = true;
@@ -646,23 +616,6 @@
             if (child.isMesh) {
               child.castShadow = true;
               child.receiveShadow = true;
-              
-              // Optimiere Materialien für realistische Beleuchtung
-              if (child.material) {
-                if (Array.isArray(child.material)) {
-                  child.material.forEach((mat) => {
-                    if (mat.isMeshStandardMaterial || mat.isMeshPhysicalMaterial) {
-                      // Optimiere Materialien für realistische Beleuchtung
-                      // Ohne Environment-Map: Materialien nutzen die vorhandenen Lichter
-                      mat.needsUpdate = true;
-                    }
-                  });
-                } else {
-                  if (child.material.isMeshStandardMaterial || child.material.isMeshPhysicalMaterial) {
-                    child.material.needsUpdate = true;
-                  }
-                }
-              }
             }
           });
 
