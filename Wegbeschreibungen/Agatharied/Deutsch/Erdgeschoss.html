@@ -166,16 +166,55 @@
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.05;
+      renderer.toneMappingExposure = 1.1; // Leicht erhöht für besseren Kontrast
       renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Weiche, hochwertige Schatten
+      renderer.shadowMap.autoUpdate = true;
 
-      const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+      // Professionelles Lighting-Setup für Architektur-Visualisierung
+      
+      // Hemispheric Light - simuliert natürliches Himmels- und Bodenlicht
+      const hemiLight = new THREE.HemisphereLight(
+        0xd1e0ff, // Himmelsfarbe (warmes Blau-Weiß)
+        0x3d3d3d, // Bodenfarbe (dunkles Grau)
+        0.6       // Intensität
+      );
+      hemiLight.position.set(0, 50, 0);
+      scene.add(hemiLight);
+
+      // Haupt-Directional Light (Key Light) - Sonnenlicht
+      const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
+      mainLight.position.set(10, 15, 8);
+      mainLight.castShadow = true;
+      
+      // Schatten-Konfiguration für qualitativ hochwertige Schatten
+      mainLight.shadow.mapSize.width = 4096;
+      mainLight.shadow.mapSize.height = 4096;
+      mainLight.shadow.camera.near = 0.5;
+      mainLight.shadow.camera.far = 100;
+      mainLight.shadow.camera.left = -20;
+      mainLight.shadow.camera.right = 20;
+      mainLight.shadow.camera.top = 20;
+      mainLight.shadow.camera.bottom = -20;
+      mainLight.shadow.bias = -0.0001;
+      mainLight.shadow.normalBias = 0.02;
+      mainLight.shadow.radius = 4; // Weiche Schatten
+      
+      scene.add(mainLight);
+
+      // Fill Light - weiche Aufhellung von der gegenüberliegenden Seite
+      const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+      fillLight.position.set(-8, 8, -6);
+      scene.add(fillLight);
+
+      // Rim Light - für bessere Kontur und Tiefe
+      const rimLight = new THREE.DirectionalLight(0xffffff, 0.3);
+      rimLight.position.set(-5, 5, -10);
+      scene.add(rimLight);
+
+      // Zusätzliches Ambient Light für sehr dunkle Bereiche (subtile Ergänzung)
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
       scene.add(ambientLight);
-
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-      directionalLight.position.set(5, 10, 7);
-      scene.add(directionalLight);
 
       const controls = new OrbitControls(camera, renderer.domElement);
       controls.enablePan = true;
