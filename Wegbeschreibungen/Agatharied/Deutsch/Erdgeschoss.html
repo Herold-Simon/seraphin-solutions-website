@@ -145,7 +145,6 @@
       import * as THREE from "three";
       import { OrbitControls } from "three/addons/controls/OrbitControls.js";
       import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-      import { PMREMGenerator } from "three/addons/utils/PMREMGenerator.js";
 
       const canvas = document.getElementById("viewer");
       const scene = new THREE.Scene();
@@ -232,28 +231,20 @@
       const ambientLight = new THREE.AmbientLight(0xffffff, 0.15);
       scene.add(ambientLight);
 
-      // Erstelle eine procedurale Environment Map für realistische Reflexionen
-      // Simuliert einen natürlichen Himmel mit realistischem Gradient
-      const pmremGenerator = new PMREMGenerator(renderer);
-      pmremGenerator.compileEquirectangularShader();
+      // Zusätzliche Point Lights für realistische indirekte Beleuchtung
+      // Simulieren reflektiertes Licht von Wänden und Oberflächen
+      const indirectLight1 = new THREE.PointLight(0xfff4e6, 0.3, 30);
+      indirectLight1.position.set(8, 5, 8);
+      scene.add(indirectLight1);
       
-      // Erstelle eine temporäre Szene für Environment-Map-Generierung
-      // Verwendet ähnliche Farben wie das Hauptlicht für Konsistenz
-      const envScene = new THREE.Scene();
-      const envHelper = new THREE.HemisphereLight(
-        0xb8d4ff, // Kühles Himmelslicht
-        0x6a6a6a, // Warmes Bodenlicht (reflektiert)
-        1.2       // Höhere Intensität für Environment-Map
-      );
-      envScene.add(envHelper);
+      const indirectLight2 = new THREE.PointLight(0xc8e0ff, 0.25, 30);
+      indirectLight2.position.set(-8, 5, -8);
+      scene.add(indirectLight2);
       
-      // Generiere Environment-Map mit hoher Qualität
-      const envMap = pmremGenerator.fromScene(envScene, 0.04).texture;
-      scene.environment = envMap;
-      scene.environmentIntensity = 0.8; // Optimierte Intensität für realistische Reflexionen
-      
-      // Cleanup - dispose nach Verwendung um Speicher zu sparen
-      pmremGenerator.dispose();
+      // Zusätzliches weiches Licht für gleichmäßigere Ausleuchtung
+      const softLight = new THREE.DirectionalLight(0xffffff, 0.2);
+      softLight.position.set(0, 12, 0);
+      scene.add(softLight);
 
       const controls = new OrbitControls(camera, renderer.domElement);
       controls.enablePan = true;
@@ -656,19 +647,18 @@
               child.castShadow = true;
               child.receiveShadow = true;
               
-              // Optimiere Materialien für realistische Environment-basierte Beleuchtung
+              // Optimiere Materialien für realistische Beleuchtung
               if (child.material) {
-                // Stelle sicher, dass Materialien Environment-Maps verwenden
                 if (Array.isArray(child.material)) {
                   child.material.forEach((mat) => {
                     if (mat.isMeshStandardMaterial || mat.isMeshPhysicalMaterial) {
-                      mat.envMapIntensity = 1.0; // Volle Environment-Intensität
+                      // Optimiere Materialien für realistische Beleuchtung
+                      // Ohne Environment-Map: Materialien nutzen die vorhandenen Lichter
                       mat.needsUpdate = true;
                     }
                   });
                 } else {
                   if (child.material.isMeshStandardMaterial || child.material.isMeshPhysicalMaterial) {
-                    child.material.envMapIntensity = 1.0; // Volle Environment-Intensität
                     child.material.needsUpdate = true;
                   }
                 }
