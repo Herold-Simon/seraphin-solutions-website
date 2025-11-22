@@ -595,8 +595,15 @@
         }
       }
       
+      // Cache-Busting: Füge Timestamp hinzu, um Browser-Caching zu verhindern
+      // Bei HTTP-Requests wird ein Timestamp hinzugefügt, damit Änderungen sofort sichtbar sind
+      // Für Produktion: Ersetze Date.now() durch eine Versionsnummer (z.B. "?v=1.0")
+      const glbUrl = window.location.protocol === 'file:' 
+        ? "./1. Obergeschoss.glb"
+        : "./1. Obergeschoss.glb?v=" + Date.now();
+      
       loadGLBWithLFS(
-        "./1. Obergeschoss.glb",
+        glbUrl,
         (gltf) => {
           // Loading abgeschlossen
           isLoadingComplete = true;
