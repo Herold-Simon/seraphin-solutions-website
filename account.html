@@ -216,8 +216,21 @@
                 max-width: 100%;
             }
 
+            .nav-container {
+                justify-content: space-between;
+            }
+
             .account-icon-wrapper {
                 display: flex;
+                order: 2;
+                margin-left: 0;
+                margin-right: 0.5rem;
+            }
+
+            .hamburger {
+                display: flex;
+                order: 3;
+                margin-left: 0;
             }
 
             .account-dropdown {
@@ -229,10 +242,6 @@
             .account-icon-wrapper:hover .account-dropdown,
             .account-icon-wrapper.active .account-dropdown {
                 transform: translateY(0);
-            }
-
-            .hamburger {
-                display: flex;
             }
 
             .nav-menu {

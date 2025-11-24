@@ -2541,12 +2541,21 @@ input[type="range"]::-moz-range-thumb {
         max-width: 100%;
     }
 
-    .hamburger {
-        display: flex;
+    .nav-container {
+        justify-content: space-between;
     }
 
     .account-icon-wrapper {
         display: flex;
+        order: 2;
+        margin-left: 0;
+        margin-right: 0.5rem;
+    }
+
+    .hamburger {
+        display: flex;
+        order: 3;
+        margin-left: 0;
     }
 
     .account-dropdown {
