@@ -115,90 +115,10 @@
             background: var(--gradient-secondary);
         }
 
-        /* Account Icon */
-        .account-icon-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-            margin-left: 0.5rem;
-        }
-
-        .account-icon {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-dark);
-            font-size: 1.25rem;
-            transition: all 0.3s ease;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-        }
-
-        .account-icon:hover {
-            background: var(--light-gray);
-            color: var(--primary-blue);
-        }
-
-        .account-icon:focus {
-            outline: 2px solid var(--primary-blue);
-            outline-offset: 2px;
-        }
-
-        .account-dropdown {
-            position: absolute;
-            top: calc(100% + 0.5rem);
-            right: 0;
-            background: var(--white);
-            border-radius: 8px;
-            box-shadow: var(--shadow-lg);
-            min-width: 180px;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-10px);
-            transition: all 0.3s ease;
-            z-index: 1001;
-            padding: 0.5rem 0;
-            border: 1px solid var(--border-color);
-        }
-
-        .account-icon-wrapper:hover .account-dropdown,
-        .account-icon-wrapper.active .account-dropdown {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        .account-dropdown-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1.25rem;
-            text-decoration: none;
-            color: var(--text-dark);
-            transition: all 0.2s ease;
-            font-weight: 500;
-        }
-
-        .account-dropdown-item:hover {
-            background: var(--light-gray);
-            color: var(--primary-blue);
-        }
-
-        .account-dropdown-item i {
-            width: 18px;
-            text-align: center;
-        }
-
         .hamburger {
             display: none;
             flex-direction: column;
             cursor: pointer;
-            margin-left: 0.5rem;
         }
 
         .hamburger span {
@@ -216,32 +136,8 @@
                 max-width: 100%;
             }
 
-            .nav-container {
-                justify-content: space-between;
-            }
-
-            .account-icon-wrapper {
-                display: flex;
-                order: 2;
-                margin-left: 0;
-                margin-right: 0.5rem;
-            }
-
             .hamburger {
                 display: flex;
-                order: 3;
-                margin-left: 0;
-            }
-
-            .account-dropdown {
-                right: 0;
-                left: auto;
-                transform: translateY(-10px);
-            }
-
-            .account-icon-wrapper:hover .account-dropdown,
-            .account-icon-wrapper.active .account-dropdown {
-                transform: translateY(0);
             }
 
             .nav-menu {
@@ -706,21 +602,6 @@
                     Abmelden
                 </a></li>
             </ul>
-            <div class="account-icon-wrapper">
-                <button class="account-icon" aria-label="Konto-Menü">
-                    <i class="fas fa-user"></i>
-                </button>
-                <div class="account-dropdown">
-                    <a href="/login.html" class="account-dropdown-item">
-                        <i class="fas fa-sign-in-alt"></i>
-                        Login
-                    </a>
-                    <a href="/support.html" class="account-dropdown-item">
-                        <i class="fas fa-life-ring"></i>
-                        Support
-                    </a>
-                </div>
-            </div>
             <div class="hamburger">
                 <span></span>
                 <span></span>

@@ -2,53 +2,18 @@
 const hamburger = document.querySelector('.hamburger');
 const navMenu = document.querySelector('.nav-menu');
 
-if (hamburger) {
-    hamburger.addEventListener('click', () => {
-        hamburger.classList.toggle('active');
-        navMenu.classList.toggle('active');
-    });
-}
+hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('active');
+    navMenu.classList.toggle('active');
+});
 
 // Close mobile menu when clicking on a link
 document.querySelectorAll('.nav-menu a').forEach(link => {
     link.addEventListener('click', () => {
-        if (hamburger) {
-            hamburger.classList.remove('active');
-        }
-        if (navMenu) {
-            navMenu.classList.remove('active');
-        }
+        hamburger.classList.remove('active');
+        navMenu.classList.remove('active');
     });
 });
-
-// Account Icon Dropdown Toggle
-const accountIconWrapper = document.querySelector('.account-icon-wrapper');
-const accountIcon = document.querySelector('.account-icon');
-
-if (accountIconWrapper && accountIcon) {
-    // For mobile: toggle on click
-    accountIcon.addEventListener('click', (e) => {
-        // Only toggle on mobile (touch devices)
-        if (window.innerWidth <= 768) {
-            e.stopPropagation();
-            accountIconWrapper.classList.toggle('active');
-        }
-    });
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!accountIconWrapper.contains(e.target)) {
-            accountIconWrapper.classList.remove('active');
-        }
-    });
-
-    // Close dropdown when clicking on a dropdown item
-    document.querySelectorAll('.account-dropdown-item').forEach(item => {
-        item.addEventListener('click', () => {
-            accountIconWrapper.classList.remove('active');
-        });
-    });
-}
 
 // Smooth scrolling for navigation links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
