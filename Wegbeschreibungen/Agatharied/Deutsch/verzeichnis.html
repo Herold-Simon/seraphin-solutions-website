@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>Geschossauswahl</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100vh;
+        background: #f0f0f0;
+        font-family: Arial, Helvetica, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .button-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        width: 100%;
+        max-width: 400px;
+      }
+
+      .floor-button {
+        width: 100%;
+        padding: 24px;
+        border: none;
+        border-radius: 12px;
+        background-color: #ffffff;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        text-decoration: none;
+        color: inherit;
+        font-size: 18px;
+        font-weight: 500;
+        min-height: 100px;
+      }
+
+      .floor-button:active {
+        transform: translateY(2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      .floor-button.disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+        background-color: #f5f5f5;
+      }
+
+      .floor-button.disabled:active {
+        transform: none;
+      }
+
+      .button-title {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #000000;
+      }
+
+      .button-subtitle {
+        font-size: 14px;
+        color: #666666;
+        margin-top: 4px;
+      }
+
+      .button-icon {
+        font-family: "Material Symbols Outlined";
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+        font-size: 32px;
+        color: #ff9800;
+        margin-bottom: 8px;
+      }
+
+      .button-icon.construction {
+        color: #ff9800;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="button-container">
+      <a href="Erdgeschoss.html" class="floor-button">
+        <div class="button-title">Erdgeschoss</div>
+        <div class="button-subtitle">Stand: 24.11.2025</div>
+      </a>
+
+      <a href="1. Obergeschoss.html" class="floor-button">
+        <div class="button-title">1. Obergeschoss</div>
+        <div class="button-subtitle">Stand: 26.11.2025</div>
+      </a>
+
+      <button class="floor-button disabled" type="button" disabled>
+        <span class="material-symbols-outlined button-icon construction">
+          construction
+        </span>
+        <div class="button-title">2. Obergeschoss</div>
+      </button>
+    </div>
+  </body>
+</html>
+
+
+
+

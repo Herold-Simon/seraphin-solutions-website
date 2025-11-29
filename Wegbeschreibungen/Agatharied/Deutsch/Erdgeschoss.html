@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>Wegbeschreibung </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    />
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100vh;
+        overflow: hidden;
+        background: #f0f0f0;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      #viewer {
+        width: 100vw;
+        height: 100vh;
+        display: block;
+        touch-action: none;
+      }
+
+      #resetView {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        width: 52px;
+        height: 52px;
+        border: none;
+        border-radius: 50%;
+        background-color: #ffffff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      #resetView:hover,
+      #resetView:focus {
+        outline: none;
+        transform: translateY(-1px);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+      }
+
+      #resetView .material-symbols-outlined {
+        font-family: "Material Symbols Outlined";
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+        font-size: 26px;
+        color: #000000;
+      }
+
+      #progressContainer {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(240, 240, 240, 0.95);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        transition: opacity 0.3s ease;
+      }
+
+      #progressContainer.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #progressBarWrapper {
+        width: 80%;
+        max-width: 400px;
+        background-color: #e0e0e0;
+        border-radius: 20px;
+        height: 24px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      #progressBar {
+        height: 100%;
+        background: linear-gradient(90deg, #4CAF50, #45a049);
+        width: 0%;
+        transition: width 0.2s ease;
+        border-radius: 20px;
+      }
+
+      #progressText {
+        margin-top: 20px;
+        font-size: 16px;
+        color: #333;
+        font-weight: 500;
+      }
+
+      #progressDetails {
+        margin-top: 12px;
+        font-size: 13px;
+        color: #666;
+        font-weight: 400;
+      }
+
+      #progressSpeed {
+        margin-top: 8px;
+        font-size: 12px;
+        color: #888;
+      }
+
+      #backButton {
+        position: fixed;
+        left: 16px;
+        top: 16px;
+        width: 48px;
+        height: 48px;
+        border: none;
+        border-radius: 24px;
+        background-color: #ffffff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+        transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+        z-index: 100;
+        text-decoration: none;
+        color: inherit;
+      }
+
+      #backButton:hover,
+      #backButton:focus {
+        outline: none;
+        background-color: #f5f5f5;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
+        transform: translateY(-1px);
+      }
+
+      #backButton:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 1px 1px rgba(0, 0, 0, 0.06);
+      }
+
+      #backButton .material-symbols-outlined {
+        font-family: "Material Symbols Outlined";
+        font-variation-settings:
+          "FILL" 1,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+        font-size: 24px;
+        color: #1f1f1f;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div id="progressContainer">
+      <div id="progressBarWrapper">
+        <div id="progressBar"></div>
+      </div>
+      <div id="progressText">Lade Grundriss...</div>
+      <div id="progressDetails"></div>
+      <div id="progressSpeed"></div>
+    </div>
+    <canvas id="viewer"></canvas>
+    <a href="verzeichnis.html" id="backButton" aria-label="Zurück zum Verzeichnis">
+      <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    </a>
+    <button id="resetView" type="button" aria-label="Ansicht zurücksetzen">
+      <span class="material-symbols-outlined" aria-hidden="true">reset_focus</span>
+    </button>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+      import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+
+      const canvas = document.getElementById("viewer");
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf0f0f0);
+
+      const camera = new THREE.PerspectiveCamera(
+        45,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        2000
+      );
+
+      const renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: true,
+        preserveDrawingBuffer: true,
+      });
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.1; // Leicht erhöht für besseren Kontrast
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Weiche, hochwertige Schatten
+      renderer.shadowMap.autoUpdate = true;
+
+      // Professionelles Lighting-Setup für Architektur-Visualisierung
+      
+      // Hemispheric Light - simuliert natürliches Himmels- und Bodenlicht
+      const hemiLight = new THREE.HemisphereLight(
+        0xd1e0ff, // Himmelsfarbe (warmes Blau-Weiß)
+        0x3d3d3d, // Bodenfarbe (dunkles Grau)
+        0.6       // Intensität
+      );
+      hemiLight.position.set(0, 50, 0);
+      scene.add(hemiLight);
+
+      // Haupt-Directional Light (Key Light) - Sonnenlicht
+      const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
+      mainLight.position.set(10, 15, 8);
+      mainLight.castShadow = true;
+      
+      // Schatten-Konfiguration für qualitativ hochwertige Schatten
+      mainLight.shadow.mapSize.width = 4096;
+      mainLight.shadow.mapSize.height = 4096;
+      mainLight.shadow.camera.near = 0.5;
+      mainLight.shadow.camera.far = 100;
+      mainLight.shadow.camera.left = -20;
+      mainLight.shadow.camera.right = 20;
+      mainLight.shadow.camera.top = 20;
+      mainLight.shadow.camera.bottom = -20;
+      mainLight.shadow.bias = -0.0001;
+      mainLight.shadow.normalBias = 0.02;
+      mainLight.shadow.radius = 4; // Weiche Schatten
+      
+      scene.add(mainLight);
+
+      // Fill Light - weiche Aufhellung von der gegenüberliegenden Seite
+      const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+      fillLight.position.set(-8, 8, -6);
+      scene.add(fillLight);
+
+      // Rim Light - für bessere Kontur und Tiefe
+      const rimLight = new THREE.DirectionalLight(0xffffff, 0.3);
+      rimLight.position.set(-5, 5, -10);
+      scene.add(rimLight);
+
+      // Zusätzliches Ambient Light für sehr dunkle Bereiche (subtile Ergänzung)
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+      scene.add(ambientLight);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enablePan = true;
+      controls.enableRotate = false;
+      controls.enableZoom = true;
+      controls.screenSpacePanning = false;
+      controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
+      controls.mouseButtons.RIGHT = THREE.MOUSE.PAN;
+      controls.touches.ONE = THREE.TOUCH.PAN;
+      controls.touches.TWO = THREE.TOUCH.DOLLY_PAN;
+      controls.minPolarAngle = 0;
+      controls.maxPolarAngle = 0;
+      controls.update();
+
+      const raycaster = new THREE.Raycaster();
+      const pointer = new THREE.Vector2();
+      let model = null;
+      let lastTapTime = 0;
+      const tapThresholdMs = 300;
+      const resetButton = document.getElementById("resetView");
+      const zoomState = {
+        active: false,
+        startTarget: new THREE.Vector3(),
+        endTarget: new THREE.Vector3(),
+        startPosition: new THREE.Vector3(),
+        endPosition: new THREE.Vector3(),
+        startTime: 0,
+        duration: 350,
+      };
+      let controlsStateChanged = false;
+
+      function approxEquals(vecA, vecB, epsilon = 1e-4) {
+        return (
+          Math.abs(vecA.x - vecB.x) <= epsilon &&
+          Math.abs(vecA.y - vecB.y) <= epsilon &&
+          Math.abs(vecA.z - vecB.z) <= epsilon
+        );
+      }
+
+      function startZoomAnimation(targetVec, positionVec, duration = 350) {
+        zoomState.active = false;
+        zoomState.startTarget.copy(controls.target);
+        zoomState.startPosition.copy(camera.position);
+        zoomState.endTarget.copy(targetVec);
+        zoomState.endPosition.copy(positionVec);
+        zoomState.duration = duration;
+        zoomState.startTime = performance.now();
+        zoomState.active = true;
+        controlsStateChanged = true;
+      }
+
+      function zoomToPoint(point, factor = 0.5) {
+        const direction = new THREE.Vector3().copy(camera.position).sub(controls.target);
+        const currentDistance = direction.length();
+        const desiredDistance = Math.max(currentDistance * factor, 0.5);
+        direction.setLength(desiredDistance);
+
+        const targetPoint = new THREE.Vector3().copy(point);
+        const endPosition = new THREE.Vector3().copy(point).add(direction);
+        startZoomAnimation(targetPoint, endPosition);
+      }
+
+      function handleZoomEvent(clientX, clientY) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+        pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+        raycaster.setFromCamera(pointer, camera);
+
+        let targetPoint = new THREE.Vector3();
+        const intersects = model ? raycaster.intersectObject(model, true) : [];
+
+        if (intersects.length > 0) {
+          targetPoint.copy(intersects[0].point);
+        } else {
+          const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+          if (!raycaster.ray.intersectPlane(groundPlane, targetPoint)) {
+            return;
+          }
+        }
+
+        zoomToPoint(targetPoint);
+      }
+
+      const loader = new GLTFLoader();
+      let fittedDistance = null;
+      const progressContainer = document.getElementById("progressContainer");
+      const progressBar = document.getElementById("progressBar");
+      const progressText = document.getElementById("progressText");
+      const progressDetails = document.getElementById("progressDetails");
+      const progressSpeed = document.getElementById("progressSpeed");
+      let isLoadingComplete = false;
+      
+      // Progress-Tracking Helper
+      function updateProgress(phase, percent, details = "", speed = "") {
+        const totalPercent = Math.min(Math.max(percent, 0), 100);
+        progressBar.style.width = totalPercent + "%";
+        
+        const phaseNames = {
+          'check': 'Prüfe Datei...',
+          'download': 'Lade Datei...',
+          'parse': 'Analysiere Grundriss...',
+          'init': 'Initialisiere Szene...',
+          'complete': 'Fertig!'
+        };
+        
+        progressText.textContent = phaseNames[phase] || 'Lade Grundriss...';
+        if (totalPercent < 100) {
+          progressText.textContent += ` ${Math.round(totalPercent)}%`;
+        }
+        
+        if (details) {
+          progressDetails.textContent = details;
+        }
+        
+        if (speed) {
+          progressSpeed.textContent = speed;
+        }
+      }
+      
+      function formatBytes(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+      }
+      
+      function formatSpeed(bytesPerSecond) {
+        return formatBytes(bytesPerSecond) + '/s';
+      }
+      
+      // Custom loader für Git LFS Dateien mit detailliertem Progress-Tracking
+      async function loadGLBWithLFS(url, onLoad, onProgress, onError) {
+        const startTime = performance.now();
+        let downloadStartTime = null;
+        let lastLoaded = 0;
+        let lastTime = performance.now();
+        
+        try {
+          updateProgress('check', 5, 'Prüfe Dateityp...');
+          
+          // Versuche die Datei zu laden
+          const response = await fetch(url);
+          
+          // Prüfe ob die Antwort erfolgreich war
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          const contentLength = response.headers.get('content-length');
+          const totalBytes = contentLength ? parseInt(contentLength, 10) : null;
+          
+          updateProgress('check', 10, 'Lese Datei-Header...');
+          
+          // Lade den Text-Inhalt um zu prüfen ob es eine LFS Pointer-Datei ist
+          const text = await response.text();
+          
+          // Prüfe ob es eine Git LFS Pointer-Datei ist
+          if (text.startsWith('version https://git-lfs.github.com/spec/v1')) {
+            updateProgress('check', 15, 'Git LFS Pointer-Datei erkannt, lade von GitHub...');
+            
+            // Es ist eine LFS Pointer-Datei, extrahiere die OID
+            const lines = text.split('\n');
+            let oid = null;
+            let size = null;
+            for (const line of lines) {
+              if (line.startsWith('oid sha256:')) {
+                oid = line.substring('oid sha256:'.length);
+              } else if (line.startsWith('size ')) {
+                size = parseInt(line.substring('size '.length));
+              }
+            }
+            
+            if (!oid) {
+              throw new Error('LFS Pointer-Datei konnte nicht geparst werden: OID nicht gefunden');
+            }
+            
+            // GitHub LFS Dateien müssen direkt von GitHub geladen werden
+            // GitHub Pages unterstützt kein LFS, daher müssen wir die Datei direkt von GitHub laden
+            const filePath = 'Wegbeschreibungen/Agatharied/Deutsch/Erdgeschoss.glb';
+            
+            // Versuche verschiedene GitHub URLs (in Reihenfolge)
+            const urls = [
+              // GitHub Media API (für große Dateien und LFS)
+              `https://media.githubusercontent.com/media/Herold-Simon/seraphin-solutions-website/main/${encodeURIComponent(filePath)}`,
+              // GitHub Raw Content API (manchmal funktioniert es mit LFS)
+              `https://raw.githubusercontent.com/Herold-Simon/seraphin-solutions-website/main/${encodeURIComponent(filePath)}`,
+              // Alternative: Direkte GitHub URL
+              `https://github.com/Herold-Simon/seraphin-solutions-website/raw/main/${encodeURIComponent(filePath)}`
+            ];
+            
+            let loaded = false;
+            for (let i = 0; i < urls.length; i++) {
+              const githubUrl = urls[i];
+              try {
+                updateProgress('download', 20 + (i * 5), `Versuche Quelle ${i + 1}/${urls.length}...`);
+                
+                const githubResponse = await fetch(githubUrl, {
+                  headers: {
+                    'Accept': 'application/octet-stream'
+                  }
+                });
+                
+                if (githubResponse.ok) {
+                  const githubContentLength = githubResponse.headers.get('content-length');
+                  const githubTotal = githubContentLength ? parseInt(githubContentLength, 10) : (size || null);
+                  
+                  updateProgress('download', 25, 'Lade GLB-Datei von GitHub...', githubTotal ? `0 / ${formatBytes(githubTotal)}` : '');
+                  
+                  downloadStartTime = performance.now();
+                  lastLoaded = 0;
+                  lastTime = performance.now();
+                  
+                  // Stream-basiertes Laden mit Progress-Tracking
+                  const reader = githubResponse.body.getReader();
+                  const chunks = [];
+                  let receivedBytes = 0;
+                  
+                  // Progress-Update-Intervall
+                  const progressInterval = setInterval(() => {
+                    const now = performance.now();
+                    const elapsed = (now - lastTime) / 1000; // in Sekunden
+                    const loadedDelta = receivedBytes - lastLoaded;
+                    const speed = elapsed > 0 ? loadedDelta / elapsed : 0;
+                    
+                    if (githubTotal) {
+                      const downloadPercent = Math.min((receivedBytes / githubTotal) * 100, 95);
+                      const overallPercent = 25 + (downloadPercent * 0.55); // 25-80% für Download
+                      updateProgress('download', overallPercent, 
+                        `${formatBytes(receivedBytes)} / ${formatBytes(githubTotal)} geladen`,
+                        speed > 0 ? formatSpeed(speed) : '');
+                    } else {
+                      updateProgress('download', 50, 
+                        `${formatBytes(receivedBytes)} geladen`,
+                        speed > 0 ? formatSpeed(speed) : '');
+                    }
+                    
+                    lastLoaded = receivedBytes;
+                    lastTime = now;
+                  }, 100); // Update alle 100ms
+                  
+                  while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    chunks.push(value);
+                    receivedBytes += value.length;
+                  }
+                  
+                  clearInterval(progressInterval);
+                  
+                  const blob = new Blob(chunks);
+                  
+                  updateProgress('check', 80, 'Validiere Datei...');
+                  
+                  // Prüfe ob es nicht wieder eine Pointer-Datei ist
+                  const firstChunk = await blob.slice(0, 200).text();
+                  
+                  // Prüfe ob es eine Pointer-Datei ist
+                  if (firstChunk.startsWith('version https://git-lfs.github.com/spec/v1')) {
+                    console.warn(`URL ${githubUrl} lieferte noch eine Pointer-Datei, versuche nächste URL...`);
+                    continue;
+                  }
+                  
+                  updateProgress('parse', 82, 'Erstelle Objekt-URL...');
+                  
+                  // Es scheint eine echte binäre Datei zu sein
+                  const objectUrl = URL.createObjectURL(blob);
+                  
+                  updateProgress('parse', 85, 'Initialisiere Grundriss...');
+                  
+                  // Erweiterten Progress-Callback für GLTFLoader
+                  const enhancedProgress = (progress) => {
+                    if (progress.total > 0) {
+                      const parsePercent = (progress.loaded / progress.total) * 100;
+                      const overallPercent = 85 + (parsePercent * 0.1); // 85-95% für Parse
+                      updateProgress('parse', overallPercent, 
+                        `Lade die einzelnen Räume... (${Math.round(parsePercent)}%)`);
+                    }
+                  };
+                  
+                  loader.load(objectUrl, (gltf) => {
+                    URL.revokeObjectURL(objectUrl);
+                    updateProgress('init', 95, 'Überprüfe Grundriss...');
+                    onLoad(gltf);
+                  }, enhancedProgress, (error) => {
+                    URL.revokeObjectURL(objectUrl);
+                    onError(error);
+                  });
+                  
+                  loaded = true;
+                  break;
+                }
+              } catch (e) {
+                console.warn(`URL ${githubUrl} fehlgeschlagen:`, e);
+                continue;
+              }
+            }
+            
+            if (!loaded) {
+              throw new Error(`Konnte LFS-Datei nicht laden. GitHub Pages unterstützt Git LFS nicht direkt. Bitte stelle sicher, dass die GLB-Datei über einen alternativen Hosting-Service verfügbar ist, oder verwende die GitHub Media URL.`);
+            }
+          } else {
+            // Es ist keine LFS Pointer-Datei, lade direkt mit Progress-Tracking
+            updateProgress('download', 20, 'Lade GLB-Datei...', totalBytes ? `0 / ${formatBytes(totalBytes)}` : '');
+            
+            downloadStartTime = performance.now();
+            lastLoaded = 0;
+            lastTime = performance.now();
+            
+            // Stream-basiertes Laden mit Progress-Tracking
+            const reader = response.body.getReader();
+            const chunks = [];
+            let receivedBytes = 0;
+            
+            // Progress-Update-Intervall
+            const progressInterval = setInterval(() => {
+              const now = performance.now();
+              const elapsed = (now - lastTime) / 1000;
+              const loadedDelta = receivedBytes - lastLoaded;
+              const speed = elapsed > 0 ? loadedDelta / elapsed : 0;
+              
+              if (totalBytes) {
+                const downloadPercent = Math.min((receivedBytes / totalBytes) * 100, 95);
+                const overallPercent = 20 + (downloadPercent * 0.6); // 20-80% für Download
+                updateProgress('download', overallPercent, 
+                  `${formatBytes(receivedBytes)} / ${formatBytes(totalBytes)} geladen`,
+                  speed > 0 ? formatSpeed(speed) : '');
+              } else {
+                updateProgress('download', 50, 
+                  `${formatBytes(receivedBytes)} geladen`,
+                  speed > 0 ? formatSpeed(speed) : '');
+              }
+              
+              lastLoaded = receivedBytes;
+              lastTime = now;
+            }, 100);
+            
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              
+              chunks.push(value);
+              receivedBytes += value.length;
+            }
+            
+            clearInterval(progressInterval);
+            
+            const blob = new Blob(chunks);
+            
+            updateProgress('parse', 82, 'Lade Grundriss...');
+            
+            const objectUrl = URL.createObjectURL(blob);
+            
+            // Erweiterten Progress-Callback für GLTFLoader
+            const enhancedProgress = (progress) => {
+              if (progress.total > 0) {
+                const parsePercent = (progress.loaded / progress.total) * 100;
+                const overallPercent = 82 + (parsePercent * 0.13); // 82-95% für Parse
+                updateProgress('parse', overallPercent, 
+                  `Parse Geometrien und Texturen... (${Math.round(parsePercent)}%)`);
+              }
+            };
+            
+            loader.load(objectUrl, (gltf) => {
+              URL.revokeObjectURL(objectUrl);
+              updateProgress('init', 95, 'Initialisiere 3D-Szene...');
+              onLoad(gltf);
+            }, enhancedProgress, (error) => {
+              URL.revokeObjectURL(objectUrl);
+              onError(error);
+            });
+          }
+        } catch (error) {
+          console.error('Fehler beim Laden der GLB-Datei:', error);
+          onError(error);
+        }
+      }
+      
+      loadGLBWithLFS(
+        "./Erdgeschoss.glb",
+        (gltf) => {
+          // Loading abgeschlossen
+          isLoadingComplete = true;
+          updateProgress('complete', 100, 'Fertig!', '');
+          
+          // Kurze Verzögerung, damit der Nutzer "100%" sieht
+          setTimeout(() => {
+            progressContainer.classList.add("hidden");
+            setTimeout(() => {
+              progressContainer.style.display = "none";
+            }, 300);
+          }, 200);
+          
+          model = gltf.scene;
+          scene.add(model);
+          model.traverse((child) => {
+            if (child.isMesh) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+            }
+          });
+
+          const box = new THREE.Box3().setFromObject(model);
+          const size = box.getSize(new THREE.Vector3());
+          const center = box.getCenter(new THREE.Vector3());
+
+          model.position.sub(center);
+
+          const fov = THREE.MathUtils.degToRad(camera.fov);
+          const aspect = camera.aspect || (window.innerWidth / window.innerHeight);
+
+          const halfSizeX = Math.max(size.x, 0.001) * 0.5;
+          const halfSizeZ = Math.max(size.z, 0.001) * 0.5;
+
+          const distanceForHeight = halfSizeZ / Math.tan(fov / 2);
+          const horizontalFov = 2 * Math.atan(Math.tan(fov / 2) * aspect);
+          const distanceForWidth = halfSizeX / Math.tan(horizontalFov / 2);
+
+          const distance = Math.max(distanceForHeight, distanceForWidth) * 1.2;
+          fittedDistance = distance;
+
+          const initialTarget = new THREE.Vector3(0, 0, 0);
+          const initialPosition = new THREE.Vector3(
+            initialTarget.x,
+            initialTarget.y + distance,
+            initialTarget.z
+          );
+
+          camera.position.copy(initialPosition);
+          camera.lookAt(initialTarget);
+
+          controls.target.copy(initialTarget);
+          controls.minDistance = 0;
+          controls.maxDistance = Infinity;
+          controls.update();
+          controls.saveState();
+
+          // Suche nach Objekten, die mit "zooming" beginnen (z.B. "zooming", "zooming1", "zooming2", etc.)
+          let focusMesh = null;
+          model.traverse((child) => {
+            if (child.name && child.name.match(/^zooming\d*$/i)) {
+              focusMesh = child;
+            }
+          });
+          
+          if (focusMesh) {
+            // Position des zooming-Objekts in Weltkoordinaten nach der Zentrierung berechnen
+            model.updateMatrixWorld(true);
+            
+            // Bounding Box direkt in Weltkoordinaten berechnen
+            const worldBox = new THREE.Box3();
+            const tempVector = new THREE.Vector3();
+            let hasVertices = false;
+            
+            focusMesh.traverse((child) => {
+              if (child.isMesh && child.geometry) {
+                child.updateMatrixWorld(true);
+                const geometry = child.geometry;
+                const positionAttribute = geometry.attributes.position;
+                
+                if (positionAttribute) {
+                  for (let i = 0; i < positionAttribute.count; i++) {
+                    tempVector.fromBufferAttribute(positionAttribute, i);
+                    tempVector.applyMatrix4(child.matrixWorld);
+                    if (!hasVertices) {
+                      worldBox.setFromPoints([tempVector]);
+                      hasVertices = true;
+                    } else {
+                      worldBox.expandByPoint(tempVector);
+                    }
+                  }
+                }
+              }
+            });
+            
+            // Fallback: Falls keine Vertices gefunden wurden, verwende setFromObject
+            if (!hasVertices) {
+              worldBox.setFromObject(focusMesh);
+            }
+            
+            const worldCenter = new THREE.Vector3();
+            worldBox.getCenter(worldCenter);
+            const focusSize = worldBox.getSize(new THREE.Vector3());
+
+            const halfFocusX = Math.max(focusSize.x, 0.001) * 0.5;
+            const halfFocusZ = Math.max(focusSize.z, 0.001) * 0.5;
+
+            const focusDistanceForHeight = halfFocusZ / Math.tan(fov / 2);
+            const focusDistanceForWidth = halfFocusX / Math.tan(horizontalFov / 2);
+            const focusDistance =
+              Math.max(focusDistanceForHeight, focusDistanceForWidth) * 1.1;
+
+            // Kamera direkt über dem zooming-Objekt positionieren (von oben schauen)
+            // Damit ist das Objekt genau zentriert und nicht vom Rest des Modells beeinflusst
+            const focusPosition = new THREE.Vector3(
+              worldCenter.x,
+              worldCenter.y + focusDistance,
+              worldCenter.z
+            );
+
+            focusMesh.traverse((child) => {
+              child.visible = false;
+            });
+
+            if (controls.target0) {
+              controls.target0.copy(worldCenter);
+            }
+            if (controls.position0) {
+              controls.position0.copy(focusPosition);
+            }
+            if (controls.zoom0 !== undefined) {
+              controls.zoom0 = camera.zoom;
+            }
+
+            const focusDelayMs = 600;
+            const focusDurationMs = 1600;
+            setTimeout(() => {
+              startZoomAnimation(worldCenter, focusPosition, focusDurationMs);
+            }, focusDelayMs);
+          }
+         },
+         (progress) => {
+           // Progress bar aktualisieren (nur wenn noch nicht fertig geladen)
+           // Diese Callback wird hauptsächlich für den GLTFLoader-Parse-Prozess verwendet
+           if (!isLoadingComplete && progress.total > 0) {
+             const parsePercent = (progress.loaded / progress.total) * 100;
+             const overallPercent = 85 + (parsePercent * 0.1); // 85-95% für Parse
+             updateProgress('parse', overallPercent, 
+               `Parse Geometrien und Texturen... (${Math.round(parsePercent)}%)`);
+           }
+         },
+         (error) => {
+           console.error("Fehler beim Laden der GLB-Datei:", error);
+           updateProgress('error', 0, 'Fehler beim Laden der Datei', '');
+           progressBar.style.background = "linear-gradient(90deg, #f44336, #d32f2f)";
+           progressDetails.textContent = error.message || "Unbekannter Fehler";
+         }
+      );
+
+      function animate() {
+        requestAnimationFrame(animate);
+        if (zoomState.active) {
+          const elapsed = performance.now() - zoomState.startTime;
+          let t = elapsed / zoomState.duration;
+          if (t >= 1) {
+            zoomState.active = false;
+            controls.target.copy(zoomState.endTarget);
+            camera.position.copy(zoomState.endPosition);
+            // Stelle sicher, dass die Kamera genau auf das Target schaut
+            camera.lookAt(controls.target);
+            controls.update();
+          } else {
+            const eased = THREE.MathUtils.smoothstep(t, 0, 1);
+            controls.target
+              .copy(zoomState.startTarget)
+              .lerp(zoomState.endTarget, eased);
+            camera.position
+              .copy(zoomState.startPosition)
+              .lerp(zoomState.endPosition, eased);
+            camera.lookAt(controls.target);
+          }
+          controls.update();
+          updateResetButtonVisibility();
+        } else if (controlsStateChanged) {
+          updateResetButtonVisibility();
+          controlsStateChanged = false;
+        }
+        renderer.render(scene, camera);
+      }
+
+      animate();
+
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      renderer.domElement.addEventListener("dblclick", (event) => {
+        event.preventDefault();
+        handleZoomEvent(event.clientX, event.clientY);
+      });
+
+      renderer.domElement.addEventListener(
+        "touchend",
+        (event) => {
+          if (event.touches.length > 0) {
+            return;
+          }
+
+          const currentTime = performance.now();
+          if (currentTime - lastTapTime < tapThresholdMs) {
+            const touch = event.changedTouches[0];
+            handleZoomEvent(touch.clientX, touch.clientY);
+            lastTapTime = 0;
+          } else {
+            lastTapTime = currentTime;
+          }
+        },
+        { passive: false }
+      );
+
+      resetButton.addEventListener("click", () => {
+        const savedTarget = controls.target0 ? controls.target0.clone() : new THREE.Vector3();
+        const savedPosition = controls.position0
+          ? controls.position0.clone()
+          : new THREE.Vector3().copy(camera.position);
+        startZoomAnimation(savedTarget, savedPosition);
+      });
+
+      function updateResetButtonVisibility() {
+        const targetChanged = !approxEquals(controls.target, controls.target0);
+        const positionChanged = !approxEquals(camera.position, controls.position0);
+        const shouldBeVisible = targetChanged || positionChanged || zoomState.active;
+        resetButton.style.display = shouldBeVisible ? "flex" : "none";
+      }
+
+      controls.addEventListener("change", () => {
+        controlsStateChanged = true;
+      });
+
+      updateResetButtonVisibility();
+    </script>
+  </body>
+</html>
+
