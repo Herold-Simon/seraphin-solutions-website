@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Gebäudenavi - Intelligente Navigation für große Gebäude | Seraphin Solutions</title>
     
     <!-- Favicon and App Icons -->
@@ -29,6 +29,7 @@
     <meta name="twitter:title" content="Gebäudenavi - Intelligente Navigation für große Gebäude">
     <meta name="twitter:description" content="Digitale Kiosks mit 3D-Grundrissen für eine benutzerfreundliche Gebäudenavigation.">
     <meta name="twitter:image" content="/favicon.ico">
+    
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -39,9 +40,69 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'G-W5MJXCE4XC');
     </script>
+    
+    <style>
+        /* Mobile-First Additional Styles */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem !important;
+                line-height: 1.2 !important;
+            }
+            
+            .hero-subtitle {
+                font-size: 1rem !important;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .hero-buttons .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .section-header h2 {
+                font-size: 1.75rem !important;
+            }
+            
+            .section-header p {
+                font-size: 1rem !important;
+            }
+            
+            .teaser-text h2,
+            .contact-text h2 {
+                font-size: 1.75rem !important;
+            }
+            
+            .reference-info h3 {
+                font-size: 1.75rem !important;
+            }
+            
+            .pricing-card {
+                padding: 1.5rem !important;
+            }
+            
+            .form-group input,
+            .form-group textarea {
+                font-size: 16px !important; /* Prevents zoom on iOS */
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 1.75rem !important;
+            }
+            
+            .btn {
+                padding: 0.875rem 1.5rem !important;
+                font-size: 0.95rem !important;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
@@ -200,7 +261,6 @@
                     </div>
                 </div>
 
-
                 <!-- Call to Action -->
                 <div class="references-cta">
                     <div class="cta-content">
@@ -254,7 +314,6 @@
                                 <input id="kioskRange" type="range" min="0" max="50" step="1" />
                             </div>
                         </div>
-                        
                     </div>
                     <p class="calc-note">Hinweis: Die genannten Preise beziehen sich ausschließlich auf die Installation. Die Anschaffungskosten für die digitalen Kiosks sind nicht Bestandteil dieses Angebots.</p>
                 </div>
@@ -315,7 +374,6 @@
                     <p>
                         Kontaktieren Sie uns für eine kostenlose Beratung oder melden Sie sich für eine kostenlose Demonstration des Gebäudenavis an. Unser Team steht Ihnen gerne zur Verfügung.
                     </p>
-                    
                 </div>
                 <div class="contact-form">
                     <form id="contactForm">
@@ -389,7 +447,6 @@
                         </a></li>
                     </ul>
                 </div>
-
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2024 Seraphin Solutions. Alle Rechte vorbehalten.</p>
@@ -475,5 +532,4 @@
         });
     </script>
 </body>
-</html> 
-
+</html>

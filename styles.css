@@ -2969,4 +2969,342 @@ section {
     }
 }
 
+/* Enhanced Mobile Optimizations */
+@media (max-width: 768px) {
+    /* Improve touch targets - minimum 44x44px */
+    .btn,
+    .hamburger,
+    .nav-menu a,
+    .checkbox-label {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Better spacing for mobile */
+    .hero {
+        min-height: auto;
+        padding: 2rem 0;
+    }
+    
+    .hero-container {
+        padding-top: 80px;
+        padding-bottom: 2rem;
+    }
+    
+    /* Improve button spacing on mobile */
+    .hero-buttons {
+        gap: 0.75rem;
+    }
+    
+    /* Better image sizing on mobile */
+    .hero-program-image,
+    .teaser-kiosk-image,
+    .solution-kiosk-image,
+    .solution-graphic-image,
+    .features-program-image,
+    .admin-stats-image,
+    .reference-main-image {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+    }
+    
+    /* Improve card spacing */
+    .problem-card,
+    .feature-card,
+    .admin-feature-card,
+    .pricing-card {
+        margin-bottom: 1rem;
+    }
+    
+    /* Better form inputs on mobile */
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        width: 100%;
+        padding: 0.875rem;
+        font-size: 16px; /* Prevents zoom on iOS */
+        -webkit-appearance: none;
+        border-radius: 8px;
+    }
+    
+    /* Improve section spacing */
+    section {
+        padding: 3rem 0 !important;
+    }
+    
+    /* Better text readability */
+    p, li, span {
+        line-height: 1.6;
+    }
+    
+    /* Improve navigation menu on mobile */
+    .nav-menu li {
+        padding: 0.75rem 0;
+    }
+    
+    .nav-menu a {
+        display: block;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+    }
+    
+    /* Better footer on mobile */
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        text-align: center;
+    }
+    
+    .footer-section {
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Improve reference section on mobile */
+    .reference-content {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .reference-main-image {
+        height: auto !important;
+        max-height: 300px;
+        object-fit: cover;
+    }
+    
+    /* Better pricing calculator on mobile */
+    .calc-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .input-with-range {
+        gap: 0.5rem;
+    }
+    
+    input[type="range"] {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+    
+    /* Improve scalability section */
+    .scalability-levels {
+        gap: 0.75rem;
+    }
+    
+    .level {
+        padding: 0.75rem;
+    }
+    
+    /* Better contact form */
+    .contact-form {
+        padding: 1.5rem !important;
+    }
+    
+    /* Improve teaser features */
+    .teaser-feature {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .teaser-feature i {
+        margin: 0 auto;
+    }
+    
+    /* Better feature items */
+    .feature-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .feature-item i {
+        margin: 0 auto;
+    }
+    
+    /* Improve scalability features */
+    .scalability-feature {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .scalability-feature i {
+        margin: 0 auto;
+    }
+}
+
+/* Extra small devices (phones, 480px and down) */
+@media (max-width: 480px) {
+    /* Even tighter spacing */
+    .container {
+        padding: 0 12px;
+    }
+    
+    .hero-title {
+        font-size: 1.75rem !important;
+        margin-bottom: 1rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 0.95rem !important;
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Smaller buttons but still touch-friendly */
+    .btn {
+        padding: 0.875rem 1.25rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Better section headers */
+    .section-header {
+        margin-bottom: 2rem;
+    }
+    
+    .section-header h2 {
+        font-size: 1.5rem !important;
+    }
+    
+    .section-header p {
+        font-size: 0.95rem !important;
+    }
+    
+    /* Improve cards */
+    .problem-card,
+    .feature-card,
+    .admin-feature-card {
+        padding: 1.25rem;
+    }
+    
+    /* Better icons */
+    .problem-icon,
+    .feature-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+    
+    /* Improve stats */
+    .hero-stats {
+        gap: 1rem;
+        flex-direction: column;
+    }
+    
+    .stat-item {
+        width: 100%;
+    }
+    
+    /* Better images */
+    .hero-program-image,
+    .teaser-kiosk-image {
+        border-radius: 15px;
+    }
+    
+    /* Improve form */
+    .contact-form {
+        padding: 1.25rem !important;
+    }
+    
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+    
+    /* Better pricing cards */
+    .pricing-card {
+        padding: 1.25rem !important;
+    }
+    
+    .summary-card {
+        padding: 1.5rem;
+    }
+    
+    /* Improve reference section */
+    .reference-hero {
+        padding: 1.5rem !important;
+    }
+    
+    .reference-info h3 {
+        font-size: 1.5rem !important;
+    }
+    
+    .reference-subtitle {
+        font-size: 1rem !important;
+    }
+    
+    /* Better CTA buttons */
+    .cta-buttons {
+        flex-direction: column;
+    }
+    
+    .cta-buttons .btn {
+        width: 100%;
+    }
+    
+    /* Improve footer */
+    .footer {
+        padding: 2rem 0 1rem;
+    }
+    
+    .footer-section h4 {
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    /* Better navigation */
+    .nav-menu {
+        top: 60px;
+        padding: 1.5rem 0;
+    }
+    
+    /* Improve solution section */
+    .solution-description,
+    .solution-how-it-works,
+    .solution-benefits {
+        padding: 1.5rem;
+    }
+    
+    /* Better admin section */
+    .admin-hero-text h3 {
+        font-size: 1.5rem !important;
+    }
+    
+    /* Improve features section */
+    .features-hero-text h3 {
+        font-size: 1.5rem !important;
+    }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .hero {
+        min-height: auto;
+        padding: 1.5rem 0;
+    }
+    
+    .hero-container {
+        padding-top: 60px;
+    }
+    
+    .hero-title {
+        font-size: 2rem !important;
+    }
+}
+
+/* Prevent horizontal scroll */
+@media (max-width: 768px) {
+    body {
+        overflow-x: hidden;
+        width: 100%;
+    }
+    
+    * {
+        max-width: 100%;
+    }
+    
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+}
+
 
