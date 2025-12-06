@@ -120,19 +120,19 @@
 
       #backButton {
         position: fixed;
-        left: 16px;
-        top: 16px;
-        width: 48px;
-        height: 48px;
+        left: 24px;
+        top: 24px;
+        width: 52px;
+        height: 52px;
         border: none;
-        border-radius: 24px;
+        border-radius: 50%;
         background-color: #ffffff;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-        transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
         z-index: 100;
         text-decoration: none;
         color: inherit;
@@ -141,14 +141,8 @@
       #backButton:hover,
       #backButton:focus {
         outline: none;
-        background-color: #f5f5f5;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
         transform: translateY(-1px);
-      }
-
-      #backButton:active {
-        transform: translateY(0);
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 1px 1px rgba(0, 0, 0, 0.06);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
       }
 
       #backButton .material-symbols-outlined {
@@ -158,8 +152,109 @@
           "wght" 400,
           "GRAD" 0,
           "opsz" 24;
-        font-size: 24px;
-        color: #1f1f1f;
+        font-size: 26px;
+        color: #000000;
+      }
+
+      #languageDropdown {
+        position: fixed;
+        left: 24px;
+        bottom: 24px;
+        z-index: 100;
+      }
+
+      #languageButton {
+        width: 52px;
+        height: 52px;
+        border: none;
+        border-radius: 50%;
+        background-color: #ffffff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      #languageButton:hover,
+      #languageButton:focus {
+        outline: none;
+        transform: translateY(-1px);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+      }
+
+      #languageButton .flag-icon {
+        font-size: 32px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: transparent;
+      }
+
+      #languageMenu {
+        position: absolute;
+        bottom: 60px;
+        left: 0;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(10px);
+        transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+        min-width: 140px;
+      }
+
+      #languageDropdown.open #languageMenu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+
+      #languageMenu a {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        text-decoration: none;
+        color: #000000;
+        font-size: 15px;
+        font-weight: 500;
+        transition: background-color 0.2s ease;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      #languageMenu a .flag {
+        font-size: 20px;
+        margin-right: 10px;
+        line-height: 1;
+      }
+
+      #languageMenu a:hover,
+      #languageMenu a:focus {
+        background-color: #f5f5f5;
+        outline: none;
+      }
+
+      #languageMenu a:first-child {
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+      }
+
+      #languageMenu a:last-child {
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
       }
 
     </style>
@@ -180,6 +275,15 @@
     <button id="resetView" type="button" aria-label="Ansicht zurücksetzen">
       <span class="material-symbols-outlined" aria-hidden="true">reset_focus</span>
     </button>
+    <div id="languageDropdown">
+      <button id="languageButton" type="button" aria-label="Sprache auswählen" aria-expanded="false">
+        <span class="flag-icon" aria-hidden="true">🇩🇪</span>
+      </button>
+      <div id="languageMenu" role="menu">
+        <a href="verzeichnis.html" role="menuitem"><span class="flag">🇩🇪</span> Deutsch</a>
+        <a href="https://seraphin-solutions.de/Wegbeschreibungen/Agatharied/English/Erdgeschoss.html" role="menuitem"><span class="flag">🇬🇧</span> English</a>
+      </div>
+    </div>
     <script type="importmap">
       {
         "imports": {
@@ -886,6 +990,45 @@
       });
 
       updateResetButtonVisibility();
+
+      // Language Dropdown Funktionalität
+      const languageDropdown = document.getElementById("languageDropdown");
+      const languageButton = document.getElementById("languageButton");
+
+      languageButton.addEventListener("click", (e) => {
+        e.stopPropagation();
+        languageDropdown.classList.toggle("open");
+        languageButton.setAttribute("aria-expanded", languageDropdown.classList.contains("open"));
+      });
+
+      // Schließe Dropdown beim Klick außerhalb
+      document.addEventListener("click", (e) => {
+        if (!languageDropdown.contains(e.target)) {
+          languageDropdown.classList.remove("open");
+          languageButton.setAttribute("aria-expanded", "false");
+        }
+      });
+
+      // Schließe Dropdown mit Escape-Taste
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && languageDropdown.classList.contains("open")) {
+          languageDropdown.classList.remove("open");
+          languageButton.setAttribute("aria-expanded", "false");
+        }
+      });
+
+      // Aktualisiere Flagge im Button basierend auf ausgewählter Sprache
+      const languageMenuItems = document.querySelectorAll("#languageMenu a");
+      const flagIcon = document.querySelector("#languageButton .flag-icon");
+      
+      languageMenuItems.forEach((item) => {
+        item.addEventListener("click", (e) => {
+          const flagSpan = item.querySelector(".flag");
+          if (flagSpan) {
+            flagIcon.textContent = flagSpan.textContent;
+          }
+        });
+      });
     </script>
   </body>
 </html>
