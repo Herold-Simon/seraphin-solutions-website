@@ -546,7 +546,7 @@
             
             // GitHub LFS Dateien müssen direkt von GitHub geladen werden
             // GitHub Pages unterstützt kein LFS, daher müssen wir die Datei direkt von GitHub laden
-            const filePath = 'Wegbeschreibungen/Agatharied/Deutsch/Erdgeschoss.glb';
+            const filePath = 'Wegbeschreibungen/Agatharied/Deutsch/1. Obergeschoss.glb';
             
             // Versuche verschiedene GitHub URLs (in Reihenfolge)
             const urls = [
@@ -747,7 +747,7 @@
       }
       
       loadGLBWithLFS(
-        "./Erdgeschoss.glb",
+        "./1. Obergeschoss.glb",
         (gltf) => {
           // Loading abgeschlossen
           isLoadingComplete = true;
