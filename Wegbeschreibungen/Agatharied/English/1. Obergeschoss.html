@@ -269,7 +269,7 @@
       <div id="progressSpeed"></div>
     </div>
     <canvas id="viewer"></canvas>
-    <a href="https://seraphin-solutions.de/Wegbeschreibungen/Agatharied/Deutsch/Verzeichnis.html" id="backButton" aria-label="Zurück zum Verzeichnis">
+    <a href="/Wegbeschreibungen/Agatharied/Deutsch/Verzeichnis.html" id="backButton" aria-label="Zurück zum Verzeichnis">
       <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
     </a>
     <button id="resetView" type="button" aria-label="Ansicht zurücksetzen">
@@ -280,8 +280,8 @@
         <span class="flag-icon" aria-hidden="true">🇩🇪</span>
       </button>
       <div id="languageMenu" role="menu">
-        <a href="https://seraphin-solutions.de/Wegbeschreibungen/Agatharied/Deutsch/1. Obergeschoss.html" role="menuitem"><span class="flag">🇩🇪</span> Deutsch</a>
-        <a href="https://seraphin-solutions.de/Wegbeschreibungen/Agatharied/English/1. Obergeschoss.html" role="menuitem"><span class="flag">🇬🇧</span> English</a>
+        <a href="/Wegbeschreibungen/Agatharied/Deutsch/1. Obergeschoss.html" role="menuitem"><span class="flag">🇩🇪</span> Deutsch</a>
+        <a href="#" role="menuitem" id="englishLink"><span class="flag">🇬🇧</span> English</a>
       </div>
     </div>
     <script type="importmap">
@@ -546,7 +546,7 @@
             
             // GitHub LFS Dateien müssen direkt von GitHub geladen werden
             // GitHub Pages unterstützt kein LFS, daher müssen wir die Datei direkt von GitHub laden
-            const filePath = 'Wegbeschreibungen/Agatharied/English/1. ObergeschossEN.html';
+            const filePath = 'Wegbeschreibungen/Agatharied/Deutsch/Erdgeschoss.glb';
             
             // Versuche verschiedene GitHub URLs (in Reihenfolge)
             const urls = [
@@ -1020,12 +1020,25 @@
       // Aktualisiere Flagge im Button basierend auf ausgewählter Sprache
       const languageMenuItems = document.querySelectorAll("#languageMenu a");
       const flagIcon = document.querySelector("#languageButton .flag-icon");
+      const englishLink = document.getElementById("englishLink");
+      
+      // Verhindere Navigation bei Klick auf English
+      if (englishLink) {
+        englishLink.addEventListener("click", (e) => {
+          e.preventDefault();
+          languageDropdown.classList.remove("open");
+          languageButton.setAttribute("aria-expanded", "false");
+        });
+      }
       
       languageMenuItems.forEach((item) => {
         item.addEventListener("click", (e) => {
-          const flagSpan = item.querySelector(".flag");
-          if (flagSpan) {
-            flagIcon.textContent = flagSpan.textContent;
+          // Nur Flagge aktualisieren, wenn es nicht der English-Link ist
+          if (item.id !== "englishLink") {
+            const flagSpan = item.querySelector(".flag");
+            if (flagSpan) {
+              flagIcon.textContent = flagSpan.textContent;
+            }
           }
         });
       });
