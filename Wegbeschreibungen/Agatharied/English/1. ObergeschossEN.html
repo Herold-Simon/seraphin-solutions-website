@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Wegbeschreibung </title>
+    <title>Directions</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link
       rel="stylesheet"
@@ -269,7 +269,7 @@
       <div id="progressSpeed"></div>
     </div>
     <canvas id="viewer"></canvas>
-    <a href="/Wegbeschreibungen/Agatharied/Deutsch/verzeichnis.html" id="backButton" aria-label="Back to directory">
+    <a href="verzeichnis.html" id="backButton" aria-label="Back to directory">
       <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
     </a>
     <button id="resetView" type="button" aria-label="Reset view">
@@ -280,8 +280,8 @@
         <span class="flag-icon" aria-hidden="true">🇬🇧</span>
       </button>
       <div id="languageMenu" role="menu">
-        <a href="/Wegbeschreibungen/Agatharied/Deutsch/Erdgeschoss.html" role="menuitem"><span class="flag">🇩🇪</span> Deutsch</a>
-        <a href="#" role="menuitem" id="englishLink"><span class="flag">🇬🇧</span> English</a>
+        <a href="https://seraphin-solutions.de/Wegbeschreibungen/Agatharied/Deutsch/1. Obergeschoss.html" role="menuitem"><span class="flag">🇩🇪</span> Deutsch</a>
+        <a href="https://seraphin-solutions.de/Wegbeschreibungen/Agatharied/Deutsch/Verzeichnis.html" role="menuitem"><span class="flag">🇬🇧</span> English</a>
       </div>
     </div>
     <script type="importmap">
@@ -541,12 +541,12 @@
             }
             
             if (!oid) {
-              throw new Error('LFS pointer file could not be parsed: OID not found');
+              throw new Error('LFS Pointer-Datei konnte nicht geparst werden: OID nicht gefunden');
             }
             
             // GitHub LFS Dateien müssen direkt von GitHub geladen werden
             // GitHub Pages unterstützt kein LFS, daher müssen wir die Datei direkt von GitHub laden
-            const filePath = 'Wegbeschreibungen/Agatharied/English/ErdgeschossEN.glb';
+            const filePath = 'Wegbeschreibungen/Agatharied/English/1. ObergeschossEN.glb';
             
             // Versuche verschiedene GitHub URLs (in Reihenfolge)
             const urls = [
@@ -627,7 +627,7 @@
                   
                   // Prüfe ob es eine Pointer-Datei ist
                   if (firstChunk.startsWith('version https://git-lfs.github.com/spec/v1')) {
-                    console.warn(`URL ${githubUrl} still returned a pointer file, trying next URL...`);
+                    console.warn(`URL ${githubUrl} lieferte noch eine Pointer-Datei, versuche nächste URL...`);
                     continue;
                   }
                   
@@ -650,7 +650,7 @@
                   
                   loader.load(objectUrl, (gltf) => {
                     URL.revokeObjectURL(objectUrl);
-                    updateProgress('init', 95, 'Verifying floor plan...');
+                    updateProgress('init', 95, 'Checking floor plan...');
                     onLoad(gltf);
                   }, enhancedProgress, (error) => {
                     URL.revokeObjectURL(objectUrl);
@@ -661,13 +661,13 @@
                   break;
                 }
               } catch (e) {
-                console.warn(`URL ${githubUrl} failed:`, e);
+                console.warn(`URL ${githubUrl} fehlgeschlagen:`, e);
                 continue;
               }
             }
             
             if (!loaded) {
-              throw new Error(`Could not load LFS file. GitHub Pages does not support Git LFS directly. Please ensure the GLB file is available via an alternative hosting service, or use the GitHub Media URL.`);
+              throw new Error(`Konnte LFS-Datei nicht laden. GitHub Pages unterstützt Git LFS nicht direkt. Bitte stelle sicher, dass die GLB-Datei über einen alternativen Hosting-Service verfügbar ist, oder verwende die GitHub Media URL.`);
             }
           } else {
             // Es ist keine LFS Pointer-Datei, lade direkt mit Progress-Tracking
@@ -741,13 +741,13 @@
             });
           }
         } catch (error) {
-          console.error('Error loading GLB file:', error);
+          console.error('Fehler beim Laden der GLB-Datei:', error);
           onError(error);
         }
       }
       
       loadGLBWithLFS(
-        "./ErdgeschossEN.glb",
+        "./1. ObergeschossEN.glb",
         (gltf) => {
           // Loading abgeschlossen
           isLoadingComplete = true;
@@ -901,9 +901,9 @@
          },
          (error) => {
            console.error("Fehler beim Laden der GLB-Datei:", error);
-           updateProgress('error', 0, 'Error loading file', '');
-           progressBar.style.background = "linear-gradient(90deg, #f44336, #d32f2f)";
-           progressDetails.textContent = error.message || "Unknown error";
+          updateProgress('error', 0, 'Error loading file', '');
+          progressBar.style.background = "linear-gradient(90deg, #f44336, #d32f2f)";
+          progressDetails.textContent = error.message || "Unknown error";
          }
       );
 
@@ -1020,29 +1020,15 @@
       // Aktualisiere Flagge im Button basierend auf ausgewählter Sprache
       const languageMenuItems = document.querySelectorAll("#languageMenu a");
       const flagIcon = document.querySelector("#languageButton .flag-icon");
-      const englishLink = document.getElementById("englishLink");
-      
-      // Verhindere Navigation bei Klick auf English
-      if (englishLink) {
-        englishLink.addEventListener("click", (e) => {
-          e.preventDefault();
-          languageDropdown.classList.remove("open");
-          languageButton.setAttribute("aria-expanded", "false");
-        });
-      }
       
       languageMenuItems.forEach((item) => {
         item.addEventListener("click", (e) => {
-          // Nur Flagge aktualisieren, wenn es nicht der English-Link ist
-          if (item.id !== "englishLink") {
-            const flagSpan = item.querySelector(".flag");
-            if (flagSpan) {
-              flagIcon.textContent = flagSpan.textContent;
-            }
+          const flagSpan = item.querySelector(".flag");
+          if (flagSpan) {
+            flagIcon.textContent = flagSpan.textContent;
           }
         });
       });
     </script>
   </body>
 </html>
-

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Wegbeschreibung </title>
+    <title>Directions</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link
       rel="stylesheet"
@@ -264,15 +264,15 @@
       <div id="progressBarWrapper">
         <div id="progressBar"></div>
       </div>
-      <div id="progressText">Lade Grundriss...</div>
+      <div id="progressText">Loading floor plan...</div>
       <div id="progressDetails"></div>
       <div id="progressSpeed"></div>
     </div>
     <canvas id="viewer"></canvas>
-    <a href="/Wegbeschreibungen/Agatharied/Deutsch/verzeichnis.html" id="backButton" aria-label="Back to directory">
+    <a href="verzeichnis.html" id="backButton" aria-label="Back to directory">
       <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
     </a>
-    <button id="resetView" type="button" aria-label="Ansicht zurücksetzen">
+    <button id="resetView" type="button" aria-label="Reset view">
       <span class="material-symbols-outlined" aria-hidden="true">reset_focus</span>
     </button>
     <div id="languageDropdown">
@@ -280,8 +280,8 @@
         <span class="flag-icon" aria-hidden="true">🇬🇧</span>
       </button>
       <div id="languageMenu" role="menu">
-        <a href="/Wegbeschreibungen/Agatharied/Deutsch/2. Obergeschoss.html" role="menuitem"><span class="flag">🇩🇪</span> Deutsch</a>
-        <a href="#" role="menuitem" id="englishLink"><span class="flag">🇬🇧</span> English</a>
+        <a href="https://seraphin-solutions.de/Wegbeschreibungen/Agatharied/Deutsch/2. Obergeschoss.html" role="menuitem"><span class="flag">🇩🇪</span> Deutsch</a>
+        <a href="https://seraphin-solutions.de/Wegbeschreibungen/Agatharied/Deutsch/Verzeichnis.html" role="menuitem"><span class="flag">🇬🇧</span> English</a>
       </div>
     </div>
     <script type="importmap">
@@ -519,7 +519,7 @@
           const contentLength = response.headers.get('content-length');
           const totalBytes = contentLength ? parseInt(contentLength, 10) : null;
           
-          updateProgress('check', 10, 'Lese Datei-Header...');
+          updateProgress('check', 10, 'Reading file header...');
           
           // Lade den Text-Inhalt um zu prüfen ob es eine LFS Pointer-Datei ist
           const text = await response.text();
@@ -541,7 +541,7 @@
             }
             
             if (!oid) {
-              throw new Error('LFS pointer file could not be parsed: OID not found');
+              throw new Error('LFS Pointer-Datei konnte nicht geparst werden: OID nicht gefunden');
             }
             
             // GitHub LFS Dateien müssen direkt von GitHub geladen werden
@@ -562,7 +562,7 @@
             for (let i = 0; i < urls.length; i++) {
               const githubUrl = urls[i];
               try {
-                updateProgress('download', 20 + (i * 5), `Versuche Quelle ${i + 1}/${urls.length}...`);
+                updateProgress('download', 20 + (i * 5), `Trying source ${i + 1}/${urls.length}...`);
                 
                 const githubResponse = await fetch(githubUrl, {
                   headers: {
@@ -596,7 +596,7 @@
                       const downloadPercent = Math.min((receivedBytes / githubTotal) * 100, 95);
                       const overallPercent = 25 + (downloadPercent * 0.55); // 25-80% für Download
                       updateProgress('download', overallPercent, 
-                        `${formatBytes(receivedBytes)} / ${formatBytes(githubTotal)} geladen`,
+                        `${formatBytes(receivedBytes)} / ${formatBytes(githubTotal)} loaded`,
                         speed > 0 ? formatSpeed(speed) : '');
                     } else {
                       updateProgress('download', 50, 
@@ -627,11 +627,11 @@
                   
                   // Prüfe ob es eine Pointer-Datei ist
                   if (firstChunk.startsWith('version https://git-lfs.github.com/spec/v1')) {
-                    console.warn(`URL ${githubUrl} still returned a pointer file, trying next URL...`);
+                    console.warn(`URL ${githubUrl} lieferte noch eine Pointer-Datei, versuche nächste URL...`);
                     continue;
                   }
                   
-                  updateProgress('parse', 82, 'Erstelle Objekt-URL...');
+                  updateProgress('parse', 82, 'Creating object URL...');
                   
                   // Es scheint eine echte binäre Datei zu sein
                   const objectUrl = URL.createObjectURL(blob);
@@ -644,13 +644,13 @@
                       const parsePercent = (progress.loaded / progress.total) * 100;
                       const overallPercent = 85 + (parsePercent * 0.1); // 85-95% für Parse
                       updateProgress('parse', overallPercent, 
-                        `Lade die einzelnen Räume... (${Math.round(parsePercent)}%)`);
+                        `Loading individual rooms... (${Math.round(parsePercent)}%)`);
                     }
                   };
                   
                   loader.load(objectUrl, (gltf) => {
                     URL.revokeObjectURL(objectUrl);
-                    updateProgress('init', 95, 'Verifying floor plan...');
+                    updateProgress('init', 95, 'Checking floor plan...');
                     onLoad(gltf);
                   }, enhancedProgress, (error) => {
                     URL.revokeObjectURL(objectUrl);
@@ -667,11 +667,11 @@
             }
             
             if (!loaded) {
-              throw new Error(`Could not load LFS file. GitHub Pages does not support Git LFS directly. Please ensure the GLB file is available via an alternative hosting service, or use the GitHub Media URL.`);
+              throw new Error(`Konnte LFS-Datei nicht laden. GitHub Pages unterstützt Git LFS nicht direkt. Bitte stelle sicher, dass die GLB-Datei über einen alternativen Hosting-Service verfügbar ist, oder verwende die GitHub Media URL.`);
             }
           } else {
             // Es ist keine LFS Pointer-Datei, lade direkt mit Progress-Tracking
-            updateProgress('download', 20, 'Lade GLB-Datei...', totalBytes ? `0 / ${formatBytes(totalBytes)}` : '');
+            updateProgress('download', 20, 'Loading GLB file...', totalBytes ? `0 / ${formatBytes(totalBytes)}` : '');
             
             downloadStartTime = performance.now();
             lastLoaded = 0;
@@ -697,7 +697,7 @@
                   speed > 0 ? formatSpeed(speed) : '');
               } else {
                 updateProgress('download', 50, 
-                  `${formatBytes(receivedBytes)} geladen`,
+                  `${formatBytes(receivedBytes)} loaded`,
                   speed > 0 ? formatSpeed(speed) : '');
               }
               
@@ -741,7 +741,7 @@
             });
           }
         } catch (error) {
-          console.error('Error loading GLB file:', error);
+          console.error('Fehler beim Laden der GLB-Datei:', error);
           onError(error);
         }
       }
@@ -751,7 +751,7 @@
         (gltf) => {
           // Loading abgeschlossen
           isLoadingComplete = true;
-          updateProgress('complete', 100, 'Fertig!', '');
+          updateProgress('complete', 100, 'Complete!', '');
           
           // Kurze Verzögerung, damit der Nutzer "100%" sieht
           setTimeout(() => {
@@ -901,9 +901,9 @@
          },
          (error) => {
            console.error("Fehler beim Laden der GLB-Datei:", error);
-           updateProgress('error', 0, 'Error loading file', '');
-           progressBar.style.background = "linear-gradient(90deg, #f44336, #d32f2f)";
-           progressDetails.textContent = error.message || "Unknown error";
+          updateProgress('error', 0, 'Error loading file', '');
+          progressBar.style.background = "linear-gradient(90deg, #f44336, #d32f2f)";
+          progressDetails.textContent = error.message || "Unknown error";
          }
       );
 
@@ -1020,29 +1020,15 @@
       // Aktualisiere Flagge im Button basierend auf ausgewählter Sprache
       const languageMenuItems = document.querySelectorAll("#languageMenu a");
       const flagIcon = document.querySelector("#languageButton .flag-icon");
-      const englishLink = document.getElementById("englishLink");
-      
-      // Verhindere Navigation bei Klick auf English
-      if (englishLink) {
-        englishLink.addEventListener("click", (e) => {
-          e.preventDefault();
-          languageDropdown.classList.remove("open");
-          languageButton.setAttribute("aria-expanded", "false");
-        });
-      }
       
       languageMenuItems.forEach((item) => {
         item.addEventListener("click", (e) => {
-          // Nur Flagge aktualisieren, wenn es nicht der English-Link ist
-          if (item.id !== "englishLink") {
-            const flagSpan = item.querySelector(".flag");
-            if (flagSpan) {
-              flagIcon.textContent = flagSpan.textContent;
-            }
+          const flagSpan = item.querySelector(".flag");
+          if (flagSpan) {
+            flagIcon.textContent = flagSpan.textContent;
           }
         });
       });
     </script>
   </body>
 </html>
-
