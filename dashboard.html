@@ -2921,13 +2921,13 @@
                     };
                 });
                 
-                // Berechne Durchschnittslinie mit echten Daten
+                // Berechne Gesamtaufrufe für jeden Tag mit echten Daten
                 averageData = timePoints.map(date => {
                     const totalViews = filteredVideos.reduce((sum, video) => {
                         const viewHistory = video.viewHistory || video.view_history;
                         return sum + (viewHistory && viewHistory[date] ? viewHistory[date] : 0);
                     }, 0);
-                    return Math.round(totalViews / filteredVideos.length * 10) / 10;
+                    return totalViews;
                 });
             } else {
                 // Fallback: Verwende simulierte Daten basierend auf Gesamtaufrufen
@@ -2990,7 +2990,7 @@
                     };
                 });
                 
-                // Berechne Durchschnittslinie mit simulierten Daten
+                // Berechne Gesamtaufrufe für jeden Tag mit simulierten Daten
                 averageData = timePoints.map((date, idx) => {
                     // Keine Offset-Bereiche mehr - alle Tage haben Daten
                     const totalViews = filteredVideos.reduce((sum, video) => {
@@ -2999,24 +2999,24 @@
                         const variation = Math.random() * 0.4 + 0.8;
                         return sum + Math.round(dailyViews * variation);
                     }, 0);
-                    return Math.round(totalViews / filteredVideos.length * 10) / 10;
+                    return totalViews;
                 });
             }
             
             const series = [
                 ...videoData,
                 {
-                    name: 'Durchschnitt (alle Videos)',
+                    name: 'Gesamtaufrufe',
                     type: 'line',
                     data: averageData,
                     smooth: true,
                     symbol: 'none',
                     lineStyle: {
                         width: 3,
-                        color: '#888',
-                        type: 'dashed'
+                        color: '#008CFF',
+                        type: 'solid'
                     },
-                    itemStyle: { color: '#888' },
+                    itemStyle: { color: '#008CFF' },
                     emphasis: { focus: 'series' },
                     z: 10
                 }
@@ -3058,10 +3058,10 @@
                                     value = Number.isInteger(value) ? value : value.toFixed(2);
                                 }
                                 
-                                // Vereinfache Durchschnittslinie-Beschriftung
+                                // Vereinfache Gesamtaufrufe-Beschriftung
                                 let seriesName = param.seriesName;
-                                if (seriesName && seriesName.includes('Durchschnitt')) {
-                                    seriesName = 'Durchschnitt';
+                                if (seriesName && seriesName.includes('Gesamtaufrufe')) {
+                                    seriesName = 'Gesamtaufrufe';
                                 }
                                 
                                 result += `${param.marker} ${seriesName}: ${value} Aufrufe<br/>`;
@@ -3075,7 +3075,7 @@
                 legend: {
                     data: [
                         ...filteredVideos.map(v => v.title || v.video_title || 'Unbenanntes Video'),
-                        'Durchschnitt (alle Videos)'
+                        'Gesamtaufrufe'
                     ],
                     textStyle: { color: '#666' },
                     type: 'scroll',
@@ -3586,10 +3586,10 @@
                                     value = Number.isInteger(value) ? value : value.toFixed(2);
                                 }
                                 
-                                // Vereinfache Durchschnittslinie-Beschriftung
+                                // Vereinfache Gesamtaufrufe-Beschriftung
                                 let seriesName = param.seriesName;
-                                if (seriesName && seriesName.includes('Durchschnitt')) {
-                                    seriesName = 'Durchschnitt';
+                                if (seriesName && seriesName.includes('Gesamtaufrufe')) {
+                                    seriesName = 'Gesamtaufrufe';
                                 }
                                 
                                 result += `${param.marker} ${seriesName}: ${value} Aufrufe<br/>`;
