@@ -101,6 +101,16 @@ body {
     background: var(--primary-blue);
 }
 
+.nav-login-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nav-login-link i {
+    font-size: 0.9rem;
+}
+
 .hamburger {
     display: none;
     flex-direction: column;
@@ -901,10 +911,15 @@ body {
     align-items: flex-start;
     cursor: pointer;
     font-size: 0.95rem;
-    color: #000000;
+    color: #000000 !important;
     gap: 0.75rem;
     user-select: none;
     line-height: 1.5;
+}
+
+.checkbox-label,
+.checkbox-label *:not(.checkmark) {
+    color: #000000 !important;
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -1836,6 +1851,13 @@ body {
         width: 100%;
         padding: 1rem 0;
         border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    .nav-login-link {
+        justify-content: flex-start;
     }
 
     .hero {
@@ -1981,5 +2003,283 @@ body {
 
     .result-price {
         font-size: 2rem;
+    }
+}
+
+/* Navbar Styles (for 404.html and other pages) */
+.navbar {
+    background: var(--bg-white);
+    box-shadow: var(--shadow-sm);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    transition: var(--transition);
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.nav-logo a {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    text-decoration: none;
+    color: inherit;
+}
+
+.logo-image {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
+}
+
+.logo-text {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-green));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}
+
+.nav-menu {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+}
+
+.nav-menu a {
+    text-decoration: none;
+    color: var(--text-dark);
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.nav-menu a:hover {
+    color: var(--primary-blue);
+}
+
+.nav-menu .btn-nav {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-green));
+    color: #ffffff !important;
+    padding: 0.5rem 1.5rem;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.nav-menu .btn-nav:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    color: #ffffff !important;
+}
+
+.navbar .hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.navbar .hamburger span {
+    width: 25px;
+    height: 3px;
+    background: var(--text-dark);
+    transition: var(--transition);
+}
+
+/* Error 404 Section */
+.error-404 {
+    padding: 6rem 0 4rem;
+    background: linear-gradient(180deg, var(--bg-light) 0%, var(--bg-white) 100%);
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+}
+
+.error-content {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 4rem;
+    align-items: center;
+}
+
+.error-visual {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.error-number {
+    font-size: 12rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-green));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+}
+
+.error-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 4rem;
+    color: var(--primary-blue);
+    opacity: 0.2;
+}
+
+.error-text h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+}
+
+.error-text p {
+    font-size: 1.1rem;
+    color: var(--text-light);
+    line-height: 1.8;
+    margin-bottom: 2rem;
+}
+
+.error-actions {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+}
+
+.error-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.error-help {
+    background: var(--bg-light);
+    padding: 2rem;
+    border-radius: 12px;
+    border-left: 4px solid var(--primary-blue);
+}
+
+.error-help h3 {
+    font-size: 1.5rem;
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+}
+
+.error-help ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.error-help li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-light);
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+}
+
+.error-help li i {
+    color: var(--primary-green);
+    font-size: 1rem;
+}
+
+/* Footer Styles */
+.footer-login-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary-blue);
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.footer-login-btn:hover {
+    color: var(--primary-green);
+}
+
+/* Responsive Styles for Navbar and Error 404 */
+@media (max-width: 768px) {
+    .navbar .hamburger {
+        display: flex;
+    }
+
+    .nav-menu {
+        position: fixed;
+        left: -100%;
+        top: 70px;
+        flex-direction: column;
+        background-color: var(--bg-white);
+        width: 100%;
+        text-align: center;
+        transition: var(--transition);
+        box-shadow: var(--shadow-md);
+        padding: 2rem 0;
+    }
+
+    .nav-menu.active {
+        left: 0;
+    }
+
+    .nav-menu li {
+        width: 100%;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .logo-image {
+        height: 35px;
+    }
+
+    .error-content {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+        text-align: center;
+    }
+
+    .error-number {
+        font-size: 8rem;
+    }
+
+    .error-icon {
+        font-size: 3rem;
+    }
+
+    .error-text h1 {
+        font-size: 2rem;
+    }
+
+    .error-actions {
+        justify-content: center;
     }
 }
