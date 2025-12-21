@@ -4,336 +4,192 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Support - Gebäudenavi | Seraphin Solutions</title>
-    
-    <!-- Favicon and App Icons -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" href="/favicon.ico">
-    
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="Support-Kontakt für Gebäudenavi von Seraphin Solutions. Erreichen Sie uns telefonisch oder per E-Mail für Fragen und technischen Support.">
-    <meta name="keywords" content="Support, Gebäudenavi, Seraphin Solutions, Kontakt, Hilfe, technischer Support">
-    <meta name="author" content="Seraphin Solutions">
-    <meta name="robots" content="index, follow">
-    
-    <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="Support - Gebäudenavi | Seraphin Solutions">
-    <meta property="og:description" content="Support-Kontakt für Gebäudenavi. Erreichen Sie uns telefonisch oder per E-Mail.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://seraphin-solutions.de/support">
-    <meta property="og:image" content="/favicon.ico">
-    <meta property="og:site_name" content="Seraphin Solutions">
-    
-    <!-- Twitter Card Meta Tags -->
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Support - Gebäudenavi | Seraphin Solutions">
-    <meta name="twitter:description" content="Support-Kontakt für Gebäudenavi. Erreichen Sie uns telefonisch oder per E-Mail.">
-    <meta name="twitter:image" content="/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <!-- Mobile Responsive Styles for Support Page -->
-    <style>
-        /* Mobile Styles for Support Section */
-        @media (max-width: 768px) {
-            .support-section {
-                padding-top: 80px !important;
-                padding-bottom: 3rem !important;
-                min-height: auto !important;
-            }
-            
-            .support-content {
-                padding: 0 10px !important;
-            }
-            
-            .section-header {
-                text-align: center;
-            }
-            
-            .section-header h1 {
-                font-size: 2rem !important;
-                margin-bottom: 0.75rem !important;
-            }
-            
-            .section-header p {
-                font-size: 1rem !important;
-            }
-            
-            /* Support cards container */
-            .support-content > div[style*="display: grid"] {
-                gap: 1.5rem !important;
-                margin-top: 2rem !important;
-            }
-            
-            .support-card {
-                padding: 1.5rem !important;
-                border-radius: 15px !important;
-            }
-            
-            /* Card content wrapper */
-            .support-card > div[style*="display: flex"] {
-                flex-direction: column !important;
-                align-items: center !important;
-                text-align: center !important;
-                gap: 1rem !important;
-            }
-            
-            .support-icon {
-                width: 60px !important;
-                height: 60px !important;
-                font-size: 1.5rem !important;
-                margin: 0 auto 0.5rem !important;
-            }
-            
-            .support-card > div[style*="display: flex"] > div[style*="flex: 1"] {
-                width: 100%;
-                text-align: center;
-            }
-            
-            .support-card h3 {
-                font-size: 1.3rem !important;
-                margin-bottom: 0.75rem !important;
-            }
-            
-            .support-card p {
-                font-size: 0.95rem !important;
-                margin-bottom: 1rem !important;
-            }
-            
-            .contact-detail {
-                flex-direction: column !important;
-                gap: 0.75rem !important;
-                padding: 1rem !important;
-                width: 100% !important;
-                text-align: center !important;
-            }
-            
-            .contact-detail a {
-                font-size: 1.1rem !important;
-                word-break: break-all;
-                display: block;
-            }
-            
-            .contact-detail i {
-                font-size: 1.1rem !important;
-            }
-            
-            /* Additional Info Section - last div in support-content */
-            .support-content > div:last-child {
-                margin-top: 2rem !important;
-            }
-            
-            .support-content > div:last-child[style*="padding: 2rem"] {
-                padding: 1.5rem !important;
-                border-radius: 12px !important;
-            }
-            
-            .support-content > div:last-child h3 {
-                font-size: 1.1rem !important;
-                margin-bottom: 0.75rem !important;
-            }
-            
-            .support-content > div:last-child p {
-                font-size: 0.9rem !important;
-            }
-            
-            .support-content > div:last-child i {
-                font-size: 1rem !important;
-                margin-right: 0.4rem !important;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .support-section {
-                padding-top: 70px !important;
-                padding-bottom: 2rem !important;
-            }
-            
-            .support-content {
-                padding: 0 8px !important;
-            }
-            
-            .section-header h1 {
-                font-size: 1.75rem !important;
-            }
-            
-            .section-header h1 i {
-                margin-right: 0.4rem !important;
-            }
-            
-            .section-header p {
-                font-size: 0.95rem !important;
-            }
-            
-            /* Support cards container */
-            .support-content > div[style*="display: grid"] {
-                gap: 1.25rem !important;
-                margin-top: 1.5rem !important;
-            }
-            
-            .support-card {
-                padding: 1.25rem !important;
-                border-radius: 12px !important;
-            }
-            
-            .support-icon {
-                width: 50px !important;
-                height: 50px !important;
-                font-size: 1.25rem !important;
-            }
-            
-            .support-card h3 {
-                font-size: 1.15rem !important;
-            }
-            
-            .support-card p {
-                font-size: 0.9rem !important;
-            }
-            
-            .contact-detail {
-                padding: 0.875rem !important;
-                gap: 0.5rem !important;
-            }
-            
-            .contact-detail a {
-                font-size: 1rem !important;
-            }
-            
-            /* Additional Info Section - last div in support-content */
-            .support-content > div:last-child {
-                margin-top: 1.5rem !important;
-            }
-            
-            .support-content > div:last-child[style*="padding: 2rem"] {
-                padding: 1.25rem !important;
-                border-radius: 12px !important;
-            }
-            
-            .support-content > div:last-child h3 {
-                font-size: 1rem !important;
-                margin-bottom: 0.75rem !important;
-            }
-            
-            .support-content > div:last-child p {
-                font-size: 0.85rem !important;
-            }
-            
-            .support-content > div:last-child i {
-                font-size: 0.9rem !important;
-                margin-right: 0.35rem !important;
-            }
-        }
-    </style>
-    
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-W5MJXCE4XC"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'G-W5MJXCE4XC');
-    </script>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar visible">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <a href="/">
-                    <img src="/favicon.ico" alt="Seraphin Solutions Logo" class="logo-image">
-                    <span class="logo-text">Seraphin Solutions</span>
-                </a>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="/">Start</a></li>
-                <li><a href="/#pricing">Preise</a></li>
-                <li><a href="/#contact">Kontakt</a></li>
-                <li><a href="/info" class="btn-nav">Mehr Informationen</a></li>
-            </ul>
-            <div class="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <a href="index.html" class="logo">
+                        <img src="logo.png" alt="Seraphin Solutions Logo">
+                    </a>
+                    <span class="company-name">Seraphin Solutions</span>
+                </div>
+                <nav class="nav" id="nav">
+                    <a href="index.html" class="nav-link">Startseite</a>
+                    <a href="programm.html" class="nav-link">Das Programm</a>
+                    <a href="weitere-informationen.html" class="nav-link">Weitere Informationen</a>
+                    <a href="support.html" class="nav-link active">Support</a>
+                </nav>
+                <button class="hamburger" id="hamburger" aria-label="Menü öffnen">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
             </div>
         </div>
-    </nav>
+    </header>
 
-    <!-- Support Section -->
-    <section class="support-section" style="padding-top: 100px; padding-bottom: 6rem; background: var(--light-gray); min-height: calc(100vh - 100px);">
+    <!-- Page Header -->
+    <section class="page-header">
         <div class="container">
-            <div class="support-content" style="max-width: 800px; margin: 0 auto;">
-                <!-- Header -->
-                <div class="section-header">
-                    <h1 style="font-size: 2.5rem; font-weight: 700; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 1rem;">
-                        <i class="fas fa-headset" style="color: var(--primary-blue); margin-right: 0.5rem;"></i>
-                        Support
-                    </h1>
-                    <p style="font-size: 1.1rem; color: var(--text-light);">Kontaktieren Sie uns bei Fragen oder Problemen. Wir sind fast immer erreichbar.</p>
+            <h1>Support</h1>
+            <p>Wir helfen Ihnen schnell und kompetent weiter</p>
+        </div>
+    </section>
+
+    <!-- Support Contact -->
+    <section class="support-contact">
+        <div class="container">
+            <h2 class="section-title">Kontaktieren Sie unseren Support</h2>
+            <p class="section-subtitle">
+                Unser Support-Team steht Ihnen kostenlos zur Verfügung, um Ihnen bei Fragen und Problemen zu helfen.
+            </p>
+
+            <div class="support-methods">
+                <div class="support-card">
+                    <h3>Telefonischer Support</h3>
+                    <p>Rufen Sie uns kostenlos an:</p>
+                    <a href="tel:+4917622911006" class="support-link">+49 176 22911006</a>
+                    <p class="support-hours">Mo-Fr: 9:00 - 18:00 Uhr</p>
                 </div>
+                <div class="support-card">
+                    <h3>E-Mail Support</h3>
+                    <p>Schreiben Sie uns eine E-Mail:</p>
+                    <a href="mailto:support@seraphin-solutions.de" class="support-link">support@seraphin-solutions.de</a>
+                    <p class="support-hours">Antwort innerhalb von 24 Stunden</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-                <!-- Support Contact Cards -->
-                <div style="display: grid; gap: 2rem; margin-top: 3rem;">
-                    <!-- Phone Card -->
-                    <div class="support-card" style="background: var(--white); padding: 2.5rem; border-radius: 20px; box-shadow: var(--shadow-lg); transition: all 0.3s ease; position: relative; overflow: hidden;">
-                        <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--gradient-primary);"></div>
-                        <div style="display: flex; align-items: flex-start; gap: 1.5rem;">
-                            <div class="support-icon" style="width: 70px; height: 70px; background: var(--gradient-primary); border-radius: 15px; display: flex; align-items: center; justify-content: center; color: var(--white); font-size: 2rem; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0, 140, 255, 0.3);">
-                                <i class="fas fa-phone"></i>
-                            </div>
-                            <div style="flex: 1;">
-                                <h3 style="font-size: 1.5rem; font-weight: 700; color: var(--text-dark); margin-bottom: 0.5rem;">
-                                    Telefonischer Support
-                                </h3>
-                                <p style="color: var(--text-light); margin-bottom: 1.5rem; line-height: 1.6;">
-                                   Rufen Sie kostenlos an, um so schnell wie möglich Hilfe zu erhalten.
-                                </p>
-                                <div class="contact-detail" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--light-gray); border-radius: 12px; transition: all 0.3s ease;">
-                                    <i class="fas fa-phone-alt" style="color: var(--primary-blue); font-size: 1.2rem;"></i>
-                                    <a href="tel:+4917622911006" style="font-size: 1.3rem; font-weight: 700; color: var(--primary-blue); text-decoration: none; transition: all 0.3s ease;">
-                                        +49 176 2291 1006
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <!-- Support Pricing -->
+    <section class="support-pricing">
+        <div class="container">
+            <h2 class="section-title">Support-Preise</h2>
+            <p class="section-subtitle">
+                Transparente Preise für professionellen Support
+            </p>
 
-                    <!-- Email Card -->
-                    <div class="support-card" style="background: var(--white); padding: 2.5rem; border-radius: 20px; box-shadow: var(--shadow-lg); transition: all 0.3s ease; position: relative; overflow: hidden;">
-                        <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--gradient-primary);"></div>
-                        <div style="display: flex; align-items: flex-start; gap: 1.5rem;">
-                            <div class="support-icon" style="width: 70px; height: 70px; background: var(--gradient-green); border-radius: 15px; display: flex; align-items: center; justify-content: center; color: var(--white); font-size: 2rem; flex-shrink: 0; box-shadow: 0 4px 12px rgba(50, 167, 26, 0.3);">
-                                <i class="fas fa-envelope"></i>
-                            </div>
-                            <div style="flex: 1;">
-                                <h3 style="font-size: 1.5rem; font-weight: 700; color: var(--text-dark); margin-bottom: 0.5rem;">
-                                    E-Mail Support
-                                </h3>
-                                <p style="color: var(--text-light); margin-bottom: 1.5rem; line-height: 1.6;">
-                                    Schreiben Sie uns eine E-Mail mit Ihren Fragen oder Anliegen. Wir melden uns schnellstmöglich bei Ihnen zurück.
-                                </p>
-                                <div class="contact-detail" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--light-gray); border-radius: 12px; transition: all 0.3s ease;">
-                                    <i class="fas fa-at" style="color: var(--primary-green); font-size: 1.2rem;"></i>
-                                    <a href="mailto:Kontakt@seraphin-solutions.de" style="font-size: 1.2rem; font-weight: 700; color: var(--primary-green); text-decoration: none; transition: all 0.3s ease;">
-                                        Kontakt@seraphin-solutions.de
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
+            <div class="pricing-timeline">
+                <div class="timeline-item">
+                    <div class="timeline-marker free">Kostenlos</div>
+                    <div class="timeline-content">
+                        <h3>Erste Woche nach Installation</h3>
+                        <p>
+                            Wenn Sie das Gebäudenavi einrichten, erhalten Sie für die erste Woche des Betriebs 
+                            <strong>kostenlosen Support</strong>. In dieser Zeit stehen wir Ihnen mit Rat und Tat 
+                            zur Seite und helfen bei allen Fragen und Problemen.
+                        </p>
                     </div>
                 </div>
 
-                <!-- Additional Info -->
-                <div style="margin-top: 3rem; padding: 2rem; background: var(--white); border-radius: 15px; box-shadow: var(--shadow); text-align: center;">
-                    <h3 style="font-size: 1.3rem; font-weight: 600; color: var(--text-dark); margin-bottom: 1rem;">
-                        <i class="fas fa-info-circle" style="color: var(--primary-blue); margin-right: 0.5rem;"></i>
-                        Verfügbarkeit
-                    </h3>
-                    <p style="color: var(--text-light); line-height: 1.6;">
-                       Der Support ist fast immer verfügbar und wird Ihre Anliegen so schnell wie möglich bearbeiten. Falls sie Telefonisch keinen Mitarbeiter erreicht haben werden wir Sie schnellstmöglich zurückrufen. Falls Sie per E-Mail schreiben werden wir Ihnen innerhalb von 24 Stunden antworten.
-                    </p>
+                <div class="timeline-item">
+                    <div class="timeline-marker remote">25€</div>
+                    <div class="timeline-content">
+                        <h3>Remote-Support</h3>
+                        <p>
+                            Nach der kostenlosen Woche kostet <strong>Remote-Support</strong> (über die 
+                            Remote-Desktop-Software) <strong>25€ pro Einsatz</strong>. Unser Team kann direkt 
+                            auf Ihre Interaktiven Touch-Bildschirme zugreifen und Probleme schnell beheben, ohne dass 
+                            ein Techniker vor Ort sein muss.
+                        </p>
+                    </div>
                 </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker on-site">150€ +</div>
+                    <div class="timeline-content">
+                        <h3>Vor-Ort-Support</h3>
+                        <p>
+                            Für komplexere Probleme, die eine physische Anwesenheit erfordern, bieten wir 
+                            <strong>Vor-Ort-Support</strong> für <strong>150€ plus Anreisekosten</strong> an. 
+                            Unser Techniker kommt zu Ihnen und löst das Problem direkt vor Ort.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section">
+        <div class="container">
+            <h2 class="section-title">Häufig gestellte Fragen</h2>
+            
+            <div class="faq-list">
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Wie schnell kann ich Support erhalten?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>
+                            Bei telefonischem Support erreichen Sie uns während der Geschäftszeiten (Mo-Fr, 9-18 Uhr) 
+                            direkt. Per E-Mail erhalten Sie innerhalb von 24 Stunden eine Antwort. Bei Remote-Support 
+                            können wir meist innerhalb weniger Stunden auf Ihre Stationen zugreifen.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Was ist Remote-Support?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>
+                            Remote-Support bedeutet, dass unser Support-Team über eine sichere Remote-Desktop-Verbindung 
+                            direkt auf Ihre Interaktiven Touch-Bildschirme zugreifen kann. So können wir Probleme diagnostizieren 
+                            und beheben, ohne dass ein Techniker vor Ort sein muss. Dies ist schnell, effizient und kostengünstig.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Wann ist Vor-Ort-Support notwendig?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>
+                            Vor-Ort-Support ist notwendig, wenn Hardware-Probleme auftreten, die physische Reparaturen 
+                            erfordern, oder wenn komplexe Installationen oder Konfigurationen durchgeführt werden müssen, 
+                            die nicht remote möglich sind.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Kann ich auch außerhalb der Geschäftszeiten Support erhalten?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>
+                            Für Notfälle können Sie uns jederzeit per E-Mail kontaktieren. Wir bemühen uns, auch 
+                            außerhalb der Geschäftszeiten schnell zu reagieren. Für dringende Fälle können wir 
+                            individuelle Support-Vereinbarungen treffen.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Benötigen Sie Hilfe?</h2>
+            <p>Kontaktieren Sie uns noch heute – wir helfen Ihnen gerne weiter</p>
+            <div class="cta-buttons">
+                <a href="tel:+4917622911006" class="btn btn-primary">Jetzt anrufen</a>
+                <a href="mailto:support@seraphin-solutions.de" class="btn btn-secondary">E-Mail senden</a>
             </div>
         </div>
     </section>
@@ -343,43 +199,20 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <div class="footer-logo">
-                        <img src="/favicon.ico" alt="Seraphin Solutions Logo" class="logo-image">
-                        <span class="logo-text">Seraphin Solutions</span>
-                    </div>
-                    <p>Die intelligente Lösung für die Navigation in großen Gebäuden, entwickelt von Seraphin Solutions.</p>
+                    <img src="logo.png" alt="Seraphin Solutions" class="footer-logo">
+                    <p>Interaktive Wegleitsysteme für große Gebäude</p>
                 </div>
                 <div class="footer-section">
-                    <h4>Produkt</h4>
-                    <ul>
-                        <li><a href="/info#features">Features</a></li>
-                        <li><a href="/info#admin">Admin-Panel</a></li>
-                        <li><a href="/info#solution">Lösung</a></li>
-                    </ul>
+                    <h4>Navigation</h4>
+                    <a href="index.html">Startseite</a>
+                    <a href="programm.html">Das Programm</a>
+                    <a href="weitere-informationen.html">Weitere Informationen</a>
+                    <a href="support.html">Support</a>
                 </div>
                 <div class="footer-section">
-                    <h4>Unternehmen</h4>
-                    <ul>
-                        <li><a href="/#pricing">Preise</a></li>
-                        <li><a href="/#contact">Kontakt</a></li>
-                        <li><a href="/support">Support</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Rechtliches</h4>
-                    <ul>
-                        <li><a href="/impressum">Impressum</a></li>
-                        <li><a href="/datenschutz">Datenschutz</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Zugang</h4>
-                    <ul>
-                        <li><a href="/login" class="footer-login-btn">
-                            <i class="fas fa-sign-in-alt"></i>
-                            Statistiken Login
-                        </a></li>
-                    </ul>
+                    <h4>Kontakt</h4>
+                    <a href="tel:+4917622911006">+49 176 22911006</a>
+                    <a href="mailto:kontakt@seraphin-solutions.de">kontakt@seraphin-solutions.de</a>
                 </div>
             </div>
             <div class="footer-bottom">
@@ -389,48 +222,5 @@
     </footer>
 
     <script src="script.js"></script>
-    <script>
-        // Initialize navigation
-        document.addEventListener('DOMContentLoaded', function() {
-            const hamburger = document.querySelector('.hamburger');
-            const navMenu = document.querySelector('.nav-menu');
-            const navbar = document.querySelector('.navbar');
-            
-            if (hamburger && navMenu) {
-                hamburger.addEventListener('click', function() {
-                    navMenu.classList.toggle('active');
-                });
-            }
-            
-            // Auto-hide Navigation beim Scrollen
-            let lastScrollTop = 0;
-            let ticking = false;
-            
-            function updateNavbar() {
-                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                
-                if (scrollTop > lastScrollTop && scrollTop > 100) {
-                    navbar.classList.remove('visible');
-                } else {
-                    navbar.classList.add('visible');
-                }
-                
-                lastScrollTop = scrollTop;
-                ticking = false;
-            }
-            
-            function requestTick() {
-                if (!ticking) {
-                    requestAnimationFrame(updateNavbar);
-                    ticking = true;
-                }
-            }
-            
-            window.addEventListener('scroll', requestTick);
-            
-            // Show navbar on page load
-            navbar.classList.add('visible');
-        });
-    </script>
 </body>
 </html>
