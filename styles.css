@@ -17,6 +17,14 @@
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
     --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --gradient-primary: linear-gradient(135deg, #008CFF 0%, #32A71A 100%);
+    --gradient-secondary: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 100%);
+    --gradient-red: linear-gradient(135deg, #E74C3C 0%, #C0392B 100%);
+    --gradient-blue: linear-gradient(135deg, #008CFF 0%, #0066CC 100%);
+    --gradient-green: linear-gradient(135deg, #32A71A 0%, #2A8F15 100%);
+    --white: #FFFFFF;
+    --light-gray: #F8F9FA;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 body {
@@ -2006,14 +2014,22 @@ body {
     }
 }
 
-/* Navbar Styles (for 404.html and other pages) */
+/* Navbar Styles (for 404.html, dashboard.html, account.html and other pages) */
 .navbar {
-    background: var(--bg-white);
-    box-shadow: var(--shadow-sm);
-    position: sticky;
+    position: fixed;
     top: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
     z-index: 1000;
-    transition: var(--transition);
+    padding: 1rem 0;
+    transition: all 0.3s ease, transform 0.4s ease;
+    transform: translateY(-100%);
+    box-shadow: var(--shadow-sm);
+}
+
+.navbar.visible {
+    transform: translateY(0);
 }
 
 .nav-container {
@@ -2107,6 +2123,63 @@ body {
     height: 3px;
     background: var(--text-dark);
     transition: var(--transition);
+    border-radius: 2px;
+}
+
+/* Dashboard and Account Container Styles */
+.dashboard-container,
+.account-container {
+    min-height: 100vh;
+    background: var(--bg-light);
+    padding-top: 80px;
+}
+
+.dashboard-content,
+.account-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem 4rem;
+}
+
+.account-content {
+    max-width: 800px;
+}
+
+/* Account Header */
+.account-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.account-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+}
+
+.account-header p {
+    color: var(--text-light);
+    font-size: 1.1rem;
+}
+
+.account-card {
+    background: var(--bg-white);
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 2rem;
+}
+
+.account-section {
+    margin-bottom: 2rem;
+}
+
+.account-section:last-child {
+    margin-bottom: 0;
 }
 
 /* Error 404 Section */
@@ -2234,6 +2307,11 @@ body {
         display: flex;
     }
 
+    .nav-container {
+        padding: 0 15px;
+        max-width: 100%;
+    }
+
     .nav-menu {
         position: fixed;
         left: -100%;
@@ -2242,7 +2320,7 @@ body {
         background-color: var(--bg-white);
         width: 100%;
         text-align: center;
-        transition: var(--transition);
+        transition: 0.3s;
         box-shadow: var(--shadow-md);
         padding: 2rem 0;
     }
@@ -2259,6 +2337,15 @@ body {
 
     .logo-image {
         height: 35px;
+    }
+
+    .nav-logo .logo-text {
+        display: none;
+    }
+
+    .dashboard-content,
+    .account-content {
+        padding: 0 1rem 4rem;
     }
 
     .error-content {
