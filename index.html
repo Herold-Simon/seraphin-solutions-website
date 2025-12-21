@@ -65,7 +65,7 @@
                         Einfach, professionell und für alle Altersgruppen verständlich.
                     </p>
                     <div class="hero-buttons">
-                        <a href="#kontakt" class="btn btn-primary">Kostenlose Demo buchen</a>
+                        <a href="#contact" class="btn btn-primary">Kostenlose Demo buchen</a>
                         <a href="#preisrechner" class="btn btn-secondary">Preis berechnen</a>
                     </div>
                 </div>
@@ -196,49 +196,42 @@
         </div>
     </section>
 
-    <!-- Contact Form -->
-    <section class="contact" id="kontakt">
+    <!-- Contact Section -->
+    <section id="contact" class="contact-landing">
         <div class="container">
-            <h2 class="section-title">Kostenlose Demonstration buchen</h2>
-            <p class="section-subtitle">Lassen Sie sich unverbindlich von Gebäudenavi überzeugen</p>
-            
-            <div class="contact-container">
-                <div class="contact-form-wrapper">
-                    <form class="contact-form" id="contactForm">
-                        <div class="form-group">
-                            <label for="email">E-Mail-Adresse</label>
-                            <input type="email" id="email" name="email" required placeholder="ihre@email.de">
-                        </div>
-                        <div class="form-group">
-                            <label for="phone">Telefonnummer (optional)</label>
-                            <input type="tel" id="phone" name="phone" placeholder="+49 176 22911006">
-                        </div>
-                        <div class="form-group">
-                            <label for="message">Nachricht</label>
-                            <textarea id="message" name="message" rows="5" required placeholder="Erzählen Sie uns von Ihrem Gebäude und Ihren Anforderungen..."></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Anfrage senden</button>
-                    </form>
+            <div class="contact-content">
+                <div class="contact-text">
+                    <h2>Bereit für die Zukunft der Gebäudenavigation?</h2>
+                    <p>
+                        Kontaktieren Sie uns für eine kostenlose Beratung oder melden Sie sich für eine kostenlose Demonstration des Gebäudenavis an. Unser Team steht Ihnen gerne zur Verfügung.
+                    </p>
                 </div>
-                <div class="contact-info">
-                    <h3>Alternativ kontaktieren Sie uns direkt</h3>
-                    <div class="contact-methods">
-                        <a href="tel:+4917622911006" class="contact-method">
-                            <div>
-                                <strong>Telefon</strong>
-                                <p>+49 176 22911006</p>
-                            </div>
-                        </a>
-                        <a href="mailto:kontakt@seraphin-solutions.de" class="contact-method">
-                            <div>
-                                <strong>E-Mail</strong>
-                                <p>kontakt@seraphin-solutions.de</p>
-                            </div>
-                        </a>
-                    </div>
-                    <div class="contact-note">
-                        <p>Wir melden uns innerhalb von 24 Stunden bei Ihnen zurück, um einen Termin für Ihre kostenlose Demonstration zu vereinbaren.</p>
-                    </div>
+                <div class="contact-form">
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <input type="text" placeholder="Ihr Name" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" placeholder="Ihre E-Mail" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" placeholder="Ihre Einrichtung" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea placeholder="Ihre Nachricht" rows="4" required></textarea>
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="demoCheckbox">
+                                <span class="checkmark"></span>
+                                Ich möchte eine kostenlose Demo des Gebäudenavis erhalten
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                            Nachricht senden
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -278,6 +271,75 @@
         (function() {
             emailjs.init("gjH_P6NbXkIm7GpNh");
         })();
+
+        // Additional JavaScript for the landing page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Form handling for landing page
+            const contactForm = document.getElementById('contactForm');
+            if (contactForm) {
+                contactForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Get form data
+                    const name = this.querySelector('input[type="text"]').value;
+                    const email = this.querySelector('input[type="email"]').value;
+                    const institution = this.querySelectorAll('input[type="text"]')[1].value;
+                    const message = this.querySelector('textarea').value;
+                    const wantsDemo = this.querySelector('#demoCheckbox').checked;
+                    
+                    // Basic validation
+                    if (!name || !email || !institution || !message) {
+                        showNotification('Bitte füllen Sie alle Pflichtfelder aus.', 'error');
+                        return;
+                    }
+                    
+                    if (!isValidEmail(email)) {
+                        showNotification('Bitte geben Sie eine gültige E-Mail-Adresse ein.', 'error');
+                        return;
+                    }
+                    
+                    // Prepare email template parameters
+                    const templateParams = {
+                        to_email: 'mstorteyt@gmail.com',
+                        from_name: name,
+                        from_email: email,
+                        institution: institution,
+                        message: message,
+                        wants_demo: wantsDemo ? 'Ja' : 'Nein',
+                        demo_request: wantsDemo ? 'Demo gewünscht' : 'Keine Demo gewünscht'
+                    };
+                    
+                    // Show loading state
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wird gesendet...';
+                    submitBtn.disabled = true;
+                    
+                    // Send email using EmailJS
+                    emailjs.send('service_s74xvzx', 'template_iyd746k', templateParams)
+                        .then(function(response) {
+                            console.log('SUCCESS!', response.status, response.text);
+                            
+                            let successMessage = 'Vielen Dank! Ihre Nachricht wurde erfolgreich gesendet.';
+                            if (wantsDemo) {
+                                successMessage += ' Wir werden uns innerhalb von 24 Stunden für die Demo-Anmeldung bei Ihnen melden.';
+                            } else {
+                                successMessage += ' Wir werden uns bald bei Ihnen melden.';
+                            }
+                            
+                            showNotification(successMessage, 'success');
+                            contactForm.reset();
+                        }, function(error) {
+                            console.log('FAILED...', error);
+                            showNotification('Es gab einen Fehler beim Senden Ihrer Nachricht. Bitte versuchen Sie es später erneut.', 'error');
+                        })
+                        .finally(function() {
+                            submitBtn.innerHTML = originalText;
+                            submitBtn.disabled = false;
+                        });
+                });
+            }
+        });
     </script>
 </body>
 </html>

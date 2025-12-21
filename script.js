@@ -248,68 +248,7 @@ function isValidEmail(email) {
     return emailRegex.test(email);
 }
 
-// Contact Form with EmailJS
-const contactForm = document.getElementById('contactForm');
-
-if (contactForm) {
-    contactForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Get form data
-        const email = document.getElementById('email').value.trim();
-        const phone = document.getElementById('phone').value.trim();
-        const message = document.getElementById('message').value.trim();
-        
-        // Basic validation
-        if (!email || !message) {
-            showNotification('Bitte füllen Sie alle Pflichtfelder aus.', 'error');
-            return;
-        }
-        
-        if (!isValidEmail(email)) {
-            showNotification('Bitte geben Sie eine gültige E-Mail-Adresse ein.', 'error');
-            return;
-        }
-        
-        // Extract name from email (part before @) or use email
-        const fromName = email.split('@')[0] || email;
-        
-        // Prepare email template parameters
-        const templateParams = {
-            to_email: 'mstorteyt@gmail.com',
-            from_name: fromName,
-            from_email: email,
-            institution: 'Nicht angegeben',
-            phone: phone || 'Nicht angegeben',
-            message: message + (phone ? `\n\nTelefon: ${phone}` : ''),
-            wants_demo: 'Ja',
-            demo_request: 'Demo gewünscht'
-        };
-        
-        // Show loading state
-        const submitBtn = this.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wird gesendet...';
-        submitBtn.disabled = true;
-        
-        // Send email using EmailJS
-        emailjs.send('service_s74xvzx', 'template_iyd746k', templateParams)
-            .then(function(response) {
-                console.log('SUCCESS!', response.status, response.text);
-                
-                const successMessage = 'Vielen Dank! Ihre Anfrage wurde erfolgreich gesendet. Wir werden uns innerhalb von 24 Stunden bei Ihnen melden, um einen Termin für Ihre kostenlose Demonstration zu vereinbaren.';
-                showNotification(successMessage, 'success');
-                contactForm.reset();
-            }, function(error) {
-                console.log('FAILED...', error);
-                showNotification('Es gab einen Fehler beim Senden Ihrer Anfrage. Bitte versuchen Sie es später erneut oder kontaktieren Sie uns direkt.', 'error');
-            })
-            .finally(function() {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            });
-    });
-}
+// Contact Form with EmailJS - now handled directly in index.html
 
 // FAQ Accordion
 const faqItems = document.querySelectorAll('.faq-item');
