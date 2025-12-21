@@ -1,78 +1,337 @@
 // Mobile Navigation Toggle
-const hamburger = document.querySelector('.hamburger');
-const navMenu = document.querySelector('.nav-menu');
+const hamburger = document.getElementById('hamburger');
+const nav = document.getElementById('nav');
 
-hamburger.addEventListener('click', () => {
-    hamburger.classList.toggle('active');
-    navMenu.classList.toggle('active');
-});
+if (hamburger && nav) {
+    hamburger.addEventListener('click', () => {
+        nav.classList.toggle('active');
+        hamburger.classList.toggle('active');
+    });
 
-// Close mobile menu when clicking on a link
-document.querySelectorAll('.nav-menu a').forEach(link => {
-    link.addEventListener('click', () => {
-        hamburger.classList.remove('active');
-        navMenu.classList.remove('active');
+    // Close menu when clicking on a link
+    const navLinks = nav.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            nav.classList.remove('active');
+            hamburger.classList.remove('active');
+        });
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!nav.contains(e.target) && !hamburger.contains(e.target)) {
+            nav.classList.remove('active');
+            hamburger.classList.remove('active');
+        }
+    });
+}
+
+// Smooth Scrolling
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        const href = this.getAttribute('href');
+        if (href !== '#' && href.length > 1) {
+            e.preventDefault();
+            const target = document.querySelector(href);
+            if (target) {
+                const headerOffset = 80;
+                const elementPosition = target.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+            }
+        }
     });
 });
 
-// Smooth scrolling for navigation links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const href = this.getAttribute('href');
+// References Carousel
+const carousel = document.getElementById('carousel');
+const carouselPrev = document.getElementById('carouselPrev');
+const carouselNext = document.getElementById('carouselNext');
+let currentSlide = 0;
+
+if (carousel && carouselPrev && carouselNext) {
+    const slides = carousel.querySelectorAll('.carousel-slide');
+    const totalSlides = slides.length;
+
+    // Only show arrows if there are multiple slides
+    if (totalSlides > 1) {
+        carouselPrev.style.display = 'flex';
+        carouselNext.style.display = 'flex';
+    }
+
+    function showSlide(index) {
+        slides.forEach((slide, i) => {
+            slide.classList.toggle('active', i === index);
+        });
+    }
+
+    function nextSlide() {
+        currentSlide = (currentSlide + 1) % totalSlides;
+        showSlide(currentSlide);
+    }
+
+    function prevSlide() {
+        currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+        showSlide(currentSlide);
+    }
+
+    if (totalSlides > 1) {
+        carouselNext.addEventListener('click', nextSlide);
+        carouselPrev.addEventListener('click', prevSlide);
+    }
+}
+
+// Price Calculator with Sliders
+const flaecheSlider = document.getElementById('flaeche');
+const kioskeSlider = document.getElementById('kioske');
+const flaecheValue = document.getElementById('flaecheValue');
+const kioskeValue = document.getElementById('kioskeValue');
+const calculatorResult = document.getElementById('calculatorResult');
+const resultPrice = document.getElementById('resultPrice');
+const resultBreakdown = document.getElementById('resultBreakdown');
+
+function formatNumber(num) {
+    return Math.round(num).toLocaleString('de-DE');
+}
+
+function calculatePrice() {
+    if (!flaecheSlider || !kioskeSlider) return;
+
+    const flaeche = parseFloat(flaecheSlider.value);
+    const kioske = parseInt(kioskeSlider.value);
+
+    // Update display values
+    if (flaecheValue) {
+        flaecheValue.textContent = formatNumber(flaeche) + ' m²';
+    }
+    if (kioskeValue) {
+        kioskeValue.textContent = kioske;
+    }
+
+    // Glatte, stetig steigende Preisberechnung (alle Preise verdoppelt)
+    // Gesamtpreis steigt gleichmäßig von ~1.000€ bei 500m² auf ~40.000€ bei 120.000m²
+    
+    // Grundgebühr: steigt doppelt so steil wie Einrichtung
+    // Einrichtung steigt von 150*0.75*2 = 225€ auf (150+1850)*0.75*2 = 3000€
+    // Das ist eine Steigung von 2775€ über 120000m²
+    // Grundgebühr steigt doppelt so steil: von 500*0.75*2 = 750€ auf 750 + 5550 = 6300€
+    const basePriceStart = 500 * 0.75 * 2; // 750€ bei 500m²
+    const basePriceEnd = basePriceStart + 5550; // 6300€ bei 120.000m²
+    const basePrice = basePriceStart + ((flaeche - 500) / 119500) * (basePriceEnd - basePriceStart);
+    
+    // Einrichtung (steigt glatt mit der Größe, verdoppelt)
+    const kioskSetupPrice = (150 + (flaeche / 120000) * 1850) * 0.75 * 2 * kioske;
+    
+    // Grundriss & Wegbeschreibungen: Gesamtpreis steigt immer monoton (verdoppelt)
+    // Gesamtpreis steigt von ~3.000€ (500m²) auf ~36.000€ (120.000m²)
+    let floorPlanPrice;
+    if (flaeche <= 500) {
+        floorPlanPrice = flaeche * 3.0 * 0.75 * 2;
+    } else {
+        // Verwende eine Wurzelfunktion für glatten, stetig steigenden Preis
+        const floorPlanBasePrice = 500 * 3.0 * 0.75 * 2; // 2.250€ bei 500m²
+        const floorPlanMaxPrice = 36000 * 0.75; // 27.000€ bei 120.000m² (Ziel)
         
-        // Special handling for home/start link
-        if (href === '#home') {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
+        // Normalisiere die Fläche auf 0-1 (500m² = 0, 120.000m² = 1)
+        const normalizedSize = (flaeche - 500) / 119500;
+        
+        // Verwende eine Wurzelfunktion für glatten Anstieg
+        const sqrtFactor = Math.sqrt(normalizedSize);
+        
+        // Berechne Gesamtpreis: Basis + (Max - Basis) * sqrtFactor
+        floorPlanPrice = floorPlanBasePrice + (floorPlanMaxPrice - floorPlanBasePrice) * sqrtFactor;
+    }
+    
+    // Berechne Gesamtpreis (alle Preise sind bereits mit 0.75 und 2 multipliziert)
+    const finalBaseFee = basePrice;
+    const finalTotalKioskPrice = kioskSetupPrice;
+    const finalFloorPlanPrice = floorPlanPrice;
+    const finalTotalPrice = finalBaseFee + finalTotalKioskPrice + finalFloorPlanPrice;
+
+    // Update result display
+    if (resultPrice) {
+        resultPrice.textContent = formatNumber(finalTotalPrice) + ' €';
+    }
+    if (resultBreakdown) {
+        resultBreakdown.innerHTML = `
+            <div class="result-item">
+                <span>Grundgebühr:</span>
+                <span>${formatNumber(finalBaseFee)} €</span>
+            </div>
+            <div class="result-item">
+                <span>Einrichtung (${kioske} Interaktive Touch-Bildschirme):</span>
+                <span>${formatNumber(finalTotalKioskPrice)} €</span>
+            </div>
+            <div class="result-item">
+                <span>Grundriss & Wegbeschreibungen:</span>
+                <span>${formatNumber(finalFloorPlanPrice)} €</span>
+            </div>
+            <div class="result-item" style="font-weight: 700; font-size: 1.1rem; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border-color);">
+                <span>Gesamt:</span>
+                <span>${formatNumber(finalTotalPrice)} €</span>
+            </div>
+        `;
+    }
+}
+
+// Initialize calculator on page load
+if (flaecheSlider && kioskeSlider) {
+    // Calculate on slider change
+    flaecheSlider.addEventListener('input', calculatePrice);
+    kioskeSlider.addEventListener('input', calculatePrice);
+    
+    // Calculate initial price
+    calculatePrice();
+}
+
+// Helper function to show notifications
+function showNotification(message, type = 'success') {
+    // Remove existing notification if any
+    const existingNotification = document.querySelector('.notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#10b981' : '#ef4444'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 10000;
+        max-width: 400px;
+        animation: slideIn 0.3s ease-out;
+    `;
+    notification.textContent = message;
+    
+    // Add animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    `;
+    if (!document.querySelector('style[data-notification]')) {
+        style.setAttribute('data-notification', 'true');
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(notification);
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideIn 0.3s ease-out reverse';
+        setTimeout(() => notification.remove(), 300);
+    }, 5000);
+}
+
+// Helper function to validate email
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+// Contact Form with EmailJS
+const contactForm = document.getElementById('contactForm');
+
+if (contactForm) {
+    contactForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Get form data
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const message = document.getElementById('message').value.trim();
+        
+        // Basic validation
+        if (!email || !message) {
+            showNotification('Bitte füllen Sie alle Pflichtfelder aus.', 'error');
             return;
         }
         
-        const target = document.querySelector(href);
-        if (target) {
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
+        if (!isValidEmail(email)) {
+            showNotification('Bitte geben Sie eine gültige E-Mail-Adresse ein.', 'error');
+            return;
         }
+        
+        // Extract name from email (part before @) or use email
+        const fromName = email.split('@')[0] || email;
+        
+        // Prepare email template parameters
+        const templateParams = {
+            to_email: 'mstorteyt@gmail.com',
+            from_name: fromName,
+            from_email: email,
+            institution: 'Nicht angegeben',
+            phone: phone || 'Nicht angegeben',
+            message: message + (phone ? `\n\nTelefon: ${phone}` : ''),
+            wants_demo: 'Ja',
+            demo_request: 'Demo gewünscht'
+        };
+        
+        // Show loading state
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wird gesendet...';
+        submitBtn.disabled = true;
+        
+        // Send email using EmailJS
+        emailjs.send('service_s74xvzx', 'template_iyd746k', templateParams)
+            .then(function(response) {
+                console.log('SUCCESS!', response.status, response.text);
+                
+                const successMessage = 'Vielen Dank! Ihre Anfrage wurde erfolgreich gesendet. Wir werden uns innerhalb von 24 Stunden bei Ihnen melden, um einen Termin für Ihre kostenlose Demonstration zu vereinbaren.';
+                showNotification(successMessage, 'success');
+                contactForm.reset();
+            }, function(error) {
+                console.log('FAILED...', error);
+                showNotification('Es gab einen Fehler beim Senden Ihrer Anfrage. Bitte versuchen Sie es später erneut oder kontaktieren Sie uns direkt.', 'error');
+            })
+            .finally(function() {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
     });
-});
+}
 
-// Navbar scroll behavior
-let lastScrollTop = 0;
-const navbar = document.querySelector('.navbar');
+// FAQ Accordion
+const faqItems = document.querySelectorAll('.faq-item');
 
-window.addEventListener('scroll', () => {
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+faqItems.forEach(item => {
+    const question = item.querySelector('.faq-question');
     
-    // Show navbar when scrolling down from the top
-    if (scrollTop > 50) {
-        navbar.classList.add('visible');
-    } else {
-        navbar.classList.remove('visible');
+    if (question) {
+        question.addEventListener('click', () => {
+            const isActive = item.classList.contains('active');
+            
+            // Close all other items
+            faqItems.forEach(otherItem => {
+                if (otherItem !== item) {
+                    otherItem.classList.remove('active');
+                }
+            });
+            
+            // Toggle current item
+            item.classList.toggle('active', !isActive);
+        });
     }
-    
-    // Hide/show navbar based on scroll direction (only when already visible)
-    if (scrollTop > lastScrollTop && scrollTop > 100) {
-        // Scrolling down - hide navbar
-        navbar.style.transform = 'translateY(-100%)';
-    } else if (scrollTop < lastScrollTop && scrollTop > 50) {
-        // Scrolling up - show navbar
-        navbar.style.transform = 'translateY(0)';
-    }
-    
-    // Change background opacity based on scroll position
-    if (scrollTop > 100) {
-        navbar.style.background = 'rgba(255, 255, 255, 0.98)';
-        navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
-    } else {
-        navbar.style.background = 'rgba(255, 255, 255, 0.95)';
-        navbar.style.boxShadow = 'none';
-    }
-    
-    lastScrollTop = scrollTop;
 });
 
 // Intersection Observer for animations
@@ -84,462 +343,57 @@ const observerOptions = {
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
-            entry.target.classList.add('fade-in-up');
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
         }
     });
 }, observerOptions);
 
-// Observe all cards and sections for animation
+// Observe elements for fade-in animation
 document.addEventListener('DOMContentLoaded', () => {
-    const animatedElements = document.querySelectorAll('.problem-card, .feature-card, .benefit-card, .admin-feature, .solution-features .feature-item');
+    const animatedElements = document.querySelectorAll('.feature-card, .admin-card, .benefit-card, .process-step, .timeline-item');
     
     animatedElements.forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
         observer.observe(el);
     });
-    
-    // Ensure navbar is hidden on page load
-    const navbar = document.querySelector('.navbar');
-    if (navbar) {
-        navbar.classList.remove('visible');
-    }
 });
 
-// Contact form handling
-const contactForm = document.querySelector('.contact-form form');
-if (contactForm) {
-    contactForm.addEventListener('submit', function(e) {
-        e.preventDefault();
+// Header scroll effect - hide on scroll down, show on scroll up
+let lastScroll = 0;
+const header = document.querySelector('.header');
+
+if (header) {
+    // Ensure header has transition for smooth animation
+    header.style.transition = 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out';
+    
+    window.addEventListener('scroll', () => {
+        const currentScroll = window.pageYOffset;
+        const scrollThreshold = 100; // Minimum scroll distance before hiding
         
-        // Get form data
-        const formData = new FormData(this);
-        const name = this.querySelector('input[type="text"]').value;
-        const email = this.querySelector('input[type="email"]').value;
-        const institution = this.querySelectorAll('input[type="text"]')[1].value;
-        const message = this.querySelector('textarea').value;
-        
-        // Basic validation
-        if (!name || !email || !institution || !message) {
-            showNotification('Bitte füllen Sie alle Felder aus.', 'error');
-            return;
+        // Update box shadow based on scroll position
+        if (currentScroll > scrollThreshold) {
+            header.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+        } else {
+            header.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
         }
         
-        if (!isValidEmail(email)) {
-            showNotification('Bitte geben Sie eine gültige E-Mail-Adresse ein.', 'error');
-            return;
-        }
-        
-        // Simulate form submission
-        const submitBtn = this.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wird gesendet...';
-        submitBtn.disabled = true;
-        
-        // Simulate API call
-        setTimeout(() => {
-            showNotification('Vielen Dank! Ihre Nachricht wurde erfolgreich gesendet. Wir werden uns bald bei Ihnen melden.', 'success');
-            this.reset();
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-        }, 2000);
-    });
-}
-
-// Email validation function
-function isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
-
-// Notification system
-function showNotification(message, type = 'info') {
-    // Remove existing notifications
-    const existingNotifications = document.querySelectorAll('.notification');
-    existingNotifications.forEach(notification => notification.remove());
-    
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `
-        <div class="notification-content">
-            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
-            <span>${message}</span>
-            <button class="notification-close">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    `;
-    
-    // Add styles
-    notification.style.cssText = `
-        position: fixed;
-        top: 100px;
-        right: 20px;
-        background: ${type === 'success' ? '#32A71A' : type === 'error' ? '#DC3545' : '#008CFF'};
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 10px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        z-index: 10000;
-        transform: translateX(400px);
-        transition: transform 0.3s ease;
-        max-width: 400px;
-    `;
-    
-    // Add to page
-    document.body.appendChild(notification);
-    
-    // Animate in
-    setTimeout(() => {
-        notification.style.transform = 'translateX(0)';
-    }, 100);
-    
-    // Close button functionality
-    const closeBtn = notification.querySelector('.notification-close');
-    closeBtn.addEventListener('click', () => {
-        notification.style.transform = 'translateX(400px)';
-        setTimeout(() => notification.remove(), 300);
-    });
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.style.transform = 'translateX(400px)';
-            setTimeout(() => notification.remove(), 300);
-        }
-    }, 5000);
-}
-
-// Parallax effect for hero section
-window.addEventListener('scroll', () => {
-    const scrolled = window.pageYOffset;
-    const hero = document.querySelector('.hero');
-    const buildingMockup = document.querySelector('.building-mockup');
-    
-    if (hero && buildingMockup) {
-        const rate = scrolled * -0.5;
-        buildingMockup.style.transform = `translateY(${rate}px)`;
-    }
-});
-
-// Interactive admin panel mockup
-document.addEventListener('DOMContentLoaded', () => {
-    const menuItems = document.querySelectorAll('.menu-item');
-    const adminHeader = document.querySelector('.admin-header h3');
-    const statsCard = document.querySelector('.stats-card');
-    const chartPlaceholder = document.querySelector('.chart-placeholder');
-    
-    if (menuItems.length > 0) {
-        menuItems.forEach(item => {
-            item.addEventListener('click', () => {
-                // Remove active class from all items
-                menuItems.forEach(menuItem => menuItem.classList.remove('active'));
-                
-                // Add active class to clicked item
-                item.classList.add('active');
-                
-                // Update header text
-                if (adminHeader) {
-                    adminHeader.textContent = item.querySelector('span').textContent;
-                }
-                
-                // Simulate different content based on menu item
-                const menuText = item.querySelector('span').textContent;
-                if (statsCard && chartPlaceholder) {
-                    switch(menuText) {
-                        case 'Statistiken':
-                            statsCard.innerHTML = `
-                                <div class="stat-item">
-                                    <span class="stat-number">36</span>
-                                    <span class="stat-label">Videos mit Aufrufen</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-number">61</span>
-                                    <span class="stat-label">Gesamte Aufrufe</span>
-                                </div>
-                            `;
-                            break;
-                        case 'Videos verwalten':
-                            statsCard.innerHTML = `
-                                <div class="stat-item">
-                                    <span class="stat-number">79</span>
-                                    <span class="stat-label">Hochgeladene Videos</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-number">12</span>
-                                    <span class="stat-label">Neue Videos</span>
-                                </div>
-                            `;
-                            break;
-                        case 'Stockwerke':
-                            statsCard.innerHTML = `
-                                <div class="stat-item">
-                                    <span class="stat-number">5</span>
-                                    <span class="stat-label">Stockwerke</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-number">127</span>
-                                    <span class="stat-label">Räume</span>
-                                </div>
-                            `;
-                            break;
-                        case 'Suchbar-Konfiguration':
-                            statsCard.innerHTML = `
-                                <div class="stat-item">
-                                    <span class="stat-number">1</span>
-                                    <span class="stat-label">Aktive Konfiguration</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-number">24</span>
-                                    <span class="stat-label">Suchanfragen/Tag</span>
-                                </div>
-                            `;
-                            break;
-                    }
-                }
-            });
-        });
-    }
-});
-
-// Add hover effects to interactive elements
-document.addEventListener('DOMContentLoaded', () => {
-    // Add hover effects to cards
-    const cards = document.querySelectorAll('.problem-card, .feature-card, .benefit-card');
-    cards.forEach(card => {
-        card.addEventListener('mouseenter', () => {
-            card.style.transform = 'translateY(-10px) scale(1.02)';
-        });
-        
-        card.addEventListener('mouseleave', () => {
-            card.style.transform = 'translateY(0) scale(1)';
-        });
-    });
-    
-    // Add pulse animation to CTA buttons
-    const ctaButtons = document.querySelectorAll('.btn-primary');
-    ctaButtons.forEach(button => {
-        button.addEventListener('mouseenter', () => {
-            button.style.animation = 'pulse 1s infinite';
-        });
-        
-        button.addEventListener('mouseleave', () => {
-            button.style.animation = 'none';
-        });
-    });
-});
-
-// Add CSS for pulse animation
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes pulse {
-        0% {
-            transform: scale(1);
-        }
-        50% {
-            transform: scale(1.05);
-        }
-        100% {
-            transform: scale(1);
-        }
-    }
-    
-    .notification-content {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .notification-close {
-        background: none;
-        border: none;
-        color: white;
-        cursor: pointer;
-        margin-left: auto;
-        padding: 0;
-        font-size: 1rem;
-    }
-    
-    .notification-close:hover {
-        opacity: 0.8;
-    }
-`;
-document.head.appendChild(style);
-
-// Performance optimization: Lazy loading for images (if any are added later)
-if ('IntersectionObserver' in window) {
-    const imageObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const img = entry.target;
-                img.src = img.dataset.src;
-                img.classList.remove('lazy');
-                imageObserver.unobserve(img);
+        // Hide/show header based on scroll direction
+        if (currentScroll > scrollThreshold) {
+            if (currentScroll > lastScroll) {
+                // Scrolling down - hide header
+                header.style.transform = 'translateY(-100%)';
+            } else {
+                // Scrolling up - show header
+                header.style.transform = 'translateY(0)';
             }
-        });
-    });
-    
-    document.querySelectorAll('img[data-src]').forEach(img => {
-        imageObserver.observe(img);
+        } else {
+            // Always show header when near top
+            header.style.transform = 'translateY(0)';
+        }
+        
+        lastScroll = currentScroll;
     });
 }
-
-// Add loading state to the page
-window.addEventListener('load', () => {
-    document.body.classList.add('loaded');
-    
-    // Animate hero elements
-    const heroElements = document.querySelectorAll('.hero-title, .hero-subtitle, .hero-buttons, .building-mockup');
-    heroElements.forEach((el, index) => {
-        setTimeout(() => {
-            el.classList.add('fade-in-up');
-        }, index * 200);
-    });
-});
-
-// Keyboard navigation support
-document.addEventListener('keydown', (e) => {
-    // Escape key closes mobile menu
-    if (e.key === 'Escape') {
-        hamburger.classList.remove('active');
-        navMenu.classList.remove('active');
-    }
-    
-    // Enter key on form inputs
-    if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
-        const form = e.target.closest('form');
-        if (form) {
-            const submitBtn = form.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.click();
-            }
-        }
-    }
-});
-
-// Add smooth reveal animation for sections
-const revealSections = () => {
-    const sections = document.querySelectorAll('section');
-    
-    sections.forEach(section => {
-        const sectionTop = section.getBoundingClientRect().top;
-        const windowHeight = window.innerHeight;
-        
-        if (sectionTop < windowHeight * 0.75) {
-            section.classList.add('revealed');
-        }
-    });
-};
-
-window.addEventListener('scroll', revealSections);
-window.addEventListener('load', revealSections);
-
-// Add CSS for section reveal animation
-const revealStyle = document.createElement('style');
-revealStyle.textContent = `
-    section {
-        opacity: 0;
-        transform: translateY(30px);
-        transition: all 0.8s ease;
-    }
-    
-    section.revealed {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    
-    .hero {
-        opacity: 1;
-        transform: none;
-    }
-`;
-document.head.appendChild(revealStyle);  
-
-// Price calculator logic
-document.addEventListener('DOMContentLoaded', () => {
-    const areaInput = document.getElementById('areaInput');
-    const kioskInput = document.getElementById('kioskInput');
-    const areaRange = document.getElementById('areaRange');
-    const kioskRange = document.getElementById('kioskRange');
-    const calcBtn = document.getElementById('calcBtn');
-
-    const outRate = document.getElementById('outRate');
-    const outAreaCost = document.getElementById('outAreaCost');
-    const outBase = document.getElementById('outBase');
-    const outInstallPer = document.getElementById('outInstallPer');
-    const outInstallTotal = document.getElementById('outInstallTotal');
-    const outTotal = document.getElementById('outTotal');
-
-    const fmt = (n) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
-    const fmtPer = (n) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n) + ' / m²';
-    const fmtInt = (n) => new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 }).format(Math.max(0, Math.round(n || 0)));
-    const parseIntInput = (el) => {
-        if (!el) return 0;
-        const raw = (el.value || '').toString().replace(/\./g, '').replace(/[^0-9]/g, '');
-        return raw ? parseInt(raw, 10) : 0;
-    };
-    const setFormatted = (el, n) => {
-        if (!el) return;
-        el.value = fmtInt(n);
-    };
-
-    function compute(A, kiosks) {
-        const area = Math.max(0, Number.isFinite(A) ? A : 0);
-        const k = Math.max(0, Math.floor(Number.isFinite(kiosks) ? kiosks : 0));
-
-        // Pricing functions per agreed model (qm-Preis: 4.00 -> 0.50 bis ~20.000 m²)
-        const r = 0.50 + 3.50 * Math.exp(-area / 4000); // €/m², 0.50..4.00, ~0.52 bei 20.000 m²
-        const b = 500 + 2500 * (area / (area + 3000));   // €, 500..3000
-        const i = (200 + 800 * Math.min(1, area / 20000)) / 2; // € per kiosk, 100..500 (halbiert)
-
-        const areaCost = area * r;
-        const installTotal = k * i;
-        const total = areaCost + b + installTotal;
-
-        return { r, b, i, areaCost, installTotal, total };
-    }
-
-    function update() {
-        const A = parseIntInput(areaInput);
-        const kiosks = parseIntInput(kioskInput);
-        const { r, b, i, areaCost, installTotal, total } = compute(A, kiosks);
-
-        if (outRate) outRate.textContent = fmtPer(r);
-        if (outAreaCost) outAreaCost.textContent = fmt(areaCost);
-        if (outBase) outBase.textContent = fmt(b);
-        if (outInstallPer) outInstallPer.textContent = fmt(i);
-        if (outInstallTotal) outInstallTotal.textContent = fmt(installTotal);
-        if (outTotal) outTotal.textContent = fmt(total);
-    }
-
-    if (areaInput && kioskInput) {
-        if (!areaInput.value) setFormatted(areaInput, 15000);
-        if (!kioskInput.value) setFormatted(kioskInput, 2);
-        if (areaRange) areaRange.value = String(parseIntInput(areaInput));
-        if (kioskRange) kioskRange.value = String(parseIntInput(kioskInput));
-
-        const syncFromInputs = () => {
-            const a = parseIntInput(areaInput);
-            const k = parseIntInput(kioskInput);
-            setFormatted(areaInput, a);
-            setFormatted(kioskInput, k);
-            if (areaRange) areaRange.value = String(Math.max(0, Math.min(100000, a)));
-            if (kioskRange) kioskRange.value = String(Math.max(0, Math.min(50, k)));
-            update();
-        };
-        const syncFromRanges = () => {
-            if (areaRange && areaInput) setFormatted(areaInput, parseInt(areaRange.value || '0', 10));
-            if (kioskRange && kioskInput) setFormatted(kioskInput, parseInt(kioskRange.value || '0', 10));
-            update();
-        };
-
-        areaInput.addEventListener('input', syncFromInputs);
-        kioskInput.addEventListener('input', syncFromInputs);
-        if (areaRange) areaRange.addEventListener('input', syncFromRanges);
-        if (kioskRange) kioskRange.addEventListener('input', syncFromRanges);
-
-        // No presets anymore
-    }
-    if (calcBtn) calcBtn.addEventListener('click', update);
-
-    update();
-});

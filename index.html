@@ -2,37 +2,13 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Gebäudenavi - Intelligente Navigation für große Gebäude | Seraphin Solutions</title>
-    
-    <!-- Favicon and App Icons -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" href="/favicon.ico">
-    
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="Gebäudenavi - Intelligente Navigation für große Gebäude. Digitale Kiosks mit 3D-Grundrissen für eine benutzerfreundliche Gebäudenavigation. Entwickelt von Seraphin Solutions.">
-    <meta name="keywords" content="Gebäudenavi, Gebäudenavigation, digitale Kiosks, 3D-Grundriss, Seraphin Solutions, intelligente Navigation">
-    <meta name="author" content="Seraphin Solutions">
-    <meta name="robots" content="index, follow">
-    
-    <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="Gebäudenavi - Intelligente Navigation für große Gebäude">
-    <meta property="og:description" content="Digitale Kiosks mit 3D-Grundrissen für eine benutzerfreundliche Gebäudenavigation. Entwickelt von Seraphin Solutions.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://seraphin-solutions.de">
-    <meta property="og:image" content="/favicon.ico">
-    <meta property="og:site_name" content="Seraphin Solutions">
-    
-    <!-- Twitter Card Meta Tags -->
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Gebäudenavi - Intelligente Navigation für große Gebäude">
-    <meta name="twitter:description" content="Digitale Kiosks mit 3D-Grundrissen für eine benutzerfreundliche Gebäudenavigation.">
-    <meta name="twitter:image" content="/favicon.ico">
-    
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gebäudenavi - Interaktive Wegleitsysteme | Seraphin Solutions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
     
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-W5MJXCE4XC"></script>
@@ -42,365 +18,227 @@
       gtag('js', new Date());
       gtag('config', 'G-W5MJXCE4XC');
     </script>
-    
-    <style>
-        /* Mobile-First Additional Styles */
-        @media (max-width: 768px) {
-            .hero-title {
-                font-size: 2rem !important;
-                line-height: 1.2 !important;
-            }
-            
-            .hero-subtitle {
-                font-size: 1rem !important;
-            }
-            
-            .hero-buttons {
-                flex-direction: column;
-                width: 100%;
-            }
-            
-            .hero-buttons .btn {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .section-header h2 {
-                font-size: 1.75rem !important;
-            }
-            
-            .section-header p {
-                font-size: 1rem !important;
-            }
-            
-            .teaser-text h2,
-            .contact-text h2 {
-                font-size: 1.75rem !important;
-            }
-            
-            .reference-info h3 {
-                font-size: 1.75rem !important;
-            }
-            
-            .pricing-card {
-                padding: 1.5rem !important;
-            }
-            
-            .form-group input,
-            .form-group textarea {
-                font-size: 16px !important; /* Prevents zoom on iOS */
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .hero-title {
-                font-size: 1.75rem !important;
-            }
-            
-            .btn {
-                padding: 0.875rem 1.5rem !important;
-                font-size: 0.95rem !important;
-            }
-        }
-    </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <a href="index.html">
-                    <img src="/favicon.ico" alt="Seraphin Solutions Logo" class="logo-image">
-                    <span class="logo-text">Seraphin Solutions</span>
-                </a>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="#home">Start</a></li>
-                <li><a href="#references">Referenzen</a></li>
-                <li><a href="#pricing">Preise</a></li>
-                <li><a href="#contact">Kontakt</a></li>
-                <li><a href="info.html" class="btn-nav">Mehr Informationen</a></li>
-            </ul>
-            <div class="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <a href="index.html" class="logo">
+                        <img src="logo.png" alt="Seraphin Solutions Logo">
+                    </a>
+                    <span class="company-name">Seraphin Solutions</span>
+                </div>
+                <nav class="nav" id="nav">
+                    <a href="index.html" class="nav-link active">Startseite</a>
+                    <a href="programm.html" class="nav-link">Das Programm</a>
+                    <a href="weitere-informationen.html" class="nav-link">Weitere Informationen</a>
+                    <a href="support.html" class="nav-link">Support</a>
+                </nav>
+                <button class="hamburger" id="hamburger" aria-label="Menü öffnen">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
             </div>
         </div>
-    </nav>
+    </header>
 
     <!-- Hero Section -->
-    <section id="home" class="hero">
-        <div class="hero-container">
+    <section class="hero">
+        <div class="hero-background">
+            <div class="hero-blob hero-blob-1"></div>
+            <div class="hero-blob hero-blob-2"></div>
+            <div class="hero-grid"></div>
+        </div>
+        <div class="container">
             <div class="hero-content">
-                <h1 class="hero-title">
-                    Das Gebäudenavi
-                </h1>
-                <p class="hero-subtitle">
-                    Entwickelt von Seraphin Solutions
-                </p>
-                <div class="hero-buttons">
-                    <a href="#teaser" class="btn btn-primary">
-                        <i class="fas fa-play"></i>
-                        Jetzt entdecken
-                    </a>
-                    <a href="#contact" class="btn btn-secondary">
-                        <i class="fas fa-calendar"></i>
-                        Kostenlose Demo
-                    </a>
-                    <a href="info.html" class="btn btn-tertiary">
-                        <i class="fas fa-info-circle"></i>
-                        Mehr Infos
-                    </a>
-                </div>
-            </div>
-            <div class="hero-visual">
-                <div class="hero-image">
-                    <img src="Gebäudenavi Programm.png" alt="Gebäudenavi Programm" class="hero-program-image">
-                </div>
-            </div>
-        </div>
-        <div class="hero-wave">
-            <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
-                <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" class="shape-fill"></path>
-                <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" class="shape-fill"></path>
-                <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" class="shape-fill"></path>
-            </svg>
-        </div>
-    </section>
-
-    <!-- Teaser Section -->
-    <section id="teaser" class="teaser">
-        <div class="container">
-            <div class="teaser-content">
-                <div class="teaser-text">
-                    <h2>Das Gebäudenavi: Ihre Lösung für verwirrende Gebäudekomplexe</h2>
-                    <p class="teaser-intro">
-                        Stellen Sie sich vor: Besucher betreten Ihr Gebäude und finden sofort den Weg zu ihrem Ziel. Keine verwirrten Gesichter, keine verlorene Zeit, keine Frustration. Das ist die Realität mit dem Gebäudenavi.
+                <div class="hero-text">
+                    <div class="hero-badge">
+                        <span>Interaktive Navigation</span>
+                    </div>
+                    <h1>Das Gebäudenavi</h1>
+                    <p class="hero-subtitle">Entwickelt von Seraphin Solutions</p>
+                    <p class="hero-description">
+                        Führen Sie Besucher intuitiv durch Ihr Gebäude mit unserem intelligenten 3D-Navigationssystem. 
+                        Einfach, professionell und für alle Altersgruppen verständlich.
                     </p>
-                    <div class="teaser-features">
-                        <div class="teaser-feature">
-                            <i class="fas fa-tv"></i>
-                            <div>
-                                <h4>Digitale Kiosks</h4>
-                                <p>Strategisch platzierte, interaktive Bildschirme führen Besucher intuitiv durch Ihr Gebäude</p>
-                            </div>
-                        </div>
-                        <div class="teaser-feature">
-                            <i class="fas fa-cube"></i>
-                            <div>
-                                <h4>3D-Grundrisse</h4>
-                                <p>Maßgeschneiderte 3D-Visualisierungen zeigen jeden Raum und jeden Weg in Ihrem Gebäude</p>
-                            </div>
-                        </div>
-                        <div class="teaser-feature">
-                            <i class="fas fa-search"></i>
-                            <div>
-                                <h4>Intelligente Suche</h4>
-                                <p>Besucher finden jeden Raum mit der integrierten Suchfunktion - einfach und schnell</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="teaser-cta">
-                        <a href="info.html" class="btn btn-primary btn-large">
-                            <i class="fas fa-info-circle"></i>
-                            Mehr Informationen
-                        </a>
-                        <p class="teaser-note">Erfahren Sie alles über Features, Admin-Panel und technische Details</p>
+                    <div class="hero-buttons">
+                        <a href="#kontakt" class="btn btn-primary">Kostenlose Demo buchen</a>
+                        <a href="#preisrechner" class="btn btn-secondary">Preis berechnen</a>
                     </div>
                 </div>
-                <div class="teaser-visual">
-                    <div class="teaser-image">
-                        <img src="eingangsbereich.png" alt="Digitaler Kiosk im Eingangsbereich" class="teaser-kiosk-image">
+                <div class="hero-image-wrapper">
+                    <div class="hero-image-glow"></div>
+                    <div class="hero-image">
+                        <img src="5.png" alt="Gebäudenavi in Aktion">
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- References Section -->
-    <section id="references" class="references">
+    <!-- Features Preview -->
+    <section class="features-preview">
         <div class="container">
-            <div class="section-header">
-                <h2>Unsere Referenzen</h2>
-                <p>Vertrauen Sie auf bewährte Lösungen - Sehen Sie, wo das Gebäudenavi bereits erfolgreich im Einsatz ist</p>
+            <h2 class="section-title">So funktioniert Gebäudenavi</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>3D-Grundriss</h3>
+                    <p>Interaktives 3D-Modell des Gebäudes zum Zoomen und Erkunden</p>
+                </div>
+                <div class="feature-card">
+                    <h3>3D-Animationen</h3>
+                    <p>Professionelle Wegbeschreibungen als leicht verständliche Animationen</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Intelligente Suche</h3>
+                    <p>Schnelles Finden jedes Raums durch intelligentes Suchsystem</p>
+                </div>
+                <div class="feature-card">
+                    <h3>QR-Codes</h3>
+                    <p>Navigation auf dem Smartphone durch scannbare QR-Codes</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Live-Statistiken</h3>
+                    <p>Echtzeit-Analysen über Besucherströme und beliebte Bereiche</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Einfache Verwaltung</h3>
+                    <p>Flexibles Adminpanel für alle Anpassungen und Updates</p>
+                </div>
             </div>
+        </div>
+    </section>
+
+    <!-- References Carousel -->
+    <section class="references" id="referenzen">
+        <div class="container">
+            <h2 class="section-title">Referenzen</h2>
+            <p class="section-subtitle">Vertrauen Sie auf unsere bewährte Lösung</p>
             
-            <div class="references-showcase">
-                <!-- Featured Reference -->
-                <div class="featured-reference">
-                    <div class="reference-hero">
-                        <div class="reference-badge">
-                            <i class="fas fa-star"></i>
-                            <span>Referenzprojekt</span>
-                        </div>
+            <div class="carousel-container">
+                <div class="carousel" id="carousel">
+                    <div class="carousel-slide active">
                         <div class="reference-content">
+                            <div class="reference-image-main">
+                                <img src="amtsgericht.jpg" alt="Amtsgericht München">
+                            </div>
                             <div class="reference-info">
+                                <div class="reference-badge">
+                                    <span class="badge-label">Gebäudegröße</span>
+                                    <span class="badge-value">25.000 m²</span>
+                                </div>
                                 <h3>Amtsgericht München</h3>
-                                <p class="reference-subtitle">Deutschlands größtes Amtsgericht</p>
                                 <p class="reference-description">
-                                    Das Amtsgericht München ist mit über 26.000 Quadratmetern Nutzfläche das größte Amtsgericht in Deutschland. Mit dem Gebäudenavi wird der gesamte öffentliche Bereich der Einrichtung abgedeckt. 
+                                    Das größte Amtsgericht Deutschlands vertraut auf Gebäudenavi, um Besucher und Mitarbeiter 
+                                    durch das komplexe Gebäude zu führen. Mit über 25.000 Quadratmetern zeigt dieses Projekt 
+                                    die Skalierbarkeit und Zuverlässigkeit unserer Lösung.
                                 </p>
-                                <div class="reference-highlights">
-                                    <div class="highlight-item">
-                                        <i class="fas fa-building"></i>
-                                        <span>26.000+ m² Nutzfläche</span>
-                                    </div>
-                                    <div class="highlight-item">
-                                        <i class="fas fa-map-marked-alt"></i>
-                                        <span>100% Abdeckung</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="reference-visual">
-                                <div class="reference-image-container">
-                                    <img src="amtsgericht.jpg" alt="Amtsgericht München" class="reference-main-image">
-                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                <button class="carousel-btn prev" id="carouselPrev" aria-label="Vorherige Referenz" style="display: none;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 18l-6-6 6-6"/>
+                    </svg>
+                </button>
+                <button class="carousel-btn next" id="carouselNext" aria-label="Nächste Referenz" style="display: none;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </section>
 
-                <!-- Call to Action -->
-                <div class="references-cta">
-                    <div class="cta-content">
-                        <h3>Werden Sie unser nächstes Erfolgsprojekt</h3>
-                        <p>Lassen Sie uns gemeinsam die Navigation in Ihrem Gebäude verbessern</p>
-                        <div class="cta-buttons">
-                            <a href="#contact" class="btn btn-primary">
-                                <i class="fas fa-calendar"></i>
-                                Kostenlose Beratung
-                            </a>
-                            <a href="info.html" class="btn btn-secondary">
-                                <i class="fas fa-info-circle"></i>
-                                Mehr erfahren
-                            </a>
+    <!-- Price Calculator -->
+    <section class="price-calculator" id="preisrechner">
+        <div class="container">
+            <h2 class="section-title">Preisrechner</h2>
+            <p class="section-subtitle">Erhalten Sie eine unverbindliche Kostenschätzung für Ihr Gebäude</p>
+            
+            <div class="calculator-container">
+                <div class="calculator-form">
+                    <div class="form-group">
+                        <label for="flaeche">
+                            <span>Gebäudegröße</span>
+                            <span class="slider-value" id="flaecheValue">5.000 m²</span>
+                        </label>
+                        <input type="range" id="flaeche" min="500" max="120000" step="500" value="5000" class="slider">
+                        <div class="slider-labels">
+                            <span>500 m²</span>
+                            <span>120.000 m²</span>
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="kioske">
+                            <span>Anzahl Interaktiver Touch-Bildschirme</span>
+                            <span class="slider-value" id="kioskeValue">3</span>
+                        </label>
+                        <input type="range" id="kioske" min="1" max="20" step="1" value="3" class="slider">
+                        <div class="slider-labels">
+                            <span>1</span>
+                            <span>20</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="calculator-result" id="calculatorResult">
+                    <div class="result-content">
+                        <div class="result-price" id="resultPrice">—</div>
+                        <p style="font-size: 1.1rem; margin-bottom: 1rem;">Geschätzter Gesamtpreis</p>
+                        <div class="result-breakdown" id="resultBreakdown"></div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Pricing Section -->
-    <section id="pricing" class="pricing">
+    <!-- Contact Form -->
+    <section class="contact" id="kontakt">
         <div class="container">
-            <div class="section-header">
-                <h2>Preisrechner</h2>
-                <p>Berechnen Sie den Preis für Ihr Gebäudenavi</p>
-            </div>
-
-            <div class="pricing-grid calc-grid">
-                <!-- Input Card -->
-                <div class="pricing-card">
-                    <div class="pricing-header">
-                        <div class="pricing-icon">
-                            <i class="fas fa-calculator"></i>
-                        </div>
-                        <h3>Eingaben</h3>
-                    </div>
-                    <div class="calc-fields">
-                        <div class="form-group calc-field">
-                            <label for="areaInput">Gebäudefläche (m²)</label>
-                            <div class="input-with-range">
-                                <input id="areaInput" type="text" inputmode="numeric" placeholder="z.B. 2.000" />
-                                <input id="areaRange" type="range" min="0" max="100000" step="100" />
-                            </div>
-                        </div>
-                        <div class="form-group calc-field">
-                            <label for="kioskInput">Anzahl Kiosks</label>
-                            <div class="input-with-range">
-                                <input id="kioskInput" type="text" inputmode="numeric" placeholder="z.B. 3" />
-                                <input id="kioskRange" type="range" min="0" max="50" step="1" />
-                            </div>
-                        </div>
-                    </div>
-                    <p class="calc-note">Hinweis: Die genannten Preise beziehen sich ausschließlich auf die Installation. Die Anschaffungskosten für die digitalen Kiosks sind nicht Bestandteil dieses Angebots.</p>
-                </div>
-
-                <!-- Result Card -->
-                <div class="pricing-card">
-                    <div class="pricing-header">
-                        <div class="pricing-icon">
-                            <i class="fas fa-receipt"></i>
-                        </div>
-                        <h3>Ergebnis</h3>
-                    </div>
-                    <div class="pricing-summary calc-summary">
-                        <div class="summary-card">
-                            <h3>Preisübersicht</h3>
-                            <div class="summary-breakdown">
-                                <div class="summary-item">
-                                    <span>qm-Preis</span>
-                                    <span id="outRate">–</span>
-                                </div>
-                                <div class="summary-item">
-                                    <span>Flächenanteil</span>
-                                    <span id="outAreaCost">–</span>
-                                </div>
-                                <div class="summary-item">
-                                    <span>Grundgebühr</span>
-                                    <span id="outBase">–</span>
-                                </div>
-                                <div class="summary-item">
-                                    <span>Installation (pro Kiosk)</span>
-                                    <span id="outInstallPer">–</span>
-                                </div>
-                                <div class="summary-item">
-                                    <span>Installationen gesamt</span>
-                                    <span id="outInstallTotal">–</span>
-                                </div>
-                                <div class="summary-total">
-                                    <span>Gesamtpreis</span>
-                                    <span id="outTotal">–</span>
-                                </div>
-                            </div>
-                            <div class="summary-note">
-                                Richtwerte – finale Angebote können je nach Projekt variieren.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Contact Section -->
-    <section id="contact" class="contact-landing">
-        <div class="container">
-            <div class="contact-content">
-                <div class="contact-text">
-                    <h2>Bereit für die Zukunft der Gebäudenavigation?</h2>
-                    <p>
-                        Kontaktieren Sie uns für eine kostenlose Beratung oder melden Sie sich für eine kostenlose Demonstration des Gebäudenavis an. Unser Team steht Ihnen gerne zur Verfügung.
-                    </p>
-                </div>
-                <div class="contact-form">
-                    <form id="contactForm">
+            <h2 class="section-title">Kostenlose Demonstration buchen</h2>
+            <p class="section-subtitle">Lassen Sie sich unverbindlich von Gebäudenavi überzeugen</p>
+            
+            <div class="contact-container">
+                <div class="contact-form-wrapper">
+                    <form class="contact-form" id="contactForm">
                         <div class="form-group">
-                            <input type="text" placeholder="Ihr Name" required>
+                            <label for="email">E-Mail-Adresse</label>
+                            <input type="email" id="email" name="email" required placeholder="ihre@email.de">
                         </div>
                         <div class="form-group">
-                            <input type="email" placeholder="Ihre E-Mail" required>
+                            <label for="phone">Telefonnummer (optional)</label>
+                            <input type="tel" id="phone" name="phone" placeholder="+49 176 22911006">
                         </div>
                         <div class="form-group">
-                            <input type="text" placeholder="Ihre Einrichtung" required>
+                            <label for="message">Nachricht</label>
+                            <textarea id="message" name="message" rows="5" required placeholder="Erzählen Sie uns von Ihrem Gebäude und Ihren Anforderungen..."></textarea>
                         </div>
-                        <div class="form-group">
-                            <textarea placeholder="Ihre Nachricht" rows="4" required></textarea>
-                        </div>
-                        <div class="form-group checkbox-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="demoCheckbox">
-                                <span class="checkmark"></span>
-                                Ich möchte eine kostenlose Demo des Gebäudenavis erhalten
-                            </label>
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-paper-plane"></i>
-                            Nachricht senden
-                        </button>
+                        <button type="submit" class="btn btn-primary">Anfrage senden</button>
                     </form>
+                </div>
+                <div class="contact-info">
+                    <h3>Alternativ kontaktieren Sie uns direkt</h3>
+                    <div class="contact-methods">
+                        <a href="tel:+4917622911006" class="contact-method">
+                            <div>
+                                <strong>Telefon</strong>
+                                <p>+49 176 22911006</p>
+                            </div>
+                        </a>
+                        <a href="mailto:kontakt@seraphin-solutions.de" class="contact-method">
+                            <div>
+                                <strong>E-Mail</strong>
+                                <p>kontakt@seraphin-solutions.de</p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="contact-note">
+                        <p>Wir melden uns innerhalb von 24 Stunden bei Ihnen zurück, um einen Termin für Ihre kostenlose Demonstration zu vereinbaren.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -411,41 +249,20 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <div class="footer-logo">
-                        <img src="favicon.png" alt="Seraphin Solutions Logo" class="logo-image">
-                        <span class="logo-text">Seraphin Solutions</span>
-                    </div>
-                    <p>Die intelligente Lösung für die Navigation in großen Gebäuden, entwickelt von Seraphin Solutions.</p>
+                    <img src="logo.png" alt="Seraphin Solutions" class="footer-logo">
+                    <p>Interaktive Wegleitsysteme für große Gebäude</p>
                 </div>
                 <div class="footer-section">
-                    <h4>Produkt</h4>
-                    <ul>
-                        <li><a href="index.html#features">Features</a></li>
-                        <li><a href="index.html#admin">Admin-Panel</a></li>
-                        <li><a href="index.html#solution">Lösung</a></li>
-                    </ul>
+                    <h4>Navigation</h4>
+                    <a href="index.html">Startseite</a>
+                    <a href="programm.html">Das Programm</a>
+                    <a href="weitere-informationen.html">Weitere Informationen</a>
+                    <a href="support.html">Support</a>
                 </div>
                 <div class="footer-section">
-                    <h4>Unternehmen</h4>
-                    <ul>
-                        <li><a href="#pricing">Preise</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Rechtliches</h4>
-                    <ul>
-                        <li><a href="impressum.html">Impressum</a></li>
-                        <li><a href="datenschutz.html">Datenschutz</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Zugang</h4>
-                    <ul>
-                        <li><a href="login.html" class="footer-login-btn">
-                            <i class="fas fa-sign-in-alt"></i>
-                            Statistiken Login
-                        </a></li>
-                    </ul>
+                    <h4>Kontakt</h4>
+                    <a href="tel:+4917622911006">+49 176 22911006</a>
+                    <a href="mailto:kontakt@seraphin-solutions.de">kontakt@seraphin-solutions.de</a>
                 </div>
             </div>
             <div class="footer-bottom">
@@ -461,75 +278,6 @@
         (function() {
             emailjs.init("gjH_P6NbXkIm7GpNh");
         })();
-
-        // Additional JavaScript for the landing page
-        document.addEventListener('DOMContentLoaded', function() {
-            // Form handling for landing page
-            const contactForm = document.getElementById('contactForm');
-            if (contactForm) {
-                contactForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    // Get form data
-                    const name = this.querySelector('input[type="text"]').value;
-                    const email = this.querySelector('input[type="email"]').value;
-                    const institution = this.querySelectorAll('input[type="text"]')[1].value;
-                    const message = this.querySelector('textarea').value;
-                    const wantsDemo = this.querySelector('#demoCheckbox').checked;
-                    
-                    // Basic validation
-                    if (!name || !email || !institution || !message) {
-                        showNotification('Bitte füllen Sie alle Pflichtfelder aus.', 'error');
-                        return;
-                    }
-                    
-                    if (!isValidEmail(email)) {
-                        showNotification('Bitte geben Sie eine gültige E-Mail-Adresse ein.', 'error');
-                        return;
-                    }
-                    
-                    // Prepare email template parameters
-                    const templateParams = {
-                        to_email: 'mstorteyt@gmail.com',
-                        from_name: name,
-                        from_email: email,
-                        institution: institution,
-                        message: message,
-                        wants_demo: wantsDemo ? 'Ja' : 'Nein',
-                        demo_request: wantsDemo ? 'Demo gewünscht' : 'Keine Demo gewünscht'
-                    };
-                    
-                    // Show loading state
-                    const submitBtn = this.querySelector('button[type="submit"]');
-                    const originalText = submitBtn.innerHTML;
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wird gesendet...';
-                    submitBtn.disabled = true;
-                    
-                    // Send email using EmailJS
-                    emailjs.send('service_s74xvzx', 'template_iyd746k', templateParams)
-                        .then(function(response) {
-                            console.log('SUCCESS!', response.status, response.text);
-                            
-                            let successMessage = 'Vielen Dank! Ihre Nachricht wurde erfolgreich gesendet.';
-                            if (wantsDemo) {
-                                successMessage += ' Wir werden uns innerhalb von 24 Stunden für die Demo-Anmeldung bei Ihnen melden.';
-                            } else {
-                                successMessage += ' Wir werden uns bald bei Ihnen melden.';
-                            }
-                            
-                            showNotification(successMessage, 'success');
-                            contactForm.reset();
-                        }, function(error) {
-                            console.log('FAILED...', error);
-                            showNotification('Es gab einen Fehler beim Senden Ihrer Nachricht. Bitte versuchen Sie es später erneut.', 'error');
-                        })
-                        .finally(function() {
-                            submitBtn.innerHTML = originalText;
-                            submitBtn.disabled = false;
-                        });
-                });
-            }
-        });
     </script>
 </body>
 </html>
