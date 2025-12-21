@@ -2012,6 +2012,476 @@ body {
     .result-price {
         font-size: 2rem;
     }
+
+    /* Hero Section Mobile Optimizations */
+    .hero {
+        padding: 2rem 0 3rem;
+    }
+
+    .hero-content {
+        gap: 2rem;
+    }
+
+    .hero-text h1 {
+        font-size: 2rem;
+        line-height: 1.2;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .hero-description {
+        font-size: 0.95rem;
+        margin-bottom: 2rem;
+    }
+
+    .hero-buttons {
+        gap: 0.75rem;
+    }
+
+    .hero-buttons .btn {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.95rem;
+    }
+
+    .hero-image-wrapper {
+        margin-top: 2rem;
+    }
+
+    .hero-image img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    /* Features Preview Mobile */
+    .features-preview {
+        padding: 3rem 0;
+    }
+
+    .features-grid {
+        gap: 1.5rem;
+    }
+
+    .feature-card {
+        padding: 1.5rem;
+    }
+
+    .feature-card h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .feature-card p {
+        font-size: 0.9rem;
+    }
+
+    /* Price Calculator Mobile */
+    .price-calculator {
+        padding: 3rem 0;
+    }
+
+    .calculator-container {
+        gap: 2rem;
+    }
+
+    .calculator-form {
+        padding: 1.5rem;
+    }
+
+    .form-group label {
+        font-size: 0.9rem;
+    }
+
+    .slider-value {
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .calculator-result {
+        padding: 2rem 1.5rem;
+    }
+
+    .result-price {
+        font-size: 2.5rem;
+    }
+
+    /* References/Carousel Mobile */
+    .references {
+        padding: 3rem 0;
+    }
+
+    .reference-content {
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .reference-image-main {
+        width: 100%;
+    }
+
+    .reference-image-main img {
+        width: 100%;
+        height: auto;
+        border-radius: 12px;
+    }
+
+    .reference-info {
+        padding: 0;
+    }
+
+    .reference-badge {
+        margin-bottom: 1rem;
+    }
+
+    /* Page Header Mobile */
+    .page-header {
+        padding: 2rem 0;
+    }
+
+    .page-header h1 {
+        font-size: 1.75rem;
+    }
+
+    .page-header p {
+        font-size: 0.95rem;
+    }
+
+    /* Support Section Mobile */
+    .support-contact {
+        padding: 3rem 0;
+    }
+
+    .support-methods {
+        gap: 1.5rem;
+    }
+
+    .support-card {
+        padding: 1.5rem;
+    }
+
+    .support-card h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .support-link {
+        font-size: 1.1rem;
+    }
+
+    .support-hours {
+        font-size: 0.85rem;
+    }
+
+    /* Support Pricing Timeline Mobile */
+    .support-pricing {
+        padding: 3rem 0;
+    }
+
+    .pricing-timeline {
+        padding-left: 1.5rem;
+        gap: 2rem;
+    }
+
+    .timeline-item {
+        gap: 1rem;
+    }
+
+    .timeline-marker {
+        left: -1.5rem;
+        width: 45px;
+        height: 45px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .timeline-content {
+        padding-left: 0;
+    }
+
+    .timeline-content h3 {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .timeline-content p {
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    /* FAQ Section Mobile */
+    .faq-section {
+        padding: 3rem 0;
+    }
+
+    .faq-item {
+        margin-bottom: 1rem;
+    }
+
+    .faq-question {
+        padding: 1rem;
+        font-size: 0.95rem;
+    }
+
+    .faq-answer {
+        padding: 0 1rem 1rem;
+    }
+
+    .faq-answer p {
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    /* How It Works Mobile (Programm Page) */
+    .how-it-works {
+        padding: 3rem 0;
+    }
+
+    .intro-section {
+        gap: 2rem;
+    }
+
+    .intro-text h2 {
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .intro-text p {
+        font-size: 0.95rem;
+        line-height: 1.7;
+    }
+
+    .intro-image {
+        margin-top: 2rem;
+    }
+
+    .intro-image img {
+        width: 100%;
+        height: auto;
+        border-radius: 12px;
+    }
+
+    /* Feature Detail Mobile (Programm Page) */
+    .feature-detail {
+        padding: 3rem 0;
+    }
+
+    .feature-content {
+        gap: 2rem;
+    }
+
+    .feature-text h2 {
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .feature-text p {
+        font-size: 0.95rem;
+        line-height: 1.7;
+        margin-bottom: 1rem;
+    }
+
+    .feature-image img {
+        width: 100%;
+        height: auto;
+        border-radius: 12px;
+    }
+
+    .feature-points-grid {
+        gap: 2rem;
+    }
+
+    .feature-point {
+        padding: 1.5rem;
+    }
+
+    .feature-point h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .feature-point p {
+        font-size: 0.9rem;
+    }
+
+    .feature-point-with-image {
+        gap: 1.5rem;
+    }
+
+    .feature-image-side img {
+        width: 100%;
+        height: auto;
+        border-radius: 12px;
+    }
+
+    .example-box {
+        padding: 1rem;
+        margin-top: 1rem;
+        font-size: 0.9rem;
+    }
+
+    /* Admin Features Mobile (Programm Page) */
+    .admin-features {
+        padding: 3rem 0;
+    }
+
+    .admin-grid {
+        gap: 1.5rem;
+    }
+
+    .admin-card {
+        padding: 1.5rem;
+    }
+
+    .admin-card h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .admin-card p {
+        font-size: 0.9rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+
+    .admin-image {
+        margin: 1.5rem 0;
+    }
+
+    .admin-image img {
+        width: 100%;
+        height: auto;
+        border-radius: 12px;
+    }
+
+    .admin-benefits {
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .admin-benefit-item {
+        padding: 1rem;
+    }
+
+    .admin-benefit-item strong {
+        font-size: 0.95rem;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .admin-benefit-item p {
+        font-size: 0.85rem;
+    }
+
+    .admin-features-list {
+        gap: 1.5rem;
+    }
+
+    .admin-feature-item {
+        padding: 1rem 0;
+    }
+
+    .admin-feature-item h4 {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .admin-feature-item p {
+        font-size: 0.9rem;
+    }
+
+    /* Remote Support Mobile */
+    .remote-support {
+        padding: 3rem 0;
+    }
+
+    .support-content {
+        padding: 1.5rem;
+    }
+
+    .support-text h2 {
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .support-text p {
+        font-size: 0.95rem;
+        line-height: 1.7;
+    }
+
+    /* CTA Section Mobile */
+    .cta-section {
+        padding: 3rem 0;
+    }
+
+    .cta-section h2 {
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .cta-section p {
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .cta-buttons {
+        gap: 0.75rem;
+    }
+
+    /* Section Titles Mobile */
+    .section-title {
+        font-size: 1.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .section-subtitle {
+        font-size: 0.95rem;
+        margin-bottom: 2rem;
+    }
+
+    /* Footer Mobile */
+    .footer {
+        padding: 3rem 0 2rem;
+    }
+
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        text-align: center;
+    }
+
+    .footer-section {
+        padding: 0;
+    }
+
+    .footer-logo {
+        margin: 0 auto 1rem;
+    }
+
+    .footer-section h4 {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+
+    .footer-section a {
+        font-size: 0.9rem;
+        padding: 0.5rem 0;
+        display: block;
+    }
+
+    .footer-section p {
+        font-size: 0.9rem;
+    }
+
+    .footer-bottom {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        text-align: center;
+    }
+
+    .footer-bottom p {
+        font-size: 0.85rem;
+    }
 }
 
 /* Navbar Styles (for 404.html, dashboard.html, account.html and other pages) */
