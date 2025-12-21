@@ -1,0 +1,8 @@
+# Vercel ignore file - ensure all files are included
+# Only exclude node_modules and build artifacts
+node_modules
+.vercel
+.env.local
+.env*.local
+*.log
+
