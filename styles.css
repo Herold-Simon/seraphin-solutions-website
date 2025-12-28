@@ -49,6 +49,8 @@ body {
     top: 0;
     z-index: 1000;
     transition: var(--transition);
+    width: 100%;
+    max-width: 100%;
 }
 
 .header-content {
@@ -1988,9 +1990,16 @@ body {
         overflow-x: hidden;
     }
 
+    /* Apply max-width to all elements except sticky positioned elements */
     * {
-        max-width: 100%;
         box-sizing: border-box;
+    }
+
+    /* Exclude sticky elements from max-width restriction */
+    .header,
+    [style*="position: sticky"],
+    [style*="position:fixed"] {
+        max-width: none;
     }
 
     .company-name {
