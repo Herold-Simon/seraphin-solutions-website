@@ -32,6 +32,7 @@ body {
     color: var(--text-dark);
     line-height: 1.6;
     overflow-x: hidden;
+    max-width: 100vw;
 }
 
 .container {
@@ -1771,6 +1772,14 @@ body {
         grid-template-columns: 1fr;
     }
 
+    .carousel-slide {
+        padding: 2rem;
+    }
+
+    .contact-content {
+        gap: 2.5rem;
+    }
+
     .feature-content.reverse {
         direction: ltr;
     }
@@ -1816,15 +1825,44 @@ body {
         display: none;
     }
 
+    .carousel-container {
+        padding: 0 1rem;
+    }
+
+    .carousel-slide {
+        padding: 2rem 1.5rem;
+    }
+
+    .reference-content {
+        gap: 2rem;
+    }
+
     .pricing-timeline {
-        padding-left: 2rem;
+        padding-left: 0;
+        padding-top: 1rem;
+    }
+
+    .pricing-timeline::before {
+        left: 20px;
+        top: 0;
+        bottom: 0;
+        height: calc(100% - 20px);
+    }
+
+    .timeline-item {
+        padding-left: 3rem;
     }
 
     .timeline-marker {
-        left: -2rem;
-        width: 50px;
-        height: 50px;
-        font-size: 0.8rem;
+        left: 0;
+        width: 40px;
+        height: 40px;
+        font-size: 0.75rem;
+    }
+
+    .timeline-content {
+        margin-left: 0;
+        padding: 1.5rem;
     }
 }
 
@@ -1940,6 +1978,19 @@ body {
 @media (max-width: 480px) {
     .container {
         padding: 0 15px;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Prevent horizontal scrolling */
+    html, body {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    * {
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     .company-name {
@@ -1977,29 +2028,45 @@ body {
 
     .contact-landing {
         padding: 3rem 0;
+        overflow-x: hidden;
     }
 
     .contact-content {
         grid-template-columns: 1fr;
-        gap: 2.5rem;
+        gap: 2rem;
+        max-width: 100%;
+        padding: 0;
     }
 
     .contact-text {
         text-align: center;
         padding-top: 0;
+        padding: 0 1rem;
     }
 
     .contact-text h2 {
-        font-size: 2rem;
+        font-size: 1.75rem;
         margin-bottom: 1rem;
+        line-height: 1.3;
     }
 
     .contact-text p {
-        font-size: 1rem;
+        font-size: 0.95rem;
+        line-height: 1.6;
     }
 
     .contact-form {
-        padding: 2rem 1.5rem;
+        padding: 1.5rem;
+        margin: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+        border-radius: 12px;
+    }
+
+    .contact-form .form-group {
+        margin-bottom: 1.25rem;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .contact-form input[type="text"],
@@ -2007,6 +2074,20 @@ body {
     .contact-form textarea {
         font-size: 16px; /* Prevents zoom on iOS */
         padding: 0.875rem 1rem;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        border-radius: 10px;
+    }
+
+    .contact-form textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .contact-form .checkbox-label {
+        font-size: 0.9rem;
+        line-height: 1.5;
     }
 
     .result-price {
@@ -2111,27 +2192,57 @@ body {
         padding: 3rem 0;
     }
 
+    .carousel-container {
+        max-width: 100%;
+        padding: 0;
+    }
+
+    .carousel {
+        border-radius: 12px;
+        margin: 0;
+    }
+
+    .carousel-slide {
+        padding: 1.5rem;
+    }
+
     .reference-content {
+        display: flex;
         flex-direction: column;
-        gap: 2rem;
+        gap: 1.5rem;
     }
 
     .reference-image-main {
         width: 100%;
+        order: 1;
     }
 
     .reference-image-main img {
         width: 100%;
         height: auto;
-        border-radius: 12px;
+        border-radius: 10px;
+        max-width: 100%;
     }
 
     .reference-info {
         padding: 0;
+        order: 2;
     }
 
     .reference-badge {
         margin-bottom: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .reference-info h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        line-height: 1.3;
+    }
+
+    .reference-description {
+        font-size: 0.95rem;
+        line-height: 1.7;
     }
 
     /* Page Header Mobile */
@@ -2141,10 +2252,13 @@ body {
 
     .page-header h1 {
         font-size: 1.75rem;
+        margin-bottom: 0.75rem;
+        line-height: 1.2;
     }
 
     .page-header p {
         font-size: 0.95rem;
+        padding: 0 1rem;
     }
 
     /* Support Section Mobile */
@@ -2154,23 +2268,34 @@ body {
 
     .support-methods {
         gap: 1.5rem;
+        padding: 0;
     }
 
     .support-card {
-        padding: 1.5rem;
+        padding: 1.75rem 1.5rem;
+        border-radius: 12px;
     }
 
     .support-card h3 {
         font-size: 1.25rem;
         margin-bottom: 0.75rem;
+        line-height: 1.3;
+    }
+
+    .support-card p {
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
     }
 
     .support-link {
         font-size: 1.1rem;
+        word-break: break-all;
+        padding: 0.5rem 0;
     }
 
     .support-hours {
         font-size: 0.85rem;
+        margin-top: 0.75rem;
     }
 
     /* Support Pricing Timeline Mobile */
@@ -2179,34 +2304,51 @@ body {
     }
 
     .pricing-timeline {
-        padding-left: 1.5rem;
-        gap: 2rem;
+        padding-left: 0;
+        padding-top: 1rem;
+    }
+
+    .pricing-timeline::before {
+        left: 20px;
+        top: 0;
+        bottom: 0;
+        height: calc(100% - 20px);
     }
 
     .timeline-item {
-        gap: 1rem;
+        margin-bottom: 2rem;
+        padding-left: 3.5rem;
+        position: relative;
+    }
+
+    .timeline-item:last-child {
+        margin-bottom: 0;
     }
 
     .timeline-marker {
-        left: -1.5rem;
-        width: 45px;
-        height: 45px;
-        font-size: 0.75rem;
+        left: 0;
+        top: 0;
+        width: 40px;
+        height: 40px;
+        font-size: 0.7rem;
         font-weight: 700;
+        position: absolute;
     }
 
     .timeline-content {
-        padding-left: 0;
+        margin-left: 0;
+        padding: 1.5rem;
     }
 
     .timeline-content h3 {
         font-size: 1.1rem;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
+        line-height: 1.3;
     }
 
     .timeline-content p {
         font-size: 0.9rem;
-        line-height: 1.6;
+        line-height: 1.7;
     }
 
     /* FAQ Section Mobile */
@@ -2214,22 +2356,40 @@ body {
         padding: 3rem 0;
     }
 
+    .faq-list {
+        padding: 0;
+    }
+
     .faq-item {
         margin-bottom: 1rem;
+        border-radius: 10px;
     }
 
     .faq-question {
-        padding: 1rem;
+        padding: 1.25rem 1rem;
         font-size: 0.95rem;
+        line-height: 1.4;
+        gap: 1rem;
+    }
+
+    .faq-question span:first-child {
+        flex: 1;
+        text-align: left;
+    }
+
+    .faq-icon {
+        font-size: 1.25rem;
+        flex-shrink: 0;
     }
 
     .faq-answer {
-        padding: 0 1rem 1rem;
+        padding: 0;
     }
 
     .faq-answer p {
+        padding: 0 1rem 1.25rem;
         font-size: 0.9rem;
-        line-height: 1.6;
+        line-height: 1.7;
     }
 
     /* How It Works Mobile (Programm Page) */
@@ -2417,26 +2577,39 @@ body {
     .cta-section h2 {
         font-size: 1.75rem;
         margin-bottom: 1rem;
+        line-height: 1.3;
     }
 
     .cta-section p {
         font-size: 0.95rem;
         margin-bottom: 1.5rem;
+        padding: 0 1rem;
     }
 
     .cta-buttons {
         gap: 0.75rem;
+        padding: 0 1rem;
+    }
+
+    .cta-section .btn {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
     }
 
     /* Section Titles Mobile */
     .section-title {
         font-size: 1.75rem;
         margin-bottom: 0.75rem;
+        line-height: 1.3;
+        padding: 0 0.5rem;
     }
 
     .section-subtitle {
         font-size: 0.95rem;
         margin-bottom: 2rem;
+        padding: 0 1rem;
+        line-height: 1.6;
     }
 
     /* Footer Mobile */
