@@ -1,0 +1,15 @@
+# robots.txt für Seraphin Solutions - Gebäudenavi
+User-agent: *
+Allow: /
+
+# Private Bereiche ausschließen
+Disallow: /dashboard.html
+Disallow: /account.html
+Disallow: /login.html
+Disallow: /passwortverlust.html
+Disallow: /api/
+Disallow: /Wegbeschreibungen/
+
+# Sitemap
+Sitemap: https://www.seraphin-solutions.de/sitemap.xml
+
