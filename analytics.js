@@ -5,7 +5,7 @@
     'use strict';
     
     // Google Analytics Measurement ID
-    const GA_MEASUREMENT_ID = 'G-W5MJXCE4XC';
+    const GA_MEASUREMENT_ID = 'G-EDTVDY6L6F';
     
     // Initialisiere dataLayer und gtag-Funktion
     window.dataLayer = window.dataLayer || [];

@@ -32,7 +32,7 @@ Diese Anleitung hilft Ihnen dabei, Google Analytics 4 und Google Search Console 
 
 1. Gehen Sie zu: https://analytics.google.com/
 2. Stellen Sie sicher, dass Sie eine **GA4 Property** haben (nicht Universal Analytics)
-3. Ihre Measurement ID sollte sein: `G-W5MJXCE4XC`
+3. Ihre Measurement ID sollte sein: `G-EDTVDY6L6F`
 
 ### Schritt 2: Real-Time Reports prüfen
 
@@ -174,7 +174,7 @@ Für wichtige Aktionen können Sie Conversion Events erstellen:
 ## ✅ Checkliste:
 
 - [ ] Google Analytics 4 Property erstellt
-- [ ] Measurement ID `G-W5MJXCE4XC` ist korrekt
+- [ ] Measurement ID `G-EDTVDY6L6F` ist korrekt
 - [ ] Real-Time Reports zeigen Besuche
 - [ ] Enhanced Measurement aktiviert
 - [ ] Google Search Console Account erstellt
