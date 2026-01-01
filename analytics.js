@@ -7,12 +7,15 @@
     // Google Analytics Measurement ID
     const GA_MEASUREMENT_ID = 'G-W5MJXCE4XC';
     
-    // Initialisiere Google Analytics
+    // Initialisiere dataLayer und gtag-Funktion
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
     
-    // Konfiguration mit erweiterten Einstellungen
+    // Globale gtag-Funktion verfügbar machen
+    window.gtag = gtag;
+    
+    // Konfiguriere GA4 SOFORT (wird in dataLayer gespeichert und ausgeführt, sobald das Script geladen ist)
     gtag('config', GA_MEASUREMENT_ID, {
         'page_path': window.location.pathname + window.location.search,
         'page_title': document.title,
@@ -22,8 +25,11 @@
         'cookie_flags': 'SameSite=None;Secure'
     });
     
-    // Globale gtag-Funktion verfügbar machen
-    window.gtag = gtag;
+    // Lade Google Analytics Script
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_MEASUREMENT_ID;
+    document.head.appendChild(script);
     
     // Page View Tracking für Single Page Applications (falls nötig)
     if (window.history && window.history.pushState) {
@@ -139,11 +145,5 @@
             trackEvent('Engagement', 'time_on_page', window.location.pathname, 30);
         }, 30000);
     });
-    
-    // Lade Google Analytics Script
-    const script = document.createElement('script');
-    script.async = true;
-    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_MEASUREMENT_ID;
-    document.head.appendChild(script);
 })();
 
