@@ -2701,6 +2701,18 @@
             console.log('  └─ Gesamte Räume:', totalRooms);
             console.log('  └─ Gruppierte Videos nach Titel:', videosByTitle);
             
+            // Zeige/verstecke Menü "Erweiterte Einstellungen" basierend auf Anzahl der Videos mit Aufrufen
+            const advancedSettingsElement = document.querySelector('.advanced-settings');
+            if (advancedSettingsElement) {
+                if (videosWithViews > 2) {
+                    advancedSettingsElement.style.display = 'block';
+                    console.log('✅ Erweiterte Einstellungen angezeigt (mehr als 2 Videos mit Aufrufen)');
+                } else {
+                    advancedSettingsElement.style.display = 'none';
+                    console.log('ℹ️ Erweiterte Einstellungen versteckt (2 oder weniger Videos mit Aufrufen)');
+                }
+            }
+            
             // Aktualisiere die UI-Elemente
             try {
                 const totalViewsElement = document.getElementById('totalViews');
