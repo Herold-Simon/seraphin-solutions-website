@@ -1,13 +1,15 @@
 // Google Analytics 4 (GA4) Tracking Script
 // Zentrales Script für alle Seiten
+// Entspricht dem offiziellen Google Tag Code
 
+// Google tag (gtag.js)
 (function() {
     'use strict';
     
     // Google Analytics Measurement ID
     const GA_MEASUREMENT_ID = 'G-EDTVDY6L6F';
     
-    // Initialisiere dataLayer und gtag-Funktion
+    // Initialisiere dataLayer und gtag-Funktion (exakt wie im offiziellen Code)
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
@@ -15,17 +17,13 @@
     // Globale gtag-Funktion verfügbar machen
     window.gtag = gtag;
     
-    // Konfiguriere GA4 SOFORT (wird in dataLayer gespeichert und ausgeführt, sobald das Script geladen ist)
+    // Konfiguriere GA4 (mit DSGVO-konformen Einstellungen)
     gtag('config', GA_MEASUREMENT_ID, {
-        'page_path': window.location.pathname + window.location.search,
-        'page_title': document.title,
-        'page_location': window.location.href,
-        'send_page_view': true,
         'anonymize_ip': true, // DSGVO-konform
         'cookie_flags': 'SameSite=None;Secure'
     });
     
-    // Lade Google Analytics Script
+    // Lade Google Analytics Script (exakt wie im offiziellen Code)
     const script = document.createElement('script');
     script.async = true;
     script.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_MEASUREMENT_ID;
