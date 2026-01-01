@@ -19,6 +19,30 @@
     {
       "source": "/support",
       "destination": "/support.html"
+    },
+    {
+      "source": "/passwortverlust",
+      "destination": "/passwortverlust.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/login.html"
+    },
+    {
+      "source": "/account",
+      "destination": "/account.html"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/dashboard.html"
+    },
+    {
+      "source": "/impressum",
+      "destination": "/impressum.html"
+    },
+    {
+      "source": "/datenschutz",
+      "destination": "/datenschutz.html"
     }
   ],
   "headers": [
