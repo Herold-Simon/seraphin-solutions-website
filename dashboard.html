@@ -7,7 +7,6 @@
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
     
     <!-- SEO Meta Tags -->
     <meta name="description" content="Ihre persönlichen Gebäudenavi-Statistiken im Überblick">
@@ -1344,18 +1343,18 @@
         <div class="nav-container">
             <div class="nav-logo">
                 <a href="index.html">
-                    <img src="logo.png" alt="Seraphin Solutions Logo" class="logo-image">
+                    <img src="/favicon.ico" alt="Seraphin Solutions Logo" class="logo-image">
                     <span class="logo-text">Seraphin Solutions</span>
                 </a>
             </div>
             <ul class="nav-menu">
                 <li><a href="account.html" class="btn-nav" style="background: var(--gradient-secondary);">
                     <i class="fas fa-user-cog"></i>
-                    Account
+                    Account verwalten
                 </a></li>
                 <li><a href="#" class="btn-nav" onclick="logout(); return false;" style="background: var(--gradient-red);">
                     <i class="fas fa-sign-out-alt"></i>
-                    Logout
+                    Abmelden
                 </a></li>
             </ul>
             <div class="hamburger">
@@ -2922,13 +2921,13 @@
                     };
                 });
                 
-                // Berechne Gesamtaufrufe für jeden Tag mit echten Daten
+                // Berechne Durchschnittslinie mit echten Daten
                 averageData = timePoints.map(date => {
                     const totalViews = filteredVideos.reduce((sum, video) => {
                         const viewHistory = video.viewHistory || video.view_history;
                         return sum + (viewHistory && viewHistory[date] ? viewHistory[date] : 0);
                     }, 0);
-                    return totalViews;
+                    return Math.round(totalViews / filteredVideos.length * 10) / 10;
                 });
             } else {
                 // Fallback: Verwende simulierte Daten basierend auf Gesamtaufrufen
@@ -2991,7 +2990,7 @@
                     };
                 });
                 
-                // Berechne Gesamtaufrufe für jeden Tag mit simulierten Daten
+                // Berechne Durchschnittslinie mit simulierten Daten
                 averageData = timePoints.map((date, idx) => {
                     // Keine Offset-Bereiche mehr - alle Tage haben Daten
                     const totalViews = filteredVideos.reduce((sum, video) => {
@@ -3000,14 +2999,14 @@
                         const variation = Math.random() * 0.4 + 0.8;
                         return sum + Math.round(dailyViews * variation);
                     }, 0);
-                    return totalViews;
+                    return Math.round(totalViews / filteredVideos.length * 10) / 10;
                 });
             }
             
             const series = [
                 ...videoData,
                 {
-                    name: 'Gesamtaufrufe',
+                    name: 'Durchschnitt (alle Videos)',
                     type: 'line',
                     data: averageData,
                     smooth: true,
@@ -3059,10 +3058,10 @@
                                     value = Number.isInteger(value) ? value : value.toFixed(2);
                                 }
                                 
-                                // Vereinfache Gesamtaufrufe-Beschriftung
+                                // Vereinfache Durchschnittslinie-Beschriftung
                                 let seriesName = param.seriesName;
-                                if (seriesName && seriesName.includes('Gesamtaufrufe')) {
-                                    seriesName = 'Gesamtaufrufe';
+                                if (seriesName && seriesName.includes('Durchschnitt')) {
+                                    seriesName = 'Durchschnitt';
                                 }
                                 
                                 result += `${param.marker} ${seriesName}: ${value} Aufrufe<br/>`;
@@ -3076,7 +3075,7 @@
                 legend: {
                     data: [
                         ...filteredVideos.map(v => v.title || v.video_title || 'Unbenanntes Video'),
-                        'Gesamtaufrufe'
+                        'Durchschnitt (alle Videos)'
                     ],
                     textStyle: { color: '#666' },
                     type: 'scroll',
@@ -3587,10 +3586,10 @@
                                     value = Number.isInteger(value) ? value : value.toFixed(2);
                                 }
                                 
-                                // Vereinfache Gesamtaufrufe-Beschriftung
+                                // Vereinfache Durchschnittslinie-Beschriftung
                                 let seriesName = param.seriesName;
-                                if (seriesName && seriesName.includes('Gesamtaufrufe')) {
-                                    seriesName = 'Gesamtaufrufe';
+                                if (seriesName && seriesName.includes('Durchschnitt')) {
+                                    seriesName = 'Durchschnitt';
                                 }
                                 
                                 result += `${param.marker} ${seriesName}: ${value} Aufrufe<br/>`;
@@ -4158,26 +4157,34 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <img src="logo.png" alt="Seraphin Solutions" class="footer-logo">
-                    <p>Interaktive Wegleitsysteme für große Gebäude</p>
+                    <div class="footer-logo">
+                        <img src="favicon.png" alt="Seraphin Solutions Logo" class="logo-image">
+                        <span class="logo-text">Seraphin Solutions</span>
+                    </div>
+                    <p>Die intelligente Lösung für die Navigation in großen Gebäuden, entwickelt von Seraphin Solutions.</p>
                 </div>
                 <div class="footer-section">
-                    <h4>Navigation</h4>
-                    <a href="index.html">Startseite</a>
-                    <a href="programm.html">Das Programm</a>
-                    <a href="weitere-informationen.html">Weitere Informationen</a>
-                    <a href="support.html">Support</a>
+                    <h4>Produkt</h4>
+                    <ul>
+                        <li><a href="index.html#features">Features</a></li>
+                        <li><a href="index.html#admin">Admin-Panel</a></li>
+                        <li><a href="index.html#solution">Lösung</a></li>
+                    </ul>
                 </div>
                 <div class="footer-section">
-                    <h4>Kontakt</h4>
-                    <a href="tel:+4917622911006">+49 176 22911006</a>
-                    <a href="mailto:kontakt@seraphin-solutions.de">kontakt@seraphin-solutions.de</a>
+                    <h4>Unternehmen</h4>
+                    <ul>
+                        <li><a href="index.html#pricing">Preise</a></li>
+                    </ul>
                 </div>
                 <div class="footer-section">
                     <h4>Rechtliches</h4>
-                    <a href="impressum.html">Impressum</a>
-                    <a href="datenschutz.html">Datenschutz</a>
+                    <ul>
+                        <li><a href="impressum.html">Impressum</a></li>
+                        <li><a href="datenschutz.html">Datenschutz</a></li>
+                    </ul>
                 </div>
+
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2024 Seraphin Solutions. Alle Rechte vorbehalten.</p>

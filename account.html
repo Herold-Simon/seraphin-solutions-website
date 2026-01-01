@@ -7,7 +7,6 @@
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
     
     <!-- SEO Meta Tags -->
     <meta name="description" content="Verwalten Sie Ihren Gebäudenavi-Account">
@@ -592,18 +591,15 @@
         <div class="nav-container">
             <div class="nav-logo">
                 <a href="index.html">
-                    <img src="logo.png" alt="Seraphin Solutions Logo" class="logo-image">
+                    <img src="/favicon.ico" alt="Seraphin Solutions Logo" class="logo-image">
                     <span class="logo-text">Seraphin Solutions</span>
                 </a>
             </div>
             <ul class="nav-menu">
-                <li><a href="dashboard.html" class="btn-nav" style="background: var(--gradient-primary);">
-                    <i class="fas fa-chart-bar"></i>
-                    Dashboard
-                </a></li>
+                <li><a href="dashboard.html" class="btn-nav">Dashboard</a></li>
                 <li><a href="#" class="btn-nav" onclick="logout(); return false;" style="background: var(--gradient-red);">
                     <i class="fas fa-sign-out-alt"></i>
-                    Logout
+                    Abmelden
                 </a></li>
             </ul>
             <div class="hamburger">
@@ -1220,25 +1216,32 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <img src="logo.png" alt="Seraphin Solutions" class="footer-logo">
-                    <p>Interaktive Wegleitsysteme für große Gebäude</p>
+                    <div class="footer-logo">
+                        <img src="favicon.png" alt="Seraphin Solutions Logo" class="logo-image">
+                        <span class="logo-text">Seraphin Solutions</span>
+                    </div>
+                    <p>Die intelligente Lösung für die Navigation in großen Gebäuden, entwickelt von Seraphin Solutions.</p>
                 </div>
                 <div class="footer-section">
-                    <h4>Navigation</h4>
-                    <a href="index.html">Startseite</a>
-                    <a href="programm.html">Das Programm</a>
-                    <a href="weitere-informationen.html">Weitere Informationen</a>
-                    <a href="support.html">Support</a>
+                    <h4>Produkt</h4>
+                    <ul>
+                        <li><a href="index.html#features">Features</a></li>
+                        <li><a href="index.html#admin">Admin-Panel</a></li>
+                        <li><a href="index.html#solution">Lösung</a></li>
+                    </ul>
                 </div>
                 <div class="footer-section">
-                    <h4>Kontakt</h4>
-                    <a href="tel:+4917622911006">+49 176 22911006</a>
-                    <a href="mailto:kontakt@seraphin-solutions.de">kontakt@seraphin-solutions.de</a>
+                    <h4>Unternehmen</h4>
+                    <ul>
+                        <li><a href="index.html#pricing">Preise</a></li>
+                    </ul>
                 </div>
                 <div class="footer-section">
                     <h4>Rechtliches</h4>
-                    <a href="impressum.html">Impressum</a>
-                    <a href="datenschutz.html">Datenschutz</a>
+                    <ul>
+                        <li><a href="impressum.html">Impressum</a></li>
+                        <li><a href="datenschutz.html">Datenschutz</a></li>
+                    </ul>
                 </div>
             </div>
             <div class="footer-bottom">
