@@ -1,0 +1,7 @@
+# Bing Site Verification
+# Fügen Sie hier Ihren Bing Site Verification Code ein
+# Erhalten Sie ihn unter: https://www.bing.com/webmasters
+
+# Beispiel:
+# 1234567890ABCDEF1234567890ABCDEF
+

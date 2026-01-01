@@ -1,5 +1,37 @@
 # robots.txt für Seraphin Solutions - Gebäudenavi
+# Explizit alle Suchmaschinen erlauben
 User-agent: *
+Allow: /
+
+# Spezifische Suchmaschinen-Bots explizit erlauben
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+User-agent: Sogou
+Allow: /
+
+User-agent: Exabot
+Allow: /
+
+User-agent: facebot
+Allow: /
+
+User-agent: ia_archiver
 Allow: /
 
 # Private Bereiche ausschließen
@@ -10,6 +42,7 @@ Disallow: /passwortverlust.html
 Disallow: /api/
 Disallow: /Wegbeschreibungen/
 
-# Sitemap
+# Sitemaps für alle Suchmaschinen
 Sitemap: https://www.seraphin-solutions.de/sitemap.xml
+Sitemap: https://seraphin-solutions.de/sitemap.xml
 
