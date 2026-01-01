@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vercel dev",
     "serve": "npx http-server . -p 8080 -o",
-    "build": "echo 'Static site - no build needed'",
+    "build": "node build.js",
     "deploy": "vercel --prod"
   },
   "dependencies": {
