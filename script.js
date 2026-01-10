@@ -26,6 +26,31 @@ if (hamburger && nav) {
     });
 }
 
+// Mobile Navigation Toggle (navbar variant: .navbar + .nav-menu)
+const navbarHamburger = document.querySelector('.navbar .hamburger');
+const navbarMenu = document.querySelector('.navbar .nav-menu');
+
+if (navbarHamburger && navbarMenu) {
+    navbarHamburger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        navbarMenu.classList.toggle('active');
+    });
+
+    // Close menu when clicking a link
+    navbarMenu.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            navbarMenu.classList.remove('active');
+        });
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!navbarMenu.contains(e.target) && !navbarHamburger.contains(e.target)) {
+            navbarMenu.classList.remove('active');
+        }
+    });
+}
+
 // Smooth Scrolling
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
@@ -305,34 +330,58 @@ let lastScroll = 0;
 const header = document.querySelector('.header');
 
 if (header) {
-    // Ensure header has transition for smooth animation
-    header.style.transition = 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out';
-    
+    document.body.classList.add('has-fixed-header');
+
+    const setHeaderHeight = () => {
+        document.documentElement.style.setProperty('--header-height', header.offsetHeight + 'px');
+    };
+    setHeaderHeight();
+    window.addEventListener('resize', setHeaderHeight);
+
     window.addEventListener('scroll', () => {
         const currentScroll = window.pageYOffset;
         const scrollThreshold = 100; // Minimum scroll distance before hiding
         
-        // Update box shadow based on scroll position
-        if (currentScroll > scrollThreshold) {
-            header.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-        } else {
-            header.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
-        }
+        header.classList.toggle('is-scrolled', currentScroll > 10);
         
         // Hide/show header based on scroll direction
         if (currentScroll > scrollThreshold) {
             if (currentScroll > lastScroll) {
                 // Scrolling down - hide header
-                header.style.transform = 'translateY(-100%)';
+                header.classList.add('is-hidden');
             } else {
                 // Scrolling up - show header
-                header.style.transform = 'translateY(0)';
+                header.classList.remove('is-hidden');
             }
         } else {
             // Always show header when near top
-            header.style.transform = 'translateY(0)';
+            header.classList.remove('is-hidden');
         }
         
+        lastScroll = currentScroll;
+    });
+}
+
+// Navbar scroll effect (.navbar variant): hide on scroll down, show on scroll up
+const navbar = document.querySelector('.navbar');
+if (navbar) {
+    // Make sure it's visible on load
+    navbar.classList.add('visible');
+
+    window.addEventListener('scroll', () => {
+        const currentScroll = window.pageYOffset;
+        const scrollThreshold = 100;
+
+        if (currentScroll > scrollThreshold) {
+            if (currentScroll > lastScroll) {
+                navbar.classList.remove('visible');
+            } else {
+                navbar.classList.add('visible');
+            }
+        } else {
+            navbar.classList.add('visible');
+        }
+
         lastScroll = currentScroll;
     });
 }
