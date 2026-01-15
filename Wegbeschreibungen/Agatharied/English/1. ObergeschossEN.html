@@ -497,7 +497,7 @@
         return formatBytes(bytesPerSecond) + '/s';
       }
       
-      // Custom loader für Git LFS Dateien mit detailliertem Progress-Tracking
+      /* (deprecated) Old Git LFS loader removed; kept commented for reference
       async function loadGLBWithLFS(url, onLoad, onProgress, onError) {
         const startTime = performance.now();
         let downloadStartTime = null;
@@ -744,8 +744,11 @@
           onError(error);
         }
       }
+      */
       
-      loadGLBWithLFS(
+      // Load local GLB directly (no Git LFS handling)
+      updateProgress('download', 0, 'Loading GLB file...');
+      loader.load(
         "./1. ObergeschossEN.glb",
         (gltf) => {
           // Loading abgeschlossen
@@ -888,18 +891,21 @@
             }, focusDelayMs);
           }
          },
-         (progress) => {
-           // Progress bar aktualisieren (nur wenn noch nicht fertig geladen)
-           // Diese Callback wird hauptsächlich für den GLTFLoader-Parse-Prozess verwendet
-           if (!isLoadingComplete && progress.total > 0) {
-             const parsePercent = (progress.loaded / progress.total) * 100;
-             const overallPercent = 85 + (parsePercent * 0.1); // 85-95% für Parse
-             updateProgress('parse', overallPercent, 
-               `Parsing geometries and textures... (${Math.round(parsePercent)}%)`);
-           }
-         },
+        (progress) => {
+          if (isLoadingComplete) return;
+          if (progress.total > 0) {
+            const percent = (progress.loaded / progress.total) * 100;
+            updateProgress(
+              'download',
+              Math.min(percent, 99),
+              `${formatBytes(progress.loaded)} / ${formatBytes(progress.total)} loaded`
+            );
+          } else {
+            updateProgress('download', 50, `${formatBytes(progress.loaded)} loaded`);
+          }
+        },
          (error) => {
-           console.error("Fehler beim Laden der GLB-Datei:", error);
+          console.error("Error loading GLB file:", error);
           updateProgress('error', 0, 'Error loading file', '');
           progressBar.style.background = "linear-gradient(90deg, #f44336, #d32f2f)";
           progressDetails.textContent = error.message || "Unknown error";

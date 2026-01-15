@@ -497,7 +497,7 @@
         return formatBytes(bytesPerSecond) + '/s';
       }
       
-      // Custom loader für Git LFS Dateien mit detailliertem Progress-Tracking
+      // Custom loader mit detailliertem Progress-Tracking (lädt lokale Datei aus dem Ordner)
       async function loadGLBWithLFS(url, onLoad, onProgress, onError) {
         const startTime = performance.now();
         let downloadStartTime = null;
@@ -505,6 +505,10 @@
         let lastTime = performance.now();
         
         try {
+          // Direkt laden (ohne Git LFS / GitHub-Fallback). Es wird die echte Datei aus dem Ordner genutzt.
+          updateProgress('download', 20, 'Lade GLB-Datei...');
+          loader.load(url, onLoad, onProgress, onError);
+          return;
           updateProgress('check', 5, 'Prüfe Dateityp...');
           
           // Versuche die Datei zu laden
@@ -746,7 +750,7 @@
       }
       
       loadGLBWithLFS(
-        "./2. Obergeschoss.glb",
+        "./Erdgeschoss.glb",
         (gltf) => {
           // Loading abgeschlossen
           isLoadingComplete = true;
