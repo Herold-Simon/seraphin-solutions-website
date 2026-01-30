@@ -2719,11 +2719,16 @@ body.has-fixed-header {
     }
 
     .footer-section {
-        text-align: center;
+        text-align: left;
+    }
+
+    .footer-section + .footer-section {
+        padding-top: 1.25rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .footer-brand-link {
-        justify-content: center;
+        justify-content: flex-start;
     }
 
     .footer-section h4 {
@@ -2733,7 +2738,14 @@ body.has-fixed-header {
 
     .footer-links {
         display: grid;
-        justify-items: center;
+        justify-items: start;
+    }
+
+    .footer-links a,
+    .footer-contact a {
+        display: block;
+        width: 100%;
+        padding: 0.75rem 0;
     }
 
     .footer-section p {
