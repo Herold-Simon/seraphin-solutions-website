@@ -4009,22 +4009,49 @@
             createLineRaceChart();
         }
         
-        // Chart-Größe bei Fenster-Resize anpassen
-        window.addEventListener('resize', function() {
-            // Alle Charts werden immer angezeigt (kein Toggle mehr)
-            if (charts.lineChart) {
-                charts.lineChart.resize();
+        // Chart-Größe bei Resize/Rotation robust anpassen (Mobile: Portrait <-> Landscape)
+        // Hinweis: Auf manchen Mobile-Browsern feuert "resize" zu früh (vor Layout-Reflow).
+        // Deshalb: mehrfach verzögert resize() + optional Charts neu aufbauen nach Orientationchange.
+        let dashboardResizeTimeouts = [];
+        let dashboardResizeRaf = null;
+
+        function resizeAllCharts() {
+            if (charts.lineChart) charts.lineChart.resize();
+            if (charts.barChart) charts.barChart.resize();
+            if (charts.pieChart) charts.pieChart.resize();
+            if (charts.lineRaceChart) charts.lineRaceChart.resize();
+        }
+
+        function scheduleChartsResize() {
+            if (dashboardResizeRaf) {
+                cancelAnimationFrame(dashboardResizeRaf);
+                dashboardResizeRaf = null;
             }
-            if (charts.barChart) {
-                charts.barChart.resize();
-            }
-            if (charts.pieChart) {
-                charts.pieChart.resize();
-            }
-            if (charts.lineRaceChart) {
-                charts.lineRaceChart.resize();
-            }
-        });
+            dashboardResizeTimeouts.forEach(t => clearTimeout(t));
+            dashboardResizeTimeouts = [];
+
+            dashboardResizeRaf = requestAnimationFrame(() => {
+                resizeAllCharts();
+                dashboardResizeTimeouts.push(setTimeout(resizeAllCharts, 150));
+                dashboardResizeTimeouts.push(setTimeout(resizeAllCharts, 450));
+                dashboardResizeTimeouts.push(setTimeout(resizeAllCharts, 900));
+            });
+        }
+
+        window.addEventListener('resize', scheduleChartsResize, { passive: true });
+        window.addEventListener('orientationchange', () => {
+            scheduleChartsResize();
+
+            // Nach Rotation einmal komplett neu erstellen, damit Container- und Chart-Größen konsistent sind
+            // (verhindert z.B. "bleibt im Landscape-Look" nach Rückkehr zu Portrait).
+            setTimeout(() => {
+                if (statistics || deviceStatistics) {
+                    updateCharts();
+                } else {
+                    resizeAllCharts();
+                }
+            }, 500);
+        }, { passive: true });
         
         // Chart ein-/ausklappen
         // Toggle-Funktionalität entfernt - alle Charts werden immer angezeigt
