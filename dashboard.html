@@ -839,6 +839,7 @@
             grid-template-columns: 1fr;
             gap: 2rem;
             margin-bottom: 3rem;
+            min-width: 0;
         }
         
         .chart-card {
@@ -846,6 +847,9 @@
             padding: 2rem;
             border-radius: 15px;
             box-shadow: var(--shadow);
+            max-width: 100%;
+            min-width: 0; /* wichtig in CSS-Grid, sonst kann Content die Card aufblähen */
+            overflow: hidden; /* verhindert horizontalen Overflow nach Rotation */
         }
         
         .chart-header {
@@ -885,6 +889,16 @@
             height: 400px;
             transition: height 0.3s ease, padding 0.3s ease, margin 0.3s ease;
             overflow: hidden;
+            max-width: 100%;
+            min-width: 0;
+        }
+
+        /* ECharts Root-Elemente dürfen nie breiter als der Container werden */
+        #lineChart,
+        #pieChart,
+        #barChart,
+        #lineRaceChart {
+            max-width: 100%;
         }
         
         .chart-container.bar-chart {
@@ -4038,6 +4052,29 @@
             });
         }
 
+        // Beobachte echte Container-Größenänderungen (Mobile Rotation/Reflow)
+        let chartResizeObserver = null;
+        function attachChartResizeObserver() {
+            if (typeof ResizeObserver === 'undefined') return;
+            if (chartResizeObserver) return;
+
+            const containerToKey = new Map([
+                [document.getElementById('lineChartContainer'), 'lineChart'],
+                [document.getElementById('barChartContainer'), 'barChart'],
+                [document.getElementById('pieChartContainer'), 'pieChart'],
+                [document.getElementById('lineRaceChartContainer'), 'lineRaceChart']
+            ]);
+
+            chartResizeObserver = new ResizeObserver(() => {
+                // Container hat sich geändert -> auf nächsten Frame warten
+                scheduleChartsResize();
+            });
+
+            containerToKey.forEach((_key, el) => {
+                if (el) chartResizeObserver.observe(el);
+            });
+        }
+
         window.addEventListener('resize', scheduleChartsResize, { passive: true });
         window.addEventListener('orientationchange', () => {
             scheduleChartsResize();
@@ -4052,6 +4089,17 @@
                 }
             }, 500);
         }, { passive: true });
+
+        // iOS/Safari: visualViewport resize ist oft zuverlässiger als window.resize
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', scheduleChartsResize, { passive: true });
+        }
+
+        // Attach observer once DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            attachChartResizeObserver();
+            scheduleChartsResize();
+        });
         
         // Chart ein-/ausklappen
         // Toggle-Funktionalität entfernt - alle Charts werden immer angezeigt
