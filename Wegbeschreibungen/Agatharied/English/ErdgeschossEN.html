@@ -280,7 +280,7 @@
         <span class="flag-icon" aria-hidden="true">🇬🇧</span>
       </button>
       <div id="languageMenu" role="menu">
-        <a href="https://seraphin-solutions.de/Wegbeschreibungen/Agatharied/Deutsch/1. Obergeschoss.html" role="menuitem"><span class="flag">🇩🇪</span> Deutsch</a>
+        <a href="https://seraphin-solutions.de/Wegbeschreibungen/Agatharied/Deutsch/Erdgeschoss.html" role="menuitem"><span class="flag">🇩🇪</span> Deutsch</a>
       </div>
     </div>
     <script type="importmap">
@@ -545,7 +545,7 @@
             
             // GitHub LFS Dateien müssen direkt von GitHub geladen werden
             // GitHub Pages unterstützt kein LFS, daher müssen wir die Datei direkt von GitHub laden
-            const filePath = 'Wegbeschreibungen/Agatharied/English/1. ObergeschossEN.glb';
+            const filePath = 'Wegbeschreibungen/Agatharied/English/ErdgeschossEN.glb';
             
             // Versuche verschiedene GitHub URLs (in Reihenfolge)
             const urls = [
@@ -749,7 +749,7 @@
       // Load local GLB directly (no Git LFS handling)
       updateProgress('download', 0, 'Loading GLB file...');
       loader.load(
-        "./1. ObergeschossEN.glb",
+        "./ErdgeschossEN.glb",
         (gltf) => {
           // Loading abgeschlossen
           isLoadingComplete = true;
