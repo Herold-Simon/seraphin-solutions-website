@@ -7,6 +7,7 @@
     
     # Wegbeschreibungen: verzeichnis.html auch ohne .html und case-insensitiv erreichbar machen
     RewriteRule ^Wegbeschreibungen/Agatharied/verzeichnis$ Wegbeschreibungen/Agatharied/verzeichnis.html [L,NC]
+    RewriteRule ^Wegbeschreibungen/Agatharied/Deutsch/verzeichnis$ Wegbeschreibungen/Agatharied/Deutsch/verzeichnis.html [L,NC]
 
     # HTTPS erzwingen (wenn SSL verfügbar)
     # RewriteCond %{HTTPS} off

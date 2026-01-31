@@ -16,6 +16,10 @@
       "destination": "/Wegbeschreibungen/Agatharied/verzeichnis.html"
     },
     {
+      "source": "/Wegbeschreibungen/Agatharied/Deutsch/verzeichnis",
+      "destination": "/Wegbeschreibungen/Agatharied/Deutsch/verzeichnis.html"
+    },
+    {
       "source": "/programm",
       "destination": "/programm.html"
     },
