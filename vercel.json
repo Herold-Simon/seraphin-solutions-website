@@ -12,6 +12,10 @@
       "destination": "/weitere-informationen.html"
     },
     {
+      "source": "/Wegbeschreibungen/Agatharied/verzeichnis",
+      "destination": "/Wegbeschreibungen/Agatharied/verzeichnis.html"
+    },
+    {
       "source": "/programm",
       "destination": "/programm.html"
     },

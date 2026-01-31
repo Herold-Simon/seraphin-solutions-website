@@ -161,5 +161,30 @@
     </footer>
 
     <script src="/script.js"></script>
+    <script>
+        // Case-insensitive helper redirects for known deep pages.
+        // This makes e.g. /wegbeschreibungen/agatharied/verzeichnis (any casing, with/without .html) work.
+        (function () {
+            try {
+                const path = (window.location && window.location.pathname) ? window.location.pathname : '';
+                const normalized = path.toLowerCase().replace(/\/+$/, ''); // trim trailing slash
+
+                const targets = new Map([
+                    ['/wegbeschreibungen/agatharied/verzeichnis', '/Wegbeschreibungen/Agatharied/verzeichnis'],
+                    ['/wegbeschreibungen/agatharied/verzeichnis.html', '/Wegbeschreibungen/Agatharied/verzeichnis']
+                ]);
+
+                const redirectTo = targets.get(normalized);
+                if (redirectTo) {
+                    // preserve query/hash
+                    const search = window.location.search || '';
+                    const hash = window.location.hash || '';
+                    window.location.replace(redirectTo + search + hash);
+                }
+            } catch (e) {
+                // noop
+            }
+        })();
+    </script>
 </body>
 </html> 

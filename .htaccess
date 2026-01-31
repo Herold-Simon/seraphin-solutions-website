@@ -5,6 +5,9 @@
     RewriteEngine On
     RewriteBase /
     
+    # Wegbeschreibungen: verzeichnis.html auch ohne .html und case-insensitiv erreichbar machen
+    RewriteRule ^Wegbeschreibungen/Agatharied/verzeichnis$ Wegbeschreibungen/Agatharied/verzeichnis.html [L,NC]
+
     # HTTPS erzwingen (wenn SSL verfügbar)
     # RewriteCond %{HTTPS} off
     # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
