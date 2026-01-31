@@ -496,10 +496,256 @@
       function formatSpeed(bytesPerSecond) {
         return formatBytes(bytesPerSecond) + '/s';
       }
-
-      // Load local GLB directly (no Git LFS handling)
-      updateProgress('download', 0, 'Loading GLB file...');
-      loader.load(
+      
+      // Custom loader für Git LFS Dateien mit detailliertem Progress-Tracking
+      async function loadGLBWithLFS(url, onLoad, onProgress, onError) {
+        const startTime = performance.now();
+        let downloadStartTime = null;
+        let lastLoaded = 0;
+        let lastTime = performance.now();
+        
+        try {
+          updateProgress('check', 5, 'Checking file type...');
+          
+          // Versuche die Datei zu laden
+          const response = await fetch(url);
+          
+          // Prüfe ob die Antwort erfolgreich war
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          const contentLength = response.headers.get('content-length');
+          const totalBytes = contentLength ? parseInt(contentLength, 10) : null;
+          
+          updateProgress('check', 10, 'Reading file header...');
+          
+          // Lade den Text-Inhalt um zu prüfen ob es eine LFS Pointer-Datei ist
+          const text = await response.text();
+          
+          // Prüfe ob es eine Git LFS Pointer-Datei ist
+          if (text.startsWith('version https://git-lfs.github.com/spec/v1')) {
+            updateProgress('check', 15, 'Git LFS pointer file detected, loading from GitHub...');
+            
+            // Es ist eine LFS Pointer-Datei, extrahiere die OID
+            const lines = text.split('\n');
+            let oid = null;
+            let size = null;
+            for (const line of lines) {
+              if (line.startsWith('oid sha256:')) {
+                oid = line.substring('oid sha256:'.length);
+              } else if (line.startsWith('size ')) {
+                size = parseInt(line.substring('size '.length));
+              }
+            }
+            
+            if (!oid) {
+              throw new Error('LFS Pointer-Datei konnte nicht geparst werden: OID nicht gefunden');
+            }
+            
+            // GitHub LFS Dateien müssen direkt von GitHub geladen werden
+            // GitHub Pages unterstützt kein LFS, daher müssen wir die Datei direkt von GitHub laden
+            const filePath = 'Wegbeschreibungen/Agatharied/English/ErdgeschossEN.glb';
+            
+            // Versuche verschiedene GitHub URLs (in Reihenfolge)
+            const urls = [
+              // GitHub Media API (für große Dateien und LFS)
+              `https://media.githubusercontent.com/media/Herold-Simon/seraphin-solutions-website/main/${encodeURIComponent(filePath)}`,
+              // GitHub Raw Content API (manchmal funktioniert es mit LFS)
+              `https://raw.githubusercontent.com/Herold-Simon/seraphin-solutions-website/main/${encodeURIComponent(filePath)}`,
+              // Alternative: Direkte GitHub URL
+              `https://github.com/Herold-Simon/seraphin-solutions-website/raw/main/${encodeURIComponent(filePath)}`
+            ];
+            
+            let loaded = false;
+            for (let i = 0; i < urls.length; i++) {
+              const githubUrl = urls[i];
+              try {
+                updateProgress('download', 20 + (i * 5), `Trying source ${i + 1}/${urls.length}...`);
+                
+                const githubResponse = await fetch(githubUrl, {
+                  headers: {
+                    'Accept': 'application/octet-stream'
+                  }
+                });
+                
+                if (githubResponse.ok) {
+                  const githubContentLength = githubResponse.headers.get('content-length');
+                  const githubTotal = githubContentLength ? parseInt(githubContentLength, 10) : (size || null);
+                  
+                  updateProgress('download', 25, 'Loading GLB file from GitHub...', githubTotal ? `0 / ${formatBytes(githubTotal)}` : '');
+                  
+                  downloadStartTime = performance.now();
+                  lastLoaded = 0;
+                  lastTime = performance.now();
+                  
+                  // Stream-basiertes Laden mit Progress-Tracking
+                  const reader = githubResponse.body.getReader();
+                  const chunks = [];
+                  let receivedBytes = 0;
+                  
+                  // Progress-Update-Intervall
+                  const progressInterval = setInterval(() => {
+                    const now = performance.now();
+                    const elapsed = (now - lastTime) / 1000; // in Sekunden
+                    const loadedDelta = receivedBytes - lastLoaded;
+                    const speed = elapsed > 0 ? loadedDelta / elapsed : 0;
+                    
+                    if (githubTotal) {
+                      const downloadPercent = Math.min((receivedBytes / githubTotal) * 100, 95);
+                      const overallPercent = 25 + (downloadPercent * 0.55); // 25-80% für Download
+                      updateProgress('download', overallPercent, 
+                        `${formatBytes(receivedBytes)} / ${formatBytes(githubTotal)} loaded`,
+                        speed > 0 ? formatSpeed(speed) : '');
+                    } else {
+                      updateProgress('download', 50, 
+                        `${formatBytes(receivedBytes)} loaded`,
+                        speed > 0 ? formatSpeed(speed) : '');
+                    }
+                    
+                    lastLoaded = receivedBytes;
+                    lastTime = now;
+                  }, 100); // Update alle 100ms
+                  
+                  while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    chunks.push(value);
+                    receivedBytes += value.length;
+                  }
+                  
+                  clearInterval(progressInterval);
+                  
+                  const blob = new Blob(chunks);
+                  
+                  updateProgress('check', 80, 'Validating file...');
+                  
+                  // Prüfe ob es nicht wieder eine Pointer-Datei ist
+                  const firstChunk = await blob.slice(0, 200).text();
+                  
+                  // Prüfe ob es eine Pointer-Datei ist
+                  if (firstChunk.startsWith('version https://git-lfs.github.com/spec/v1')) {
+                    console.warn(`URL ${githubUrl} lieferte noch eine Pointer-Datei, versuche nächste URL...`);
+                    continue;
+                  }
+                  
+                  updateProgress('parse', 82, 'Creating object URL...');
+                  
+                  // Es scheint eine echte binäre Datei zu sein
+                  const objectUrl = URL.createObjectURL(blob);
+                  
+                  updateProgress('parse', 85, 'Initializing floor plan...');
+                  
+                  // Erweiterten Progress-Callback für GLTFLoader
+                  const enhancedProgress = (progress) => {
+                    if (progress.total > 0) {
+                      const parsePercent = (progress.loaded / progress.total) * 100;
+                      const overallPercent = 85 + (parsePercent * 0.1); // 85-95% für Parse
+                      updateProgress('parse', overallPercent, 
+                        `Loading individual rooms... (${Math.round(parsePercent)}%)`);
+                    }
+                  };
+                  
+                  loader.load(objectUrl, (gltf) => {
+                    URL.revokeObjectURL(objectUrl);
+                    updateProgress('init', 95, 'Checking floor plan...');
+                    onLoad(gltf);
+                  }, enhancedProgress, (error) => {
+                    URL.revokeObjectURL(objectUrl);
+                    onError(error);
+                  });
+                  
+                  loaded = true;
+                  break;
+                }
+              } catch (e) {
+                console.warn(`URL ${githubUrl} fehlgeschlagen:`, e);
+                continue;
+              }
+            }
+            
+            if (!loaded) {
+              throw new Error(`Konnte LFS-Datei nicht laden. GitHub Pages unterstützt Git LFS nicht direkt. Bitte stelle sicher, dass die GLB-Datei über einen alternativen Hosting-Service verfügbar ist, oder verwende die GitHub Media URL.`);
+            }
+          } else {
+            // Es ist keine LFS Pointer-Datei, lade direkt mit Progress-Tracking
+            updateProgress('download', 20, 'Loading GLB file...', totalBytes ? `0 / ${formatBytes(totalBytes)}` : '');
+            
+            downloadStartTime = performance.now();
+            lastLoaded = 0;
+            lastTime = performance.now();
+            
+            // Stream-basiertes Laden mit Progress-Tracking
+            const reader = response.body.getReader();
+            const chunks = [];
+            let receivedBytes = 0;
+            
+            // Progress-Update-Intervall
+            const progressInterval = setInterval(() => {
+              const now = performance.now();
+              const elapsed = (now - lastTime) / 1000;
+              const loadedDelta = receivedBytes - lastLoaded;
+              const speed = elapsed > 0 ? loadedDelta / elapsed : 0;
+              
+              if (totalBytes) {
+                const downloadPercent = Math.min((receivedBytes / totalBytes) * 100, 95);
+                const overallPercent = 20 + (downloadPercent * 0.6); // 20-80% für Download
+                updateProgress('download', overallPercent, 
+                  `${formatBytes(receivedBytes)} / ${formatBytes(totalBytes)} loaded`,
+                  speed > 0 ? formatSpeed(speed) : '');
+              } else {
+                updateProgress('download', 50, 
+                  `${formatBytes(receivedBytes)} loaded`,
+                  speed > 0 ? formatSpeed(speed) : '');
+              }
+              
+              lastLoaded = receivedBytes;
+              lastTime = now;
+            }, 100);
+            
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              
+              chunks.push(value);
+              receivedBytes += value.length;
+            }
+            
+            clearInterval(progressInterval);
+            
+            const blob = new Blob(chunks);
+            
+            updateProgress('parse', 82, 'Loading floor plan...');
+            
+            const objectUrl = URL.createObjectURL(blob);
+            
+            // Erweiterten Progress-Callback für GLTFLoader
+            const enhancedProgress = (progress) => {
+              if (progress.total > 0) {
+                const parsePercent = (progress.loaded / progress.total) * 100;
+                const overallPercent = 82 + (parsePercent * 0.13); // 82-95% für Parse
+                updateProgress('parse', overallPercent, 
+                  `Parsing geometries and textures... (${Math.round(parsePercent)}%)`);
+              }
+            };
+            
+            loader.load(objectUrl, (gltf) => {
+              URL.revokeObjectURL(objectUrl);
+              updateProgress('init', 95, 'Initializing 3D scene...');
+              onLoad(gltf);
+            }, enhancedProgress, (error) => {
+              URL.revokeObjectURL(objectUrl);
+              onError(error);
+            });
+          }
+        } catch (error) {
+          console.error('Fehler beim Laden der GLB-Datei:', error);
+          onError(error);
+        }
+      }
+      
+      loadGLBWithLFS(
         "./ErdgeschossEN.glb",
         (gltf) => {
           // Loading abgeschlossen
@@ -642,21 +888,18 @@
             }, focusDelayMs);
           }
          },
-        (progress) => {
-          if (isLoadingComplete) return;
-          if (progress.total > 0) {
-            const percent = (progress.loaded / progress.total) * 100;
-            updateProgress(
-              'download',
-              Math.min(percent, 99),
-              `${formatBytes(progress.loaded)} / ${formatBytes(progress.total)} loaded`
-            );
-          } else {
-            updateProgress('download', 50, `${formatBytes(progress.loaded)} loaded`);
-          }
-        },
+         (progress) => {
+           // Progress bar aktualisieren (nur wenn noch nicht fertig geladen)
+           // Diese Callback wird hauptsächlich für den GLTFLoader-Parse-Prozess verwendet
+           if (!isLoadingComplete && progress.total > 0) {
+             const parsePercent = (progress.loaded / progress.total) * 100;
+             const overallPercent = 85 + (parsePercent * 0.1); // 85-95% für Parse
+             updateProgress('parse', overallPercent, 
+               `Parsing geometries and textures... (${Math.round(parsePercent)}%)`);
+           }
+         },
          (error) => {
-          console.error("Error loading GLB file:", error);
+           console.error("Fehler beim Laden der GLB-Datei:", error);
           updateProgress('error', 0, 'Error loading file', '');
           progressBar.style.background = "linear-gradient(90deg, #f44336, #d32f2f)";
           progressDetails.textContent = error.message || "Unknown error";
