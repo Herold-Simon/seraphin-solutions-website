@@ -79,6 +79,7 @@ const carouselNext = document.getElementById('carouselNext');
 let currentSlide = 0;
 
 if (carousel && carouselPrev && carouselNext) {
+    const track = document.getElementById('carouselTrack');
     const slides = carousel.querySelectorAll('.carousel-slide');
     const totalSlides = slides.length;
 
@@ -89,6 +90,10 @@ if (carousel && carouselPrev && carouselNext) {
     }
 
     function showSlide(index) {
+        currentSlide = index;
+        if (track) {
+            track.style.transform = `translateX(-${index * 100}%)`;
+        }
         slides.forEach((slide, i) => {
             slide.classList.toggle('active', i === index);
         });
@@ -108,6 +113,7 @@ if (carousel && carouselPrev && carouselNext) {
         carouselNext.addEventListener('click', nextSlide);
         carouselPrev.addEventListener('click', prevSlide);
     }
+    showSlide(0);
 }
 
 // Price Calculator with Sliders
