@@ -1048,14 +1048,15 @@
             color: var(--text-light);
             font-size: 0.9rem;
             margin-top: 2rem;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: baseline;
-            gap: 0.25rem;
         }
-        .last-updated-sep {
-            color: var(--border-color);
+        .last-updated-row {
+            margin-top: 0.35rem;
+        }
+        .last-updated-row:first-child {
+            margin-top: 0;
+        }
+        .last-updated-row i {
+            margin-right: 0.35rem;
         }
 
         /* Mobile Optimierungen */
@@ -1627,10 +1628,14 @@
                 </div>
                 
                 <div class="last-updated">
-                    <i class="fas fa-clock"></i>
-                    Letzte Aktualisierung: <span id="lastUpdated">--</span>
-                    <span class="last-updated-sep"> · </span>
-                    Letzter Aufruf: <span id="lastView">--</span>
+                    <div class="last-updated-row">
+                        <i class="fas fa-clock"></i>
+                        Letzte Aktualisierung: <span id="lastUpdated">--</span>
+                    </div>
+                    <div class="last-updated-row">
+                        <i class="fas fa-play-circle"></i>
+                        Letzter Aufruf: <span id="lastView">--</span>
+                    </div>
                 </div>
             </div>
         </div>
