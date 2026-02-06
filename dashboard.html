@@ -3091,8 +3091,20 @@
                             entries.push({ param: param, value: val, valueStr: value, seriesName: param.seriesName });
                         });
                         
-                        const totalStr = Number.isInteger(total) ? total : total.toFixed(2);
-                        result += '<strong>Gesamt: ' + totalStr + ' Aufrufe</strong><br/>';
+                        var displayTotal = total;
+                        if (hasViewHistory && timePoints && timePoints[firstParam.dataIndex]) {
+                            var dateStr = timePoints[firstParam.dataIndex];
+                            displayTotal = mergedVideos.reduce(function(s, v) {
+                                var h = v.viewHistory || v.view_history || {};
+                                return s + (parseInt(h[dateStr], 10) || 0);
+                            }, 0);
+                        }
+                        var totalStr = Number.isInteger(displayTotal) ? displayTotal : displayTotal.toFixed(2);
+                        result += '<strong>Gesamt: ' + totalStr + ' Aufrufe</strong>';
+                        if (hasViewHistory && filteredVideos.length < mergedVideos.length) {
+                            result += ' <span style="color:#666;font-size:11px">(alle Videos; Liste unten nur Top ' + filteredVideos.length + ')</span>';
+                        }
+                        result += '<br/>';
                         
                         entries.sort((a, b) => (b.value - a.value));
                         
