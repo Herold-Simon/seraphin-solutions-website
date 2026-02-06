@@ -3084,6 +3084,7 @@
                             const val = param.value;
                             if (val === undefined || val === null) return;
                             total += Number(val);
+                            if (Number(val) === 0) return;
                             let value = val;
                             if (typeof value === 'number') {
                                 value = Number.isInteger(value) ? value : value.toFixed(2);
@@ -3112,7 +3113,7 @@
                             result += e.param.marker + ' ' + e.seriesName + ': ' + e.valueStr + ' Aufrufe<br/>';
                         });
                         
-                        return entries.length > 0 ? result : '';
+                        return result;
                     }
                 },
                 legend: {
