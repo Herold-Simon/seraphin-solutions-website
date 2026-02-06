@@ -3083,13 +3083,14 @@
                         params.forEach((param) => {
                             const val = param.value;
                             if (val === undefined || val === null) return;
-                            total += Number(val);
-                            if (Number(val) === 0) return;
+                            const numVal = Number(val);
+                            total += numVal;
+                            if (!(numVal > 0)) return;
                             let value = val;
                             if (typeof value === 'number') {
                                 value = Number.isInteger(value) ? value : value.toFixed(2);
                             }
-                            entries.push({ param: param, value: val, valueStr: value, seriesName: param.seriesName });
+                            entries.push({ param: param, value: numVal, valueStr: value, seriesName: param.seriesName });
                         });
                         
                         var displayTotal = total;
