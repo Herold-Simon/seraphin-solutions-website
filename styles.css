@@ -1760,6 +1760,17 @@ body.has-fixed-header {
     color: rgba(255, 255, 255, 0.92);
     padding: 3.5rem 0 1.5rem;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+.footer .container {
+    max-width: 100%;
+    box-sizing: border-box;
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
 }
 
 .footer-content {
@@ -1767,6 +1778,11 @@ body.has-fixed-header {
     grid-template-columns: 1.4fr repeat(4, minmax(170px, 1fr));
     gap: 2.25rem;
     margin-bottom: 2.25rem;
+    min-width: 0;
+}
+
+.footer-section {
+    min-width: 0;
 }
 
 .footer-brand-link {
@@ -1812,6 +1828,10 @@ body.has-fixed-header {
     padding: 0;
 }
 
+.footer-links {
+    min-width: 0;
+}
+
 .footer-links a {
     display: inline-block;
     color: rgba(255, 255, 255, 0.72);
@@ -1819,6 +1839,8 @@ body.has-fixed-header {
     padding: 0.35rem 0;
     transition: var(--transition);
     line-height: 1.4;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .footer-links a:hover {
@@ -1838,6 +1860,8 @@ body.has-fixed-header {
     padding: 0.35rem 0;
     transition: var(--transition);
     word-break: break-word;
+    overflow-wrap: break-word;
+    min-width: 0;
 }
 
 .footer-contact a:hover {
@@ -1850,6 +1874,13 @@ body.has-fixed-header {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     color: rgba(255, 255, 255, 0.5);
     font-size: 0.9rem;
+    min-width: 0;
+}
+
+.footer-bottom p {
+    margin: 0;
+    max-width: 100%;
+    overflow-wrap: break-word;
 }
 
 /* Responsive Design */
@@ -1961,17 +1992,27 @@ body.has-fixed-header {
 @media (max-width: 968px) {
     .footer-content {
         grid-template-columns: 1fr 1fr;
+        min-width: 0;
+    }
+    .footer-section {
+        min-width: 0;
     }
 }
 
 @media (max-width: 600px) {
     .footer {
         padding: 3rem 0 1.25rem;
+        padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
     }
 
     .footer-content {
         grid-template-columns: 1fr;
         gap: 1.6rem;
+        min-width: 0;
+    }
+
+    .footer-section {
+        min-width: 0;
     }
 
     .footer-links a,
@@ -2734,15 +2775,18 @@ body.has-fixed-header {
     /* Footer Mobile */
     .footer {
         padding: 3rem 0 1.25rem;
+        padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
     }
 
     .footer-content {
         grid-template-columns: 1fr;
         gap: 1.6rem;
+        min-width: 0;
     }
 
     .footer-section {
         text-align: left;
+        min-width: 0;
     }
 
     .footer-section + .footer-section {
