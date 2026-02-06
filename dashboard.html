@@ -324,19 +324,19 @@
         
 
         /* Statistiken-Karten im AdminPanel-Stil */
-        .time-range-hint {
+        .chart-time-range-hint {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.5rem;
             background: rgba(0, 140, 255, 0.08);
             border: 1px solid rgba(0, 140, 255, 0.25);
             color: var(--text-dark);
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            margin-bottom: 1.25rem;
-            font-size: 0.9rem;
+            padding: 0.4rem 0.75rem;
+            border-radius: 6px;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
         }
-        .time-range-hint i {
+        .chart-time-range-hint i {
             color: var(--primary-blue);
             flex-shrink: 0;
         }
@@ -1433,12 +1433,6 @@
                 </div>
             </div>
 
-                <!-- Hinweis bei eingeschränktem Zeitraum -->
-                <div class="time-range-hint" id="timeRangeHint" style="display: none;" role="status">
-                    <i class="fas fa-info-circle"></i>
-                    <span>Alle angezeigten Werte (Gesamtaufrufe, Videos mit Aufrufen sowie alle Diagramme) beziehen sich auf den gewählten Zeitraum.</span>
-                </div>
-
                 <!-- Statistiken-Übersicht -->
                 <div class="stats-overview">
                     <div class="stat-card">
@@ -1466,7 +1460,7 @@
                             <div>
                                 <h3 style="margin: 0; color: var(--text-dark);">Erweiterte Einstellungen</h3>
                                 <div class="advanced-settings-info" id="advancedSettingsInfo">
-                                    <span>Im Moment werden nur die Top <span id="infoVideoCount">10</span> Videos angezeigt.</span>
+                                    <span>Im Moment werden nur die Top <span id="infoVideoCount">5</span> Videos angezeigt.</span>
                                 </div>
                             </div>
                             <i class="fas fa-chevron-down" id="advancedSettingsIcon"></i>
@@ -1477,10 +1471,10 @@
                         <!-- Video-Anzahl Slider -->
                         <div class="video-count-setting">
                             <label for="videoCountSlider" class="setting-label">
-                                Maximale Anzahl Videos in den Diagrammen: <span id="videoCountValue">10</span>
+                                Maximale Anzahl Videos in den Diagrammen: <span id="videoCountValue">5</span>
                             </label>
                             <div class="slider-container">
-                                <input type="range" id="videoCountSlider" min="3" max="10" value="10" class="video-count-slider">
+                                <input type="range" id="videoCountSlider" min="3" max="10" value="5" class="video-count-slider">
                                 <div class="slider-labels">
                                     <span>3</span>
                                     <span id="sliderMaxValue">7</span>
@@ -1565,13 +1559,16 @@
                     </div>
                 </div>
                 
-                
                 <!-- Charts -->
                 <div class="charts-section" id="chartsSection">
                     <!-- Liniendiagramm (wie in der App) -->
                     <div class="chart-card">
                         <div class="chart-header">
                             <h3 class="chart-title" id="lineChartTitle">Liniendiagramm</h3>
+                            <div class="chart-time-range-hint" id="lineChartTimeHint" style="display: none;" role="status">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Bezieht sich auf den gewählten Zeitraum.</span>
+                            </div>
                         </div>
                         <div class="chart-container" id="lineChartContainer">
                             <div id="lineChart" style="width: 100%; height: 100%;"></div>
@@ -1582,6 +1579,10 @@
                     <div class="chart-card">
                         <div class="chart-header">
                             <h3 class="chart-title" id="pieChartTitle">Tortendiagramm</h3>
+                            <div class="chart-time-range-hint" id="pieChartTimeHint" style="display: none;" role="status">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Bezieht sich auf den gewählten Zeitraum.</span>
+                            </div>
                         </div>
                         <div class="chart-container pie-chart" id="pieChartContainer">
                             <div id="pieChart" style="width: 100%; height: 100%;"></div>
@@ -1592,6 +1593,10 @@
                     <div class="chart-card">
                         <div class="chart-header">
                             <h3 class="chart-title" id="barChartTitle">Balkendiagramm</h3>
+                            <div class="chart-time-range-hint" id="barChartTimeHint" style="display: none;" role="status">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Bezieht sich auf den gewählten Zeitraum.</span>
+                            </div>
                         </div>
                         <div class="chart-container bar-chart" id="barChartContainer">
                             <div id="barChart" style="width: 100%; height: 100%;"></div>
@@ -1602,6 +1607,10 @@
                     <div class="chart-card">
                         <div class="chart-header">
                             <h3 class="chart-title" id="lineRaceChartTitle">Line Race</h3>
+                            <div class="chart-time-range-hint" id="lineRaceChartTimeHint" style="display: none;" role="status">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Bezieht sich auf den gewählten Zeitraum.</span>
+                            </div>
                         </div>
                         <div class="chart-container" id="lineRaceChartContainer">
                             <div id="lineRaceChart" style="width: 100%; height: 100%;"></div>
@@ -1627,7 +1636,7 @@
         };
         
         // Erweiterte Einstellungen Variablen
-        let selectedVideoCount = 10;
+        let selectedVideoCount = 5;
         let selectedVideos = new Set(); // Set of video IDs that are selected
         let allAvailableVideos = []; // All available videos for selection
         let allTimeRangeData = null; // Speichert den Zeitraum von "Gesamter Zeitraum"
@@ -2735,10 +2744,9 @@
                     videosWithViewsElement.textContent = videosWithViews.toLocaleString('de-DE');
                 }
                 
-                const timeRangeHintEl = document.getElementById('timeRangeHint');
-                if (timeRangeHintEl) {
-                    timeRangeHintEl.style.display = currentTimeRange !== 'all' ? 'flex' : 'none';
-                }
+                document.querySelectorAll('.chart-time-range-hint').forEach(function(el) {
+                    el.style.display = currentTimeRange !== 'all' ? 'flex' : 'none';
+                });
                 
                 // Geräte-ID wird jetzt über das Dropdown verwaltet
                 
@@ -4035,10 +4043,11 @@
             
             const totalViewsEl = document.getElementById('totalViews');
             const videosWithViewsEl = document.getElementById('videosWithViews');
-            const hintEl = document.getElementById('timeRangeHint');
             if (totalViewsEl) totalViewsEl.textContent = totalViews.toLocaleString('de-DE');
             if (videosWithViewsEl) videosWithViewsEl.textContent = videosWithViews.toLocaleString('de-DE');
-            if (hintEl) hintEl.style.display = currentTimeRange !== 'all' ? 'flex' : 'none';
+            document.querySelectorAll('.chart-time-range-hint').forEach(function(el) {
+                el.style.display = currentTimeRange !== 'all' ? 'flex' : 'none';
+            });
         }
         
         // Charts aktualisieren
