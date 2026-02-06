@@ -343,7 +343,7 @@
 
         .stats-overview {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
             cursor: pointer;
@@ -372,23 +372,18 @@
             background: var(--white);
         }
         
-        .last-view-under-cards {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 0.35rem;
-            margin-top: 0.75rem;
-            margin-bottom: 1.25rem;
-            padding: 0.6rem 0;
-            color: var(--text-light);
-            font-size: 0.9rem;
+        .stat-card-last-view .stat-label {
+            margin-bottom: 0.5rem;
         }
-        .last-view-under-cards i {
-            color: var(--primary-blue);
-        }
-        .last-view-video-name {
+        .stat-last-view-value {
+            font-size: 1rem;
+            font-weight: 600;
             color: var(--text-dark);
-            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        .stat-last-view-video {
+            font-size: 0.85rem;
+            color: var(--text-light);
         }
         
         .stat-icon {
@@ -1478,12 +1473,15 @@
                         <div class="stat-number" id="videosWithViews">0</div>
                         <div class="stat-label">Videos mit Aufrufen</div>
                     </div>
-                </div>
-
-                <div class="last-view-under-cards" id="lastViewUnderCards">
-                    <i class="fas fa-play-circle"></i>
-                    Letzter Aufruf: <span id="lastView">--</span>
-                    <span id="lastViewVideo" class="last-view-video-name"></span>
+                    
+                    <div class="stat-card stat-card-last-view" id="lastViewCard">
+                        <div class="stat-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <div class="stat-label">Letzter Aufruf</div>
+                        <div class="stat-last-view-value" id="lastView">--</div>
+                        <div class="stat-last-view-video" id="lastViewVideo"></div>
+                    </div>
                 </div>
 
                 <!-- Erweiterte Einstellungen -->
@@ -2834,7 +2832,7 @@
                 }
                 if (lastViewVideoElement) {
                     if (lastViewVideoTitle) {
-                        lastViewVideoElement.textContent = ' (Video: ' + lastViewVideoTitle + ')';
+                        lastViewVideoElement.textContent = lastViewVideoTitle;
                         lastViewVideoElement.style.display = '';
                     } else {
                         lastViewVideoElement.textContent = '';
