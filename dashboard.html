@@ -1048,6 +1048,14 @@
             color: var(--text-light);
             font-size: 0.9rem;
             margin-top: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: baseline;
+            gap: 0.25rem;
+        }
+        .last-updated-sep {
+            color: var(--border-color);
         }
 
         /* Mobile Optimierungen */
@@ -1621,6 +1629,8 @@
                 <div class="last-updated">
                     <i class="fas fa-clock"></i>
                     Letzte Aktualisierung: <span id="lastUpdated">--</span>
+                    <span class="last-updated-sep"> · </span>
+                    Letzter Aufruf: <span id="lastView">--</span>
                 </div>
             </div>
         </div>
@@ -2771,6 +2781,26 @@
                 const lastUpdatedElement = document.getElementById('lastUpdated');
                 if (lastUpdatedElement) {
                     lastUpdatedElement.textContent = now.toLocaleString('de-DE');
+                }
+                
+                // Letzter Aufruf (neuestes lastViewed aller Videos)
+                let lastViewDate = null;
+                (videos || []).forEach(function(v) {
+                    const lv = v.lastViewed || v.last_viewed;
+                    if (!lv) return;
+                    const d = new Date(lv);
+                    if (isNaN(d.getTime())) return;
+                    if (!lastViewDate || d > lastViewDate) lastViewDate = d;
+                });
+                const lastViewElement = document.getElementById('lastView');
+                if (lastViewElement) {
+                    if (lastViewDate) {
+                        const dateStr = lastViewDate.toLocaleDateString('de-DE');
+                        const timeStr = lastViewDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+                        lastViewElement.textContent = dateStr + ' um ' + timeStr + ' Uhr';
+                    } else {
+                        lastViewElement.textContent = '--';
+                    }
                 }
             } catch (error) {
                 console.error('❌ Fehler beim Aktualisieren der UI-Elemente:', error);
