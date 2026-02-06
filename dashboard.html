@@ -169,12 +169,17 @@
             min-height: 100vh;
             background: var(--light-gray);
             padding-top: 80px;
+            overflow-x: hidden;
+            width: 100%;
         }
         
         .dashboard-content {
             max-width: 1200px;
+            width: 100%;
             margin: 0 auto;
             padding: 0 2rem 4rem;
+            box-sizing: border-box;
+            overflow-x: hidden;
         }
 
         /* Modern Device Selector */
@@ -353,6 +358,7 @@
             position: relative;
             background: var(--white);
             box-shadow: var(--shadow);
+            min-width: 0;
         }
         
         
@@ -364,6 +370,8 @@
             text-align: center;
             transition: transform 0.3s ease;
             border: 1px solid var(--border-color);
+            min-width: 0;
+            overflow: hidden;
         }
         
         .stat-card:hover {
@@ -384,6 +392,8 @@
         .stat-last-view-video {
             font-size: 0.85rem;
             color: var(--text-light);
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
         
         .stat-card-average .stat-label { margin-bottom: 0.5rem; }
@@ -392,6 +402,7 @@
             font-weight: 600;
             color: var(--text-dark);
             margin-bottom: 0.75rem;
+            word-break: break-word;
         }
         .stat-average-switch-wrap {
             display: flex;
@@ -464,6 +475,7 @@
             font-weight: 700;
             color: var(--primary-blue);
             margin-bottom: 0.5rem;
+            word-break: break-word;
         }
         
         .stat-label {
@@ -1175,8 +1187,12 @@
             
             
             .stats-overview {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                grid-template-columns: 1fr 1fr;
                 gap: 1rem;
+                min-width: 0;
+            }
+            .stat-card {
+                min-width: 0;
             }
 
             .time-range-selector {
@@ -1220,15 +1236,29 @@
 
         @media (max-width: 480px) {
             .dashboard-content {
-                padding: 0 1rem 4rem;
+                padding: 0 0.75rem 4rem;
             }
 
             .stats-overview {
                 grid-template-columns: 1fr 1fr;
+                padding: 0.75rem;
+                gap: 0.75rem;
             }
 
             .stat-card {
-                padding: 1rem;
+                padding: 0.75rem;
+                min-width: 0;
+            }
+            
+            .stat-card-average .stat-average-switch-wrap {
+                gap: 0.35rem;
+            }
+            .stat-average-option {
+                font-size: 0.7rem;
+            }
+            .stat-average-value,
+            .stat-last-view-value {
+                font-size: 0.9rem;
             }
 
             .stat-number {
@@ -1751,6 +1781,26 @@
         let allTimeRangeData = null; // Speichert den Zeitraum von "Gesamter Zeitraum"
         let lastAveragePerDay = 0;
         let lastAveragePerHour = 0;
+        
+        /** Anzahl der Tage, an denen mindestens ein Aufruf stattfand (nur diese zählen für den Durchschnitt). */
+        function getNumberOfDaysWithViews(mergedVideos, bounds) {
+            var viewsByDate = {};
+            mergedVideos.forEach(function(v) {
+                var h = v.viewHistory || v.view_history || {};
+                Object.keys(h).forEach(function(dateStr) {
+                    var d = new Date(dateStr);
+                    if (isNaN(d.getTime())) return;
+                    if (bounds && bounds.startDate && bounds.endDate) {
+                        if (d < bounds.startDate || d > bounds.endDate) return;
+                    }
+                    var count = parseInt(h[dateStr], 10) || 0;
+                    if (!viewsByDate[dateStr]) viewsByDate[dateStr] = 0;
+                    viewsByDate[dateStr] += count;
+                });
+            });
+            var daysWithViews = Object.keys(viewsByDate).filter(function(dateStr) { return viewsByDate[dateStr] > 0; }).length;
+            return Math.max(1, daysWithViews);
+        }
         
         function getNumberOfDaysInRange(bounds, history) {
             const dayMs = 24 * 60 * 60 * 1000;
@@ -2910,9 +2960,10 @@
                     el.style.display = currentTimeRange !== 'all' ? 'flex' : 'none';
                 });
                 
-                var numberOfDays = getNumberOfDaysInRange(bounds, history);
-                lastAveragePerDay = numberOfDays > 0 ? totalViews / numberOfDays : 0;
-                lastAveragePerHour = (numberOfDays * 24) > 0 ? totalViews / (numberOfDays * 24) : 0;
+                var mergedForAvg = mergeVideosByTitle(videos);
+                var daysWithViews = getNumberOfDaysWithViews(mergedForAvg, bounds);
+                lastAveragePerDay = totalViews / daysWithViews;
+                lastAveragePerHour = totalViews / (daysWithViews * 24);
                 updateAverageCard();
                 
                 // Geräte-ID wird jetzt über das Dropdown verwaltet
@@ -4268,9 +4319,9 @@
             document.querySelectorAll('.chart-time-range-hint').forEach(function(el) {
                 el.style.display = currentTimeRange !== 'all' ? 'flex' : 'none';
             });
-            var numberOfDays = getNumberOfDaysInRange(bounds, currentStats.history || []);
-            lastAveragePerDay = numberOfDays > 0 ? totalViews / numberOfDays : 0;
-            lastAveragePerHour = (numberOfDays * 24) > 0 ? totalViews / (numberOfDays * 24) : 0;
+            var daysWithViews = getNumberOfDaysWithViews(merged, bounds);
+            lastAveragePerDay = totalViews / daysWithViews;
+            lastAveragePerHour = totalViews / (daysWithViews * 24);
             updateAverageCard();
         }
         
