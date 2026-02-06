@@ -386,6 +386,66 @@
             color: var(--text-light);
         }
         
+        .stat-card-average .stat-label { margin-bottom: 0.5rem; }
+        .stat-average-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.75rem;
+        }
+        .stat-average-switch-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .stat-average-option {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+        .stat-average-toggle {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+        .stat-average-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .stat-average-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--border-color);
+            border-radius: 20px;
+            transition: 0.3s;
+        }
+        .stat-average-slider::before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background: var(--white);
+            border-radius: 50%;
+            transition: 0.3s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .stat-average-toggle input:checked + .stat-average-slider {
+            background: var(--primary-blue);
+        }
+        .stat-average-toggle input:checked + .stat-average-slider::before {
+            transform: translateX(16px);
+        }
+        
         .stat-icon {
             width: 50px;
             height: 50px;
@@ -1482,6 +1542,22 @@
                         <div class="stat-last-view-value" id="lastView">--</div>
                         <div class="stat-last-view-video" id="lastViewVideo"></div>
                     </div>
+                    
+                    <div class="stat-card stat-card-average" id="averageCard">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-label">Durchschnitt</div>
+                        <div class="stat-average-value" id="averageValue">--</div>
+                        <div class="stat-average-switch-wrap">
+                            <span class="stat-average-option" id="averageOptionDay">pro Tag</span>
+                            <label class="stat-average-toggle">
+                                <input type="checkbox" id="averageToggle" aria-label="Pro Stunde anzeigen">
+                                <span class="stat-average-slider"></span>
+                            </label>
+                            <span class="stat-average-option" id="averageOptionHour">pro Stunde</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Erweiterte Einstellungen -->
@@ -1673,6 +1749,45 @@
         let selectedVideos = new Set(); // Set of video IDs that are selected
         let allAvailableVideos = []; // All available videos for selection
         let allTimeRangeData = null; // Speichert den Zeitraum von "Gesamter Zeitraum"
+        let lastAveragePerDay = 0;
+        let lastAveragePerHour = 0;
+        
+        function getNumberOfDaysInRange(bounds, history) {
+            const dayMs = 24 * 60 * 60 * 1000;
+            if (bounds && bounds.startDate && bounds.endDate) {
+                const diff = bounds.endDate.getTime() - bounds.startDate.getTime();
+                return Math.max(1, Math.ceil(diff / dayMs) + 1);
+            }
+            if (history && history.length > 0) {
+                const dates = history.map(function(item) { return new Date(item.date); }).sort(function(a, b) { return a - b; });
+                const start = dates[0];
+                const end = dates[dates.length - 1];
+                return Math.max(1, Math.ceil((end - start) / dayMs) + 1);
+            }
+            return 1;
+        }
+        
+        function updateAverageCard() {
+            const el = document.getElementById('averageValue');
+            const toggle = document.getElementById('averageToggle');
+            const optionDay = document.getElementById('averageOptionDay');
+            const optionHour = document.getElementById('averageOptionHour');
+            if (!el || !toggle) return;
+            var isHour = toggle.checked;
+            if (isHour) {
+                el.textContent = (lastAveragePerHour >= 0 && lastAveragePerHour !== Infinity)
+                    ? (Math.round(lastAveragePerHour * 10) / 10).toLocaleString('de-DE') + ' /h'
+                    : '--';
+                if (optionDay) optionDay.style.fontWeight = 'normal';
+                if (optionHour) optionHour.style.fontWeight = '600';
+            } else {
+                el.textContent = (lastAveragePerDay >= 0 && lastAveragePerDay !== Infinity)
+                    ? (Math.round(lastAveragePerDay * 10) / 10).toLocaleString('de-DE') + ' /Tag'
+                    : '--';
+                if (optionDay) optionDay.style.fontWeight = '600';
+                if (optionHour) optionHour.style.fontWeight = 'normal';
+            }
+        }
         
         // Funktion zum Synchronisieren des benutzerdefinierten Zeitraums mit dem Gesamten Zeitraum
         function syncCustomTimeRangeWithAllTime() {
@@ -2144,6 +2259,12 @@
                     
                     console.log('🔄 Benutzerdefinierter Zeitraum auf Standard zurückgesetzt');
                 });
+            }
+            
+            var averageToggle = document.getElementById('averageToggle');
+            if (averageToggle) {
+                averageToggle.addEventListener('change', function() { updateAverageCard(); });
+                averageToggle.addEventListener('click', function(e) { e.stopPropagation(); });
             }
             
             // Stats-Overview Click Handler für automatisches Scrollen
@@ -2780,6 +2901,11 @@
                 document.querySelectorAll('.chart-time-range-hint').forEach(function(el) {
                     el.style.display = currentTimeRange !== 'all' ? 'flex' : 'none';
                 });
+                
+                var numberOfDays = getNumberOfDaysInRange(bounds, history);
+                lastAveragePerDay = numberOfDays > 0 ? totalViews / numberOfDays : 0;
+                lastAveragePerHour = (numberOfDays * 24) > 0 ? totalViews / (numberOfDays * 24) : 0;
+                updateAverageCard();
                 
                 // Geräte-ID wird jetzt über das Dropdown verwaltet
                 
@@ -4134,6 +4260,10 @@
             document.querySelectorAll('.chart-time-range-hint').forEach(function(el) {
                 el.style.display = currentTimeRange !== 'all' ? 'flex' : 'none';
             });
+            var numberOfDays = getNumberOfDaysInRange(bounds, currentStats.history || []);
+            lastAveragePerDay = numberOfDays > 0 ? totalViews / numberOfDays : 0;
+            lastAveragePerHour = (numberOfDays * 24) > 0 ? totalViews / (numberOfDays * 24) : 0;
+            updateAverageCard();
         }
         
         // Charts aktualisieren
