@@ -372,6 +372,25 @@
             background: var(--white);
         }
         
+        .last-view-under-cards {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem;
+            margin-top: 0.75rem;
+            margin-bottom: 1.25rem;
+            padding: 0.6rem 0;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        .last-view-under-cards i {
+            color: var(--primary-blue);
+        }
+        .last-view-video-name {
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+        
         .stat-icon {
             width: 50px;
             height: 50px;
@@ -1461,6 +1480,11 @@
                     </div>
                 </div>
 
+                <div class="last-view-under-cards" id="lastViewUnderCards">
+                    <i class="fas fa-play-circle"></i>
+                    Letzter Aufruf: <span id="lastView">--</span>
+                    <span id="lastViewVideo" class="last-view-video-name"></span>
+                </div>
 
                 <!-- Erweiterte Einstellungen -->
                 <div class="advanced-settings">
@@ -1631,10 +1655,6 @@
                     <div class="last-updated-row">
                         <i class="fas fa-clock"></i>
                         Letzte Aktualisierung: <span id="lastUpdated">--</span>
-                    </div>
-                    <div class="last-updated-row">
-                        <i class="fas fa-play-circle"></i>
-                        Letzter Aufruf: <span id="lastView">--</span>
                     </div>
                 </div>
             </div>
@@ -2788,16 +2808,21 @@
                     lastUpdatedElement.textContent = now.toLocaleString('de-DE');
                 }
                 
-                // Letzter Aufruf (neuestes lastViewed aller Videos)
+                // Letzter Aufruf (neuestes lastViewed aller Videos) + welches Video
                 let lastViewDate = null;
+                let lastViewVideoTitle = null;
                 (videos || []).forEach(function(v) {
                     const lv = v.lastViewed || v.last_viewed;
                     if (!lv) return;
                     const d = new Date(lv);
                     if (isNaN(d.getTime())) return;
-                    if (!lastViewDate || d > lastViewDate) lastViewDate = d;
+                    if (!lastViewDate || d > lastViewDate) {
+                        lastViewDate = d;
+                        lastViewVideoTitle = v.title || v.video_title || 'Unbenanntes Video';
+                    }
                 });
                 const lastViewElement = document.getElementById('lastView');
+                const lastViewVideoElement = document.getElementById('lastViewVideo');
                 if (lastViewElement) {
                     if (lastViewDate) {
                         const dateStr = lastViewDate.toLocaleDateString('de-DE');
@@ -2805,6 +2830,15 @@
                         lastViewElement.textContent = dateStr + ' um ' + timeStr + ' Uhr';
                     } else {
                         lastViewElement.textContent = '--';
+                    }
+                }
+                if (lastViewVideoElement) {
+                    if (lastViewVideoTitle) {
+                        lastViewVideoElement.textContent = ' (Video: ' + lastViewVideoTitle + ')';
+                        lastViewVideoElement.style.display = '';
+                    } else {
+                        lastViewVideoElement.textContent = '';
+                        lastViewVideoElement.style.display = 'none';
                     }
                 }
             } catch (error) {
