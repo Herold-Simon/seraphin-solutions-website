@@ -2823,9 +2823,14 @@
                 const lastViewVideoElement = document.getElementById('lastViewVideo');
                 if (lastViewElement) {
                     if (lastViewDate) {
-                        const dateStr = lastViewDate.toLocaleDateString('de-DE');
                         const timeStr = lastViewDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-                        lastViewElement.textContent = dateStr + ' um ' + timeStr + ' Uhr';
+                        const today = new Date();
+                        const isToday = lastViewDate.getDate() === today.getDate() &&
+                            lastViewDate.getMonth() === today.getMonth() &&
+                            lastViewDate.getFullYear() === today.getFullYear();
+                        lastViewElement.textContent = isToday
+                            ? timeStr + ' Uhr'
+                            : lastViewDate.toLocaleDateString('de-DE') + ' um ' + timeStr + ' Uhr';
                     } else {
                         lastViewElement.textContent = '--';
                     }
