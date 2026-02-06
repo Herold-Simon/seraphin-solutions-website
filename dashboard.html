@@ -13,7 +13,7 @@
     <meta name="robots" content="noindex, nofollow">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -324,6 +324,23 @@
         
 
         /* Statistiken-Karten im AdminPanel-Stil */
+        .time-range-hint {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(0, 140, 255, 0.08);
+            border: 1px solid rgba(0, 140, 255, 0.25);
+            color: var(--text-dark);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.25rem;
+            font-size: 0.9rem;
+        }
+        .time-range-hint i {
+            color: var(--primary-blue);
+            flex-shrink: 0;
+        }
+
         .stats-overview {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -1416,6 +1433,12 @@
                 </div>
             </div>
 
+                <!-- Hinweis bei eingeschränktem Zeitraum -->
+                <div class="time-range-hint" id="timeRangeHint" style="display: none;" role="status">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Alle angezeigten Werte (Gesamtaufrufe, Videos mit Aufrufen sowie alle Diagramme) beziehen sich auf den gewählten Zeitraum.</span>
+                </div>
+
                 <!-- Statistiken-Übersicht -->
                 <div class="stats-overview">
                     <div class="stat-card">
@@ -1548,7 +1571,7 @@
                     <!-- Liniendiagramm (wie in der App) -->
                     <div class="chart-card">
                         <div class="chart-header">
-                            <h3 class="chart-title">Liniendiagramm</h3>
+                            <h3 class="chart-title" id="lineChartTitle">Liniendiagramm</h3>
                         </div>
                         <div class="chart-container" id="lineChartContainer">
                             <div id="lineChart" style="width: 100%; height: 100%;"></div>
@@ -1558,7 +1581,7 @@
                     <!-- Tortendiagramm (wie in der App) -->
                     <div class="chart-card">
                         <div class="chart-header">
-                            <h3 class="chart-title">Tortendiagramm</h3>
+                            <h3 class="chart-title" id="pieChartTitle">Tortendiagramm</h3>
                         </div>
                         <div class="chart-container pie-chart" id="pieChartContainer">
                             <div id="pieChart" style="width: 100%; height: 100%;"></div>
@@ -1568,7 +1591,7 @@
                     <!-- Balkendiagramm (wie in der App) -->
                     <div class="chart-card">
                         <div class="chart-header">
-                            <h3 class="chart-title">Balkendiagramm</h3>
+                            <h3 class="chart-title" id="barChartTitle">Balkendiagramm</h3>
                         </div>
                         <div class="chart-container bar-chart" id="barChartContainer">
                             <div id="barChart" style="width: 100%; height: 100%;"></div>
@@ -1578,7 +1601,7 @@
                     <!-- Line Race (wie in der App) -->
                     <div class="chart-card">
                         <div class="chart-header">
-                            <h3 class="chart-title">Line Race</h3>
+                            <h3 class="chart-title" id="lineRaceChartTitle">Line Race</h3>
                         </div>
                         <div class="chart-container" id="lineRaceChartContainer">
                             <div id="lineRaceChart" style="width: 100%; height: 100%;"></div>
@@ -1935,38 +1958,16 @@
             const videos = currentStats?.videos || [];
             const mergedVideos = mergeVideosByTitle(videos);
             
-            // Filtere Videos basierend auf Zeitraum und Aufrufen
-            let filteredVideos = mergedVideos.filter(video => (video.views || 0) > 0);
+            const bounds = getTimeRangeBounds();
             
-            // Zeitraum-Filter anwenden (falls vorhanden)
-            const hasViewHistory = filteredVideos.some(video => 
-                (video.viewHistory && Object.keys(video.viewHistory).length > 0) ||
-                (video.view_history && Object.keys(video.view_history).length > 0)
-            );
-            
-            if (hasViewHistory && currentTimeRange !== 'all') {
-                const today = new Date();
-                let startDate = new Date();
-                
-                if (currentTimeRange === '7') {
-                    startDate.setDate(today.getDate() - 7);
-                } else if (currentTimeRange === 'custom') {
-                    if (customDateRange.startDate) {
-                        startDate = new Date(customDateRange.startDate);
-                    } else {
-                        startDate.setDate(today.getDate() - 30);
-                    }
-                }
-                
-                filteredVideos = filteredVideos.filter(video => {
-                    const viewHistory = video.viewHistory || video.view_history;
-                    if (!viewHistory) return false;
-                    
-                    return Object.keys(viewHistory).some(date => {
-                        const dateObj = new Date(date);
-                        return dateObj >= startDate;
-                    });
-                });
+            // Bei gewähltem Zeitraum: nur Aufrufe im Zeitraum zählen und filtern
+            let filteredVideos;
+            if (bounds) {
+                filteredVideos = mergedVideos
+                    .map(v => ({ ...v, views: getViewsInRangeForVideo(v, bounds.startDate, bounds.endDate) }))
+                    .filter(video => (video.views || 0) > 0);
+            } else {
+                filteredVideos = mergedVideos.filter(video => (video.views || 0) > 0);
             }
             
             // Sortiere nach Aufrufen
@@ -2677,30 +2678,26 @@
             console.log('🏢 Floors:', floors.length);
             console.log('📅 History:', history.length);
             
-            // WICHTIG: Berechne Statistiken DIREKT aus den tatsächlichen Video-Daten
-            // Dies gewährleistet, dass die angezeigten Zahlen immer korrekt sind
-            
-            // Gesamte Aufrufe: Summe aller Aufrufe
-            const totalViews = videos.reduce((sum, video) => {
-                const views = parseInt(video.views) || 0;
-                return sum + views;
-            }, 0);
-            
-            // Videos mit Aufrufen: Gruppiere nach Titel und zähle eindeutige Titel mit Aufrufen
-            // Gleichnamige Videos werden als ein Video gezählt
-            const videosByTitle = {};
-            videos.forEach(video => {
-                const title = video.title || video.video_title || 'Unbenanntes Video';
-                const views = parseInt(video.views) || 0;
-                
-                if (!videosByTitle[title]) {
-                    videosByTitle[title] = 0;
-                }
-                videosByTitle[title] += views;
-            });
-            
-            // Zähle eindeutige Videotitel, die mindestens einen Aufruf haben
-            const videosWithViews = Object.values(videosByTitle).filter(totalViews => totalViews > 0).length;
+            // Statistiken abhängig vom gewählten Zeitraum: nur Aufrufe im Zeitraum zählen
+            const bounds = getTimeRangeBounds();
+            let totalViews, videosWithViews;
+            if (bounds) {
+                const merged = mergeVideosByTitle(videos);
+                const withViewsInRange = merged.map(v => getViewsInRangeForVideo(v, bounds.startDate, bounds.endDate));
+                totalViews = withViewsInRange.reduce((s, n) => s + n, 0);
+                videosWithViews = withViewsInRange.filter(n => n > 0).length;
+            } else {
+                const merged = mergeVideosByTitle(videos);
+                totalViews = merged.reduce((sum, video) => sum + (parseInt(video.views) || 0), 0);
+                const videosByTitle = {};
+                merged.forEach(video => {
+                    const title = video.title || video.video_title || 'Unbenanntes Video';
+                    const views = parseInt(video.views) || 0;
+                    if (!videosByTitle[title]) videosByTitle[title] = 0;
+                    videosByTitle[title] += views;
+                });
+                videosWithViews = Object.values(videosByTitle).filter(n => n > 0).length;
+            }
             
             const totalVideos = videos.length;
             const totalFloors = floors.length;
@@ -2737,6 +2734,11 @@
                 const videosWithViewsElement = document.getElementById('videosWithViews');
                 if (videosWithViewsElement) {
                     videosWithViewsElement.textContent = videosWithViews.toLocaleString('de-DE');
+                }
+                
+                const timeRangeHintEl = document.getElementById('timeRangeHint');
+                if (timeRangeHintEl) {
+                    timeRangeHintEl.style.display = currentTimeRange !== 'all' ? 'flex' : 'none';
                 }
                 
                 // Geräte-ID wird jetzt über das Dropdown verwaltet
@@ -2795,6 +2797,7 @@
                 createPieChart();
                 createBarChart();
                 createLineRaceChart();
+                updateChartTitles();
                 console.log('✅ Alle Charts erfolgreich erstellt');
                 
                 
@@ -2838,6 +2841,38 @@
             });
             
             return Object.values(mergedVideos);
+        }
+        
+        /** Liefert Start- und Enddatum des gewählten Zeitraums (oder null bei "Gesamter Zeitraum"). */
+        function getTimeRangeBounds() {
+            if (currentTimeRange === 'all') return null;
+            const today = new Date();
+            today.setHours(23, 59, 59, 999);
+            if (currentTimeRange === '7') {
+                const start = new Date(today);
+                start.setDate(start.getDate() - 7);
+                start.setHours(0, 0, 0, 0);
+                return { startDate: start, endDate: new Date(today) };
+            }
+            if (currentTimeRange === 'custom' && customDateRange.startDate && customDateRange.endDate) {
+                const start = new Date(customDateRange.startDate);
+                start.setHours(0, 0, 0, 0);
+                const end = new Date(customDateRange.endDate);
+                end.setHours(23, 59, 59, 999);
+                return { startDate: start, endDate: end };
+            }
+            return null;
+        }
+        
+        /** Summiert Aufrufe eines Videos nur für Tage im Zeitraum [startDate, endDate] (viewHistory). */
+        function getViewsInRangeForVideo(video, startDate, endDate) {
+            const viewHistory = video.viewHistory || video.view_history || {};
+            let sum = 0;
+            Object.keys(viewHistory).forEach(dateStr => {
+                const d = new Date(dateStr);
+                if (d >= startDate && d <= endDate) sum += parseInt(viewHistory[dateStr], 10) || 0;
+            });
+            return sum;
         }
         
         // Liniendiagramm erstellen (wie in der App)
@@ -2898,7 +2933,6 @@
             
             let timePoints = [];
             let videoData = [];
-            let averageData = [];
             
             if (hasViewHistory) {
                 // Verwende echte viewHistory-Daten
@@ -2945,15 +2979,6 @@
                         },
                         emphasis: { focus: 'series' }
                     };
-                });
-                
-                // Berechne Durchschnittslinie mit echten Daten
-                averageData = timePoints.map(date => {
-                    const totalViews = filteredVideos.reduce((sum, video) => {
-                        const viewHistory = video.viewHistory || video.view_history;
-                        return sum + (viewHistory && viewHistory[date] ? viewHistory[date] : 0);
-                    }, 0);
-                    return Math.round(totalViews / filteredVideos.length * 10) / 10;
                 });
             } else {
                 // Fallback: Verwende simulierte Daten basierend auf Gesamtaufrufen
@@ -3015,38 +3040,9 @@
                         emphasis: { focus: 'series' }
                     };
                 });
-                
-                // Berechne Durchschnittslinie mit simulierten Daten
-                averageData = timePoints.map((date, idx) => {
-                    // Keine Offset-Bereiche mehr - alle Tage haben Daten
-                    const totalViews = filteredVideos.reduce((sum, video) => {
-                        const totalViews = video.views || 0;
-                        const dailyViews = Math.round(totalViews / daysToShow);
-                        const variation = Math.random() * 0.4 + 0.8;
-                        return sum + Math.round(dailyViews * variation);
-                    }, 0);
-                    return Math.round(totalViews / filteredVideos.length * 10) / 10;
-                });
             }
             
-            const series = [
-                ...videoData,
-                {
-                    name: 'Durchschnitt (alle Videos)',
-                    type: 'line',
-                    data: averageData,
-                    smooth: true,
-                    symbol: 'none',
-                    lineStyle: {
-                        width: 3,
-                        color: '#888',
-                        type: 'dashed'
-                    },
-                    itemStyle: { color: '#888' },
-                    emphasis: { focus: 'series' },
-                    z: 10
-                }
-            ];
+            const series = videoData;
             
             const option = {
                 xAxis: {
@@ -3070,39 +3066,38 @@
                     formatter: function(params) {
                         if (!params || params.length === 0) return '';
                         
-                        // Bei axis trigger ist params ein Array
                         const firstParam = params[0];
                         if (!firstParam) return '';
                         
                         let result = firstParam.axisValue + '<br/>';
-                        let hasValidData = false;
+                        const entries = [];
+                        let total = 0;
                         
                         params.forEach((param) => {
-                            if (param.value !== undefined && param.value !== null && param.value > 0) {
-                                let value = param.value;
-                                if (typeof value === 'number') {
-                                    value = Number.isInteger(value) ? value : value.toFixed(2);
-                                }
-                                
-                                // Vereinfache Durchschnittslinie-Beschriftung
-                                let seriesName = param.seriesName;
-                                if (seriesName && seriesName.includes('Durchschnitt')) {
-                                    seriesName = 'Durchschnitt';
-                                }
-                                
-                                result += `${param.marker} ${seriesName}: ${value} Aufrufe<br/>`;
-                                hasValidData = true;
+                            const val = param.value;
+                            if (val === undefined || val === null) return;
+                            total += Number(val);
+                            let value = val;
+                            if (typeof value === 'number') {
+                                value = Number.isInteger(value) ? value : value.toFixed(2);
                             }
+                            entries.push({ param: param, value: val, valueStr: value, seriesName: param.seriesName });
                         });
                         
-                        return hasValidData ? result : '';
+                        const totalStr = Number.isInteger(total) ? total : total.toFixed(2);
+                        result += '<strong>Gesamt: ' + totalStr + ' Aufrufe</strong><br/>';
+                        
+                        entries.sort((a, b) => (b.value - a.value));
+                        
+                        entries.forEach(function(e) {
+                            result += e.param.marker + ' ' + e.seriesName + ': ' + e.valueStr + ' Aufrufe<br/>';
+                        });
+                        
+                        return entries.length > 0 ? result : '';
                     }
                 },
                 legend: {
-                    data: [
-                        ...filteredVideos.map(v => v.title || v.video_title || 'Unbenanntes Video'),
-                        'Durchschnitt (alle Videos)'
-                    ],
+                    data: filteredVideos.map(v => v.title || v.video_title || 'Unbenanntes Video'),
                     textStyle: { color: '#666' },
                     type: 'scroll',
                     bottom: 0,
@@ -4001,6 +3996,52 @@
             }
         }
         
+        // Chart-Titel mit aktuellem „Top X“ aktualisieren
+        function updateChartTitles() {
+            const topCount = selectedVideos.size > 0 ? selectedVideos.size : selectedVideoCount;
+            const suffix = ' Top ' + topCount;
+            const lineTitle = document.getElementById('lineChartTitle');
+            const pieTitle = document.getElementById('pieChartTitle');
+            const barTitle = document.getElementById('barChartTitle');
+            const lineRaceTitle = document.getElementById('lineRaceChartTitle');
+            if (lineTitle) lineTitle.textContent = 'Liniendiagramm: ' + suffix;
+            if (pieTitle) pieTitle.textContent = 'Tortendiagramm: ' + suffix;
+            if (barTitle) barTitle.textContent = 'Balkendiagramm: ' + suffix;
+            if (lineRaceTitle) lineRaceTitle.textContent = 'Line Race: ' + suffix;
+        }
+        
+        // Oberste Statistik-Karten und Zeitraum-Hinweis aktualisieren (ohne komplette displayStatistics)
+        function updateTopStatsAndHint() {
+            let currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
+            if (!currentStats && statistics) currentStats = statistics;
+            if (!currentStats || !currentStats.videos || !currentStats.videos.length) return;
+            
+            const merged = mergeVideosByTitle(currentStats.videos);
+            const bounds = getTimeRangeBounds();
+            let totalViews, videosWithViews;
+            if (bounds) {
+                const inRange = merged.map(v => getViewsInRangeForVideo(v, bounds.startDate, bounds.endDate));
+                totalViews = inRange.reduce((s, n) => s + n, 0);
+                videosWithViews = inRange.filter(n => n > 0).length;
+            } else {
+                totalViews = merged.reduce((s, v) => s + (parseInt(v.views) || 0), 0);
+                const byTitle = {};
+                merged.forEach(v => {
+                    const t = v.title || v.video_title || 'Unbenanntes Video';
+                    if (!byTitle[t]) byTitle[t] = 0;
+                    byTitle[t] += parseInt(v.views) || 0;
+                });
+                videosWithViews = Object.values(byTitle).filter(n => n > 0).length;
+            }
+            
+            const totalViewsEl = document.getElementById('totalViews');
+            const videosWithViewsEl = document.getElementById('videosWithViews');
+            const hintEl = document.getElementById('timeRangeHint');
+            if (totalViewsEl) totalViewsEl.textContent = totalViews.toLocaleString('de-DE');
+            if (videosWithViewsEl) videosWithViewsEl.textContent = videosWithViews.toLocaleString('de-DE');
+            if (hintEl) hintEl.style.display = currentTimeRange !== 'all' ? 'flex' : 'none';
+        }
+        
         // Charts aktualisieren
         function updateCharts() {
             // Synchronisiere den benutzerdefinierten Zeitraum immer, wenn er leer ist
@@ -4008,6 +4049,9 @@
                 console.log('🔄 Synchronisiere benutzerdefinierten Zeitraum (leer)');
                 syncCustomTimeRangeWithAllTime();
             }
+            
+            updateTopStatsAndHint();
+            updateChartTitles();
             
             console.log('🔄 Aktualisiere Charts für Gerät:', selectedDeviceId);
             console.log('📊 Verwende Statistiken:', selectedDeviceId === 'all' ? 'statistics (aggregiert)' : 'deviceStatistics (geräte-spezifisch)');
