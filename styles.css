@@ -1048,6 +1048,62 @@ body.has-fixed-header {
     text-decoration: underline;
 }
 
+.contact-info-elements {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.contact-info-element {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 1.25rem 1.5rem;
+    background: var(--bg-white);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--text-dark);
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+    min-width: 200px;
+}
+
+.contact-info-element:hover {
+    border-color: var(--primary-blue);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.contact-info-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-green));
+    color: white;
+    border-radius: 10px;
+    font-size: 1.1rem;
+}
+
+.contact-info-element .contact-info-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.contact-info-element .contact-info-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary-blue);
+    margin-top: 0.25rem;
+}
+
 .contact-form {
     background: var(--bg-white);
     padding: 2.5rem;
@@ -2507,6 +2563,15 @@ body.has-fixed-header {
     .contact-text p {
         font-size: 0.95rem;
         line-height: 1.6;
+    }
+
+    .contact-info-elements {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .contact-info-element {
+        min-width: unset;
     }
 
     .contact-form {
