@@ -623,13 +623,7 @@ body.has-fixed-header {
 
 .calculator-preispolitik-link {
     text-align: center;
-    margin-bottom: 2rem;
-}
-
-.calculator-preispolitik-link .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
+    margin-bottom: 2.5rem;
 }
 
 .calculator-container {
