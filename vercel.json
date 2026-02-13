@@ -54,6 +54,10 @@
     {
       "source": "/datenschutz",
       "destination": "/datenschutz.html"
+    },
+    {
+      "source": "/preispolitik",
+      "destination": "/preispolitik.html"
     }
   ],
   "redirects": [

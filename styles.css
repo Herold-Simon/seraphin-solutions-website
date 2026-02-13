@@ -783,6 +783,142 @@ body.has-fixed-header {
     color: var(--text-dark);
 }
 
+/* Preispolitik Page */
+.preispolitik {
+    padding: 4rem 0 5rem;
+    background: linear-gradient(180deg, var(--bg-white) 0%, var(--bg-light) 100%);
+}
+
+.preispolitik-content {
+    max-width: 780px;
+    margin: 0 auto;
+}
+
+.preispolitik .section-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.preispolitik .section-header h1 {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.preispolitik .section-header p {
+    font-size: 1.1rem;
+    color: var(--text-light);
+}
+
+.preispolitik-section {
+    margin-bottom: 2.5rem;
+    padding: 2rem;
+    background: var(--bg-white);
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.preispolitik-section h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--text-dark);
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--primary-blue);
+    display: inline-block;
+}
+
+.preispolitik-section h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 1.5rem 0 0.5rem;
+    color: var(--text-dark);
+}
+
+.preispolitik-section p {
+    margin-bottom: 1rem;
+    color: var(--text-light);
+    line-height: 1.75;
+}
+
+.preispolitik-section ul {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+    color: var(--text-light);
+}
+
+.preispolitik-section ul li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+.preispolitik-section ul li strong {
+    color: var(--text-dark);
+}
+
+.formula-block {
+    background: linear-gradient(135deg, rgba(0, 140, 255, 0.04) 0%, rgba(50, 167, 26, 0.04) 100%);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.25rem 1.75rem;
+    margin: 1rem 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow-x: auto;
+}
+
+.formula-block code {
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+.formula-main {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin: 1.25rem 0;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, rgba(0, 140, 255, 0.08) 0%, rgba(50, 167, 26, 0.06) 100%);
+    border-radius: 12px;
+    border-left: 4px solid var(--primary-blue);
+    color: var(--text-dark);
+}
+
+.legal-notice {
+    background: linear-gradient(135deg, #fffbf0 0%, #fff8e6 100%);
+    border: 1px solid #e6d9b3;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+    line-height: 1.7;
+}
+
+.legal-notice strong {
+    color: #8b6914;
+}
+
+.preispolitik-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.preispolitik-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.preispolitik-actions-wrapper {
+    text-align: center;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+}
+
 /* Contact Form */
 .contact {
     padding: 5rem 0;
@@ -2484,6 +2620,41 @@ body.has-fixed-header {
 
     .calculator-result {
         padding: 2rem 1.5rem;
+    }
+
+    /* Preispolitik Mobile */
+    .preispolitik {
+        padding: 2.5rem 0 3rem;
+    }
+
+    .preispolitik-section {
+        padding: 1.5rem 1.25rem;
+    }
+
+    .preispolitik-section h2 {
+        font-size: 1.25rem;
+    }
+
+    .formula-block {
+        padding: 1rem 1.25rem;
+    }
+
+    .formula-block code {
+        font-size: 0.85rem;
+    }
+
+    .formula-main {
+        font-size: 0.95rem;
+        padding: 1rem 1.25rem;
+    }
+
+    .preispolitik-actions {
+        flex-direction: column;
+    }
+
+    .preispolitik-actions .btn {
+        width: 100%;
+        justify-content: center;
     }
 
     .result-price {

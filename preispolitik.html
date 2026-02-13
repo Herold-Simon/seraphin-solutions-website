@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Preispolitik | Seraphin Solutions</title>
+    
+    <!-- Favicon and App Icons -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/favicon.ico">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Preispolitik von Seraphin Solutions - Transparente Preisberechnung für das Gebäudenavi. Formel, Zusatzkosten für Sprachen und rechtliche Hinweise.">
+    <meta name="keywords" content="Preispolitik, Preisformel, Gebäudenavi Preise, Seraphin Solutions, Kostenschätzung">
+    <meta name="author" content="Seraphin Solutions">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Preispolitik | Seraphin Solutions">
+    <meta property="og:description" content="Transparente Preisberechnung für das Gebäudenavi - Formel und rechtliche Hinweise.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.seraphin-solutions.de/preispolitik.html">
+    <meta property="og:site_name" content="Seraphin Solutions">
+    
+    <link rel="stylesheet" href="/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Google Analytics 4 -->
+    <script src="analytics.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <a href="index.html" class="logo">
+                        <img src="logo.png" alt="Seraphin Solutions Logo">
+                    </a>
+                    <span class="company-name">Seraphin Solutions</span>
+                </div>
+                <nav class="nav" id="nav">
+                    <a href="index.html" class="nav-link">Startseite</a>
+                    <a href="programm.html" class="nav-link">Das Programm</a>
+                    <a href="weitere-informationen.html" class="nav-link">Weitere Informationen</a>
+                    <a href="support.html" class="nav-link">Support</a>
+                    <a href="login.html" class="nav-link nav-login-link">Login</a>
+                </nav>
+                <button class="hamburger" id="hamburger" aria-label="Menü öffnen">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1>Preispolitik</h1>
+            <p>Transparente Preisberechnung für das Gebäudenavi</p>
+        </div>
+    </section>
+
+    <!-- Preispolitik Content -->
+    <section class="preispolitik">
+        <div class="container">
+            <div class="preispolitik-content">
+                
+                <div class="legal-notice">
+                    <strong>Wichtiger Hinweis:</strong> Alle auf dieser Seite genannten Preise und Berechnungen stellen ausschließlich <strong>unverbindliche Preiseinschätzungen</strong> dar. Der tatsächliche Preis kann je nach Projektumfang, individuellen Anforderungen und weiteren Faktoren abweichen. Ein verbindliches Angebot erfolgt erst nach persönlicher Beratung und Projektanalyse.
+                </div>
+
+                <div class="preispolitik-section">
+                    <h2>Preisformel</h2>
+                    <p>Der Gesamtpreis <em>P(G, A)</em> wird mit folgenden Variablen berechnet:</p>
+                    <ul>
+                        <li><strong>G</strong> = Gebäudegröße in m² (500 bis 120.000 m²)</li>
+                        <li><strong>A</strong> = Anzahl der interaktiven Touch-Bildschirme (1 bis 20)</li>
+                    </ul>
+                    
+                    <div class="formula-main">
+                        P(G, A) = P<sub>Grund</sub>(G) + P<sub>Einrichtung</sub>(G, A) + P<sub>Grundriss</sub>(G)
+                    </div>
+
+                    <h3>1. Grundgebühr P<sub>Grund</sub>(G)</h3>
+                    <div class="formula-block">
+                        <code>P<sub>Grund</sub>(G) = 750 + (G − 500) / 119.500 × 5.550</code>
+                    </div>
+
+                    <h3>2. Einrichtung P<sub>Einrichtung</sub>(G, A)</h3>
+                    <div class="formula-block">
+                        <code>P<sub>Einrichtung</sub>(G, A) = (150 + G/120.000 × 1.850) × 1,5 × A</code>
+                    </div>
+
+                    <h3>3. Grundriss & Wegbeschreibungen P<sub>Grundriss</sub>(G)</h3>
+                    <p><strong>Für G ≤ 500 m²:</strong></p>
+                    <div class="formula-block">
+                        <code>P<sub>Grundriss</sub>(G) = G × 4,5</code>
+                    </div>
+                    <p><strong>Für G &gt; 500 m²:</strong></p>
+                    <div class="formula-block">
+                        <code>P<sub>Grundriss</sub>(G) = 2.250 + 24.750 × √((G − 500) / 119.500)</code>
+                    </div>
+                </div>
+
+                <div class="preispolitik-section">
+                    <h2>Zusatzkosten für Sprachen</h2>
+                    <p>Im mit der Formel berechneten Preis sind <strong>2 Basissprachen</strong> enthalten. Für jede weitere Sprache fallen zusätzlich <strong>250 €</strong> an (unverbindliche Preiseinschätzung).</p>
+                </div>
+
+                <div class="preispolitik-section">
+                    <h2>Rechtliche Hinweise und Vorbehalte</h2>
+                    
+                    <h3>Unverbindlichkeit der Preiseinschätzung</h3>
+                    <p>Die auf dieser Website dargestellte Preisberechnung sowie alle damit verbundenen Angaben dienen ausschließlich der groben Orientierung. Es handelt sich um keine verbindliche Preisauskunft oder ein rechtsverbindliches Angebot. Der tatsächliche Preis kann durch weitere Faktoren wie Projektkomplexität, Sonderwünsche, Aufwand für Grundrissbeschriftung, Anpassungen und sonstige individuelle Leistungen abweichen.</p>
+                    
+                    <h3>Recht zur Anpassung</h3>
+                    <p>Seraphin Solutions behält sich das Recht vor, die Preise, die Preisformel sowie alle preisrelevanten Parameter jederzeit und ohne Angabe von Gründen zu ändern. Änderungen treten mit ihrer Veröffentlichung auf dieser Website in Kraft. Bereits abgeschlossene Verträge bleiben von solchen Änderungen unberührt.</p>
+                    
+                    <h3>Kein Anspruch auf Bestand</h3>
+                    <p>Es besteht kein Anspruch darauf, dass die dargestellte Formel oder die berechneten Preise unverändert fortbestehen. Seraphin Solutions kann die Preispolitik an veränderte Marktbedingungen, Kostenentwicklungen oder sonstige betriebliche Erfordernisse anpassen.</p>
+                    
+                    <h3>Vertragliche Vereinbarung maßgeblich</h3>
+                    <p>Allein der zwischen Seraphin Solutions und dem Kunden geschlossene Vertrag sowie die darin vereinbarten Preise und Leistungen sind verbindlich. Vorvertragliche Preisangaben und Schätzungen sind hiervon ausgenommen.</p>
+                    
+                    <h3>Stand der Angaben</h3>
+                    <p>Die auf dieser Seite genannten Informationen entsprechen dem Stand bei Erstellung. Seraphin Solutions übernimmt keine Gewähr für die Aktualität, Vollständigkeit und Richtigkeit der Angaben.</p>
+                </div>
+
+                <div class="preispolitik-section preispolitik-actions-wrapper">
+                    <div class="preispolitik-actions">
+                        <a href="index.html#preisrechner" class="btn btn-primary"><i class="fas fa-calculator"></i> Zum Preisrechner</a>
+                        <a href="index.html#kontakt" class="btn btn-secondary"><i class="fas fa-envelope"></i> Kontakt aufnehmen</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" role="contentinfo">
+        <div class="footer-inner">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <a class="footer-logo-link" href="index.html" aria-label="Seraphin Solutions – Startseite">
+                        <img src="logo.png" alt="" class="footer-logo-img" width="120" height="40">
+                        <span class="footer-logo-text">Seraphin Solutions</span>
+                    </a>
+                    <p class="footer-tagline">Interaktive Wegleitsysteme für große Gebäude.</p>
+                    <div class="footer-actions">
+                        <a href="tel:+4917622911006" class="footer-contact-link">+49 176 2291 1006</a>
+                        <a href="mailto:kontakt@seraphin-solutions.de" class="footer-contact-link">kontakt@seraphin-solutions.de</a>
+                    </div>
+                </div>
+                <nav class="footer-nav" aria-label="Footer-Navigation">
+                    <div class="footer-nav-block">
+                        <span class="footer-nav-title">Produkt</span>
+                        <ul class="footer-nav-list">
+                            <li><a href="programm.html">Das Programm</a></li>
+                            <li><a href="weitere-informationen.html">Weitere Informationen</a></li>
+                            <li><a href="support.html">Support</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-nav-block">
+                        <span class="footer-nav-title">Unternehmen</span>
+                        <ul class="footer-nav-list">
+                            <li><a href="index.html#pricing">Preise</a></li>
+                            <li><a href="preispolitik.html">Preispolitik</a></li>
+                            <li><a href="index.html#kontakt">Kontakt</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-nav-block">
+                        <span class="footer-nav-title">Rechtliches</span>
+                        <ul class="footer-nav-list">
+                            <li><a href="impressum.html">Impressum</a></li>
+                            <li><a href="datenschutz.html">Datenschutz</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-nav-block">
+                        <span class="footer-nav-title">Zugang</span>
+                        <ul class="footer-nav-list">
+                            <li><a href="login.html">Statistiken Login</a></li>
+                            <li><a href="passwortverlust.html">Passwort vergessen</a></li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            <div class="footer-bottom">
+                <p class="footer-copy">&copy; 2025 Seraphin Solutions. Alle Rechte vorbehalten.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/script.js"></script>
+</body>
+</html>

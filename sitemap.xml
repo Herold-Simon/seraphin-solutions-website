@@ -39,6 +39,13 @@
         <priority>0.7</priority>
     </url>
     
+    <url>
+        <loc>https://www.seraphin-solutions.de/preispolitik.html</loc>
+        <lastmod>2025-02-13</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    
     <!-- Rechtliche Seiten -->
     <url>
         <loc>https://www.seraphin-solutions.de/impressum</loc>
