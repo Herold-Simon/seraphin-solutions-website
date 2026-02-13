@@ -1051,57 +1051,67 @@ body.has-fixed-header {
 .contact-info-elements {
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem;
-    margin-top: 1.5rem;
+    gap: 1.25rem;
+    margin-top: 2rem;
 }
 
 .contact-info-element {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-    padding: 1.25rem 1.5rem;
-    background: var(--bg-white);
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
+    flex-direction: row;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.5rem 2rem;
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-green) 100%);
+    border: none;
+    border-radius: 16px;
     text-decoration: none;
-    color: var(--text-dark);
+    color: white;
     transition: var(--transition);
-    box-shadow: var(--shadow-sm);
-    min-width: 200px;
+    box-shadow: 0 8px 24px rgba(0, 140, 255, 0.35);
+    min-width: 280px;
 }
 
 .contact-info-element:hover {
-    border-color: var(--primary-blue);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0, 140, 255, 0.45);
+    transform: translateY(-4px) scale(1.02);
 }
 
 .contact-info-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
-    background: linear-gradient(135deg, var(--primary-blue), var(--primary-green));
+    width: 56px;
+    height: 56px;
+    background: rgba(255, 255, 255, 0.25);
     color: white;
-    border-radius: 10px;
-    font-size: 1.1rem;
+    border-radius: 14px;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.contact-info-element:hover .contact-info-icon {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+.contact-info-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
 }
 
 .contact-info-element .contact-info-label {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--text-light);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
 }
 
 .contact-info-element .contact-info-value {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--primary-blue);
-    margin-top: 0.25rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 0.02em;
 }
 
 .contact-form {
@@ -2568,10 +2578,16 @@ body.has-fixed-header {
     .contact-info-elements {
         flex-direction: column;
         align-items: stretch;
+        margin-top: 1.5rem;
     }
 
     .contact-info-element {
         min-width: unset;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .contact-info-element .contact-info-value {
+        font-size: 1rem;
     }
 
     .contact-form {
