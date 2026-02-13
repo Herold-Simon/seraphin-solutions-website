@@ -1061,6 +1061,7 @@ body.has-fixed-header {
     align-items: center;
     gap: 1.25rem;
     padding: 1.5rem 2rem;
+    background: var(--primary-blue);
     background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-green) 100%);
     border: none;
     border-radius: 16px;
@@ -2282,7 +2283,8 @@ body.has-fixed-header {
     .scalability-content,
     .reference-content,
     .calculator-container,
-    .contact-container {
+    .contact-container,
+    .contact-content {
         grid-template-columns: 1fr;
     }
 
@@ -2292,6 +2294,19 @@ body.has-fixed-header {
 
     .contact-content {
         gap: 2.5rem;
+    }
+
+    /* Contact info elements - tablet/mobile */
+    .contact-landing .contact-info-elements {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .contact-landing .contact-info-element {
+        min-width: unset;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     .feature-content.reverse {
@@ -2486,6 +2501,27 @@ body.has-fixed-header {
     .btn {
         width: 100%;
     }
+
+    /* Contact info elements - mobile layout */
+    .contact-landing .contact-info-elements {
+        flex-direction: column;
+        align-items: stretch;
+        margin-top: 1.5rem;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .contact-landing .contact-info-element {
+        min-width: unset;
+        width: 100%;
+        max-width: 100%;
+        padding: 1.25rem 1.5rem;
+        box-sizing: border-box;
+    }
+
+    .contact-landing .contact-info-element .contact-info-value {
+        font-size: 1rem;
+    }
 }
 
 @media (max-width: 480px) {
@@ -2575,18 +2611,23 @@ body.has-fixed-header {
         line-height: 1.6;
     }
 
-    .contact-info-elements {
+    .contact-landing .contact-info-elements {
         flex-direction: column;
         align-items: stretch;
         margin-top: 1.5rem;
+        width: 100%;
+        max-width: 100%;
     }
 
-    .contact-info-element {
+    .contact-landing .contact-info-element {
         min-width: unset;
+        width: 100%;
+        max-width: 100%;
         padding: 1.25rem 1.5rem;
+        box-sizing: border-box;
     }
 
-    .contact-info-element .contact-info-value {
+    .contact-landing .contact-info-element .contact-info-value {
         font-size: 1rem;
     }
 
