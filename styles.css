@@ -1038,6 +1038,16 @@ body.has-fixed-header {
     line-height: 1.8;
 }
 
+.contact-text p a {
+    color: var(--primary-blue);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.contact-text p a:hover {
+    text-decoration: underline;
+}
+
 .contact-form {
     background: var(--bg-white);
     padding: 2.5rem;
