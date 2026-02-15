@@ -119,7 +119,6 @@ if (carousel && carouselPrev && carouselNext) {
 // Price Calculator with Sliders
 const flaecheSlider = document.getElementById('flaeche');
 const kioskeSlider = document.getElementById('kioske');
-const flaecheValue = document.getElementById('flaecheValue');
 const kioskeValue = document.getElementById('kioskeValue');
 const calculatorResult = document.getElementById('calculatorResult');
 const resultPrice = document.getElementById('resultPrice');
@@ -132,55 +131,33 @@ function formatNumber(num) {
 function calculatePrice() {
     if (!flaecheSlider || !kioskeSlider) return;
 
-    const flaeche = parseFloat(flaecheSlider.value);
+    // Fläche aus Number-Input (falls vorhanden und gültig) oder Slider; mindestens 0
+    const flaecheInput = document.getElementById('flaecheInput');
+    const inputVal = flaecheInput ? parseFloat(flaecheInput.value) : NaN;
+    const flaeche = (flaecheInput && !isNaN(inputVal) && flaecheInput.value.trim() !== '')
+        ? Math.max(0, inputVal)
+        : parseFloat(flaecheSlider.value);
     const kioske = parseInt(kioskeSlider.value);
 
-    // Update display values
-    if (flaecheValue) {
-        flaecheValue.textContent = formatNumber(flaeche) + ' m²';
-    }
+    // Update display values (Fläche wird im Input angezeigt)
     if (kioskeValue) {
         kioskeValue.textContent = kioske;
     }
 
-    // Glatte, stetig steigende Preisberechnung (alle Preise verdoppelt)
-    // Gesamtpreis steigt gleichmäßig von ~1.000€ bei 500m² auf ~40.000€ bei 120.000m²
-    
-    // Grundgebühr: steigt doppelt so steil wie Einrichtung
-    // Einrichtung steigt von 150*0.75*2 = 225€ auf (150+1850)*0.75*2 = 3000€
-    // Das ist eine Steigung von 2775€ über 120000m²
-    // Grundgebühr steigt doppelt so steil: von 500*0.75*2 = 750€ auf 750 + 5550 = 6300€
-    const basePriceStart = 500 * 0.75 * 2; // 750€ bei 500m²
-    const basePriceEnd = basePriceStart + 5550; // 6300€ bei 120.000m²
-    const basePrice = basePriceStart + ((flaeche - 500) / 119500) * (basePriceEnd - basePriceStart);
-    
-    // Einrichtung (steigt glatt mit der Größe, verdoppelt)
-    const kioskSetupPrice = (150 + (flaeche / 120000) * 1850) * 0.75 * 2 * kioske;
-    
-    // Grundriss & Wegbeschreibungen: Gesamtpreis steigt immer monoton (verdoppelt)
-    // Gesamtpreis steigt von ~3.000€ (500m²) auf ~36.000€ (120.000m²)
+    // Preisberechnung (exakte Brüche)
+    const N = 119500;
+    const basePrice = flaeche <= 500 ? 750 : 750 + (flaeche - 500) * (5550 / 119500);
+    const kioskSetupPrice = (150 + flaeche * (1850 / 120000)) * (3 / 2) * kioske;
     let floorPlanPrice;
     if (flaeche <= 500) {
-        floorPlanPrice = flaeche * 3.0 * 0.75 * 2;
+        floorPlanPrice = flaeche * (9 / 2);
     } else {
-        // Verwende eine Wurzelfunktion für glatten, stetig steigenden Preis
-        const floorPlanBasePrice = 500 * 3.0 * 0.75 * 2; // 2.250€ bei 500m²
-        const floorPlanMaxPrice = 36000 * 0.75; // 27.000€ bei 120.000m² (Ziel)
-        
-        // Normalisiere die Fläche auf 0-1 (500m² = 0, 120.000m² = 1)
-        const normalizedSize = (flaeche - 500) / 119500;
-        
-        // Verwende eine Wurzelfunktion für glatten Anstieg
-        const sqrtFactor = Math.sqrt(normalizedSize);
-        
-        // Berechne Gesamtpreis: Basis + (Max - Basis) * sqrtFactor
-        floorPlanPrice = floorPlanBasePrice + (floorPlanMaxPrice - floorPlanBasePrice) * sqrtFactor;
+        const k = (flaeche - 500) / N;
+        floorPlanPrice = 2250 + 24750 * Math.sqrt(k);
     }
-    
-    // Berechne Gesamtpreis (alle Preise sind bereits mit 0.75 und 2 multipliziert)
-    const finalBaseFee = basePrice;
-    const finalTotalKioskPrice = kioskSetupPrice;
-    const finalFloorPlanPrice = floorPlanPrice;
+    const finalBaseFee = basePrice * (9 / 16);
+    const finalTotalKioskPrice = kioskSetupPrice * (3 / 4);
+    const finalFloorPlanPrice = floorPlanPrice * (3 / 4);
     const finalTotalPrice = finalBaseFee + finalTotalKioskPrice + finalFloorPlanPrice;
 
     // Update result display
@@ -209,13 +186,122 @@ function calculatePrice() {
     }
 }
 
+// Hold-to-repeat for buttons
+function setupHoldRepeat(btn, onAction) {
+    let repeatTimer = null;
+    let intervalId = null;
+
+    function start() {
+        stop();
+        onAction();
+        repeatTimer = setTimeout(function() {
+            repeatTimer = null;
+            intervalId = setInterval(onAction, 80);
+        }, 400);
+    }
+
+    function stop() {
+        if (repeatTimer) {
+            clearTimeout(repeatTimer);
+            repeatTimer = null;
+        }
+        if (intervalId) {
+            clearInterval(intervalId);
+            intervalId = null;
+        }
+    }
+
+    btn.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        start();
+    });
+    btn.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        start();
+    });
+    btn.addEventListener('mouseup', stop);
+    btn.addEventListener('mouseleave', stop);
+    btn.addEventListener('touchend', stop);
+    btn.addEventListener('touchcancel', stop);
+}
+
 // Initialize calculator on page load
 if (flaecheSlider && kioskeSlider) {
-    // Calculate on slider change
-    flaecheSlider.addEventListener('input', calculatePrice);
-    kioskeSlider.addEventListener('input', calculatePrice);
-    
-    // Calculate initial price
+    const flaecheInput = document.getElementById('flaecheInput');
+    const kioskeMinus = document.getElementById('kioskeMinus');
+    const kioskePlus = document.getElementById('kioskePlus');
+    const flaecheMinus = document.getElementById('flaecheMinus');
+    const flaechePlus = document.getElementById('flaechePlus');
+
+    // Sync: Slider -> Number-Input
+    flaecheSlider.addEventListener('input', function() {
+        if (flaecheInput) {
+            flaecheInput.value = flaecheSlider.value;
+        }
+        calculatePrice();
+    });
+
+    // Sync: Number-Input -> Slider
+    if (flaecheInput) {
+        flaecheInput.addEventListener('input', function() {
+            const val = parseFloat(flaecheInput.value);
+            if (!isNaN(val)) {
+                flaecheSlider.value = Math.min(120000, Math.max(500, val));
+            }
+            calculatePrice();
+        });
+        flaecheInput.addEventListener('change', function() {
+            const val = parseFloat(flaecheInput.value);
+            if (!isNaN(val) && val >= 0) {
+                flaecheSlider.value = Math.min(120000, Math.max(500, val));
+            } else if (isNaN(val) || val < 0) {
+                flaecheInput.value = flaecheSlider.value;
+            }
+            calculatePrice();
+        });
+    }
+
+    // Gebäudegröße +/- 500 m² (mit Halten zum Wiederholen)
+    if (flaecheMinus) {
+        setupHoldRepeat(flaecheMinus, function() {
+            const v = Math.max(0, parseFloat(flaecheInput?.value || flaecheSlider.value) - 500);
+            if (flaecheInput) flaecheInput.value = Math.round(v);
+            flaecheSlider.value = Math.min(120000, Math.max(500, Math.round(v)));
+            calculatePrice();
+        });
+    }
+    if (flaechePlus) {
+        setupHoldRepeat(flaechePlus, function() {
+            const v = parseFloat(flaecheInput?.value || flaecheSlider.value) + 500;
+            if (flaecheInput) flaecheInput.value = Math.round(v);
+            flaecheSlider.value = Math.min(120000, Math.max(500, Math.round(v)));
+            calculatePrice();
+        });
+    }
+
+    // Counter buttons (mit Halten zum Wiederholen)
+    if (kioskeMinus) {
+        setupHoldRepeat(kioskeMinus, function() {
+            const v = Math.max(1, parseInt(kioskeSlider.value) - 1);
+            kioskeSlider.value = v;
+            if (kioskeValue) kioskeValue.textContent = v;
+            calculatePrice();
+        });
+    }
+    if (kioskePlus) {
+        setupHoldRepeat(kioskePlus, function() {
+            const v = Math.min(20, parseInt(kioskeSlider.value) + 1);
+            kioskeSlider.value = v;
+            if (kioskeValue) kioskeValue.textContent = v;
+            calculatePrice();
+        });
+    }
+
+    kioskeSlider.addEventListener('input', function() {
+        if (kioskeValue) kioskeValue.textContent = kioskeSlider.value;
+        calculatePrice();
+    });
+
     calculatePrice();
 }
 

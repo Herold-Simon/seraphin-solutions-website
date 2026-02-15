@@ -76,34 +76,27 @@
 
                 <div class="preispolitik-section">
                     <h2>Preisformel</h2>
-                    <p>Der Gesamtpreis <em>P(G, A)</em> wird mit folgenden Variablen berechnet:</p>
-                    <ul>
-                        <li><strong>G</strong> = Gebäudegröße in m² (500 bis 120.000 m²)</li>
-                        <li><strong>A</strong> = Anzahl der interaktiven Touch-Bildschirme (1 bis 20)</li>
-                    </ul>
+                    <p><strong>G</strong> = Gebäudegröße (m²), <strong>A</strong> = Anzahl Touch-Bildschirme (1–20)</p>
                     
                     <div class="formula-main">
-                        P(G, A) = P<sub>Grund</sub>(G) + P<sub>Einrichtung</sub>(G, A) + P<sub>Grundriss</sub>(G)
+                        P(G, A) = <sup>9</sup>⁄<sub>16</sub> × P<sub>Grund</sub>(G) + <sup>3</sup>⁄<sub>4</sub> × P<sub>Einrichtung</sub>(G, A) + <sup>3</sup>⁄<sub>4</sub> × P<sub>Grundriss</sub>(G)
                     </div>
 
-                    <h3>1. Grundgebühr P<sub>Grund</sub>(G)</h3>
+                    <h3>1. Grundgebühr</h3>
                     <div class="formula-block">
-                        <code>P<sub>Grund</sub>(G) = 750 + (G − 500) / 119.500 × 5.550</code>
+                        <code>P<sub>Grund</sub>(G) = 750 + <sup>111</sup>⁄<sub>2.390</sub> × (G − 500)</code><br>
+                        <small>(für G ≤ 500: P<sub>Grund</sub> = 750)</small>
                     </div>
 
-                    <h3>2. Einrichtung P<sub>Einrichtung</sub>(G, A)</h3>
+                    <h3>2. Einrichtung</h3>
                     <div class="formula-block">
-                        <code>P<sub>Einrichtung</sub>(G, A) = (150 + G/120.000 × 1.850) × 1,5 × A</code>
+                        <code>P<sub>Einrichtung</sub>(G, A) = <sup>3</sup>⁄<sub>2</sub> × A × (150 + <sup>37</sup>⁄<sub>2.400</sub> × G)</code>
                     </div>
 
-                    <h3>3. Grundriss & Wegbeschreibungen P<sub>Grundriss</sub>(G)</h3>
-                    <p><strong>Für G ≤ 500 m²:</strong></p>
+                    <h3>3. Grundriss & Wegbeschreibungen</h3>
                     <div class="formula-block">
-                        <code>P<sub>Grundriss</sub>(G) = G × 4,5</code>
-                    </div>
-                    <p><strong>Für G &gt; 500 m²:</strong></p>
-                    <div class="formula-block">
-                        <code>P<sub>Grundriss</sub>(G) = 2.250 + 24.750 × √((G − 500) / 119.500)</code>
+                        <code>P<sub>Grundriss</sub>(G) = G × <sup>9</sup>⁄<sub>2</sub></code> (G ≤ 500)<br>
+                        <code>P<sub>Grundriss</sub>(G) = 2.250 + 24.750 × √((G − 500) / 119.500)</code> (G &gt; 500)
                     </div>
                 </div>
 

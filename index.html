@@ -278,27 +278,36 @@
             </div>
             <div class="calculator-container">
                 <div class="calculator-form">
-                    <div class="form-group">
-                        <label for="flaeche">
-                            <span>Gebäudegröße</span>
-                            <span class="slider-value" id="flaecheValue">5.000 m²</span>
-                        </label>
-                        <input type="range" id="flaeche" min="500" max="120000" step="500" value="5000" class="slider">
-                        <div class="slider-labels">
-                            <span>500 m²</span>
-                            <span>120.000 m²</span>
+                    <div class="calc-step">
+                        <div class="calc-step-header">
+                            <span class="calc-step-number">1</span>
+                            <div>
+                                <h3 class="calc-step-title">Gebäudegröße</h3>
+                                <p class="calc-step-question">Wie groß ist Ihr Gebäude?</p>
+                            </div>
                         </div>
+                        <div class="calc-flaeche-input-wrap">
+                            <button type="button" class="calc-counter-btn" id="flaecheMinus" aria-label="500 m² weniger">−</button>
+                            <input type="number" id="flaecheInput" min="0" step="100" value="60000" placeholder="z.B. 60000" class="calc-flaeche-input" aria-label="Gebäudegröße in Quadratmetern">
+                            <span class="calc-flaeche-unit">m²</span>
+                            <button type="button" class="calc-counter-btn" id="flaechePlus" aria-label="500 m² mehr">+</button>
+                        </div>
+                        <input type="range" id="flaeche" min="500" max="120000" step="500" value="60000" class="calc-slider" aria-label="Gebäudegröße anpassen">
                     </div>
-                    <div class="form-group">
-                        <label for="kioske">
-                            <span>Anzahl Interaktiver Touch-Bildschirme</span>
-                            <span class="slider-value" id="kioskeValue">1</span>
-                        </label>
-                        <input type="range" id="kioske" min="1" max="20" step="1" value="1" class="slider">
-                        <div class="slider-labels">
-                            <span>1</span>
-                            <span>20</span>
+                    <div class="calc-step">
+                        <div class="calc-step-header">
+                            <span class="calc-step-number">2</span>
+                            <div>
+                                <h3 class="calc-step-title">Touch-Bildschirme</h3>
+                                <p class="calc-step-question">Wie viele interaktive Bildschirme benötigen Sie?</p>
+                            </div>
                         </div>
+                        <div class="calc-counter">
+                            <button type="button" class="calc-counter-btn" id="kioskeMinus" aria-label="Einen weniger">−</button>
+                            <span class="calc-counter-value" id="kioskeValue">1</span>
+                            <button type="button" class="calc-counter-btn" id="kioskePlus" aria-label="Einen mehr">+</button>
+                        </div>
+                        <input type="range" id="kioske" min="1" max="20" step="1" value="1" class="calc-slider" aria-label="Anzahl Bildschirme anpassen">
                     </div>
                 </div>
                 <div class="calculator-result" id="calculatorResult">
