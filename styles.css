@@ -148,6 +148,14 @@ body.has-fixed-header {
     font-size: 0.9rem;
 }
 
+.nav-logout-link {
+    color: #dc3545 !important;
+}
+
+.nav-logout-link:hover {
+    color: #c82333 !important;
+}
+
 .hamburger {
     display: none;
     flex-direction: column;

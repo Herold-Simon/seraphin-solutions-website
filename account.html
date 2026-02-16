@@ -18,154 +18,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        /* Navigation Styles */
-        .navbar {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-            padding: 1rem 0;
-            transition: all 0.3s ease, transform 0.4s ease;
-            transform: translateY(-100%);
-        }
-
-        .navbar.visible {
-            transform: translateY(0);
-        }
-
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
-        .nav-logo a {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .logo-image {
-            height: 40px;
-            width: auto;
-            object-fit: contain;
-        }
-
-        .logo-text {
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: 700;
-        }
-
-        .nav-menu {
-            display: flex;
-            list-style: none;
-            gap: 2rem;
-        }
-
-        .nav-menu a {
-            text-decoration: none;
-            color: var(--text-dark);
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-
-        .nav-menu a:hover {
-            color: var(--primary-blue);
-        }
-
-        .nav-menu .btn-nav {
-            background: var(--gradient-primary);
-            color: #ffffff !important;
-            padding: 0.5rem 1.5rem;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-        }
-
-        .nav-menu .btn-nav:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-            color: #ffffff !important;
-        }
-
-        .nav-menu .btn-nav.active {
-            background: var(--gradient-secondary);
-        }
-
-        .hamburger {
-            display: none;
-            flex-direction: column;
-            cursor: pointer;
-        }
-
-        .hamburger span {
-            width: 25px;
-            height: 3px;
-            background: var(--text-dark);
-            margin: 3px 0;
-            transition: 0.3s;
-        }
-
-        /* Responsive Navigation */
-        @media (max-width: 768px) {
-            .nav-container {
-                padding: 0 15px;
-                max-width: 100%;
-            }
-
-            .hamburger {
-                display: flex;
-            }
-
-            .nav-menu {
-                position: fixed;
-                left: -100%;
-                top: 70px;
-                flex-direction: column;
-                background-color: var(--white);
-                width: 100%;
-                text-align: center;
-                transition: 0.3s;
-                box-shadow: var(--shadow);
-                padding: 2rem 0;
-            }
-
-            .nav-menu.active {
-                left: 0;
-            }
-
-            .logo-image {
-                height: 35px;
-            }
-
-            .nav-logo .logo-text {
-                display: none;
-            }
-        }
-
         .account-container {
             min-height: 100vh;
             background: var(--light-gray);
@@ -586,29 +438,35 @@
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar visible">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <a href="index.html">
-                    <img src="favicon.ico" alt="Seraphin Solutions Logo" class="logo-image">
-                    <span class="logo-text">Seraphin Solutions</span>
-                </a>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="dashboard.html" class="btn-nav">Dashboard</a></li>
-                <li><a href="#" class="btn-nav" onclick="logout(); return false;" style="background: var(--gradient-red);">
-                    <i class="fas fa-sign-out-alt"></i>
-                    Abmelden
-                </a></li>
-            </ul>
-            <div class="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <a href="index.html" class="logo">
+                        <img src="logo.png" alt="Seraphin Solutions Logo">
+                    </a>
+                    <span class="company-name">Seraphin Solutions</span>
+                </div>
+                <nav class="nav" id="nav">
+                    <a href="index.html" class="nav-link">Startseite</a>
+                    <a href="programm.html" class="nav-link">Das Programm</a>
+                    <a href="weitere-informationen.html" class="nav-link">Weitere Informationen</a>
+                    <a href="support.html" class="nav-link">Support</a>
+                    <a href="dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="account.html" class="nav-link active">Account</a>
+                    <a href="#" class="nav-link nav-logout-link" onclick="logout(); return false;">
+                        <i class="fas fa-sign-out-alt"></i> Abmelden
+                    </a>
+                </nav>
+                <button class="hamburger" id="hamburger" aria-label="Menü öffnen">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
             </div>
         </div>
-    </nav>
+    </header>
 
     <div class="account-container">
         <div class="account-content">
@@ -751,7 +609,6 @@
             await testApiConnectivity();
             await loadAccountData();
             setupEventListeners();
-            setupNavigation();
             setupKeyboardShortcuts();
             console.log('✅ Account-Seite initialisiert');
         });
@@ -788,47 +645,6 @@
                 console.error('❌ API-Verbindungstest fehlgeschlagen:', error);
                 showError('Warnung: API-Endpunkte sind möglicherweise nicht erreichbar. Einige Funktionen funktionieren möglicherweise nicht. Öffnen Sie die Browser-Konsole (F12) für weitere Details.');
             }
-        }
-
-        // Navigation einrichten
-        function setupNavigation() {
-            const hamburger = document.querySelector('.hamburger');
-            const navMenu = document.querySelector('.nav-menu');
-            const navbar = document.querySelector('.navbar');
-            
-            if (hamburger && navMenu) {
-                hamburger.addEventListener('click', function() {
-                    navMenu.classList.toggle('active');
-                });
-            }
-            
-            // Auto-hide Navigation beim Scrollen
-            let lastScrollTop = 0;
-            let ticking = false;
-            
-            function updateNavbar() {
-                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                
-                if (scrollTop > lastScrollTop && scrollTop > 100) {
-                    // Nach unten scrollen - Header verstecken
-                    navbar.classList.remove('visible');
-                } else {
-                    // Nach oben scrollen - Header anzeigen
-                    navbar.classList.add('visible');
-                }
-                
-                lastScrollTop = scrollTop;
-                ticking = false;
-            }
-            
-            function requestTick() {
-                if (!ticking) {
-                    requestAnimationFrame(updateNavbar);
-                    ticking = true;
-                }
-            }
-            
-            window.addEventListener('scroll', requestTick);
         }
 
         // Event Listeners einrichten
@@ -1264,5 +1080,6 @@
             </div>
         </div>
     </footer>
+    <script src="script.js?v=2"></script>
 </body>
 </html>
