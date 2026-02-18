@@ -3609,6 +3609,29 @@ body.has-fixed-header {
     padding-top: 80px;
 }
 
+/* Benutzerdefinierte Datumsauswahl - Cross-Device-Kompatibilität */
+.custom-date-range .date-input-container {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.custom-date-range input[type="date"],
+.custom-date-range .date-input {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+@media (max-width: 768px) {
+    .custom-date-range input[type="date"],
+    .custom-date-range .date-input {
+        font-size: 16px;
+        min-height: 44px;
+    }
+}
+
 .dashboard-content,
 .account-content {
     max-width: 1200px;

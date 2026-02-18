@@ -697,6 +697,8 @@
             flex-direction: column;
             gap: 0.5rem;
             min-width: 200px;
+            flex: 1 1 auto;
+            max-width: 100%;
         }
 
         .date-input-group label {
@@ -715,24 +717,33 @@
             border-radius: 8px;
             padding: 0.25rem;
             transition: border-color 0.3s ease;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .date-input-container:focus-within {
             border-color: var(--primary-blue);
         }
 
-        .date-input {
+        .date-input,
+        .custom-date-range input[type="date"],
+        .custom-date-range .date-input {
             padding: 0.75rem;
             border: none;
             border-radius: 4px;
             font-size: 14px;
             background: transparent;
             color: var(--text-dark);
-            flex: 1;
+            flex: 1 1 0;
             min-width: 0;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            font-family: inherit;
         }
 
-        .date-input:focus {
+        .date-input:focus,
+        .custom-date-range input[type="date"]:focus {
             outline: none;
         }
 
@@ -764,6 +775,7 @@
             display: flex;
             justify-content: center;
             margin-top: 1rem;
+            width: 100%;
         }
 
         .reset-date-btn {
@@ -1315,16 +1327,21 @@
             
             .date-input-group {
                 min-width: 100%;
+                width: 100%;
             }
             
             .date-input-container {
                 width: 100%;
                 padding: 0.5rem;
+                box-sizing: border-box;
             }
             
-            .date-input {
+            .date-input,
+            .custom-date-range input[type="date"] {
                 padding: 0.875rem;
                 font-size: 16px; /* Verhindert Zoom auf iOS */
+                min-height: 44px; /* Touch-Ziel Mindestgröße */
+                width: 100%;
             }
             
             .date-nav-btn {
@@ -3344,17 +3361,6 @@
             }
             
             const series = videoData;
-            const dailyTotals = timePoints.map((_, i) => videoData.reduce((s, v) => s + (v.data[i] || 0), 0));
-            const totalViewsSum = dailyTotals.reduce((a, b) => a + b, 0);
-            const avgPerVideo = filteredVideos.length > 0 ? totalViewsSum / filteredVideos.length : 0;
-            const avgPerVideoRounded = Math.round(avgPerVideo * 100) / 100;
-            if (series.length > 0) {
-                series[0].markLine = {
-                    data: [{ yAxis: avgPerVideoRounded, name: 'Durchschnitt' }],
-                    lineStyle: { type: 'dashed', color: '#999' },
-                    label: { position: 'insideEndTop', formatter: 'Ø ' + (Number.isInteger(avgPerVideoRounded) ? avgPerVideoRounded : avgPerVideoRounded.toFixed(2)) + ' pro Video' }
-                };
-            }
             
             const option = {
                 xAxis: {
