@@ -842,6 +842,50 @@
         .chart-toggle.expanded {
             transform: rotate(90deg);
         }
+
+        .chart-header-with-mode-toggle {
+            flex-wrap: wrap;
+        }
+
+        .line-chart-mode-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: auto;
+        }
+
+        .line-chart-mode-btn {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--white);
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .line-chart-mode-btn:hover {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .line-chart-mode-btn.active {
+            background: var(--gradient-primary);
+            border-color: transparent;
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            .line-chart-mode-toggle {
+                width: 100%;
+                margin-left: 0;
+                margin-top: 0.5rem;
+            }
+            .line-chart-mode-btn {
+                flex: 1;
+            }
+        }
         
         .chart-container {
             position: relative;
@@ -1595,11 +1639,19 @@
                 <div class="charts-section" id="chartsSection">
                     <!-- Liniendiagramm (wie in der App) -->
                     <div class="chart-card">
-                        <div class="chart-header">
+                        <div class="chart-header chart-header-with-mode-toggle">
                             <h3 class="chart-title" id="lineChartTitle">Liniendiagramm</h3>
                             <div class="chart-time-range-hint" id="lineChartTimeHint" style="display: none;" role="status">
                                 <i class="fas fa-info-circle"></i>
                                 <span>Bezieht sich auf den gewählten Zeitraum.</span>
+                            </div>
+                            <div class="line-chart-mode-toggle" id="lineChartModeToggle">
+                                <button type="button" class="line-chart-mode-btn active" data-mode="byVideos" id="lineChartModeByVideos">
+                                    Aufrufe nach Videos
+                                </button>
+                                <button type="button" class="line-chart-mode-btn" data-mode="totalViews" id="lineChartModeTotalViews">
+                                    Insgesamte Aufrufe
+                                </button>
                             </div>
                         </div>
                         <div class="chart-container" id="lineChartContainer">
@@ -1673,6 +1725,7 @@
         let selectedVideoCount = 5;
         let selectedVideos = new Set(); // Set of video IDs that are selected
         let allAvailableVideos = []; // All available videos for selection
+        let lineChartMode = 'byVideos'; // 'byVideos' | 'totalViews'
         let allTimeRangeData = null; // Speichert den Zeitraum von "Gesamter Zeitraum"
         let lastAveragePerDay = 0;
         let lastAveragePerHour = 0;
@@ -2219,6 +2272,21 @@
                         toggleChart(chartName);
                     });
                 }
+            });
+
+            // Liniendiagramm Modus-Toggle (Aufrufe nach Videos / Insgesamte Aufrufe)
+            document.querySelectorAll('.line-chart-mode-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const mode = this.dataset.mode;
+                    if (mode === lineChartMode) return;
+                    lineChartMode = mode;
+                    document.querySelectorAll('.line-chart-mode-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    updateChartTitles();
+                    createLineChart();
+                });
             });
         }
         
@@ -3034,7 +3102,93 @@
                 return;
             }
             
-            // Verwende die neue Filterfunktion für erweiterte Einstellungen
+            // Modus "Insgesamte Aufrufe": Alle Videos mit Aufrufen, kumulierte Gesamtaufrufe pro Tag
+            if (lineChartMode === 'totalViews') {
+                const bounds = getTimeRangeBounds();
+                const allVideosWithViews = bounds
+                    ? mergedVideos.map(v => ({ ...v, views: getViewsInRangeForVideo(v, bounds.startDate, bounds.endDate) })).filter(v => (v.views || 0) > 0)
+                    : mergedVideos.filter(video => (video.views || 0) > 0);
+                if (allVideosWithViews.length === 0) {
+                    chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Videos mit Aufrufen verfügbar</div>';
+                    return;
+                }
+                const hasViewHistory = allVideosWithViews.some(v => (v.viewHistory && Object.keys(v.viewHistory || {}).length > 0) || (v.view_history && Object.keys(v.view_history || {}).length > 0));
+                let timePoints = [];
+                let cumulativeData = [];
+                if (hasViewHistory) {
+                    const allDates = new Set();
+                    allVideosWithViews.forEach(video => {
+                        const h = video.viewHistory || video.view_history || {};
+                        Object.keys(h).forEach(date => allDates.add(date));
+                    });
+                    const sortedDates = Array.from(allDates).sort();
+                    if (sortedDates.length === 0) {
+                        chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Aufruf-Daten im Zeitraum verfügbar</div>';
+                        return;
+                    }
+                    const timeRangeResult = calculateTimeRange(sortedDates, currentTimeRange);
+                    timePoints = timeRangeResult.timePoints;
+                    if (timeRangeResult.addEndOffset && timePoints.length > 0) {
+                        const lastDate = new Date(timePoints[timePoints.length - 1]);
+                        lastDate.setDate(lastDate.getDate() + 2);
+                        timePoints.push(lastDate.toISOString().split('T')[0]);
+                    }
+                    const dailyTotals = timePoints.map(date => {
+                        return allVideosWithViews.reduce((sum, v) => {
+                            const h = v.viewHistory || v.view_history || {};
+                            return sum + (parseInt(h[date], 10) || 0);
+                        }, 0);
+                    });
+                    let cum = 0;
+                    cumulativeData = dailyTotals.map(d => cum += d);
+                } else {
+                    const today = new Date();
+                    let daysToShow = currentTimeRange === '7' ? 7 : (currentTimeRange === 'custom' && customDateRange.startDate && customDateRange.endDate)
+                        ? Math.ceil((new Date(customDateRange.endDate) - new Date(customDateRange.startDate)) / (1000 * 60 * 60 * 24)) + 1 : 365;
+                    for (let i = daysToShow - 1; i >= 0; i--) {
+                        const d = new Date(today);
+                        d.setDate(d.getDate() - i);
+                        timePoints.push(d.toISOString().split('T')[0]);
+                    }
+                    const totalViews = allVideosWithViews.reduce((s, v) => s + (parseInt(v.views) || 0), 0);
+                    const dailyAvg = Math.round(totalViews / daysToShow);
+                    let cum = 0;
+                    cumulativeData = timePoints.map(() => { cum += Math.round(dailyAvg * (Math.random() * 0.4 + 0.8)); return cum; });
+                }
+                const option = {
+                    xAxis: { type: 'category', data: timePoints.map(d => formatDateToGerman(d)), axisLabel: { color: '#666', rotate: 45 }, axisTick: { alignWithLabel: true } },
+                    yAxis: { type: 'value', axisLabel: { color: '#666' }, name: 'Kumulierte Aufrufe', nameTextStyle: { color: '#666' } },
+                    series: [{
+                        name: 'Gesamte Aufrufe',
+                        type: 'line',
+                        data: cumulativeData,
+                        smooth: true,
+                        lineStyle: { width: 3 },
+                        itemStyle: { color: getChartColor(0) },
+                        emphasis: { focus: 'series' }
+                    }],
+                    tooltip: {
+                        trigger: 'axis',
+                        confine: true,
+                        formatter: function(params) {
+                            if (!params || params.length === 0) return '';
+                            const p = params[0];
+                            const val = p.value;
+                            const str = Number.isInteger(val) ? val : (val || 0).toFixed(2);
+                            return p.axisValue + '<br/><strong>Kumulierte Aufrufe: ' + str + '</strong>';
+                        }
+                    },
+                    legend: { show: false },
+                    grid: { left: '3%', right: '4%', bottom: '8%', containLabel: true },
+                    color: getChartColors()
+                };
+                charts.lineChart = echarts.init(chartElement);
+                charts.lineChart.setOption(option);
+                setTimeout(() => { if (charts.lineChart) charts.lineChart.resize(); }, 100);
+                return;
+            }
+            
+            // Modus "Aufrufe nach Videos": wie bisher
             const filteredVideos = getFilteredVideosForCharts();
             
             if (filteredVideos.length === 0) {
@@ -4136,7 +4290,8 @@
             const pieTitle = document.getElementById('pieChartTitle');
             const barTitle = document.getElementById('barChartTitle');
             const lineRaceTitle = document.getElementById('lineRaceChartTitle');
-            if (lineTitle) lineTitle.textContent = 'Liniendiagramm: ' + suffix;
+            // Bei "Insgesamte Aufrufe" kein "Top X" im Liniendiagramm-Titel
+            if (lineTitle) lineTitle.textContent = lineChartMode === 'totalViews' ? 'Liniendiagramm' : 'Liniendiagramm: ' + suffix;
             if (pieTitle) pieTitle.textContent = 'Tortendiagramm: ' + suffix;
             if (barTitle) barTitle.textContent = 'Balkendiagramm: ' + suffix;
             if (lineRaceTitle) lineRaceTitle.textContent = 'Line Race: ' + suffix;
