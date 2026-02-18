@@ -3193,7 +3193,7 @@
                         markLine: {
                             data: [{ yAxis: lineChartAvgVal, name: 'Durchschnitt' }],
                             lineStyle: { type: 'dashed', color: '#999' },
-                            label: { position: 'end', formatter: 'Ø ' + (Number.isInteger(lineChartAvgVal) ? lineChartAvgVal : lineChartAvgVal.toFixed(2)) }
+                            label: { position: 'insideEndTop', formatter: 'Ø ' + (Number.isInteger(lineChartAvgVal) ? lineChartAvgVal : lineChartAvgVal.toFixed(2)) }
                         }
                     }],
                     tooltip: {
@@ -3208,7 +3208,7 @@
                         }
                     },
                     legend: { show: false },
-                    grid: { left: '3%', right: '15%', bottom: '8%', containLabel: true },
+                    grid: { left: '3%', right: '4%', bottom: '8%', containLabel: true },
                     color: getChartColors()
                 };
                 charts.lineChart = echarts.init(chartElement);
@@ -3346,15 +3346,13 @@
             const series = videoData;
             const dailyTotals = timePoints.map((_, i) => videoData.reduce((s, v) => s + (v.data[i] || 0), 0));
             const totalViewsSum = dailyTotals.reduce((a, b) => a + b, 0);
-            const bounds = getTimeRangeBounds();
-            const daysWithViewsForByVideos = getNumberOfDaysWithViews(mergedVideos, bounds);
-            const avgTotal = daysWithViewsForByVideos > 0 ? totalViewsSum / daysWithViewsForByVideos : 0;
-            const avgTotalRounded = Math.round(avgTotal * 100) / 100;
+            const avgPerVideo = filteredVideos.length > 0 ? totalViewsSum / filteredVideos.length : 0;
+            const avgPerVideoRounded = Math.round(avgPerVideo * 100) / 100;
             if (series.length > 0) {
                 series[0].markLine = {
-                    data: [{ yAxis: avgTotalRounded, name: 'Durchschnitt' }],
+                    data: [{ yAxis: avgPerVideoRounded, name: 'Durchschnitt' }],
                     lineStyle: { type: 'dashed', color: '#999' },
-                    label: { position: 'end', formatter: 'Ø ' + (Number.isInteger(avgTotalRounded) ? avgTotalRounded : avgTotalRounded.toFixed(2)) }
+                    label: { position: 'insideEndTop', formatter: 'Ø ' + (Number.isInteger(avgPerVideoRounded) ? avgPerVideoRounded : avgPerVideoRounded.toFixed(2)) + ' pro Video' }
                 };
             }
             
@@ -3441,7 +3439,7 @@
                 },
                 grid: {
                     left: '3%',
-                    right: '15%',
+                    right: '4%',
                     bottom: '15%',
                     containLabel: true
                 },
@@ -3829,7 +3827,7 @@
                         }
                     },
                     legend: { show: false },
-                    grid: { left: '3%', right: '15%', bottom: '8%', containLabel: true },
+                    grid: { left: '3%', right: '4%', bottom: '8%', containLabel: true },
                     color: getChartColors()
                 };
                 charts.lineRaceChart = echarts.init(chartElement);
