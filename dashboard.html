@@ -3186,7 +3186,12 @@
                         smooth: true,
                         lineStyle: { width: 3 },
                         itemStyle: { color: getChartColor(0) },
-                        emphasis: { focus: 'series' }
+                        emphasis: { focus: 'series' },
+                        markLine: {
+                            data: [{ type: 'average', name: 'Durchschnitt' }],
+                            lineStyle: { type: 'dashed', color: '#999' },
+                            label: { formatter: 'Ø {c}' }
+                        }
                     }],
                     tooltip: {
                         trigger: 'axis',
@@ -3196,7 +3201,9 @@
                             const p = params[0];
                             const val = p.value;
                             const str = Number.isInteger(val) ? val : (val || 0).toFixed(2);
-                            return p.axisValue + '<br/><strong>Aufrufe: ' + str + '</strong>';
+                            const avgVal = cumulativeData.length > 0 ? (cumulativeData.reduce((a, b) => a + b, 0) / cumulativeData.length) : 0;
+                            const avgStr = Number.isInteger(avgVal) ? avgVal : avgVal.toFixed(2);
+                            return p.axisValue + '<br/><strong>Aufrufe: ' + str + '</strong><br/>Durchschnitt: ' + avgStr;
                         }
                     },
                     legend: { show: false },
@@ -3336,6 +3343,16 @@
             }
             
             const series = videoData;
+            const dailyTotals = timePoints.map((_, i) => videoData.reduce((s, v) => s + (v.data[i] || 0), 0));
+            const avgTotal = dailyTotals.length > 0 ? dailyTotals.reduce((a, b) => a + b, 0) / dailyTotals.length : 0;
+            series.push({
+                name: 'Durchschnitt',
+                type: 'line',
+                data: timePoints.map(() => Math.round(avgTotal * 100) / 100),
+                lineStyle: { type: 'dashed', width: 2, color: '#999' },
+                symbol: 'none',
+                emphasis: { focus: 'series' }
+            });
             
             const option = {
                 xAxis: {
@@ -3370,8 +3387,7 @@
                             const val = param.value;
                             if (val === undefined || val === null) return;
                             const numVal = Number(val);
-                            total += numVal;
-                            if (!(numVal > 0)) return;
+                            if (param.seriesName !== 'Durchschnitt') total += numVal;
                             let value = val;
                             if (typeof value === 'number') {
                                 value = Number.isInteger(value) ? value : value.toFixed(2);
@@ -3404,7 +3420,7 @@
                     }
                 },
                 legend: {
-                    data: filteredVideos.map(v => v.title || v.video_title || 'Unbenanntes Video'),
+                    data: [...filteredVideos.map(v => v.title || v.video_title || 'Unbenanntes Video'), 'Durchschnitt'],
                     textStyle: { color: '#666' },
                     type: 'scroll',
                     bottom: 0,
