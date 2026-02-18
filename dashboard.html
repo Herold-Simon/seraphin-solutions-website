@@ -3176,6 +3176,9 @@
                     const dailyAvg = Math.round(totalViews / daysToShow);
                     cumulativeData = timePoints.map(() => Math.round(dailyAvg * (Math.random() * 0.4 + 0.8)));
                 }
+                const totalViewsForAvg = cumulativeData.reduce((a, b) => a + b, 0);
+                const daysWithViewsForAvg = hasViewHistory ? getNumberOfDaysWithViews(mergedVideos, bounds) : Math.max(1, cumulativeData.filter(d => d > 0).length);
+                const lineChartAvgVal = daysWithViewsForAvg > 0 ? totalViewsForAvg / daysWithViewsForAvg : 0;
                 const option = {
                     xAxis: { type: 'category', data: timePoints.map(d => formatDateToGerman(d)), axisLabel: { color: '#666', rotate: 45 }, axisTick: { alignWithLabel: true } },
                     yAxis: { type: 'value', axisLabel: { color: '#666' }, name: 'Aufrufe', nameTextStyle: { color: '#666' } },
@@ -3188,9 +3191,9 @@
                         itemStyle: { color: getChartColor(0) },
                         emphasis: { focus: 'series' },
                         markLine: {
-                            data: [{ type: 'average', name: 'Durchschnitt' }],
+                            data: [{ yAxis: lineChartAvgVal, name: 'Durchschnitt' }],
                             lineStyle: { type: 'dashed', color: '#999' },
-                            label: { formatter: 'Ø {c}' }
+                            label: { position: 'end', formatter: 'Ø ' + (Number.isInteger(lineChartAvgVal) ? lineChartAvgVal : lineChartAvgVal.toFixed(2)) }
                         }
                     }],
                     tooltip: {
@@ -3201,13 +3204,11 @@
                             const p = params[0];
                             const val = p.value;
                             const str = Number.isInteger(val) ? val : (val || 0).toFixed(2);
-                            const avgVal = cumulativeData.length > 0 ? (cumulativeData.reduce((a, b) => a + b, 0) / cumulativeData.length) : 0;
-                            const avgStr = Number.isInteger(avgVal) ? avgVal : avgVal.toFixed(2);
-                            return p.axisValue + '<br/><strong>Aufrufe: ' + str + '</strong><br/>Durchschnitt: ' + avgStr;
+                            return p.axisValue + '<br/><strong>Aufrufe: ' + str + '</strong>';
                         }
                     },
                     legend: { show: false },
-                    grid: { left: '3%', right: '4%', bottom: '8%', containLabel: true },
+                    grid: { left: '3%', right: '15%', bottom: '8%', containLabel: true },
                     color: getChartColors()
                 };
                 charts.lineChart = echarts.init(chartElement);
@@ -3344,15 +3345,18 @@
             
             const series = videoData;
             const dailyTotals = timePoints.map((_, i) => videoData.reduce((s, v) => s + (v.data[i] || 0), 0));
-            const avgTotal = dailyTotals.length > 0 ? dailyTotals.reduce((a, b) => a + b, 0) / dailyTotals.length : 0;
-            series.push({
-                name: 'Durchschnitt',
-                type: 'line',
-                data: timePoints.map(() => Math.round(avgTotal * 100) / 100),
-                lineStyle: { type: 'dashed', width: 2, color: '#999' },
-                symbol: 'none',
-                emphasis: { focus: 'series' }
-            });
+            const totalViewsSum = dailyTotals.reduce((a, b) => a + b, 0);
+            const bounds = getTimeRangeBounds();
+            const daysWithViewsForByVideos = getNumberOfDaysWithViews(mergedVideos, bounds);
+            const avgTotal = daysWithViewsForByVideos > 0 ? totalViewsSum / daysWithViewsForByVideos : 0;
+            const avgTotalRounded = Math.round(avgTotal * 100) / 100;
+            if (series.length > 0) {
+                series[0].markLine = {
+                    data: [{ yAxis: avgTotalRounded, name: 'Durchschnitt' }],
+                    lineStyle: { type: 'dashed', color: '#999' },
+                    label: { position: 'end', formatter: 'Ø ' + (Number.isInteger(avgTotalRounded) ? avgTotalRounded : avgTotalRounded.toFixed(2)) }
+                };
+            }
             
             const option = {
                 xAxis: {
@@ -3384,10 +3388,11 @@
                         let total = 0;
                         
                         params.forEach((param) => {
+                            if (param.seriesName === 'Durchschnitt') return;
                             const val = param.value;
                             if (val === undefined || val === null) return;
                             const numVal = Number(val);
-                            if (param.seriesName !== 'Durchschnitt') total += numVal;
+                            total += numVal;
                             let value = val;
                             if (typeof value === 'number') {
                                 value = Number.isInteger(value) ? value : value.toFixed(2);
@@ -3420,7 +3425,7 @@
                     }
                 },
                 legend: {
-                    data: [...filteredVideos.map(v => v.title || v.video_title || 'Unbenanntes Video'), 'Durchschnitt'],
+                    data: filteredVideos.map(v => v.title || v.video_title || 'Unbenanntes Video'),
                     textStyle: { color: '#666' },
                     type: 'scroll',
                     bottom: 0,
@@ -3436,7 +3441,7 @@
                 },
                 grid: {
                     left: '3%',
-                    right: '4%',
+                    right: '15%',
                     bottom: '15%',
                     containLabel: true
                 },
@@ -3824,7 +3829,7 @@
                         }
                     },
                     legend: { show: false },
-                    grid: { left: '3%', right: '4%', bottom: '8%', containLabel: true },
+                    grid: { left: '3%', right: '15%', bottom: '8%', containLabel: true },
                     color: getChartColors()
                 };
                 charts.lineRaceChart = echarts.init(chartElement);
