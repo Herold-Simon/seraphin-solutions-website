@@ -3396,6 +3396,7 @@
                             const val = param.value;
                             if (val === undefined || val === null) return;
                             const numVal = Number(val);
+                            if (numVal <= 0) return;
                             total += numVal;
                             let value = val;
                             if (typeof value === 'number') {
