@@ -3394,15 +3394,11 @@
                         params.forEach((param) => {
                             if (param.seriesName === 'Durchschnitt') return;
                             const val = param.value;
-                            if (val === undefined || val === null) return;
-                            const numVal = Number(val);
-                            if (numVal <= 0) return;
+                            const numVal = parseFloat(val);
+                            if (isNaN(numVal) || numVal <= 0) return;
                             total += numVal;
-                            let value = val;
-                            if (typeof value === 'number') {
-                                value = Number.isInteger(value) ? value : value.toFixed(2);
-                            }
-                            entries.push({ param: param, value: numVal, valueStr: value, seriesName: param.seriesName });
+                            const valueStr = Number.isInteger(numVal) ? numVal : numVal.toFixed(2);
+                            entries.push({ param: param, value: numVal, valueStr: valueStr, seriesName: param.seriesName });
                         });
                         
                         var displayTotal = total;
