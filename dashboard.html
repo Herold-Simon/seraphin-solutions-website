@@ -1509,7 +1509,7 @@
                             <i class="fas fa-eye"></i>
                         </div>
                         <div class="stat-number" id="totalViews">0</div>
-                        <div class="stat-label">Gesamte Aufrufe</div>
+                        <div class="stat-label">Aufrufe heute</div>
                     </div>
                     
                     <div class="stat-card">
@@ -2909,9 +2909,11 @@
             
             // Aktualisiere die UI-Elemente
             try {
+                const merged = mergeVideosByTitle(videos);
+                const viewsToday = merged.reduce((s, v) => s + getViewsTodayForVideo(v), 0);
                 const totalViewsElement = document.getElementById('totalViews');
                 if (totalViewsElement) {
-                    totalViewsElement.textContent = totalViews.toLocaleString('de-DE');
+                    totalViewsElement.textContent = viewsToday.toLocaleString('de-DE');
                 }
                 
                 const videosWithViewsElement = document.getElementById('videosWithViews');
@@ -3089,6 +3091,14 @@
                 return { startDate: start, endDate: end };
             }
             return null;
+        }
+        
+        /** Liefert die Aufrufe eines Videos für heute (viewHistory). */
+        function getViewsTodayForVideo(video) {
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+            const viewHistory = video.viewHistory || video.view_history || {};
+            return parseInt(viewHistory[todayStr], 10) || 0;
         }
         
         /** Summiert Aufrufe eines Videos nur für Tage im Zeitraum [startDate, endDate] (viewHistory). */
@@ -4433,6 +4443,7 @@
             if (!currentStats || !currentStats.videos || !currentStats.videos.length) return;
             
             const merged = mergeVideosByTitle(currentStats.videos);
+            const viewsToday = merged.reduce((s, v) => s + getViewsTodayForVideo(v), 0);
             const bounds = getTimeRangeBounds();
             let totalViews, videosWithViews;
             if (bounds) {
@@ -4452,7 +4463,7 @@
             
             const totalViewsEl = document.getElementById('totalViews');
             const videosWithViewsEl = document.getElementById('videosWithViews');
-            if (totalViewsEl) totalViewsEl.textContent = totalViews.toLocaleString('de-DE');
+            if (totalViewsEl) totalViewsEl.textContent = viewsToday.toLocaleString('de-DE');
             if (videosWithViewsEl) videosWithViewsEl.textContent = videosWithViews.toLocaleString('de-DE');
             document.querySelectorAll('.chart-time-range-hint').forEach(function(el) {
                 el.style.display = currentTimeRange !== 'all' ? 'flex' : 'none';
