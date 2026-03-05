@@ -508,7 +508,7 @@ body.has-fixed-header {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 3rem;
-    align-items: center;
+    align-items: stretch;
     max-width: 1100px;
     margin: 0 auto;
 }
@@ -567,17 +567,16 @@ body.has-fixed-header {
 }
 
 .gebaeudenavi-intro-image {
-    min-height: 0;
     display: flex;
-    align-self: stretch;
-    align-items: stretch;
+    min-height: 100%;
 }
 
 .gebaeudenavi-intro-image img {
     width: 100%;
     flex: 1;
-    min-height: 280px;
+    min-height: 0;
     object-fit: cover;
+    object-position: center;
     border-radius: 12px;
     box-shadow: var(--shadow-md);
 }
@@ -2993,6 +2992,15 @@ body.has-fixed-header {
     .gebaeudenavi-cta-buttons .btn {
         font-size: 0.9rem;
         padding: 0.875rem 1rem;
+    }
+
+    .gebaeudenavi-intro-image {
+        min-height: auto;
+    }
+
+    .gebaeudenavi-intro-image img {
+        flex: none;
+        height: auto;
     }
 
     /* Price Calculator Mobile */
