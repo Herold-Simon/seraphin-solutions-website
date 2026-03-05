@@ -503,6 +503,85 @@ body.has-fixed-header {
     font-size: 0.95rem;
 }
 
+/* Gebäudenavi Intro (Features Preview - condensed) */
+.gebaeudenavi-intro {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.gebaeudenavi-tiles {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.gebaeudenavi-tile {
+    background: var(--bg-white);
+    padding: 1.25rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(0, 140, 255, 0.12);
+    border-left: 4px solid var(--primary-blue);
+    transition: var(--transition);
+}
+
+.gebaeudenavi-tile:hover {
+    box-shadow: var(--shadow-md);
+    border-color: rgba(0, 140, 255, 0.25);
+}
+
+.gebaeudenavi-tile p {
+    color: var(--text-light);
+    line-height: 1.8;
+    font-size: 1.05rem;
+    margin: 0;
+}
+
+.gebaeudenavi-cta-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.gebaeudenavi-cta-buttons .btn {
+    flex: 1;
+    min-width: 0;
+}
+
+.gebaeudenavi-cta-buttons .btn-gradient {
+    background: var(--gradient-primary);
+    border: none;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 140, 255, 0.35);
+}
+
+.gebaeudenavi-cta-buttons .btn-gradient:hover {
+    background: var(--gradient-primary);
+    filter: brightness(1.05);
+    box-shadow: 0 6px 16px rgba(0, 140, 255, 0.45);
+}
+
+.gebaeudenavi-intro-image {
+    min-height: 0;
+    display: flex;
+    align-self: stretch;
+    align-items: stretch;
+}
+
+.gebaeudenavi-intro-image img {
+    width: 100%;
+    flex: 1;
+    min-height: 280px;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+}
+
 /* References Carousel */
 .references {
     padding: 5rem 0;
@@ -2465,7 +2544,8 @@ body.has-fixed-header {
     .reference-content,
     .calculator-container,
     .contact-container,
-    .contact-content {
+    .contact-content,
+    .gebaeudenavi-intro {
         grid-template-columns: 1fr;
     }
 
@@ -2892,26 +2972,27 @@ body.has-fixed-header {
         height: auto;
     }
 
-    /* Features Preview Mobile */
+    /* Features Preview / Gebäudenavi Intro Mobile */
     .features-preview {
         padding: 3rem 0;
     }
 
-    .features-grid {
-        gap: 1.5rem;
+    .gebaeudenavi-intro {
+        gap: 2rem;
     }
 
-    .feature-card {
-        padding: 1.5rem;
+    .gebaeudenavi-tile p {
+        font-size: 0.95rem;
+        line-height: 1.7;
     }
 
-    .feature-card h3 {
-        font-size: 1.25rem;
-        margin-bottom: 0.75rem;
+    .gebaeudenavi-tile {
+        padding: 1rem 1.25rem;
     }
 
-    .feature-card p {
+    .gebaeudenavi-cta-buttons .btn {
         font-size: 0.9rem;
+        padding: 0.875rem 1rem;
     }
 
     /* Price Calculator Mobile */
