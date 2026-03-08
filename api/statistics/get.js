@@ -110,30 +110,33 @@ module.exports = async function handler(req, res) {
 
         // Video-Statistiken laden (view_history nur bei Bedarf)
         let videoStats;
-        const videoSelect = includeHistory ? '*, view_history' : 'video_id, video_title, views, last_viewed, created_at, updated_at';
+        const videoSelectBase = 'video_id, video_title, views, last_viewed, created_at, updated_at';
+        const videoSelectWithHistory = `${videoSelectBase}, view_history`;
 
         if (deviceId && deviceId !== 'all') {
+            // Geräte-spezifische Statistiken: device_video_statistics
             const { data } = await supabase
                 .from('device_video_statistics')
-                .select(videoSelect)
+                .select(includeHistory ? videoSelectWithHistory : videoSelectBase)
                 .eq('admin_user_id', adminUserId)
                 .eq('device_id', deviceId)
                 .order('views', { ascending: false });
             videoStats = data || [];
         } else {
-            const { data } = await supabase
-                .from('device_video_statistics')
-                .select(videoSelect)
+            // Alle Geräte: video_statistics ist primäre Quelle (enthält view_history zuverlässig)
+            const { data: primaryStats } = await supabase
+                .from('video_statistics')
+                .select(includeHistory ? videoSelectWithHistory : videoSelectBase)
                 .eq('admin_user_id', adminUserId)
                 .order('views', { ascending: false });
 
-            if (data && data.length > 0) {
-                videoStats = data;
+            if (primaryStats && primaryStats.length > 0) {
+                videoStats = primaryStats;
             } else {
-                // Fallback auf video_statistics
+                // Fallback auf device_video_statistics
                 const { data: fallback } = await supabase
-                    .from('video_statistics')
-                    .select(videoSelect)
+                    .from('device_video_statistics')
+                    .select(includeHistory ? videoSelectWithHistory : videoSelectBase)
                     .eq('admin_user_id', adminUserId)
                     .order('views', { ascending: false });
                 videoStats = fallback || [];

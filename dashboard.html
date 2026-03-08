@@ -2800,13 +2800,6 @@
                               currentStats.history?.length > 0 ||
                               (currentStats.current && Object.values(currentStats.current).some(val => val > 0));
             
-            console.log('📊 Data check für Gerät', selectedDeviceId, ':', {
-                hasVideos: currentStats.videos?.length > 0,
-                hasFloors: currentStats.floors?.length > 0,
-                hasHistory: currentStats.history?.length > 0,
-                hasCurrent: currentStats.current && Object.values(currentStats.current).some(val => val > 0),
-                hasAnyData: hasAnyData
-            });
             
             if (!hasAnyData) {
                 console.log('❌ Keine Daten in den Statistiken für Gerät:', selectedDeviceId);
@@ -2814,7 +2807,6 @@
                 return;
             }
             
-            console.log('📊 Statistiken-Daten für Gerät', selectedDeviceId, ':', currentStats);
             
             const current = currentStats.current || {};
             const total = currentStats.total || {};
@@ -2822,12 +2814,6 @@
             const floors = currentStats.floors || [];
             const history = currentStats.history || [];
             
-            // Debug: Zeige verfügbare Daten
-            console.log('📈 Current Stats:', current);
-            console.log('📊 Total Stats:', total);
-            console.log('🎥 Videos:', videos.length);
-            console.log('🏢 Floors:', floors.length);
-            console.log('📅 History:', history.length);
             
             // Statistiken abhängig vom gewählten Zeitraum: nur Aufrufe im Zeitraum zählen
             const bounds = getTimeRangeBounds();
@@ -2854,13 +2840,6 @@
             const totalFloors = floors.length;
             const totalRooms = floors.reduce((sum, floor) => sum + (floor.room_count || 0), 0);
             
-            // Debug: Zeige berechnete Werte
-            console.log('🔢 Berechnete Statistiken (direkt aus Video-Daten):');
-            console.log('  ├─ Gesamte Aufrufe:', totalViews);
-            console.log('  ├─ Videos mit Aufrufen (eindeutige Titel):', videosWithViews);
-            console.log('  ├─ Gesamte Videos:', totalVideos);
-            console.log('  ├─ Gesamte Stockwerke:', totalFloors);
-            console.log('  └─ Gesamte Räume:', totalRooms);
             
             // Zeige/verstecke Menü "Erweiterte Einstellungen" basierend auf Anzahl der Videos mit Aufrufen
             const advancedSettingsElement = document.querySelector('.advanced-settings');
@@ -2971,15 +2950,6 @@
                 const viewHistory = video.viewHistory || video.view_history;
                 return viewHistory && Object.keys(viewHistory).length > 0;
             });
-            
-            console.log('📊 Chart-Daten verfügbar:', { hasVideoData, hasViewHistoryData });
-            
-            console.log('📊 Video viewHistory Details:', videos.map(v => ({ 
-                title: v.title || v.video_title, 
-                hasViewHistory: !!(v.viewHistory || v.view_history), 
-                viewHistoryKeys: (v.viewHistory || v.view_history) ? Object.keys(v.viewHistory || v.view_history) : [],
-                videoData: v // Debug: Zeige vollständige Video-Daten
-            })));
             
             if (!hasVideoData || !hasViewHistoryData) {
                 console.log('⚠️ Keine ausreichenden Daten für Charts verfügbar');
