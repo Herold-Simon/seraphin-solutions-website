@@ -1474,11 +1474,6 @@
                 <i class="fas fa-triangle-exclamation" style="font-size: 1.2rem; flex-shrink: 0;"></i>
                 <span><strong>Hinweis:</strong> Die Statistiken sind im Moment nicht funktional. Wir bitten dies zu entschuldigen.</span>
             </div>
-            <script>
-                if (typeof STATISTIKEN_NICHT_FUNKTIONAL !== 'undefined' && STATISTIKEN_NICHT_FUNKTIONAL) {
-                    document.getElementById('wartungshinweis').style.display = 'flex';
-                }
-            </script>
 
             <div id="loadingMessage" style="text-align: center; padding: 2rem;">
                 <div class="loading-spinner"></div>
@@ -1753,6 +1748,10 @@
         // Auf "true" setzen um den Wartungshinweis anzuzeigen
         const STATISTIKEN_NICHT_FUNKTIONAL = true;
         // -------------------------------------------------------
+
+        if (STATISTIKEN_NICHT_FUNKTIONAL) {
+            document.getElementById('wartungshinweis').style.display = 'flex';
+        }
 
         let currentUser = null;
         let statistics = null;
