@@ -1469,11 +1469,16 @@
         
         <!-- Content -->
         <div class="dashboard-content">
-            <!-- Hinweisbanner -->
-            <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; color: #856404;">
+            <!-- Hinweisbanner (gesteuert durch STATISTIKEN_NICHT_FUNKTIONAL) -->
+            <div id="wartungshinweis" style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: none; align-items: center; gap: 0.75rem; color: #856404;">
                 <i class="fas fa-triangle-exclamation" style="font-size: 1.2rem; flex-shrink: 0;"></i>
                 <span><strong>Hinweis:</strong> Die Statistiken sind im Moment nicht funktional. Wir bitten dies zu entschuldigen.</span>
             </div>
+            <script>
+                if (typeof STATISTIKEN_NICHT_FUNKTIONAL !== 'undefined' && STATISTIKEN_NICHT_FUNKTIONAL) {
+                    document.getElementById('wartungshinweis').style.display = 'flex';
+                }
+            </script>
 
             <div id="loadingMessage" style="text-align: center; padding: 2rem;">
                 <div class="loading-spinner"></div>
@@ -1744,6 +1749,11 @@
     </div>
 
     <script>
+        // -------------------------------------------------------
+        // Auf "true" setzen um den Wartungshinweis anzuzeigen
+        const STATISTIKEN_NICHT_FUNKTIONAL = true;
+        // -------------------------------------------------------
+
         let currentUser = null;
         let statistics = null;
         let currentTimeRange = 'custom';
@@ -2950,27 +2960,25 @@
                 console.error('❌ Fehler beim Aktualisieren der UI-Elemente:', error);
             }
             
-            // Prüfe ob genügend Daten für Charts vorhanden sind
+            // Prüfe ob Grunddaten vorhanden sind
             const hasVideoData = videos.length > 0;
+            if (!hasVideoData) {
+                showNoDataMessage();
+                return;
+            }
+
             const hasViewHistoryData = videos.some(video => {
                 const viewHistory = video.viewHistory || video.view_history;
                 return viewHistory && Object.keys(viewHistory).length > 0;
             });
-            
-            if (!hasVideoData || !hasViewHistoryData) {
-                console.log('⚠️ Keine ausreichenden Daten für Charts verfügbar');
-                showNoDataMessage();
-                return;
-            }
-            
-            // Charts erstellen (wie in der App)
+
+            // Charts erstellen (view_history-abhängige Charts rendern nur wenn Daten vorhanden)
             try {
                 createLineChart();
                 createPieChart();
                 createBarChart();
                 createLineRaceChart();
                 updateChartTitles();
-                console.log('✅ Alle Charts erfolgreich erstellt');
                 
                 
             } catch (error) {

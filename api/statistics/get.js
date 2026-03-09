@@ -34,16 +34,16 @@ module.exports = async function handler(req, res) {
         if (sessionToken) {
             const { data: session } = await supabase
                 .from('website_sessions')
-                .select(`
-                    expires_at,
-                    website_users!inner(admin_user_id)
-                `)
+                .select(`expires_at, website_users!inner(admin_user_id)`)
                 .eq('session_token', sessionToken)
-                .gt('expires_at', new Date().toISOString())
                 .single();
 
             if (session) {
-                adminUserId = session.website_users.admin_user_id;
+                const now = new Date();
+                const expiresAt = new Date(session.expires_at);
+                if (now <= expiresAt) {
+                    adminUserId = session.website_users.admin_user_id;
+                }
             }
         }
 
@@ -63,10 +63,12 @@ module.exports = async function handler(req, res) {
         }
 
         const deviceId = req.query.device_id;
-        // view_history nur laden wenn explizit angefordert (spart massiv Datenübertragung)
         const includeHistory = req.query.include_history === 'true';
 
-        // Geräte-spezifische oder aggregierte App-Statistiken laden
+        const videoSelectBase = 'video_id, video_title, views, last_viewed, created_at, updated_at';
+        const videoSelectFull = `${videoSelectBase}, view_history`;
+
+        // App-Statistiken laden
         let appStats;
         if (deviceId && deviceId !== 'all') {
             const { data } = await supabase
@@ -76,7 +78,7 @@ module.exports = async function handler(req, res) {
                 .eq('device_id', deviceId)
                 .order('date', { ascending: false })
                 .limit(30);
-            appStats = data;
+            appStats = data || [];
         } else {
             const { data: aggregated } = await supabase
                 .rpc('get_aggregated_device_statistics', { p_admin_user_id: adminUserId });
@@ -108,38 +110,47 @@ module.exports = async function handler(req, res) {
             }
         }
 
-        // Video-Statistiken laden (view_history nur bei Bedarf)
-        let videoStats;
-        const videoSelectBase = 'video_id, video_title, views, last_viewed, created_at, updated_at';
-        const videoSelectWithHistory = `${videoSelectBase}, view_history`;
+        // Video-Statistiken laden
+        let videoStats = [];
 
         if (deviceId && deviceId !== 'all') {
-            // Geräte-spezifische Statistiken: device_video_statistics
+            // Geräte-spezifisch: nur device_video_statistics
             const { data } = await supabase
                 .from('device_video_statistics')
-                .select(includeHistory ? videoSelectWithHistory : videoSelectBase)
+                .select(includeHistory ? videoSelectFull : videoSelectBase)
                 .eq('admin_user_id', adminUserId)
                 .eq('device_id', deviceId)
                 .order('views', { ascending: false });
             videoStats = data || [];
         } else {
-            // Alle Geräte: video_statistics ist primäre Quelle (enthält view_history zuverlässig)
-            const { data: primaryStats } = await supabase
-                .from('video_statistics')
-                .select(includeHistory ? videoSelectWithHistory : videoSelectBase)
-                .eq('admin_user_id', adminUserId)
-                .order('views', { ascending: false });
-
-            if (primaryStats && primaryStats.length > 0) {
-                videoStats = primaryStats;
-            } else {
-                // Fallback auf device_video_statistics
-                const { data: fallback } = await supabase
+            // Alle Geräte: beide Tabellen parallel abfragen und beste Quelle wählen
+            const [dvResult, vsResult] = await Promise.all([
+                supabase
                     .from('device_video_statistics')
-                    .select(includeHistory ? videoSelectWithHistory : videoSelectBase)
+                    .select(videoSelectFull)
                     .eq('admin_user_id', adminUserId)
-                    .order('views', { ascending: false });
-                videoStats = fallback || [];
+                    .order('views', { ascending: false }),
+                supabase
+                    .from('video_statistics')
+                    .select(videoSelectFull)
+                    .eq('admin_user_id', adminUserId)
+                    .order('views', { ascending: false })
+            ]);
+
+            const dvData = dvResult.data || [];
+            const vsData = vsResult.data || [];
+
+            const hasHistory = (rows) => rows.some(v => v.view_history && Object.keys(v.view_history).length > 0);
+
+            // Quelle mit view_history bevorzugen; ohne Präferenz die größere Tabelle nehmen
+            if (hasHistory(dvData)) {
+                videoStats = dvData;
+            } else if (hasHistory(vsData)) {
+                videoStats = vsData;
+            } else if (dvData.length > 0) {
+                videoStats = dvData;
+            } else {
+                videoStats = vsData;
             }
         }
 
@@ -149,7 +160,13 @@ module.exports = async function handler(req, res) {
             .select('*')
             .eq('admin_user_id', adminUserId);
 
-        // Gesamtstatistiken berechnen
+        // Admin-Gerät und Gesamtstatistiken parallel laden
+        const { data: adminUser } = await supabase
+            .from('admin_users')
+            .select('device_id')
+            .eq('id', adminUserId)
+            .single();
+
         const totalStats = {
             total_videos: videoStats.length,
             videos_with_views: videoStats.filter(v => (v.views || 0) > 0).length,
@@ -165,17 +182,9 @@ module.exports = async function handler(req, res) {
             lastViewed: video.last_viewed || null,
             createdAt: video.created_at || null,
             updatedAt: video.updated_at || null,
-            ...(includeHistory && { viewHistory: video.view_history || {} })
+            viewHistory: video.view_history || {}
         }));
 
-        // Admin-Gerät laden
-        const { data: adminUser } = await supabase
-            .from('admin_users')
-            .select('device_id')
-            .eq('id', adminUserId)
-            .single();
-
-        // Kurzes Caching erlauben (60 Sekunden), da sich Daten selten sofort ändern
         res.setHeader('Cache-Control', 'private, max-age=60, stale-while-revalidate=300');
 
         return res.status(200).json({
