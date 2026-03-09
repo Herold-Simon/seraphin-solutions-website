@@ -2334,20 +2334,12 @@
         // Dashboard laden
         async function loadDashboard() {
             try {
-                
-                // Erst prüfen, ob wir eine gültige Session haben
-                console.log('🔍 Starte Session-Verifikation...');
                 const sessionResponse = await fetch('/api/auth/verify-session', {
                     method: 'GET',
                     credentials: 'include'
                 });
                 
-                console.log('🔍 Session-Verifikation Status:', sessionResponse.status);
-                console.log('🔍 Session-Verifikation Headers:', Object.fromEntries(sessionResponse.headers.entries()));
-                
                 if (sessionResponse.status === 401) {
-                    console.log('❌ Keine gültige Session gefunden');
-                    // Zeige eine Nachricht anstatt sofort weiterzuleiten
                     showError('Sie sind nicht angemeldet. Bitte melden Sie sich an, um Ihre Statistiken zu sehen.');
                     setTimeout(() => {
                         window.location.href = 'login.html';
@@ -2357,67 +2349,42 @@
                 }
                 
                 if (!sessionResponse.ok) {
-                    console.log('❌ Session-Verifikation fehlgeschlagen:', sessionResponse.status);
                     const errorText = await sessionResponse.text();
-                    console.log('❌ Session-Verifikation Fehler-Text:', errorText);
                     throw new Error(`Session-Verifikation fehlgeschlagen (${sessionResponse.status}): ${errorText}`);
                 }
                 
                 const sessionData = await sessionResponse.json();
-                console.log('🔍 Session-Daten:', sessionData);
-                
                 if (!sessionData.success) {
-                    console.log('❌ Session ungültig, weiterleitung zur Login-Seite');
                     window.location.href = 'login.html';
                     return;
                 }
                 
-                console.log('✅ Session ist gültig, lade Statistiken...');
-                
-                // Session ist gültig, jetzt Statistiken laden
-                console.log('📊 Lade Statistiken...');
-                // Cache-Busting durch Timestamp hinzufügen
-                const timestamp = new Date().getTime();
-                const response = await fetch(`/api/statistics/get?_t=${timestamp}`, {
+                const response = await fetch(`/api/statistics/get?include_history=true`, {
                     method: 'GET',
-                    credentials: 'include',
-                    cache: 'no-cache'
+                    credentials: 'include'
                 });
-                
-                console.log('📊 Statistiken-API Status:', response.status);
-                console.log('📊 Statistiken-API Headers:', Object.fromEntries(response.headers.entries()));
                 
                 if (!response.ok) {
                     if (response.status === 401) {
-                        console.log('❌ Nicht authentifiziert, weiterleitung zur Login-Seite');
                         window.location.href = 'login.html';
                         return;
                     }
-                    
                     const errorText = await response.text();
-                    console.log('❌ Statistiken-API Fehler-Text:', errorText);
                     throw new Error(`Fehler beim Laden der Statistiken (${response.status}): ${errorText}`);
                 }
                 
                 const data = await response.json();
-                console.log('📊 API Response:', data);
                 
                 if (data.success) {
                     statistics = data.statistics;
-                    console.log('✅ Statistiken erfolgreich geladen:', statistics);
                     
                     displayStatistics();
                     
-                    // Lade Geräte-Liste nach displayStatistics
-                    console.log('📱 ===== STARTE GERÄTE-LADEN =====');
-                    console.log('📱 Rufe loadDevices() auf...');
                     try {
                     await loadDevices();
-                        console.log('📱 loadDevices() abgeschlossen');
                     } catch (error) {
-                        console.error('❌ Fehler in loadDevices():', error);
+                        console.error('Fehler in loadDevices():', error);
                     }
-                    console.log('📱 ===== GERÄTE-LADEN ABGESCHLOSSEN =====');
                     
                     hideLoading();
                     
@@ -2833,13 +2800,6 @@
                               currentStats.history?.length > 0 ||
                               (currentStats.current && Object.values(currentStats.current).some(val => val > 0));
             
-            console.log('📊 Data check für Gerät', selectedDeviceId, ':', {
-                hasVideos: currentStats.videos?.length > 0,
-                hasFloors: currentStats.floors?.length > 0,
-                hasHistory: currentStats.history?.length > 0,
-                hasCurrent: currentStats.current && Object.values(currentStats.current).some(val => val > 0),
-                hasAnyData: hasAnyData
-            });
             
             if (!hasAnyData) {
                 console.log('❌ Keine Daten in den Statistiken für Gerät:', selectedDeviceId);
@@ -2847,7 +2807,6 @@
                 return;
             }
             
-            console.log('📊 Statistiken-Daten für Gerät', selectedDeviceId, ':', currentStats);
             
             const current = currentStats.current || {};
             const total = currentStats.total || {};
@@ -2855,12 +2814,6 @@
             const floors = currentStats.floors || [];
             const history = currentStats.history || [];
             
-            // Debug: Zeige verfügbare Daten
-            console.log('📈 Current Stats:', current);
-            console.log('📊 Total Stats:', total);
-            console.log('🎥 Videos:', videos.length);
-            console.log('🏢 Floors:', floors.length);
-            console.log('📅 History:', history.length);
             
             // Statistiken abhängig vom gewählten Zeitraum: nur Aufrufe im Zeitraum zählen
             const bounds = getTimeRangeBounds();
@@ -2887,13 +2840,6 @@
             const totalFloors = floors.length;
             const totalRooms = floors.reduce((sum, floor) => sum + (floor.room_count || 0), 0);
             
-            // Debug: Zeige berechnete Werte
-            console.log('🔢 Berechnete Statistiken (direkt aus Video-Daten):');
-            console.log('  ├─ Gesamte Aufrufe:', totalViews);
-            console.log('  ├─ Videos mit Aufrufen (eindeutige Titel):', videosWithViews);
-            console.log('  ├─ Gesamte Videos:', totalVideos);
-            console.log('  ├─ Gesamte Stockwerke:', totalFloors);
-            console.log('  └─ Gesamte Räume:', totalRooms);
             
             // Zeige/verstecke Menü "Erweiterte Einstellungen" basierend auf Anzahl der Videos mit Aufrufen
             const advancedSettingsElement = document.querySelector('.advanced-settings');
@@ -3004,15 +2950,6 @@
                 const viewHistory = video.viewHistory || video.view_history;
                 return viewHistory && Object.keys(viewHistory).length > 0;
             });
-            
-            console.log('📊 Chart-Daten verfügbar:', { hasVideoData, hasViewHistoryData });
-            
-            console.log('📊 Video viewHistory Details:', videos.map(v => ({ 
-                title: v.title || v.video_title, 
-                hasViewHistory: !!(v.viewHistory || v.view_history), 
-                viewHistoryKeys: (v.viewHistory || v.view_history) ? Object.keys(v.viewHistory || v.view_history) : [],
-                videoData: v // Debug: Zeige vollständige Video-Daten
-            })));
             
             if (!hasVideoData || !hasViewHistoryData) {
                 console.log('⚠️ Keine ausreichenden Daten für Charts verfügbar');
@@ -4679,8 +4616,8 @@
             }
         }
         
-        // Auto-Refresh alle 5 Minuten
-        setInterval(loadDashboard, 5 * 60 * 1000);
+        // Auto-Refresh alle 30 Minuten
+        setInterval(loadDashboard, 30 * 60 * 1000);
         
         // Scroll zu Charts-Funktion
         function scrollToCharts() {
