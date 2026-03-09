@@ -674,8 +674,8 @@
             color: var(--white);
         }
 
-        /* Benutzerdefinierte Datumsauswahl + Einzelner Tag */
-        .custom-date-range, .single-day-range {
+        /* Benutzerdefinierte Datumsauswahl */
+        .custom-date-range {
             width: 100%;
             margin-top: 1rem;
             padding: 1rem;
@@ -1619,27 +1619,8 @@
                         <button class="time-btn" data-range="7">Letzte 7 Tage</button>
                         <button class="time-btn" data-range="all">Gesamter Zeitraum</button>
                         <button class="time-btn active" data-range="custom" id="customRangeBtn">Benutzerdefiniert</button>
-                        <button class="time-btn" data-range="day" id="dayRangeBtn">Einzelner Tag</button>
                     </div>
                     
-                    <!-- Einzelner-Tag-Auswahl -->
-                    <div class="single-day-range" id="singleDayRange" style="display: none;">
-                        <div class="date-inputs" style="justify-content: flex-start;">
-                            <div class="date-input-group">
-                                <label for="singleDayInput">Tag auswählen:</label>
-                                <div class="date-input-container">
-                                    <button class="date-nav-btn" id="singleDayPrev" type="button">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </button>
-                                    <input type="date" id="singleDayInput" class="date-input">
-                                    <button class="date-nav-btn" id="singleDayNext" type="button">
-                                        <i class="fas fa-chevron-right"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Benutzerdefinierte Datumsauswahl -->
                     <div class="custom-date-range" id="customDateRange" style="display: block;">
                         <div class="date-inputs">
@@ -1779,8 +1760,6 @@
             startDate: null,
             endDate: null
         };
-        const _now = new Date();
-        let singleDayDate = _now.getFullYear() + '-' + String(_now.getMonth() + 1).padStart(2, '0') + '-' + String(_now.getDate()).padStart(2, '0'); // Heute als Standard (lokale Zeit)
         
         // Erweiterte Einstellungen Variablen
         let selectedVideoCount = 5;
@@ -2183,28 +2162,20 @@
                     this.classList.add('active');
                     currentTimeRange = this.dataset.range;
                     
-                    // Zeige/verstecke Datumsauswahl-Bereiche
+                    // Zeige/verstecke benutzerdefinierte Datumsauswahl
                     const customDateRangeElement = document.getElementById('customDateRange');
-                    const singleDayRangeElement = document.getElementById('singleDayRange');
                     if (currentTimeRange === 'custom') {
                         customDateRangeElement.style.display = 'block';
-                        singleDayRangeElement.style.display = 'none';
+                        
+                        // Synchronisiere den benutzerdefinierten Zeitraum mit dem Gesamten Zeitraum
                         syncCustomTimeRangeWithAllTime();
-                    } else if (currentTimeRange === 'day') {
-                        customDateRangeElement.style.display = 'none';
-                        singleDayRangeElement.style.display = 'block';
-                        // Heute als Standard setzen falls noch kein Datum gewählt
-                        const singleDayInput = document.getElementById('singleDayInput');
-                        if (singleDayInput && !singleDayInput.value) {
-                            singleDayInput.value = singleDayDate;
-                        }
                     } else if (currentTimeRange === 'all') {
                         customDateRangeElement.style.display = 'none';
-                        singleDayRangeElement.style.display = 'none';
+                        
+                        // Aktualisiere auch den benutzerdefinierten Zeitraum, wenn "Gesamter Zeitraum" gewählt wird
                         syncCustomTimeRangeWithAllTime();
                     } else {
                         customDateRangeElement.style.display = 'none';
-                        singleDayRangeElement.style.display = 'none';
                     }
                     
                     updateCharts();
@@ -2249,6 +2220,7 @@
             function navigateDate(inputId, direction) {
                 const input = document.getElementById(inputId);
                 if (!input.value) {
+                    // Wenn kein Datum ausgewählt ist, setze heute als Standard
                     const today = new Date();
                     input.value = today.toISOString().split('T')[0];
                 } else {
@@ -2256,10 +2228,7 @@
                     currentDate.setDate(currentDate.getDate() + direction);
                     input.value = currentDate.toISOString().split('T')[0];
                 }
-                // Bei singleDayInput: Variable direkt aktualisieren
-                if (inputId === 'singleDayInput') {
-                    singleDayDate = input.value;
-                }
+                // Trigger change event um die Charts zu aktualisieren
                 input.dispatchEvent(new Event('change'));
             }
             
@@ -2283,29 +2252,14 @@
             const resetDateBtn = document.getElementById('resetDateBtn');
             if (resetDateBtn) {
                 resetDateBtn.addEventListener('click', function() {
+                    // Setze den benutzerdefinierten Zeitraum auf den dynamischen Gesamten Zeitraum zurück
                     syncCustomTimeRangeWithAllTime();
+                    
+                    // Aktualisiere die Charts
                     updateCharts();
+                    
+                    console.log('🔄 Benutzerdefinierter Zeitraum auf Standard zurückgesetzt');
                 });
-            }
-
-            // Einzelner-Tag-Picker
-            const singleDayInput = document.getElementById('singleDayInput');
-            if (singleDayInput) {
-                singleDayInput.value = singleDayDate;
-                singleDayInput.addEventListener('change', function() {
-                    if (this.value) {
-                        singleDayDate = this.value;
-                        updateCharts();
-                    }
-                });
-            }
-            const singleDayPrev = document.getElementById('singleDayPrev');
-            const singleDayNext = document.getElementById('singleDayNext');
-            if (singleDayPrev) {
-                singleDayPrev.addEventListener('click', () => navigateDate('singleDayInput', -1));
-            }
-            if (singleDayNext) {
-                singleDayNext.addEventListener('click', () => navigateDate('singleDayInput', 1));
             }
             
             var averageToggle = document.getElementById('averageToggle');
@@ -3079,13 +3033,6 @@
                 start.setHours(0, 0, 0, 0);
                 return { startDate: start, endDate: new Date(today) };
             }
-            if (currentTimeRange === 'day' && singleDayDate) {
-                const start = new Date(singleDayDate);
-                start.setHours(0, 0, 0, 0);
-                const end = new Date(singleDayDate);
-                end.setHours(23, 59, 59, 999);
-                return { startDate: start, endDate: end };
-            }
             if (currentTimeRange === 'custom' && customDateRange.startDate && customDateRange.endDate) {
                 const start = new Date(customDateRange.startDate);
                 start.setHours(0, 0, 0, 0);
@@ -3115,67 +3062,6 @@
             return sum;
         }
         
-        // Hilfsfunktion: Stündliche Aufrufe für einen Tag aus viewHistory extrahieren.
-        // Gibt { hourlyData, hasRealHourly, totalForDay } zurück.
-        let _hourlyDebugDone = false;
-        function getHourlyDataForDay(vh, dayStr) {
-            const hourlyData = new Array(24).fill(0);
-            let hasRealHourly = false;
-            let dailyTotal = 0;
-
-            const keys = Object.keys(vh);
-
-            // Einmaliges Debug-Log damit man das Format der Keys sehen kann
-            if (!_hourlyDebugDone && keys.length > 0) {
-                _hourlyDebugDone = true;
-                console.log('[Einzelner Tag] viewHistory-Keys (Beispiel):', keys.slice(0, 5), '| singleDayDate:', dayStr);
-            }
-
-            keys.forEach(key => {
-                const count = parseInt(vh[key]) || 0;
-                if (count <= 0) return;
-
-                // Fall 1: Reiner Datums-Key "2026-03-08" → Tagesgesamt für Fallback
-                if (key === dayStr) {
-                    dailyTotal += count;
-                    return;
-                }
-
-                let hour = -1;
-
-                // Fall 2: ISO-Datetime ohne Timezone: "2026-03-08T14:30:00" oder "2026-03-08 14:30:00"
-                const isoMatch = key.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2})/);
-                if (isoMatch) {
-                    if (isoMatch[1] === dayStr) hour = parseInt(isoMatch[2]);
-                } else {
-                    // Fall 3: Unix-ms als String oder ISO mit Timezone → über Date-Objekt (lokale Zeit)
-                    const ms = parseFloat(key);
-                    const d = (!isNaN(ms) && ms > 1000000000000) ? new Date(ms) : new Date(key);
-                    if (!isNaN(d.getTime())) {
-                        const ld = d.getFullYear() + '-' +
-                            String(d.getMonth() + 1).padStart(2, '0') + '-' +
-                            String(d.getDate()).padStart(2, '0');
-                        if (ld === dayStr) hour = d.getHours();
-                    }
-                }
-
-                if (hour >= 0 && hour < 24) {
-                    hourlyData[hour] += count;
-                    hasRealHourly = true;
-                }
-            });
-
-            // Fallback: Tagesgesamt gleichmäßig verteilen (ganzzahlig, kein Rundungsverlust)
-            if (!hasRealHourly && dailyTotal > 0) {
-                const base = Math.floor(dailyTotal / 24);
-                const rem = dailyTotal % 24;
-                for (let h = 0; h < 24; h++) hourlyData[h] = base + (h < rem ? 1 : 0);
-            }
-
-            const totalForDay = hourlyData.reduce((a, b) => a + b, 0);
-            return { hourlyData, hasRealHourly, totalForDay };
-        }
-
         // Liniendiagramm erstellen (wie in der App)
         function createLineChart() {
             const chartElement = document.getElementById('lineChart');
@@ -3219,37 +3105,6 @@
             
             // Modus "Insgesamte Aufrufe": Alle Videos mit Aufrufen, kumulierte Gesamtaufrufe pro Tag
             if (lineChartMode === 'totalViews') {
-                // --- Einzelner-Tag-Modus: stündliche X-Achse ---
-                if (currentTimeRange === 'day') {
-                    const hourLabels = Array.from({length: 24}, (_, h) => h.toString().padStart(2, '0') + ':00');
-                    const hourlyTotals = new Array(24).fill(0);
-                    mergedVideos.forEach(video => {
-                        const vh = video.viewHistory || video.view_history || {};
-                        const { hourlyData: videoHourly } = getHourlyDataForDay(vh, singleDayDate);
-                        for (let h = 0; h < 24; h++) hourlyTotals[h] += videoHourly[h];
-                    });
-                    if (hourlyTotals.every(v => v === 0)) {
-                        chartElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#7F8C8D;font-size:16px;text-align:center;">Keine Aufrufe für ' + singleDayDate + '<br><small style="font-size:12px">Wähle einen anderen Tag oder prüfe die Browser-Konsole</small></div>';
-                        return;
-                    }
-                    const dayAvg = hourlyTotals.reduce((a, b) => a + b, 0) / Math.max(1, hourlyTotals.filter(v => v > 0).length);
-                    charts.lineChart = echarts.init(chartElement);
-                    charts.lineChart.setOption({
-                        xAxis: { type: 'category', data: hourLabels, axisLabel: { color: '#666', rotate: 45 }, axisTick: { alignWithLabel: true } },
-                        yAxis: { type: 'value', axisLabel: { color: '#666' }, name: 'Aufrufe', nameTextStyle: { color: '#666' } },
-                        series: [{ name: 'Gesamte Aufrufe', type: 'line', data: hourlyTotals, smooth: true, lineStyle: { width: 3 }, itemStyle: { color: getChartColor(0) }, emphasis: { focus: 'series' },
-                            markLine: { data: [{ yAxis: dayAvg, name: 'Durchschnitt' }], lineStyle: { type: 'dashed', color: '#999' }, label: { position: 'insideEndTop', formatter: 'Ø ' + dayAvg.toFixed(1) } }
-                        }],
-                        tooltip: { trigger: 'axis', confine: true, formatter: p => p[0] ? p[0].axisValue + ' Uhr<br/><strong>Aufrufe: ' + p[0].value + '</strong>' : '' },
-                        legend: { show: false },
-                        grid: { left: '3%', right: '4%', bottom: '8%', containLabel: true },
-                        color: getChartColors()
-                    });
-                    setTimeout(() => { if (charts.lineChart) charts.lineChart.resize(); }, 100);
-                    return;
-                }
-                // --- Ende Einzelner-Tag-Modus ---
-
                 const bounds = getTimeRangeBounds();
                 const allVideosWithViews = bounds
                     ? mergedVideos.map(v => ({ ...v, views: getViewsInRangeForVideo(v, bounds.startDate, bounds.endDate) })).filter(v => (v.views || 0) > 0)
@@ -3346,39 +3201,7 @@
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Videos mit Aufrufen verfügbar</div>';
                 return;
             }
-
-            // --- Einzelner-Tag-Modus: stündliche X-Achse ---
-            if (currentTimeRange === 'day') {
-                const hourLabels = Array.from({length: 24}, (_, h) => h.toString().padStart(2, '0') + ':00');
-                    const daySeries = filteredVideos.map((video, idx) => {
-                    const vh = video.viewHistory || video.view_history || {};
-                    const { hourlyData } = getHourlyDataForDay(vh, singleDayDate);
-                    return { name: video.title, type: 'line', data: hourlyData, smooth: true, lineStyle: { width: 2 }, itemStyle: { color: getChartColor(idx) }, emphasis: { focus: 'series' } };
-                });
-                if (daySeries.every(s => s.data.every(v => v === 0))) {
-                    chartElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#7F8C8D;font-size:16px;text-align:center;">Keine Aufrufe für ' + singleDayDate + '<br><small style="font-size:12px">Wähle einen anderen Tag oder prüfe die Browser-Konsole</small></div>';
-                    return;
-                }
-                charts.lineChart = echarts.init(chartElement);
-                charts.lineChart.setOption({
-                    xAxis: { type: 'category', data: hourLabels, axisLabel: { color: '#666', rotate: 45 }, axisTick: { alignWithLabel: true } },
-                    yAxis: { type: 'value', axisLabel: { color: '#666' }, name: 'Aufrufe', nameTextStyle: { color: '#666' } },
-                    series: daySeries,
-                    tooltip: { trigger: 'axis', confine: true, formatter: function(params) {
-                        if (!params || params.length === 0) return '';
-                        let r = params[0].axisValue + ' Uhr<br/>';
-                        params.forEach(p => { if (p.value > 0) r += p.marker + p.seriesName + ': ' + p.value + '<br/>'; });
-                        return r;
-                    }},
-                    legend: { show: daySeries.length > 1, bottom: 0, type: 'scroll' },
-                    grid: { left: '3%', right: '4%', bottom: daySeries.length > 1 ? '15%' : '8%', containLabel: true },
-                    color: getChartColors()
-                });
-                setTimeout(() => { if (charts.lineChart) charts.lineChart.resize(); }, 100);
-                return;
-            }
-            // --- Ende Einzelner-Tag-Modus ---
-
+            
             // Prüfe ob viewHistory-Daten verfügbar sind
             const hasViewHistory = filteredVideos.some(video => 
                 (video.viewHistory && Object.keys(video.viewHistory).length > 0) ||
@@ -3892,36 +3715,6 @@
             
             // Modus "Insgesamte Aufrufe": Alle Videos, kumulierte Gesamtaufrufe pro Tag
             if (lineRaceChartMode === 'totalViews') {
-                // --- Einzelner-Tag-Modus: kumulierte stündliche X-Achse ---
-                if (currentTimeRange === 'day') {
-                    const hourLabels = Array.from({length: 24}, (_, h) => h.toString().padStart(2, '0') + ':00');
-                    const hourlyTotals = new Array(24).fill(0);
-                    mergedVideos.forEach(video => {
-                        const vh = video.viewHistory || video.view_history || {};
-                        const { hourlyData: videoHourly } = getHourlyDataForDay(vh, singleDayDate);
-                        for (let h = 0; h < 24; h++) hourlyTotals[h] += videoHourly[h];
-                    });
-                    if (hourlyTotals.every(v => v === 0)) {
-                        chartElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#7F8C8D;font-size:16px;text-align:center;">Keine Aufrufe für ' + singleDayDate + '<br><small style="font-size:12px">Wähle einen anderen Tag oder prüfe die Browser-Konsole</small></div>';
-                        return;
-                    }
-                    let cum = 0;
-                    const cumulativeHourly = hourlyTotals.map(v => { cum += v; return cum; });
-                    charts.lineRaceChart = echarts.init(chartElement);
-                    charts.lineRaceChart.setOption({
-                        xAxis: { type: 'category', data: hourLabels, axisLabel: { color: '#666', rotate: 45 }, axisTick: { alignWithLabel: true } },
-                        yAxis: { type: 'value', axisLabel: { color: '#666' }, name: 'Kumulierte Aufrufe', nameTextStyle: { color: '#666' } },
-                        series: [{ name: 'Gesamte Aufrufe', type: 'line', data: cumulativeHourly, smooth: true, lineStyle: { width: 3 }, itemStyle: { color: getChartColor(0) }, emphasis: { focus: 'series' } }],
-                        tooltip: { trigger: 'axis', confine: true, formatter: p => p[0] ? p[0].axisValue + ' Uhr<br/><strong>Kumulierte Aufrufe: ' + p[0].value + '</strong>' : '' },
-                        legend: { show: false },
-                        grid: { left: '3%', right: '4%', bottom: '8%', containLabel: true },
-                        color: getChartColors()
-                    });
-                    setTimeout(() => { if (charts.lineRaceChart) charts.lineRaceChart.resize(); }, 100);
-                    return;
-                }
-                // --- Ende Einzelner-Tag-Modus ---
-
                 const bounds = getTimeRangeBounds();
                 const allVideosWithViews = bounds
                     ? mergedVideos.map(v => ({ ...v, views: getViewsInRangeForVideo(v, bounds.startDate, bounds.endDate) })).filter(v => (v.views || 0) > 0)
@@ -4013,41 +3806,7 @@
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Videos mit Aufrufen verfügbar</div>';
                 return;
             }
-
-            // --- Einzelner-Tag-Modus: kumulierte stündliche X-Achse ---
-            if (currentTimeRange === 'day') {
-                const hourLabels = Array.from({length: 24}, (_, h) => h.toString().padStart(2, '0') + ':00');
-                    const daySeries = filteredVideos.map((video, idx) => {
-                    const vh = video.viewHistory || video.view_history || {};
-                    const { hourlyData } = getHourlyDataForDay(vh, singleDayDate);
-                    let cum = 0;
-                    const cumulativeHourly = hourlyData.map(v => { cum += v; return cum; });
-                    return { name: video.title, type: 'line', data: cumulativeHourly, smooth: true, lineStyle: { width: 2 }, itemStyle: { color: getChartColor(idx) }, emphasis: { focus: 'series' } };
-                });
-                if (daySeries.every(s => s.data.every(v => v === 0))) {
-                    chartElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#7F8C8D;font-size:16px;text-align:center;">Keine Aufrufe für ' + singleDayDate + '<br><small style="font-size:12px">Wähle einen anderen Tag oder prüfe die Browser-Konsole</small></div>';
-                    return;
-                }
-                charts.lineRaceChart = echarts.init(chartElement);
-                charts.lineRaceChart.setOption({
-                    xAxis: { type: 'category', data: hourLabels, axisLabel: { color: '#666', rotate: 45 }, axisTick: { alignWithLabel: true } },
-                    yAxis: { type: 'value', axisLabel: { color: '#666' }, name: 'Kumulierte Aufrufe', nameTextStyle: { color: '#666' } },
-                    series: daySeries,
-                    tooltip: { trigger: 'axis', confine: true, formatter: function(params) {
-                        if (!params || params.length === 0) return '';
-                        let r = params[0].axisValue + ' Uhr<br/>';
-                        params.forEach(p => { if (p.value > 0) r += p.marker + p.seriesName + ': ' + p.value + '<br/>'; });
-                        return r;
-                    }},
-                    legend: { show: daySeries.length > 1, bottom: 0, type: 'scroll' },
-                    grid: { left: '3%', right: '4%', bottom: daySeries.length > 1 ? '15%' : '8%', containLabel: true },
-                    color: getChartColors()
-                });
-                setTimeout(() => { if (charts.lineRaceChart) charts.lineRaceChart.resize(); }, 100);
-                return;
-            }
-            // --- Ende Einzelner-Tag-Modus ---
-
+            
             // Prüfe ob viewHistory-Daten verfügbar sind
             const hasViewHistory = filteredVideos.some(video => 
                 (video.viewHistory && Object.keys(video.viewHistory).length > 0) ||
