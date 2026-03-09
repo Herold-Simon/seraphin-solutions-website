@@ -63,10 +63,8 @@ module.exports = async function handler(req, res) {
         }
 
         const deviceId = req.query.device_id;
-        const includeHistory = req.query.include_history === 'true';
 
-        const videoSelectBase = 'video_id, video_title, views, last_viewed, created_at, updated_at';
-        const videoSelectFull = `${videoSelectBase}, view_history`;
+        const videoSelectFull = 'video_id, video_title, views, last_viewed, created_at, updated_at, view_history';
 
         // App-Statistiken laden
         let appStats;
@@ -114,10 +112,10 @@ module.exports = async function handler(req, res) {
         let videoStats = [];
 
         if (deviceId && deviceId !== 'all') {
-            // Geräte-spezifisch: nur device_video_statistics
+            // Geräte-spezifisch: nur device_video_statistics (immer mit view_history)
             const { data } = await supabase
                 .from('device_video_statistics')
-                .select(includeHistory ? videoSelectFull : videoSelectBase)
+                .select(videoSelectFull)
                 .eq('admin_user_id', adminUserId)
                 .eq('device_id', deviceId)
                 .order('views', { ascending: false });

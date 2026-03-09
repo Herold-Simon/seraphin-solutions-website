@@ -3116,42 +3116,64 @@
         }
         
         // Hilfsfunktion: Stündliche Aufrufe für einen Tag aus viewHistory extrahieren.
-        // Unterstützt: ISO-Strings ("2026-03-08T14:30:00"), ISO mit Timezone, Unix-ms-Timestamps als Strings.
-        // Fallback: Tagesgesamt gleichmäßig auf Stunden verteilen (ohne Rundungsverlust).
+        // Gibt { hourlyData, hasRealHourly, totalForDay } zurück.
+        let _hourlyDebugDone = false;
         function getHourlyDataForDay(vh, dayStr) {
             const hourlyData = new Array(24).fill(0);
-            let hasHourly = false;
-            Object.keys(vh).forEach(key => {
+            let hasRealHourly = false;
+            let dailyTotal = 0;
+
+            const keys = Object.keys(vh);
+
+            // Einmaliges Debug-Log damit man das Format der Keys sehen kann
+            if (!_hourlyDebugDone && keys.length > 0) {
+                _hourlyDebugDone = true;
+                console.log('[Einzelner Tag] viewHistory-Keys (Beispiel):', keys.slice(0, 5), '| singleDayDate:', dayStr);
+            }
+
+            keys.forEach(key => {
                 const count = parseInt(vh[key]) || 0;
                 if (count <= 0) return;
+
+                // Fall 1: Reiner Datums-Key "2026-03-08" → Tagesgesamt für Fallback
+                if (key === dayStr) {
+                    dailyTotal += count;
+                    return;
+                }
+
                 let hour = -1;
-                // Format ohne Timezone: "2026-03-08T14:30:00" oder "2026-03-08 14:30:00"
+
+                // Fall 2: ISO-Datetime ohne Timezone: "2026-03-08T14:30:00" oder "2026-03-08 14:30:00"
                 const isoMatch = key.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2})/);
                 if (isoMatch) {
                     if (isoMatch[1] === dayStr) hour = parseInt(isoMatch[2]);
                 } else {
-                    // Unix-ms-Timestamp als String oder ISO mit Timezone
+                    // Fall 3: Unix-ms als String oder ISO mit Timezone → über Date-Objekt (lokale Zeit)
                     const ms = parseFloat(key);
                     const d = (!isNaN(ms) && ms > 1000000000000) ? new Date(ms) : new Date(key);
                     if (!isNaN(d.getTime())) {
-                        const ld = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                        const ld = d.getFullYear() + '-' +
+                            String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                            String(d.getDate()).padStart(2, '0');
                         if (ld === dayStr) hour = d.getHours();
                     }
                 }
+
                 if (hour >= 0 && hour < 24) {
                     hourlyData[hour] += count;
-                    hasHourly = true;
+                    hasRealHourly = true;
                 }
             });
-            if (!hasHourly) {
-                const dayTotal = parseInt(vh[dayStr]) || 0;
-                if (dayTotal > 0) {
-                    const base = Math.floor(dayTotal / 24);
-                    const rem = dayTotal % 24;
-                    for (let h = 0; h < 24; h++) hourlyData[h] = base + (h < rem ? 1 : 0);
-                }
+
+            // Fallback: Tagesgesamt gleichmäßig verteilen (ganzzahlig, kein Rundungsverlust)
+            if (!hasRealHourly && dailyTotal > 0) {
+                const base = Math.floor(dailyTotal / 24);
+                const rem = dailyTotal % 24;
+                for (let h = 0; h < 24; h++) hourlyData[h] = base + (h < rem ? 1 : 0);
             }
-            return hourlyData;
+
+            const totalForDay = hourlyData.reduce((a, b) => a + b, 0);
+            return { hourlyData, hasRealHourly, totalForDay };
         }
 
         // Liniendiagramm erstellen (wie in der App)
@@ -3203,9 +3225,13 @@
                     const hourlyTotals = new Array(24).fill(0);
                     mergedVideos.forEach(video => {
                         const vh = video.viewHistory || video.view_history || {};
-                        const videoHourly = getHourlyDataForDay(vh, singleDayDate);
+                        const { hourlyData: videoHourly } = getHourlyDataForDay(vh, singleDayDate);
                         for (let h = 0; h < 24; h++) hourlyTotals[h] += videoHourly[h];
                     });
+                    if (hourlyTotals.every(v => v === 0)) {
+                        chartElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#7F8C8D;font-size:16px;text-align:center;">Keine Aufrufe für ' + singleDayDate + '<br><small style="font-size:12px">Wähle einen anderen Tag oder prüfe die Browser-Konsole</small></div>';
+                        return;
+                    }
                     const dayAvg = hourlyTotals.reduce((a, b) => a + b, 0) / Math.max(1, hourlyTotals.filter(v => v > 0).length);
                     charts.lineChart = echarts.init(chartElement);
                     charts.lineChart.setOption({
@@ -3326,9 +3352,13 @@
                 const hourLabels = Array.from({length: 24}, (_, h) => h.toString().padStart(2, '0') + ':00');
                     const daySeries = filteredVideos.map((video, idx) => {
                     const vh = video.viewHistory || video.view_history || {};
-                    const hourlyData = getHourlyDataForDay(vh, singleDayDate);
+                    const { hourlyData } = getHourlyDataForDay(vh, singleDayDate);
                     return { name: video.title, type: 'line', data: hourlyData, smooth: true, lineStyle: { width: 2 }, itemStyle: { color: getChartColor(idx) }, emphasis: { focus: 'series' } };
                 });
+                if (daySeries.every(s => s.data.every(v => v === 0))) {
+                    chartElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#7F8C8D;font-size:16px;text-align:center;">Keine Aufrufe für ' + singleDayDate + '<br><small style="font-size:12px">Wähle einen anderen Tag oder prüfe die Browser-Konsole</small></div>';
+                    return;
+                }
                 charts.lineChart = echarts.init(chartElement);
                 charts.lineChart.setOption({
                     xAxis: { type: 'category', data: hourLabels, axisLabel: { color: '#666', rotate: 45 }, axisTick: { alignWithLabel: true } },
@@ -3868,9 +3898,13 @@
                     const hourlyTotals = new Array(24).fill(0);
                     mergedVideos.forEach(video => {
                         const vh = video.viewHistory || video.view_history || {};
-                        const videoHourly = getHourlyDataForDay(vh, singleDayDate);
+                        const { hourlyData: videoHourly } = getHourlyDataForDay(vh, singleDayDate);
                         for (let h = 0; h < 24; h++) hourlyTotals[h] += videoHourly[h];
                     });
+                    if (hourlyTotals.every(v => v === 0)) {
+                        chartElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#7F8C8D;font-size:16px;text-align:center;">Keine Aufrufe für ' + singleDayDate + '<br><small style="font-size:12px">Wähle einen anderen Tag oder prüfe die Browser-Konsole</small></div>';
+                        return;
+                    }
                     let cum = 0;
                     const cumulativeHourly = hourlyTotals.map(v => { cum += v; return cum; });
                     charts.lineRaceChart = echarts.init(chartElement);
@@ -3985,11 +4019,15 @@
                 const hourLabels = Array.from({length: 24}, (_, h) => h.toString().padStart(2, '0') + ':00');
                     const daySeries = filteredVideos.map((video, idx) => {
                     const vh = video.viewHistory || video.view_history || {};
-                    const hourlyData = getHourlyDataForDay(vh, singleDayDate);
+                    const { hourlyData } = getHourlyDataForDay(vh, singleDayDate);
                     let cum = 0;
                     const cumulativeHourly = hourlyData.map(v => { cum += v; return cum; });
                     return { name: video.title, type: 'line', data: cumulativeHourly, smooth: true, lineStyle: { width: 2 }, itemStyle: { color: getChartColor(idx) }, emphasis: { focus: 'series' } };
                 });
+                if (daySeries.every(s => s.data.every(v => v === 0))) {
+                    chartElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#7F8C8D;font-size:16px;text-align:center;">Keine Aufrufe für ' + singleDayDate + '<br><small style="font-size:12px">Wähle einen anderen Tag oder prüfe die Browser-Konsole</small></div>';
+                    return;
+                }
                 charts.lineRaceChart = echarts.init(chartElement);
                 charts.lineRaceChart.setOption({
                     xAxis: { type: 'category', data: hourLabels, axisLabel: { color: '#666', rotate: 45 }, axisTick: { alignWithLabel: true } },
