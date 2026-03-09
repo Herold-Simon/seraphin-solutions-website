@@ -1779,7 +1779,8 @@
             startDate: null,
             endDate: null
         };
-        let singleDayDate = new Date().toISOString().split('T')[0]; // Heute als Standard
+        const _now = new Date();
+        let singleDayDate = _now.getFullYear() + '-' + String(_now.getMonth() + 1).padStart(2, '0') + '-' + String(_now.getDate()).padStart(2, '0'); // Heute als Standard (lokale Zeit)
         
         // Erweiterte Einstellungen Variablen
         let selectedVideoCount = 5;
@@ -3114,6 +3115,45 @@
             return sum;
         }
         
+        // Hilfsfunktion: Stündliche Aufrufe für einen Tag aus viewHistory extrahieren.
+        // Unterstützt: ISO-Strings ("2026-03-08T14:30:00"), ISO mit Timezone, Unix-ms-Timestamps als Strings.
+        // Fallback: Tagesgesamt gleichmäßig auf Stunden verteilen (ohne Rundungsverlust).
+        function getHourlyDataForDay(vh, dayStr) {
+            const hourlyData = new Array(24).fill(0);
+            let hasHourly = false;
+            Object.keys(vh).forEach(key => {
+                const count = parseInt(vh[key]) || 0;
+                if (count <= 0) return;
+                let hour = -1;
+                // Format ohne Timezone: "2026-03-08T14:30:00" oder "2026-03-08 14:30:00"
+                const isoMatch = key.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2})/);
+                if (isoMatch) {
+                    if (isoMatch[1] === dayStr) hour = parseInt(isoMatch[2]);
+                } else {
+                    // Unix-ms-Timestamp als String oder ISO mit Timezone
+                    const ms = parseFloat(key);
+                    const d = (!isNaN(ms) && ms > 1000000000000) ? new Date(ms) : new Date(key);
+                    if (!isNaN(d.getTime())) {
+                        const ld = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                        if (ld === dayStr) hour = d.getHours();
+                    }
+                }
+                if (hour >= 0 && hour < 24) {
+                    hourlyData[hour] += count;
+                    hasHourly = true;
+                }
+            });
+            if (!hasHourly) {
+                const dayTotal = parseInt(vh[dayStr]) || 0;
+                if (dayTotal > 0) {
+                    const base = Math.floor(dayTotal / 24);
+                    const rem = dayTotal % 24;
+                    for (let h = 0; h < 24; h++) hourlyData[h] = base + (h < rem ? 1 : 0);
+                }
+            }
+            return hourlyData;
+        }
+
         // Liniendiagramm erstellen (wie in der App)
         function createLineChart() {
             const chartElement = document.getElementById('lineChart');
@@ -3161,23 +3201,10 @@
                 if (currentTimeRange === 'day') {
                     const hourLabels = Array.from({length: 24}, (_, h) => h.toString().padStart(2, '0') + ':00');
                     const hourlyTotals = new Array(24).fill(0);
-                    let hasHourly = false;
                     mergedVideos.forEach(video => {
                         const vh = video.viewHistory || video.view_history || {};
-                        Object.keys(vh).forEach(key => {
-                            if (key.startsWith(singleDayDate + 'T') || key.startsWith(singleDayDate + ' ')) {
-                                const hour = parseInt(key.substring(singleDayDate.length + 1));
-                                if (!isNaN(hour) && hour >= 0 && hour < 24) {
-                                    hourlyTotals[hour] += parseInt(vh[key]) || 0;
-                                    hasHourly = true;
-                                }
-                            }
-                        });
-                        if (!hasHourly) {
-                            const dayTotal = parseInt(vh[singleDayDate]) || 0;
-                            const avg = dayTotal / 24;
-                            for (let h = 0; h < 24; h++) hourlyTotals[h] += Math.round(avg * (0.8 + Math.random() * 0.4));
-                        }
+                        const videoHourly = getHourlyDataForDay(vh, singleDayDate);
+                        for (let h = 0; h < 24; h++) hourlyTotals[h] += videoHourly[h];
                     });
                     const dayAvg = hourlyTotals.reduce((a, b) => a + b, 0) / Math.max(1, hourlyTotals.filter(v => v > 0).length);
                     charts.lineChart = echarts.init(chartElement);
@@ -3297,24 +3324,9 @@
             // --- Einzelner-Tag-Modus: stündliche X-Achse ---
             if (currentTimeRange === 'day') {
                 const hourLabels = Array.from({length: 24}, (_, h) => h.toString().padStart(2, '0') + ':00');
-                const daySeries = filteredVideos.map((video, idx) => {
+                    const daySeries = filteredVideos.map((video, idx) => {
                     const vh = video.viewHistory || video.view_history || {};
-                    const hourlyData = new Array(24).fill(0);
-                    let hasHourly = false;
-                    Object.keys(vh).forEach(key => {
-                        if (key.startsWith(singleDayDate + 'T') || key.startsWith(singleDayDate + ' ')) {
-                            const hour = parseInt(key.substring(singleDayDate.length + 1));
-                            if (!isNaN(hour) && hour >= 0 && hour < 24) {
-                                hourlyData[hour] += parseInt(vh[key]) || 0;
-                                hasHourly = true;
-                            }
-                        }
-                    });
-                    if (!hasHourly) {
-                        const dayTotal = parseInt(vh[singleDayDate]) || 0;
-                        const avg = dayTotal / 24;
-                        for (let h = 0; h < 24; h++) hourlyData[h] = Math.round(avg * (0.8 + Math.random() * 0.4));
-                    }
+                    const hourlyData = getHourlyDataForDay(vh, singleDayDate);
                     return { name: video.title, type: 'line', data: hourlyData, smooth: true, lineStyle: { width: 2 }, itemStyle: { color: getChartColor(idx) }, emphasis: { focus: 'series' } };
                 });
                 charts.lineChart = echarts.init(chartElement);
@@ -3854,23 +3866,10 @@
                 if (currentTimeRange === 'day') {
                     const hourLabels = Array.from({length: 24}, (_, h) => h.toString().padStart(2, '0') + ':00');
                     const hourlyTotals = new Array(24).fill(0);
-                    let hasHourly = false;
                     mergedVideos.forEach(video => {
                         const vh = video.viewHistory || video.view_history || {};
-                        Object.keys(vh).forEach(key => {
-                            if (key.startsWith(singleDayDate + 'T') || key.startsWith(singleDayDate + ' ')) {
-                                const hour = parseInt(key.substring(singleDayDate.length + 1));
-                                if (!isNaN(hour) && hour >= 0 && hour < 24) {
-                                    hourlyTotals[hour] += parseInt(vh[key]) || 0;
-                                    hasHourly = true;
-                                }
-                            }
-                        });
-                        if (!hasHourly) {
-                            const dayTotal = parseInt(vh[singleDayDate]) || 0;
-                            const avg = dayTotal / 24;
-                            for (let h = 0; h < 24; h++) hourlyTotals[h] += Math.round(avg * (0.8 + Math.random() * 0.4));
-                        }
+                        const videoHourly = getHourlyDataForDay(vh, singleDayDate);
+                        for (let h = 0; h < 24; h++) hourlyTotals[h] += videoHourly[h];
                     });
                     let cum = 0;
                     const cumulativeHourly = hourlyTotals.map(v => { cum += v; return cum; });
@@ -3984,24 +3983,9 @@
             // --- Einzelner-Tag-Modus: kumulierte stündliche X-Achse ---
             if (currentTimeRange === 'day') {
                 const hourLabels = Array.from({length: 24}, (_, h) => h.toString().padStart(2, '0') + ':00');
-                const daySeries = filteredVideos.map((video, idx) => {
+                    const daySeries = filteredVideos.map((video, idx) => {
                     const vh = video.viewHistory || video.view_history || {};
-                    const hourlyData = new Array(24).fill(0);
-                    let hasHourly = false;
-                    Object.keys(vh).forEach(key => {
-                        if (key.startsWith(singleDayDate + 'T') || key.startsWith(singleDayDate + ' ')) {
-                            const hour = parseInt(key.substring(singleDayDate.length + 1));
-                            if (!isNaN(hour) && hour >= 0 && hour < 24) {
-                                hourlyData[hour] += parseInt(vh[key]) || 0;
-                                hasHourly = true;
-                            }
-                        }
-                    });
-                    if (!hasHourly) {
-                        const dayTotal = parseInt(vh[singleDayDate]) || 0;
-                        const avg = dayTotal / 24;
-                        for (let h = 0; h < 24; h++) hourlyData[h] = Math.round(avg * (0.8 + Math.random() * 0.4));
-                    }
+                    const hourlyData = getHourlyDataForDay(vh, singleDayDate);
                     let cum = 0;
                     const cumulativeHourly = hourlyData.map(v => { cum += v; return cum; });
                     return { name: video.title, type: 'line', data: cumulativeHourly, smooth: true, lineStyle: { width: 2 }, itemStyle: { color: getChartColor(idx) }, emphasis: { focus: 'series' } };
