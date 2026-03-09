@@ -13,6 +13,7 @@ function setCorsHeaders(res) {
     res.setHeader('Access-Control-Max-Age', '86400');
 }
 
+// Konvertiert Unix-Timestamps zu ISO-Strings
 function convertTimestamp(timestamp) {
     if (!timestamp) return null;
     if (typeof timestamp === 'number' && timestamp > 1000000000000) {
@@ -22,90 +23,6 @@ function convertTimestamp(timestamp) {
         return isNaN(date.getTime()) ? null : date.toISOString();
     }
     return null;
-}
-
-/**
- * Führt ein effizientes Bulk-Sync einer Tabelle durch, ohne UNIQUE-Constraints zu benötigen.
- * 1 Query zum Laden aller existierenden IDs → 1 Batch-Insert für neue Zeilen → parallele Updates für bestehende
- *
- * @param {string} table - Tabellenname
- * @param {Array} rows - Zu synchronisierende Zeilen (müssen admin_user_id enthalten)
- * @param {string} rowKey - Spalte zum Identifizieren einer Zeile (z.B. 'video_id', 'floor_id')
- * @param {Object} extraFilters - Zusätzliche Gleichheits-Filter (z.B. { device_id: '...' })
- */
-async function bulkSyncTable(table, rows, rowKey, extraFilters = {}) {
-    if (!rows || rows.length === 0) return;
-
-    const adminUserId = rows[0].admin_user_id;
-    const keyValues = rows.map(r => r[rowKey]);
-
-    // Schritt 1: Alle existierenden Datensätze dieses Nutzers in EINER Query laden
-    let fetchQuery = supabase
-        .from(table)
-        .select(`id, ${rowKey}`)
-        .eq('admin_user_id', adminUserId)
-        .in(rowKey, keyValues);
-
-    for (const [col, val] of Object.entries(extraFilters)) {
-        fetchQuery = fetchQuery.eq(col, val);
-    }
-
-    const { data: existing, error: fetchError } = await fetchQuery;
-
-    if (fetchError) {
-        console.error(`${table} fetch error:`, fetchError.message);
-        return;
-    }
-
-    const existingMap = new Map((existing || []).map(r => [r[rowKey], r.id]));
-
-    const toInsert = [];
-    const updatePromises = [];
-
-    for (const row of rows) {
-        const existingId = existingMap.get(row[rowKey]);
-        if (existingId) {
-            updatePromises.push(
-                supabase.from(table).update(row).eq('id', existingId)
-            );
-        } else {
-            toInsert.push(row);
-        }
-    }
-
-    // Schritt 2: Neue Zeilen in einer Batch-Query einfügen
-    if (toInsert.length > 0) {
-        const { error: insertError } = await supabase.from(table).insert(toInsert);
-        if (insertError) console.error(`${table} insert error:`, insertError.message);
-    }
-
-    // Schritt 3: Bestehende Zeilen parallel aktualisieren
-    if (updatePromises.length > 0) {
-        const results = await Promise.all(updatePromises);
-        results.forEach(({ error }) => {
-            if (error) console.error(`${table} update error:`, error.message);
-        });
-    }
-}
-
-/**
- * Sync für eine einzelne Zeile (app_statistics, device_statistics) –
- * einfaches check-then-insert/update, da es nur 1 Zeile pro Tag/Gerät gibt.
- */
-async function syncSingleRow(table, data, matchConditions) {
-    let query = supabase.from(table).select('id');
-    for (const [col, val] of Object.entries(matchConditions)) {
-        query = query.eq(col, val);
-    }
-    const { data: existing } = await query.single();
-
-    if (existing) {
-        const { error } = await supabase.from(table).update(data).eq('id', existing.id);
-        if (error) console.error(`${table} update error:`, error.message);
-    } else {
-        const { error } = await supabase.from(table).insert(data);
-        if (error) console.error(`${table} insert error:`, error.message);
-    }
 }
 
 module.exports = async function handler(req, res) {
@@ -137,7 +54,7 @@ module.exports = async function handler(req, res) {
             return res.status(404).json({ error: 'Admin-Benutzer nicht gefunden' });
         }
 
-        // Geräte-Session aktualisieren
+        // Geräte-Session aktualisieren (falls device_id vorhanden)
         if (device_id) {
             const { error: sessionError } = await supabase
                 .rpc('update_device_activity', {
@@ -145,12 +62,13 @@ module.exports = async function handler(req, res) {
                     p_device_id: device_id,
                     p_device_name: `Device ${device_id.substring(0, 8)}`
                 });
-            if (sessionError) console.error('Device session update error:', sessionError.message);
+
+            if (sessionError) {
+                console.error('Device session update error:', sessionError.message);
+            }
         }
 
         const today = new Date().toISOString().split('T')[0];
-        const now = new Date().toISOString();
-
         const statsBase = {
             admin_user_id,
             date: today,
@@ -165,23 +83,31 @@ module.exports = async function handler(req, res) {
             line_race_video_count: statistics.line_race_video_count || 0,
             time_range_start: statistics.time_range_start,
             time_range_end: statistics.time_range_end,
-            updated_at: now
+            updated_at: new Date().toISOString()
         };
 
-        // App-Statistiken und Geräte-Statistiken parallel synchronisieren
-        const syncPromises = [
-            syncSingleRow('app_statistics', statsBase, { admin_user_id, date: today })
-        ];
+        // App-Statistiken (einzelner Upsert)
+        const { error: appStatsError } = await supabase
+            .from('app_statistics')
+            .upsert(statsBase, { onConflict: 'admin_user_id,date' });
 
-        if (device_id) {
-            syncPromises.push(
-                syncSingleRow('device_statistics', { ...statsBase, device_id }, { admin_user_id, device_id, date: today })
-            );
+        if (appStatsError) {
+            console.error('App statistics sync error:', appStatsError.message);
+            return res.status(500).json({ success: false, error: 'Fehler beim Synchronisieren der App-Statistiken' });
         }
 
-        await Promise.all(syncPromises);
+        // Geräte-spezifische Statistiken (einzelner Upsert)
+        if (device_id) {
+            const { error: deviceStatsError } = await supabase
+                .from('device_statistics')
+                .upsert({ ...statsBase, device_id }, { onConflict: 'admin_user_id,device_id,date' });
 
-        // Video-Statistiken synchronisieren
+            if (deviceStatsError) {
+                console.error('Device statistics sync error:', deviceStatsError.message);
+            }
+        }
+
+        // Video-Statistiken (Batch-Upsert statt N+1-Schleife)
         if (statistics.videos && Array.isArray(statistics.videos) && statistics.videos.length > 0) {
             const videoRows = statistics.videos.map(video => {
                 const row = {
@@ -190,29 +116,49 @@ module.exports = async function handler(req, res) {
                     video_title: video.title,
                     views: video.views || 0,
                     last_viewed: convertTimestamp(video.lastViewed),
-                    updated_at: convertTimestamp(video.updatedAt) || now
+                    created_at: convertTimestamp(video.createdAt),
+                    updated_at: convertTimestamp(video.updatedAt)
                 };
-                if (video.createdAt) row.created_at = convertTimestamp(video.createdAt);
                 if (video.viewHistory) row.view_history = video.viewHistory;
                 return row;
             });
 
-            // video_statistics und device_video_statistics parallel synchronisieren
-            const videoSyncPromises = [
-                bulkSyncTable('video_statistics', videoRows, 'video_id')
-            ];
+            const { error: videoError } = await supabase
+                .from('video_statistics')
+                .upsert(videoRows, { onConflict: 'admin_user_id,video_id' });
 
-            if (device_id) {
-                const deviceVideoRows = videoRows.map(row => ({ ...row, device_id }));
-                videoSyncPromises.push(
-                    bulkSyncTable('device_video_statistics', deviceVideoRows, 'video_id', { device_id })
-                );
+            if (videoError) {
+                console.error('Video statistics sync error:', videoError.message);
             }
 
-            await Promise.all(videoSyncPromises);
+            // Geräte-spezifische Video-Statistiken (Batch-Upsert)
+            if (device_id) {
+                const deviceVideoRows = statistics.videos.map(video => {
+                    const row = {
+                        admin_user_id,
+                        device_id,
+                        video_id: video.id,
+                        video_title: video.title,
+                        views: video.views || 0,
+                        last_viewed: convertTimestamp(video.lastViewed),
+                        created_at: convertTimestamp(video.createdAt),
+                        updated_at: convertTimestamp(video.updatedAt)
+                    };
+                    if (video.viewHistory) row.view_history = video.viewHistory;
+                    return row;
+                });
+
+                const { error: deviceVideoError } = await supabase
+                    .from('device_video_statistics')
+                    .upsert(deviceVideoRows, { onConflict: 'admin_user_id,device_id,video_id' });
+
+                if (deviceVideoError) {
+                    console.error('Device video statistics sync error:', deviceVideoError.message);
+                }
+            }
         }
 
-        // Floor-Statistiken synchronisieren
+        // Floor-Statistiken (Batch-Upsert)
         if (statistics.floors && Array.isArray(statistics.floors) && statistics.floors.length > 0) {
             const floorRows = statistics.floors.map(floor => ({
                 admin_user_id,
@@ -220,7 +166,14 @@ module.exports = async function handler(req, res) {
                 floor_name: floor.name,
                 room_count: floor.objectVideoMappings?.length || 0
             }));
-            await bulkSyncTable('floor_statistics', floorRows, 'floor_id');
+
+            const { error: floorError } = await supabase
+                .from('floor_statistics')
+                .upsert(floorRows, { onConflict: 'admin_user_id,floor_id' });
+
+            if (floorError) {
+                console.error('Floor statistics sync error:', floorError.message);
+            }
         }
 
         return res.status(200).json({
