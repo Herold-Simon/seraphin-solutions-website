@@ -85,7 +85,16 @@
       ]
     },
     {
-      "source": "/api/(.*)",
+      "source": "/api/auth/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/api/statistics/sync",
       "headers": [
         {
           "key": "Cache-Control",
