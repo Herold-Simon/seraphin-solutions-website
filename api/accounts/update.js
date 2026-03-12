@@ -54,7 +54,7 @@ module.exports = async function handler(req, res) {
         // Validiere Session
         const { data: session, error: sessionError } = await supabase
             .from('website_sessions')
-            .select('*, website_users!inner(*)')
+            .select('id, user_id, expires_at, website_users!inner(id, username, admin_user_id)')
             .eq('session_token', sessionToken)
             .gt('expires_at', new Date().toISOString())
             .single();
@@ -97,7 +97,7 @@ module.exports = async function handler(req, res) {
         // Hole aktuellen Admin-User
         const { data: adminUser, error: adminError } = await supabase
             .from('admin_users')
-            .select('*')
+            .select('id, username, password_hash')
             .eq('id', adminUserId)
             .single();
 

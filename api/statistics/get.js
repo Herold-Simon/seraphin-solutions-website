@@ -7,6 +7,24 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+// In-Memory-Cache: reduziert Supabase-Egress bei häufigen Requests
+const cache = new Map();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 Minuten
+
+function getCached(key) {
+    const entry = cache.get(key);
+    if (!entry) return null;
+    if (Date.now() > entry.expiresAt) {
+        cache.delete(key);
+        return null;
+    }
+    return entry.data;
+}
+
+function setCached(key, data) {
+    cache.set(key, { data, expiresAt: Date.now() + CACHE_TTL_MS });
+}
+
 function setCorsHeaders(res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -65,6 +83,15 @@ module.exports = async function handler(req, res) {
         const deviceId = req.query.device_id;
         const includeHistory = req.query.include_history === 'true';
 
+        // Cache-Key: pro User + Abfrageparameter
+        const cacheKey = `stats:${adminUserId}:${deviceId || 'all'}:${includeHistory}`;
+        const cached = getCached(cacheKey);
+        if (cached) {
+            res.setHeader('Cache-Control', 'private, max-age=60, stale-while-revalidate=300');
+            res.setHeader('X-Cache', 'HIT');
+            return res.status(200).json(cached);
+        }
+
         const videoSelectBase = 'video_id, video_title, views, last_viewed, created_at, updated_at';
         const videoSelectFull = `${videoSelectBase}, view_history`;
 
@@ -73,7 +100,7 @@ module.exports = async function handler(req, res) {
         if (deviceId && deviceId !== 'all') {
             const { data } = await supabase
                 .from('device_statistics')
-                .select('*')
+                .select('admin_user_id, device_id, date, total_videos, videos_with_views, total_views, total_floors, total_rooms, pie_chart_video_count, line_chart_video_count, bar_chart_video_count, line_race_video_count')
                 .eq('admin_user_id', adminUserId)
                 .eq('device_id', deviceId)
                 .order('date', { ascending: false })
@@ -102,7 +129,7 @@ module.exports = async function handler(req, res) {
             } else {
                 const { data: direct } = await supabase
                     .from('app_statistics')
-                    .select('*')
+                    .select('admin_user_id, date, total_videos, videos_with_views, total_views, total_floors, total_rooms, pie_chart_video_count, line_chart_video_count, bar_chart_video_count, line_race_video_count, device_count')
                     .eq('admin_user_id', adminUserId)
                     .order('date', { ascending: false })
                     .limit(30);
@@ -123,42 +150,42 @@ module.exports = async function handler(req, res) {
                 .order('views', { ascending: false });
             videoStats = data || [];
         } else {
-            // Alle Geräte: beide Tabellen parallel abfragen und beste Quelle wählen
-            const [dvResult, vsResult] = await Promise.all([
-                supabase
-                    .from('device_video_statistics')
-                    .select(videoSelectFull)
-                    .eq('admin_user_id', adminUserId)
-                    .order('views', { ascending: false }),
-                supabase
-                    .from('video_statistics')
-                    .select(videoSelectFull)
-                    .eq('admin_user_id', adminUserId)
-                    .order('views', { ascending: false })
-            ]);
+            // Alle Geräte: device_video_statistics zuerst, video_statistics nur als Fallback
+            // (vermeidet doppelten Egress durch parallele Abfragen)
+            const videoSelect = includeHistory ? videoSelectFull : videoSelectBase;
 
-            const dvData = dvResult.data || [];
-            const vsData = vsResult.data || [];
+            const { data: dvData } = await supabase
+                .from('device_video_statistics')
+                .select(videoSelect)
+                .eq('admin_user_id', adminUserId)
+                .order('views', { ascending: false });
 
-            const hasHistory = (rows) => rows.some(v => v.view_history && Object.keys(v.view_history).length > 0);
+            const hasHistory = (rows) => rows && rows.some(v => v.view_history && Object.keys(v.view_history).length > 0);
 
-            // Quelle mit view_history bevorzugen; ohne Präferenz die größere Tabelle nehmen
-            if (hasHistory(dvData)) {
-                videoStats = dvData;
-            } else if (hasHistory(vsData)) {
-                videoStats = vsData;
-            } else if (dvData.length > 0) {
+            if (dvData && dvData.length > 0 && (!includeHistory || hasHistory(dvData))) {
                 videoStats = dvData;
             } else {
-                videoStats = vsData;
+                // Fallback: video_statistics laden
+                const { data: vsData } = await supabase
+                    .from('video_statistics')
+                    .select(videoSelect)
+                    .eq('admin_user_id', adminUserId)
+                    .order('views', { ascending: false });
+
+                if (includeHistory && vsData && hasHistory(vsData)) {
+                    videoStats = vsData;
+                } else {
+                    videoStats = (dvData && dvData.length > 0) ? dvData : (vsData || []);
+                }
             }
         }
 
         // Floor-Statistiken laden
         const { data: floorStats } = await supabase
             .from('floor_statistics')
-            .select('*')
-            .eq('admin_user_id', adminUserId);
+            .select('floor_id, floor_name, room_count, admin_user_id')
+            .eq('admin_user_id', adminUserId)
+            .limit(200);
 
         // Admin-Gerät und Gesamtstatistiken parallel laden
         const { data: adminUser } = await supabase
@@ -186,8 +213,9 @@ module.exports = async function handler(req, res) {
         }));
 
         res.setHeader('Cache-Control', 'private, max-age=60, stale-while-revalidate=300');
+        res.setHeader('X-Cache', 'MISS');
 
-        return res.status(200).json({
+        const responseBody = {
             success: true,
             statistics: {
                 current: appStats?.[0] || totalStats,
@@ -197,7 +225,11 @@ module.exports = async function handler(req, res) {
                 history: appStats || [],
                 device_id: adminUser?.device_id || null
             }
-        });
+        };
+
+        setCached(cacheKey, responseBody);
+
+        return res.status(200).json(responseBody);
 
     } catch (error) {
         console.error('Statistics fetch error:', error.message);
