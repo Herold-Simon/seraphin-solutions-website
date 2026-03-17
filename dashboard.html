@@ -2351,7 +2351,7 @@
         // Dashboard laden (verify-session übersprungen – statistics/get prüft Session und spart 1 API-Request)
         async function loadDashboard() {
             try {
-                const response = await fetch(`/api/statistics/get?include_history=false`, {
+                const response = await fetch(`/api/statistics/get?include_history=true`, {
                     method: 'GET',
                     credentials: 'include'
                 });
@@ -2754,7 +2754,7 @@
             
             try {
                 console.log('📱 Lade Statistiken für Gerät:', selectedDeviceId);
-                const response = await fetch(`/api/statistics/get?device_id=${selectedDeviceId}`, {
+                const response = await fetch(`/api/statistics/get?device_id=${selectedDeviceId}&include_history=true`, {
                     method: 'GET',
                     credentials: 'include'
                 });
