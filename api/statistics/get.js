@@ -9,7 +9,7 @@ const supabase = createClient(
 
 // In-Memory-Cache: reduziert Supabase-Egress bei häufigen Requests
 const cache = new Map();
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 Minuten
+const CACHE_TTL_MS = 10 * 60 * 1000; // 10 Minuten (reduziert Supabase-Egress)
 
 function getCached(key) {
     const entry = cache.get(key);
@@ -147,7 +147,8 @@ module.exports = async function handler(req, res) {
                 .select(includeHistory ? videoSelectFull : videoSelectBase)
                 .eq('admin_user_id', adminUserId)
                 .eq('device_id', deviceId)
-                .order('views', { ascending: false });
+                .order('views', { ascending: false })
+                .limit(150);
             videoStats = data || [];
         } else {
             // Alle Geräte: device_video_statistics zuerst, video_statistics nur als Fallback
@@ -158,7 +159,8 @@ module.exports = async function handler(req, res) {
                 .from('device_video_statistics')
                 .select(videoSelect)
                 .eq('admin_user_id', adminUserId)
-                .order('views', { ascending: false });
+                .order('views', { ascending: false })
+                .limit(150);
 
             const hasHistory = (rows) => rows && rows.some(v => v.view_history && Object.keys(v.view_history).length > 0);
 
@@ -170,7 +172,8 @@ module.exports = async function handler(req, res) {
                     .from('video_statistics')
                     .select(videoSelect)
                     .eq('admin_user_id', adminUserId)
-                    .order('views', { ascending: false });
+                    .order('views', { ascending: false })
+                    .limit(150);
 
                 if (includeHistory && vsData && hasHistory(vsData)) {
                     videoStats = vsData;

@@ -6,6 +6,25 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+// Throttle: Max. 1 echter Sync pro Gerät alle 5 Minuten (reduziert Supabase-Requests massiv)
+const SYNC_THROTTLE_MS = 5 * 60 * 1000;
+const lastSyncByKey = new Map();
+
+function getSyncKey(adminUserId, deviceId) {
+    return `sync:${adminUserId}:${deviceId || 'all'}`;
+}
+
+function shouldThrottle(adminUserId, deviceId) {
+    const key = getSyncKey(adminUserId, deviceId);
+    const last = lastSyncByKey.get(key);
+    if (!last) return false;
+    return (Date.now() - last) < SYNC_THROTTLE_MS;
+}
+
+function markSynced(adminUserId, deviceId) {
+    lastSyncByKey.set(getSyncKey(adminUserId, deviceId), Date.now());
+}
+
 function setCorsHeaders(res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -128,6 +147,15 @@ module.exports = async function handler(req, res) {
             return res.status(400).json({ success: false, error: 'Admin-Benutzer-ID und Statistiken sind erforderlich' });
         }
 
+        // Throttle: Wenn kürzlich synchronisiert, sofort 200 zurück – keine Supabase-Requests
+        if (shouldThrottle(admin_user_id, device_id)) {
+            return res.status(200).json({
+                success: true,
+                skipped: true,
+                message: 'Sync übersprungen (Throttle: max. alle 5 Min)'
+            });
+        }
+
         // Admin-Benutzer prüfen
         const { data: adminUser } = await supabase
             .from('admin_users')
@@ -220,6 +248,8 @@ module.exports = async function handler(req, res) {
             }));
             await bulkSyncTable('floor_statistics', floorRows, 'floor_id');
         }
+
+        markSynced(admin_user_id, device_id);
 
         return res.status(200).json({
             success: true,
