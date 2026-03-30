@@ -92,9 +92,6 @@
             .account-card-danger .account-danger-text {
                 flex: 1;
             }
-            .account-grid .account-card-report {
-                grid-column: 1 / -1;
-            }
             .account-modal {
                 max-width: 480px;
             }
@@ -250,66 +247,6 @@
             border: 1px solid #fecaca;
         }
         
-        .account-alert-success {
-            background: #ecfdf5;
-            color: #047857;
-            border: 1px solid #a7f3d0;
-        }
-        
-        .account-form textarea {
-            width: 100%;
-            min-height: 88px;
-            padding: 0.75rem 1rem;
-            font-size: 1rem;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--white);
-            font-family: inherit;
-            resize: vertical;
-        }
-        
-        .account-form textarea:focus {
-            outline: none;
-            border-color: var(--primary-blue);
-            box-shadow: 0 0 0 3px rgba(0, 140, 255, 0.08);
-        }
-        
-        .account-form .field-hint {
-            font-size: 0.8rem;
-            color: var(--text-light);
-            margin-top: 0.35rem;
-            line-height: 1.4;
-        }
-        
-        .account-check-row {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.65rem;
-            margin-bottom: 1rem;
-        }
-        
-        .account-check-row input[type="checkbox"] {
-            width: 1.15rem;
-            height: 1.15rem;
-            margin-top: 0.2rem;
-            flex-shrink: 0;
-        }
-        
-        .account-check-row label {
-            margin-bottom: 0;
-            font-weight: 500;
-        }
-        
-        .account-report-meta {
-            font-size: 0.875rem;
-            color: var(--text-light);
-            line-height: 1.5;
-            margin-bottom: 1rem;
-            padding: 0.75rem 1rem;
-            background: var(--light-gray);
-            border-radius: 8px;
-        }
-        
         .account-spinner {
             width: 18px;
             height: 18px;
@@ -451,7 +388,6 @@
         <div class="account-inner">
             <h1 class="account-title">Account</h1>
             <p class="account-subtitle">Hier können Sie Ihre Account-Daten einsehen und verwalten. Verändern Sie die Eigenschaften nur nach Aufforderung oder wenn Sie sich sicher sind, was Sie tun.</p>
-            <div id="successAlert" class="account-alert account-alert-success" style="display: none;"></div>
             <div id="errorAlert" class="account-alert account-alert-error"></div>
 
             <div class="account-grid">
@@ -478,43 +414,6 @@
                         <button type="submit" class="account-btn account-btn-primary" id="usernameSubmitBtn">
                             Ändern
                         </button>
-                    </form>
-                </section>
-                <section class="account-card account-card-report">
-                    <h2 class="account-card-title">Statistik-Berichte per E-Mail</h2>
-                    <p class="account-danger-text" style="margin-bottom: 1rem;">
-                        Automatischer Versand von Auswertungen (Aufrufe &amp; Top-Wegbeschreibungen) per E-Mail über die Zoho-Mail-API (OAuth, ohne SMTP). Die Auswertung nutzt dieselben Tagesdaten wie das Dashboard (<code>view_history</code>).
-                    </p>
-                    <form id="emailReportForm" class="account-form">
-                        <div class="account-check-row">
-                            <input type="checkbox" id="emailReportEnabled" name="enabled">
-                            <label for="emailReportEnabled">E-Mail-Berichte aktivieren</label>
-                        </div>
-                        <div class="field">
-                            <label for="emailReportAddresses">E-Mail-Adressen</label>
-                            <textarea id="emailReportAddresses" placeholder="eine@beispiel.de&#10;zweite@beispiel.de" rows="3" autocomplete="email"></textarea>
-                            <p class="field-hint">Mehrere Adressen: je eine Zeile oder durch Komma getrennt.</p>
-                        </div>
-                        <div class="field">
-                            <label for="emailReportInterval">Versand alle (Tage)</label>
-                            <input type="number" id="emailReportInterval" min="1" max="365" value="7" required>
-                            <p class="field-hint">Wie oft ein Bericht versendet wird (z.&nbsp;B. 7 = wöchentlich).</p>
-                        </div>
-                        <div class="field">
-                            <label for="emailReportPeriod">Auswertungszeitraum (Tage)</label>
-                            <input type="number" id="emailReportPeriod" min="1" max="365" value="7" required>
-                            <p class="field-hint">Zeitraum für „Aufrufe gesamt“, Vergleich zur Vorperiode und Top&nbsp;5 (nur dieser Zeitraum, nicht Gesamt-Top).</p>
-                        </div>
-                        <div id="emailReportMeta" class="account-report-meta" style="display: none;"></div>
-                        <button type="submit" class="account-btn account-btn-primary" id="emailReportSubmitBtn">
-                            Einstellungen speichern
-                        </button>
-                        <button type="button" class="account-btn" id="emailReportSimulateBtn" style="background: var(--light-gray); color: var(--text-dark); border: 2px solid var(--border-color); margin-top: 0.75rem;">
-                            Versand simulieren
-                        </button>
-                        <p class="field-hint" style="margin-top: 0.75rem;">
-                            <strong>Simulation:</strong> Sendet eine einmalige Test-E-Mail mit dem aktuellen Bericht (Betreff beginnt mit „[Simulation]“) an die oben eingetragenen Adressen. Es werden keine Einstellungen gespeichert und keine geplanten Versandtermine geändert.
-                        </p>
                     </form>
                 </section>
                 <section class="account-card account-card-password">
@@ -635,7 +534,6 @@
         document.addEventListener('DOMContentLoaded', async function() {
             await testApiConnectivity();
             await loadAccountData();
-            await loadEmailReportSettings();
             setupEventListeners();
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') { closeDeleteModal(); }
@@ -656,179 +554,6 @@
         function setupEventListeners() {
             document.getElementById('usernameForm')?.addEventListener('submit', handleUsernameChange);
             document.getElementById('passwordForm')?.addEventListener('submit', handlePasswordChange);
-            document.getElementById('emailReportForm')?.addEventListener('submit', handleEmailReportSave);
-            document.getElementById('emailReportSimulateBtn')?.addEventListener('click', handleEmailReportSimulate);
-        }
-
-        function parseEmailList(raw) {
-            if (!raw || !raw.trim()) return [];
-            return raw
-                .split(/[\n,;]+/)
-                .map(function (s) { return s.trim(); })
-                .filter(Boolean);
-        }
-
-        async function loadEmailReportSettings() {
-            const metaEl = document.getElementById('emailReportMeta');
-            try {
-                const res = await fetch('/api/accounts/email-reports', { method: 'GET', credentials: 'include' });
-                const data = await res.json();
-                if (!res.ok || !data.success) return;
-                const s = data.settings || {};
-                document.getElementById('emailReportEnabled').checked = !!s.enabled;
-                document.getElementById('emailReportAddresses').value = Array.isArray(s.emails)
-                    ? s.emails.join('\n')
-                    : '';
-                document.getElementById('emailReportInterval').value = s.send_interval_days || 7;
-                document.getElementById('emailReportPeriod').value = s.period_days || 7;
-                if (s.last_sent_at || s.next_run_at) {
-                    metaEl.style.display = 'block';
-                    var parts = [];
-                    if (s.last_sent_at) {
-                        parts.push('Letzter Versand: ' + new Date(s.last_sent_at).toLocaleString('de-DE'));
-                    }
-                    if (s.next_run_at) {
-                        parts.push('Nächster geplanter Versand: ' + new Date(s.next_run_at).toLocaleString('de-DE'));
-                    }
-                    metaEl.textContent = parts.join(' · ');
-                } else {
-                    metaEl.style.display = 'none';
-                    metaEl.textContent = '';
-                }
-            } catch (_) {
-                if (metaEl) metaEl.style.display = 'none';
-            }
-        }
-
-        async function handleEmailReportSave(e) {
-            e.preventDefault();
-            var btn = document.getElementById('emailReportSubmitBtn');
-            var enabled = document.getElementById('emailReportEnabled').checked;
-            var emails = parseEmailList(document.getElementById('emailReportAddresses').value);
-            var send_interval_days = parseInt(document.getElementById('emailReportInterval').value, 10) || 7;
-            var period_days = parseInt(document.getElementById('emailReportPeriod').value, 10) || 7;
-            hideAlerts();
-            hideSuccessAlert();
-
-            if (enabled && emails.length === 0) {
-                showError('Bitte mindestens eine E-Mail-Adresse angeben oder Berichte deaktivieren.');
-                return;
-            }
-
-            try {
-                setBtnLoadingReport(btn, true);
-                var res = await fetch('/api/accounts/email-reports', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                        enabled: enabled,
-                        emails: emails,
-                        send_interval_days: send_interval_days,
-                        period_days: period_days
-                    })
-                });
-                var data = await res.json();
-                if (res.ok && data.success) {
-                    showReportSuccess('E-Mail-Einstellungen gespeichert.');
-                    await loadEmailReportSettings();
-                } else {
-                    showError(data.error || 'Speichern fehlgeschlagen');
-                }
-            } catch (err) {
-                showError(err.message || 'Netzwerkfehler');
-            } finally {
-                setBtnLoadingReport(btn, false);
-            }
-        }
-
-        async function handleEmailReportSimulate() {
-            var btn = document.getElementById('emailReportSimulateBtn');
-            var submitBtn = document.getElementById('emailReportSubmitBtn');
-            var emails = parseEmailList(document.getElementById('emailReportAddresses').value);
-            var period_days = parseInt(document.getElementById('emailReportPeriod').value, 10) || 7;
-            hideAlerts();
-            hideSuccessAlert();
-
-            if (emails.length === 0) {
-                showError('Bitte mindestens eine E-Mail-Adresse für die Simulation eintragen.');
-                return;
-            }
-
-            try {
-                setBtnLoadingSimulate(btn, true);
-                if (submitBtn) submitBtn.disabled = true;
-                var res = await fetch('/api/accounts/email-reports', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                        simulate: true,
-                        emails: emails,
-                        period_days: period_days
-                    })
-                });
-                var data = await res.json();
-                if (res.ok && data.success) {
-                    showReportSuccess(
-                        'Simulation: Bericht wurde an ' +
-                            data.recipients +
-                            ' Adresse(n) versendet. Bitte Postfächer prüfen (Betreff mit [Simulation]).'
-                    );
-                } else {
-                    var simErr = data.error || 'Simulation fehlgeschlagen';
-                    if (data.hint) {
-                        simErr += ' — ' + data.hint;
-                    }
-                    showError(simErr);
-                }
-            } catch (err) {
-                showError(err.message || 'Netzwerkfehler');
-            } finally {
-                setBtnLoadingSimulate(btn, false);
-                if (submitBtn) submitBtn.disabled = false;
-            }
-        }
-
-        function setBtnLoadingSimulate(button, loading) {
-            if (!button) return;
-            if (loading) {
-                button.disabled = true;
-                button.innerHTML = '<span class="account-spinner"></span> Simulation…';
-            } else {
-                button.disabled = false;
-                button.innerHTML = 'Versand simulieren';
-            }
-        }
-
-        function setBtnLoadingReport(button, loading) {
-            var simBtn = document.getElementById('emailReportSimulateBtn');
-            if (loading) {
-                button.disabled = true;
-                button.innerHTML = '<span class="account-spinner"></span> Speichern…';
-                if (simBtn) simBtn.disabled = true;
-            } else {
-                button.disabled = false;
-                button.innerHTML = 'Einstellungen speichern';
-                if (simBtn) simBtn.disabled = false;
-            }
-        }
-
-        function showReportSuccess(message) {
-            var el = document.getElementById('successAlert');
-            el.innerHTML = '<i class="fas fa-check-circle"></i> ' + message;
-            el.style.display = 'flex';
-            el.style.opacity = '1';
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            setTimeout(function () {
-                el.style.opacity = '0';
-                setTimeout(function () { el.style.display = 'none'; }, 200);
-            }, 6000);
-        }
-
-        function hideSuccessAlert() {
-            var el = document.getElementById('successAlert');
-            if (el) el.style.display = 'none';
         }
 
         async function loadAccountData() {
@@ -1002,7 +727,6 @@
         }
 
         function showError(message) {
-            hideSuccessAlert();
             const el = document.getElementById('errorAlert');
             el.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
             el.style.display = 'flex';
