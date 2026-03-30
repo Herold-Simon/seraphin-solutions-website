@@ -509,6 +509,12 @@
                         <button type="submit" class="account-btn account-btn-primary" id="emailReportSubmitBtn">
                             Einstellungen speichern
                         </button>
+                        <button type="button" class="account-btn" id="emailReportSimulateBtn" style="background: var(--light-gray); color: var(--text-dark); border: 2px solid var(--border-color); margin-top: 0.75rem;">
+                            Versand simulieren
+                        </button>
+                        <p class="field-hint" style="margin-top: 0.75rem;">
+                            <strong>Simulation:</strong> Sendet eine einmalige Test-E-Mail mit dem aktuellen Bericht (Betreff beginnt mit „[Simulation]“) an die oben eingetragenen Adressen. Es werden keine Einstellungen gespeichert und keine geplanten Versandtermine geändert.
+                        </p>
                     </form>
                 </section>
                 <section class="account-card account-card-password">
@@ -651,6 +657,7 @@
             document.getElementById('usernameForm')?.addEventListener('submit', handleUsernameChange);
             document.getElementById('passwordForm')?.addEventListener('submit', handlePasswordChange);
             document.getElementById('emailReportForm')?.addEventListener('submit', handleEmailReportSave);
+            document.getElementById('emailReportSimulateBtn')?.addEventListener('click', handleEmailReportSimulate);
         }
 
         function parseEmailList(raw) {
@@ -735,13 +742,71 @@
             }
         }
 
+        async function handleEmailReportSimulate() {
+            var btn = document.getElementById('emailReportSimulateBtn');
+            var submitBtn = document.getElementById('emailReportSubmitBtn');
+            var emails = parseEmailList(document.getElementById('emailReportAddresses').value);
+            var period_days = parseInt(document.getElementById('emailReportPeriod').value, 10) || 7;
+            hideAlerts();
+            hideSuccessAlert();
+
+            if (emails.length === 0) {
+                showError('Bitte mindestens eine E-Mail-Adresse für die Simulation eintragen.');
+                return;
+            }
+
+            try {
+                setBtnLoadingSimulate(btn, true);
+                if (submitBtn) submitBtn.disabled = true;
+                var res = await fetch('/api/accounts/email-reports', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        simulate: true,
+                        emails: emails,
+                        period_days: period_days
+                    })
+                });
+                var data = await res.json();
+                if (res.ok && data.success) {
+                    showReportSuccess(
+                        'Simulation: Bericht wurde an ' +
+                            data.recipients +
+                            ' Adresse(n) versendet. Bitte Postfächer prüfen (Betreff mit [Simulation]).'
+                    );
+                } else {
+                    showError(data.error || 'Simulation fehlgeschlagen');
+                }
+            } catch (err) {
+                showError(err.message || 'Netzwerkfehler');
+            } finally {
+                setBtnLoadingSimulate(btn, false);
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        }
+
+        function setBtnLoadingSimulate(button, loading) {
+            if (!button) return;
+            if (loading) {
+                button.disabled = true;
+                button.innerHTML = '<span class="account-spinner"></span> Simulation…';
+            } else {
+                button.disabled = false;
+                button.innerHTML = 'Versand simulieren';
+            }
+        }
+
         function setBtnLoadingReport(button, loading) {
+            var simBtn = document.getElementById('emailReportSimulateBtn');
             if (loading) {
                 button.disabled = true;
                 button.innerHTML = '<span class="account-spinner"></span> Speichern…';
+                if (simBtn) simBtn.disabled = true;
             } else {
                 button.disabled = false;
                 button.innerHTML = 'Einstellungen speichern';
+                if (simBtn) simBtn.disabled = false;
             }
         }
 

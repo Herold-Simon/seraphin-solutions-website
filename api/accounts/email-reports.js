@@ -1,6 +1,8 @@
 // GET/PUT Einstellungen für automatische Statistik-E-Mails
 const { createClient } = require('@supabase/supabase-js');
 const cookie = require('cookie');
+const { computeReportForAdmin } = require('../lib/email-report-stats');
+const { sendStatisticsReport, buildReportEmailHtml } = require('../lib/zoho-mail');
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -8,7 +10,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 function setCorsHeaders(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Max-Age', '86400');
 }
@@ -194,6 +196,67 @@ module.exports = async function handler(req, res) {
         next_run_at: enabled ? next_run_at : null,
         last_sent_at: existing?.last_sent_at || null,
       },
+    });
+  }
+
+  if (req.method === 'POST') {
+    const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body || {};
+    if (!body.simulate) {
+      return res.status(400).json({
+        success: false,
+        error: 'Ungültige Anfrage (simulate erforderlich)',
+      });
+    }
+
+    const emails = normalizeEmails(Array.isArray(body.emails) ? body.emails : []);
+    const period_days = Math.min(
+      365,
+      Math.max(1, parseInt(body.period_days, 10) || 7)
+    );
+
+    if (emails.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Mindestens eine gültige E-Mail-Adresse für die Simulation angeben.',
+      });
+    }
+
+    let stats;
+    try {
+      stats = await computeReportForAdmin(supabase, adminUserId, period_days);
+    } catch (e) {
+      console.error('email-reports simulate stats:', e);
+      return res.status(500).json({
+        success: false,
+        error: 'Statistik konnte nicht berechnet werden',
+      });
+    }
+
+    const { data: adminRow } = await supabase
+      .from('admin_users')
+      .select('username')
+      .eq('id', adminUserId)
+      .maybeSingle();
+
+    const userLabel = adminRow?.username || adminUserId;
+    const subject = `[Simulation] Gebäudenavi Statistik — ${userLabel} (${stats.periodDays} Tage)`;
+    const html = buildReportEmailHtml(stats, { simulation: true });
+
+    try {
+      await sendStatisticsReport(emails, subject, html);
+    } catch (e) {
+      console.error('email-reports simulate send:', e);
+      return res.status(502).json({
+        success: false,
+        error: e.message || 'E-Mail-Versand fehlgeschlagen (SMTP prüfen)',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      simulated: true,
+      recipients: emails.length,
+      period_days,
     });
   }
 

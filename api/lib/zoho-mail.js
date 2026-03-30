@@ -36,7 +36,8 @@ function formatComparisonLine(comparison, totalCurrent, totalPrevious) {
   return `Vorperiod: ${totalPrevious} Aufrufe — im Vergleich ${verb} um ${sign}${comparison.pct.toFixed(1)} %`;
 }
 
-function buildReportEmailHtml(payload) {
+function buildReportEmailHtml(payload, options = {}) {
+  const simulation = Boolean(options.simulation);
   const {
     totalCurrent,
     totalPrevious,
@@ -61,8 +62,12 @@ function buildReportEmailHtml(payload) {
           )
           .join('');
 
+  const simBanner = simulation
+    ? '<div style="background:#fff8e1;border:1px solid #e65100;padding:12px;margin-bottom:16px;border-radius:6px;font-size:14px;"><strong>Simulation:</strong> Diese E-Mail ist ein Testversand. Automatische Berichte und Versandtermine im Account werden nicht verändert.</div>'
+    : '';
+
   return `<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"></head><body style="font-family:Segoe UI,Roboto,Arial,sans-serif;line-height:1.5;color:#222;">
-<p>Gebäudenavi Statistikbericht</p>
+${simBanner}<p>Gebäudenavi Statistikbericht</p>
 <p><strong>Zeitraum (letzte ${periodDays} Tage):</strong> ${escapeHtml(
     windowCurrent.start
   )} — ${escapeHtml(windowCurrent.end)}</p>
