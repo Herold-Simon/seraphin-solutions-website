@@ -1,10 +1,11 @@
 /**
- * Vercel Cron: versendet fällige Statistik-E-Mails (Zoho SMTP).
+ * Vercel Cron: versendet fällige Statistik-E-Mails (Resend API).
  * Absicherung: Header Authorization: Bearer CRON_SECRET
  */
 const { createClient } = require('@supabase/supabase-js');
 const { computeReportForAdmin } = require('../lib/email-report-stats');
-const { sendStatisticsReport, buildReportEmailHtml } = require('../lib/zoho-mail');
+const { sendStatisticsReport, buildReportEmailHtml } = require('../lib/report-mail');
+const { analyzeMailSendError } = require('../lib/mail-send-errors');
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -96,8 +97,9 @@ module.exports = async function handler(req, res) {
 
       sent += 1;
     } catch (e) {
-      console.error('cron send failed', row.id, e.message);
-      failures.push({ id: row.id, error: e.message });
+      const { code, message } = analyzeMailSendError(e);
+      console.error('cron send failed', row.id, code, message);
+      failures.push({ id: row.id, code, error: message });
     }
   }
 

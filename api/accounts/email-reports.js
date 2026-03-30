@@ -2,7 +2,8 @@
 const { createClient } = require('@supabase/supabase-js');
 const cookie = require('cookie');
 const { computeReportForAdmin } = require('../lib/email-report-stats');
-const { sendStatisticsReport, buildReportEmailHtml } = require('../lib/zoho-mail');
+const { sendStatisticsReport, buildReportEmailHtml } = require('../lib/report-mail');
+const { analyzeMailSendError } = require('../lib/mail-send-errors');
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -246,9 +247,12 @@ module.exports = async function handler(req, res) {
       await sendStatisticsReport(emails, subject, html);
     } catch (e) {
       console.error('email-reports simulate send:', e);
-      return res.status(502).json({
+      const { httpStatus, code, message, hint } = analyzeMailSendError(e);
+      return res.status(httpStatus).json({
         success: false,
-        error: e.message || 'E-Mail-Versand fehlgeschlagen (SMTP prüfen)',
+        code,
+        error: message || 'E-Mail-Versand fehlgeschlagen (Resend-Konfiguration prüfen)',
+        ...(hint && { hint }),
       });
     }
 

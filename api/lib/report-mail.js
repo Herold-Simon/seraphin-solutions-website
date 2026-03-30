@@ -1,74 +1,30 @@
-const nodemailer = require('nodemailer');
-
-/** Trimmt typische Copy-Paste-Artefakte aus ZOHO_SMTP_HOST (verhindert dns.queryA EBADNAME). */
-function normalizeSmtpHost(raw) {
-  if (raw == null) return '';
-  let h = String(raw).trim();
-  if (
-    (h.startsWith('"') && h.endsWith('"') && h.length >= 2) ||
-    (h.startsWith("'") && h.endsWith("'") && h.length >= 2)
-  ) {
-    h = h.slice(1, -1).trim();
-  }
-  h = h.replace(/[\u200B-\u200D\uFEFF]/g, '');
-  return h;
-}
-
-/** E-Mail-Adresse für SMTP-Kopfzeilen (Absender); Kleinbuchstaben, typische Paste-Artefakte entfernt. */
-function normalizeEmail(raw) {
-  const e = normalizeSmtpHost(raw);
-  if (!e) return '';
-  return e.toLowerCase();
-}
-
 /**
- * Einheitliche „From“-Angabe für Statistik-Mails.
- * Reihenfolge: ZOHO_MAIL_FROM → ZOHO_SMTP_USER (beide müssen zur SMTP-Auth passen, sonst Relay-Fehler bei Zoho).
- * Optional: ZOHO_MAIL_FROM_NAME → „Name“ <adresse>
+ * Versand von Statistik-Berichten über Resend (HTTPS-API, geeignet für Vercel Serverless).
+ * https://resend.com/docs/api-reference/emails/send-email
  */
-function getReportFromAddress() {
-  const addr =
-    normalizeEmail(process.env.ZOHO_MAIL_FROM) ||
-    normalizeEmail(process.env.ZOHO_SMTP_USER);
-  if (!addr || !addr.includes('@')) {
-    throw new Error(
-      'Absender fehlt oder ungültig — ZOHO_MAIL_FROM oder ZOHO_SMTP_USER als E-Mail setzen.'
-    );
+
+const RESEND_API = 'https://api.resend.com/emails';
+
+function normalizeEnvString(raw) {
+  if (raw == null) return '';
+  let s = String(raw).trim();
+  if (
+    (s.startsWith('"') && s.endsWith('"') && s.length >= 2) ||
+    (s.startsWith("'") && s.endsWith("'") && s.length >= 2)
+  ) {
+    s = s.slice(1, -1).trim();
   }
-  const nameRaw = normalizeSmtpHost(process.env.ZOHO_MAIL_FROM_NAME);
-  if (nameRaw) {
-    const safeName = nameRaw.replace(/[\r\n<>]/g, '').trim();
-    if (safeName) {
-      return `"${safeName.replace(/"/g, '')}" <${addr}>`;
-    }
-  }
-  return addr;
+  return s.replace(/[\u200B-\u200D\uFEFF]/g, '');
 }
 
-function getTransport() {
-  const host =
-    normalizeSmtpHost(process.env.ZOHO_SMTP_HOST) || 'smtppro.zoho.eu';
-  const port = parseInt(process.env.ZOHO_SMTP_PORT || '465', 10);
-  const user = normalizeSmtpHost(process.env.ZOHO_SMTP_USER);
-  const pass = normalizeSmtpHost(process.env.ZOHO_SMTP_PASS);
-  const secure = port === 465;
-
-  if (!user || !pass) {
-    throw new Error('ZOHO_SMTP_USER und ZOHO_SMTP_PASS müssen gesetzt sein');
-  }
-  if (!host || /\s/.test(host)) {
+function getReportMailFrom() {
+  const from = normalizeEnvString(process.env.REPORT_MAIL_FROM);
+  if (!from) {
     throw new Error(
-      'ZOHO_SMTP_HOST ist leer oder ungültig — Host ohne Leerzeichen setzen (z. B. smtppro.zoho.eu).'
+      'REPORT_MAIL_FROM fehlt. In Vercel z. B. setzen: Gebäudenavi <berichte@deine-domain.de> — Domain muss in Resend verifiziert sein.'
     );
   }
-
-  return nodemailer.createTransport({
-    host,
-    port,
-    secure,
-    requireTLS: port === 587,
-    auth: { user, pass },
-  });
+  return from;
 }
 
 function formatComparisonLine(comparison, totalCurrent, totalPrevious) {
@@ -144,28 +100,58 @@ function escapeHtml(s) {
     .replace(/"/g, '&quot;');
 }
 
+/**
+ * @param {string[]} emails
+ * @param {string} subject
+ * @param {string} html
+ */
 async function sendStatisticsReport(emails, subject, html) {
-  const from = getReportFromAddress();
-  const authUser = normalizeEmail(process.env.ZOHO_SMTP_USER);
-  const fromAddrOnly = from.includes('<') ? from.replace(/^[^<]*<([^>]+)>.*$/, '$1').trim() : from;
-  if (authUser && fromAddrOnly !== authUser) {
-    console.warn(
-      '[zoho-mail] ZOHO_MAIL_FROM unterscheidet sich von ZOHO_SMTP_USER — Zoho kann den Versand mit 553/554 ablehnen.'
+  const apiKey = normalizeEnvString(process.env.RESEND_API_KEY);
+  if (!apiKey) {
+    throw new Error(
+      'RESEND_API_KEY fehlt — API-Schlüssel aus dem Resend-Dashboard in Vercel Environment Variables eintragen.'
     );
   }
 
-  const transport = getTransport();
-  await transport.sendMail({
-    from,
-    to: emails,
-    subject,
-    html,
+  const from = getReportMailFrom();
+  const to = (Array.isArray(emails) ? emails : [emails]).map((e) => String(e).trim()).filter(Boolean);
+
+  if (to.length === 0) {
+    throw new Error('Keine gültigen Empfänger-Adressen.');
+  }
+
+  const res = await fetch(RESEND_API, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from,
+      to,
+      subject,
+      html,
+    }),
   });
+
+  let data = {};
+  try {
+    data = await res.json();
+  } catch (_) {
+    /* ignore */
+  }
+
+  if (!res.ok) {
+    const detail =
+      (data && data.message) ||
+      (data && data.error && data.error.message) ||
+      JSON.stringify(data) ||
+      res.statusText;
+    throw new Error(`Resend ${res.status}: ${detail}`);
+  }
 }
 
 module.exports = {
   sendStatisticsReport,
   buildReportEmailHtml,
-  getTransport,
-  getReportFromAddress,
 };
