@@ -24,13 +24,13 @@ function analyzeMailSendError(err) {
     };
   }
 
-  if (/Absender fehlt|ZOHO_DEFAULT_FROM_EMAIL/i.test(message)) {
+  if (/Absender fehlt/i.test(message)) {
     return {
       httpStatus: 503,
       code: 'ZOHO_FROM_MISSING',
       message,
       hint:
-        'ZOHO_DEFAULT_FROM_EMAIL (und optional ZOHO_DEFAULT_FROM_NAME) in Vercel setzen — muss die Mailbox der OAuth-App sein.',
+        'In Vercel: ZOHO_DEFAULT_FROM_EMAIL setzen — oder ZOHO_MAIL_FROM / ZOHO_SMTP_USER (Fallback im Code). Absender muss die OAuth-Mailbox sein.',
     };
   }
 

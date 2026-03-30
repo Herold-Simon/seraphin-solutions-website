@@ -128,8 +128,14 @@ async function sendEmailViaZoho(opts) {
     throw new Error('ZOHO_ACCOUNT_ID fehlt — Zoho-Mail-Konto-ID in den Umgebungsvariablen setzen.');
   }
 
-  const defaultFrom = normalizeEnvString(process.env.ZOHO_DEFAULT_FROM_EMAIL);
-  const defaultName = normalizeEnvString(process.env.ZOHO_DEFAULT_FROM_NAME);
+  const defaultFrom = normalizeEnvString(
+    process.env.ZOHO_DEFAULT_FROM_EMAIL ||
+      process.env.ZOHO_MAIL_FROM ||
+      process.env.ZOHO_SMTP_USER
+  );
+  const defaultName = normalizeEnvString(
+    process.env.ZOHO_DEFAULT_FROM_NAME || process.env.ZOHO_MAIL_FROM_NAME
+  );
 
   let fromAddress;
   if (normalizeEnvString(fromEmail)) {
@@ -139,7 +145,7 @@ async function sendEmailViaZoho(opts) {
   }
   if (!fromAddress) {
     throw new Error(
-      'Absender fehlt: fromEmail im Request oder ZOHO_DEFAULT_FROM_EMAIL in den Umgebungsvariablen.'
+      'Absender fehlt: ZOHO_DEFAULT_FROM_EMAIL oder ZOHO_MAIL_FROM (oder ZOHO_SMTP_USER) in Vercel setzen — dieselbe Mailbox wie bei der OAuth-App.'
     );
   }
 
