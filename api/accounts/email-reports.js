@@ -251,7 +251,7 @@ module.exports = async function handler(req, res) {
       return res.status(httpStatus).json({
         success: false,
         code,
-        error: message || 'E-Mail-Versand fehlgeschlagen (Resend-Konfiguration prüfen)',
+        error: message || 'E-Mail-Versand fehlgeschlagen (Zoho Mail API / OAuth prüfen)',
         ...(hint && { hint }),
       });
     }

@@ -2,6 +2,11 @@
   "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": "public",
+  "functions": {
+    "api/send-email.js": { "maxDuration": 30 },
+    "api/accounts/email-reports.js": { "maxDuration": 30 },
+    "api/cron/send-statistics-reports.js": { "maxDuration": 30 }
+  },
   "crons": [
     {
       "path": "/api/cron/send-statistics-reports",

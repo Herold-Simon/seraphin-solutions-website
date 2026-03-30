@@ -1,5 +1,5 @@
 /**
- * Vercel Cron: versendet fällige Statistik-E-Mails (Resend API).
+ * Vercel Cron: versendet fällige Statistik-E-Mails (Zoho Mail REST API, OAuth).
  * Absicherung: Header Authorization: Bearer CRON_SECRET
  */
 const { createClient } = require('@supabase/supabase-js');

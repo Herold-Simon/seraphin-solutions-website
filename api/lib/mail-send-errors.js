@@ -1,45 +1,46 @@
 /**
- * Auswertung von Resend-/Mail-Versand-Fehlern für HTTP-Antworten und Logs.
+ * Auswertung von Zoho-Mail-API-/OAuth-Fehlern für HTTP-Antworten und Logs.
  */
 function analyzeMailSendError(err) {
   const message = (err && err.message) || String(err);
 
-  if (/Resend\s+403|domain.*not verified|not allowed to send/i.test(message)) {
+  if (/Zoho OAuth|refresh_token|invalid_client|invalid_grant/i.test(message)) {
     return {
       httpStatus: 503,
-      code: 'RESEND_DOMAIN_OR_PERMISSION',
+      code: 'ZOHO_OAUTH_CONFIG',
       message,
       hint:
-        'Resend: Absender-Domain in https://resend.com/domains verifizieren oder testweise Resend-Onboarding-Absender nutzen. REPORT_MAIL_FROM muss einer verifizierten Domain entsprechen.',
+        'Zoho OAuth prüfen: ZOHO_CLIENT_ID, ZOHO_CLIENT_SECRET, ZOHO_REFRESH_TOKEN (Scope ZohoMail.messages.CREATE oder ALL), Refresh-Token neu erzeugen falls abgelaufen.',
     };
   }
 
-  if (/Resend\s+422|Resend\s+400|validation|invalid_from|invalid_to/i.test(message)) {
-    return {
-      httpStatus: 502,
-      code: 'RESEND_VALIDATION',
-      message,
-      hint:
-        'Resend lehnt die Anfrage ab (ungültiges from/to/subject). REPORT_MAIL_FROM und Empfänger prüfen.',
-    };
-  }
-
-  if (/RESEND_API_KEY|REPORT_MAIL_FROM fehlt/i.test(message)) {
+  if (/ZOHO_ACCOUNT_ID fehlt/i.test(message)) {
     return {
       httpStatus: 503,
-      code: 'MAIL_NOT_CONFIGURED',
+      code: 'ZOHO_ACCOUNT_MISSING',
       message,
       hint:
-        'Vercel: RESEND_API_KEY und REPORT_MAIL_FROM (z. B. "Name <mail@domain>") setzen.',
+        'ZOHO_ACCOUNT_ID in Vercel setzen (Z-Mail-Konto-ID, z. B. aus der Mail-API oder Setup-Doku).',
     };
   }
 
-  if (/Resend\s+/i.test(message)) {
+  if (/Absender fehlt|ZOHO_DEFAULT_FROM_EMAIL/i.test(message)) {
+    return {
+      httpStatus: 503,
+      code: 'ZOHO_FROM_MISSING',
+      message,
+      hint:
+        'ZOHO_DEFAULT_FROM_EMAIL (und optional ZOHO_DEFAULT_FROM_NAME) in Vercel setzen — muss die Mailbox der OAuth-App sein.',
+    };
+  }
+
+  if (/Zoho Mail API\s+4\d{2}/i.test(message)) {
     return {
       httpStatus: 502,
-      code: 'RESEND_ERROR',
+      code: 'ZOHO_MAIL_API_REJECTED',
       message,
-      hint: 'Resend-Dashboard und Logs prüfen: https://resend.com/overview',
+      hint:
+        'Zoho lehnt die Anfrage ab (Adresse, Scope oder Kontingent). Zoho Mail API-Dokumentation und Audit-Logs prüfen.',
     };
   }
 

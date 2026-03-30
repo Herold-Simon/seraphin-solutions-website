@@ -1,31 +1,8 @@
 /**
- * Versand von Statistik-Berichten über Resend (HTTPS-API, geeignet für Vercel Serverless).
- * https://resend.com/docs/api-reference/emails/send-email
+ * Statistik-Berichte: Versand über Zoho Mail REST API (OAuth), kein SMTP.
  */
 
-const RESEND_API = 'https://api.resend.com/emails';
-
-function normalizeEnvString(raw) {
-  if (raw == null) return '';
-  let s = String(raw).trim();
-  if (
-    (s.startsWith('"') && s.endsWith('"') && s.length >= 2) ||
-    (s.startsWith("'") && s.endsWith("'") && s.length >= 2)
-  ) {
-    s = s.slice(1, -1).trim();
-  }
-  return s.replace(/[\u200B-\u200D\uFEFF]/g, '');
-}
-
-function getReportMailFrom() {
-  const from = normalizeEnvString(process.env.REPORT_MAIL_FROM);
-  if (!from) {
-    throw new Error(
-      'REPORT_MAIL_FROM fehlt. In Vercel z. B. setzen: Gebäudenavi <berichte@deine-domain.de> — Domain muss in Resend verifiziert sein.'
-    );
-  }
-  return from;
-}
+const { sendEmailViaZoho } = require('./zoho-mail-oauth');
 
 function formatComparisonLine(comparison, totalCurrent, totalPrevious) {
   if (comparison.direction === 'neu') {
@@ -106,49 +83,18 @@ function escapeHtml(s) {
  * @param {string} html
  */
 async function sendStatisticsReport(emails, subject, html) {
-  const apiKey = normalizeEnvString(process.env.RESEND_API_KEY);
-  if (!apiKey) {
-    throw new Error(
-      'RESEND_API_KEY fehlt — API-Schlüssel aus dem Resend-Dashboard in Vercel Environment Variables eintragen.'
-    );
-  }
-
-  const from = getReportMailFrom();
-  const to = (Array.isArray(emails) ? emails : [emails]).map((e) => String(e).trim()).filter(Boolean);
-
-  if (to.length === 0) {
+  const list = (Array.isArray(emails) ? emails : [emails])
+    .map((e) => String(e).trim())
+    .filter(Boolean);
+  if (list.length === 0) {
     throw new Error('Keine gültigen Empfänger-Adressen.');
   }
 
-  const res = await fetch(RESEND_API, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from,
-      to,
-      subject,
-      html,
-    }),
+  await sendEmailViaZoho({
+    to: list,
+    subject,
+    htmlBody: html,
   });
-
-  let data = {};
-  try {
-    data = await res.json();
-  } catch (_) {
-    /* ignore */
-  }
-
-  if (!res.ok) {
-    const detail =
-      (data && data.message) ||
-      (data && data.error && data.error.message) ||
-      JSON.stringify(data) ||
-      res.statusText;
-    throw new Error(`Resend ${res.status}: ${detail}`);
-  }
 }
 
 module.exports = {
