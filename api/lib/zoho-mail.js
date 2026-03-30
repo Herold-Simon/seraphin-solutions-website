@@ -14,12 +14,43 @@ function normalizeSmtpHost(raw) {
   return h;
 }
 
+/** E-Mail-Adresse für SMTP-Kopfzeilen (Absender); Kleinbuchstaben, typische Paste-Artefakte entfernt. */
+function normalizeEmail(raw) {
+  const e = normalizeSmtpHost(raw);
+  if (!e) return '';
+  return e.toLowerCase();
+}
+
+/**
+ * Einheitliche „From“-Angabe für Statistik-Mails.
+ * Reihenfolge: ZOHO_MAIL_FROM → ZOHO_SMTP_USER (beide müssen zur SMTP-Auth passen, sonst Relay-Fehler bei Zoho).
+ * Optional: ZOHO_MAIL_FROM_NAME → „Name“ <adresse>
+ */
+function getReportFromAddress() {
+  const addr =
+    normalizeEmail(process.env.ZOHO_MAIL_FROM) ||
+    normalizeEmail(process.env.ZOHO_SMTP_USER);
+  if (!addr || !addr.includes('@')) {
+    throw new Error(
+      'Absender fehlt oder ungültig — ZOHO_MAIL_FROM oder ZOHO_SMTP_USER als E-Mail setzen.'
+    );
+  }
+  const nameRaw = normalizeSmtpHost(process.env.ZOHO_MAIL_FROM_NAME);
+  if (nameRaw) {
+    const safeName = nameRaw.replace(/[\r\n<>]/g, '').trim();
+    if (safeName) {
+      return `"${safeName.replace(/"/g, '')}" <${addr}>`;
+    }
+  }
+  return addr;
+}
+
 function getTransport() {
   const host =
     normalizeSmtpHost(process.env.ZOHO_SMTP_HOST) || 'smtppro.zoho.eu';
   const port = parseInt(process.env.ZOHO_SMTP_PORT || '465', 10);
-  const user = process.env.ZOHO_SMTP_USER;
-  const pass = process.env.ZOHO_SMTP_PASS;
+  const user = normalizeSmtpHost(process.env.ZOHO_SMTP_USER);
+  const pass = normalizeSmtpHost(process.env.ZOHO_SMTP_PASS);
   const secure = port === 465;
 
   if (!user || !pass) {
@@ -35,6 +66,7 @@ function getTransport() {
     host,
     port,
     secure,
+    requireTLS: port === 587,
     auth: { user, pass },
   });
 }
@@ -113,8 +145,14 @@ function escapeHtml(s) {
 }
 
 async function sendStatisticsReport(emails, subject, html) {
-  const from =
-    process.env.ZOHO_MAIL_FROM || process.env.ZOHO_SMTP_USER;
+  const from = getReportFromAddress();
+  const authUser = normalizeEmail(process.env.ZOHO_SMTP_USER);
+  const fromAddrOnly = from.includes('<') ? from.replace(/^[^<]*<([^>]+)>.*$/, '$1').trim() : from;
+  if (authUser && fromAddrOnly !== authUser) {
+    console.warn(
+      '[zoho-mail] ZOHO_MAIL_FROM unterscheidet sich von ZOHO_SMTP_USER — Zoho kann den Versand mit 553/554 ablehnen.'
+    );
+  }
 
   const transport = getTransport();
   await transport.sendMail({
@@ -129,4 +167,5 @@ module.exports = {
   sendStatisticsReport,
   buildReportEmailHtml,
   getTransport,
+  getReportFromAddress,
 };
