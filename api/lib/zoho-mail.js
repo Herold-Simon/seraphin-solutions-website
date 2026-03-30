@@ -1,7 +1,22 @@
 const nodemailer = require('nodemailer');
 
+/** Trimmt typische Copy-Paste-Artefakte aus ZOHO_SMTP_HOST (verhindert dns.queryA EBADNAME). */
+function normalizeSmtpHost(raw) {
+  if (raw == null) return '';
+  let h = String(raw).trim();
+  if (
+    (h.startsWith('"') && h.endsWith('"') && h.length >= 2) ||
+    (h.startsWith("'") && h.endsWith("'") && h.length >= 2)
+  ) {
+    h = h.slice(1, -1).trim();
+  }
+  h = h.replace(/[\u200B-\u200D\uFEFF]/g, '');
+  return h;
+}
+
 function getTransport() {
-  const host = process.env.ZOHO_SMTP_HOST || 'smtp.zoho.eu';
+  const host =
+    normalizeSmtpHost(process.env.ZOHO_SMTP_HOST) || 'smtppro.zoho.eu';
   const port = parseInt(process.env.ZOHO_SMTP_PORT || '465', 10);
   const user = process.env.ZOHO_SMTP_USER;
   const pass = process.env.ZOHO_SMTP_PASS;
@@ -9,6 +24,11 @@ function getTransport() {
 
   if (!user || !pass) {
     throw new Error('ZOHO_SMTP_USER und ZOHO_SMTP_PASS müssen gesetzt sein');
+  }
+  if (!host || /\s/.test(host)) {
+    throw new Error(
+      'ZOHO_SMTP_HOST ist leer oder ungültig — Host ohne Leerzeichen setzen (z. B. smtppro.zoho.eu).'
+    );
   }
 
   return nodemailer.createTransport({
