@@ -1520,7 +1520,7 @@
                     
                     <div class="stat-card">
                         <div class="stat-icon">
-                            <i class="fas fa-play-circle"></i>
+                            <i class="fas fa-eye"></i>
                         </div>
                         <div class="stat-number" id="videosWithViews">0</div>
                         <div class="stat-label">Aufrufe heute</div>
@@ -1559,7 +1559,7 @@
                             <div>
                                 <h3 style="margin: 0; color: var(--text-dark);">Erweiterte Einstellungen</h3>
                                 <div class="advanced-settings-info" id="advancedSettingsInfo">
-                                    <span>Im Moment werden nur die Top <span id="infoVideoCount">5</span> Videos angezeigt.</span>
+                                    <span>Es werden alle Videos mit Aufrufen im gewählten Zeitraum in den Diagrammen angezeigt.</span>
                                 </div>
                             </div>
                             <i class="fas fa-chevron-down" id="advancedSettingsIcon"></i>
@@ -1570,10 +1570,10 @@
                         <!-- Video-Anzahl Slider -->
                         <div class="video-count-setting">
                             <label for="videoCountSlider" class="setting-label">
-                                Maximale Anzahl Videos in den Diagrammen: <span id="videoCountValue">5</span>
+                                Maximale Anzahl Videos in den Diagrammen: <span id="videoCountValue">–</span>
                             </label>
                             <div class="slider-container">
-                                <input type="range" id="videoCountSlider" min="3" max="10" value="5" class="video-count-slider">
+                                <input type="range" id="videoCountSlider" min="3" max="10" value="10" class="video-count-slider">
                                 <div class="slider-labels">
                                     <span>3</span>
                                     <span id="sliderMaxValue">7</span>
@@ -1762,7 +1762,8 @@
         };
         
         // Erweiterte Einstellungen Variablen
-        let selectedVideoCount = 5;
+        /** null = alle Videos im Zeitraum (Standard); sonst obere Grenze für die Diagramme */
+        let selectedVideoCount = null;
         let selectedVideos = new Set(); // Set of video IDs that are selected
         let allAvailableVideos = []; // All available videos for selection
         let lineChartMode = 'totalViews'; // 'byVideos' | 'totalViews'
@@ -1984,21 +1985,36 @@
             slider.max = maxVideos;
             maxValueSpan.textContent = maxVideos;
             
-            // Stelle sicher, dass der aktuelle Wert nicht über dem Maximum liegt
-            if (selectedVideoCount > maxVideos) {
-                selectedVideoCount = maxVideos;
+            const valueEl = document.getElementById('videoCountValue');
+            // Stelle sicher, dass der aktuelle Wert nicht über dem Maximum liegt (nur bei fester Obergrenze)
+            if (selectedVideoCount != null && Number.isFinite(selectedVideoCount)) {
+                if (selectedVideoCount > maxVideos) {
+                    selectedVideoCount = maxVideos;
+                    slider.value = maxVideos;
+                    if (valueEl) valueEl.textContent = String(maxVideos);
+                } else {
+                    slider.value = selectedVideoCount;
+                    if (valueEl) valueEl.textContent = String(selectedVideoCount);
+                }
+            } else {
                 slider.value = maxVideos;
-                document.getElementById('videoCountValue').textContent = maxVideos;
+                if (valueEl) valueEl.textContent = String(maxVideos);
             }
         }
         
         function updateInfoField() {
-            const infoVideoCount = document.getElementById('infoVideoCount');
+            const advancedSettingsInfo = document.getElementById('advancedSettingsInfo');
             const infoSelectedCount = document.getElementById('infoSelectedCount');
             const videoCountSetting = document.querySelector('.video-count-setting');
             
-            if (infoVideoCount) {
-                infoVideoCount.textContent = selectedVideoCount;
+            if (advancedSettingsInfo) {
+                if (selectedVideos.size > 0) {
+                    advancedSettingsInfo.innerHTML = '<span>Die Diagramme berücksichtigen nur die ausgewählten Videos.</span>';
+                } else if (selectedVideoCount == null || !Number.isFinite(selectedVideoCount)) {
+                    advancedSettingsInfo.innerHTML = '<span>Es werden alle Videos mit Aufrufen im gewählten Zeitraum in den Diagrammen angezeigt.</span>';
+                } else {
+                    advancedSettingsInfo.innerHTML = '<span>Im Moment werden nur die Top <span id="infoVideoCount">' + selectedVideoCount + '</span> Videos angezeigt.</span>';
+                }
             }
             
             if (infoSelectedCount) {
@@ -2041,8 +2057,10 @@
             
             if (videoCountSlider && videoCountValue) {
                 videoCountSlider.addEventListener('input', function() {
-                    selectedVideoCount = parseInt(this.value);
-                    videoCountValue.textContent = selectedVideoCount;
+                    var n = parseInt(this.value, 10);
+                    if (isNaN(n)) return;
+                    selectedVideoCount = n;
+                    videoCountValue.textContent = String(n);
                     updateInfoField();
                     updateCharts();
                 });
@@ -2149,8 +2167,10 @@
                 return filteredVideos;
             }
             
-            // Begrenze auf die gewählte Anzahl (nur wenn keine Videos ausgewählt sind)
-            filteredVideos = filteredVideos.slice(0, selectedVideoCount);
+            // Begrenze auf die gewählte Anzahl (nur wenn keine Videos ausgewählt sind und eine Obergrenze gesetzt ist)
+            if (selectedVideoCount != null && Number.isFinite(selectedVideoCount)) {
+                filteredVideos = filteredVideos.slice(0, selectedVideoCount);
+            }
             
             return filteredVideos;
         }
@@ -4360,7 +4380,11 @@
         
         // Chart-Titel mit aktuellem „Top X“ aktualisieren
         function updateChartTitles() {
-            const topCount = selectedVideos.size > 0 ? selectedVideos.size : selectedVideoCount;
+            const topCount = selectedVideos.size > 0
+                ? selectedVideos.size
+                : (selectedVideoCount != null && Number.isFinite(selectedVideoCount)
+                    ? selectedVideoCount
+                    : Math.max(allAvailableVideos.length, 1));
             const suffix = ' Top ' + topCount;
             const lineTitle = document.getElementById('lineChartTitle');
             const pieTitle = document.getElementById('pieChartTitle');
@@ -4420,7 +4444,6 @@
             }
             
             updateTopStatsAndHint();
-            updateChartTitles();
             
             console.log('🔄 Aktualisiere Charts für Gerät:', selectedDeviceId);
             console.log('📊 Verwende Statistiken:', selectedDeviceId === 'all' ? 'statistics (aggregiert)' : 'deviceStatistics (geräte-spezifisch)');
@@ -4434,6 +4457,7 @@
             createPieChart();
             console.log('🏃 Erstelle Line Race neu...');
             createLineRaceChart();
+            updateChartTitles();
         }
         
         // Chart-Größe bei Resize/Rotation robust anpassen (Mobile: Portrait <-> Landscape)
