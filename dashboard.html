@@ -38,25 +38,6 @@
             overflow-x: hidden;
         }
 
-        /* Dashboard Seitenkopf */
-        .dashboard-page-header {
-            margin-bottom: 1.5rem;
-            padding: 1.5rem 0 0.5rem;
-        }
-        .dashboard-page-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin: 0 0 0.25rem;
-            letter-spacing: -0.02em;
-        }
-        .dashboard-page-subtitle {
-            font-size: 0.95rem;
-            color: var(--text-light);
-            margin: 0;
-            font-weight: 400;
-        }
-
         /* Modern Device Selector */
         .device-selector-container {
             background: var(--white);
@@ -1060,6 +1041,12 @@
             font-style: italic;
         }
         
+        .last-updated {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: 2rem;
+        }
         .last-updated-row {
             margin-top: 0.35rem;
         }
@@ -1182,16 +1169,6 @@
             .dashboard-content {
                 padding: 0 0.875rem 3rem;
             }
-            .dashboard-page-header {
-                padding: 1rem 0 0.25rem;
-                margin-bottom: 1rem;
-            }
-            .dashboard-page-title {
-                font-size: 1.4rem;
-            }
-            .dashboard-page-subtitle {
-                font-size: 0.85rem;
-            }
             .device-selector-container {
                 padding: 1rem;
                 margin-bottom: 1.25rem;
@@ -1251,36 +1228,26 @@
             /* Pie Chart mobile Optimierungen */
             .chart-container.pie-chart {
                 height: 300px;
-                padding-bottom: 60px;
+                padding-bottom: 60px; /* Platz für Legende */
             }
 
             /* Balkendiagramm mobile Optimierungen */
             .chart-container.bar-chart {
                 overflow-x: auto;
-                padding-bottom: 40px;
+                padding-bottom: 40px; /* Platz für Legende */
             }
             
-            /* Zeitraum-Buttons: horizontal scrollbar statt vertikaler Stack */
+            /* Zeitraum-Buttons für sehr kleine Bildschirme */
             .time-range-buttons {
-                flex-direction: row;
-                flex-wrap: nowrap;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
+                flex-direction: column;
                 gap: 0.5rem;
-                padding-bottom: 0.25rem;
-                scrollbar-width: none;
-            }
-            .time-range-buttons::-webkit-scrollbar {
-                display: none;
             }
             
             .time-btn {
-                min-width: auto;
-                max-width: none;
-                padding: 0.75rem 1rem;
-                font-size: 14px;
-                white-space: nowrap;
-                flex-shrink: 0;
+                min-width: 100%;
+                max-width: 100%;
+                padding: 0.875rem 1rem;
+                font-size: 15px;
             }
             
             /* Erweiterte Einstellungen mobile Optimierungen */
@@ -1453,40 +1420,6 @@
             font-size: 1.1rem;
         }
         
-        /* Scroll-Hinweis in den Stat-Karten */
-        .stats-scroll-hint {
-            grid-column: 1 / -1;
-            text-align: center;
-            font-size: 0.78rem;
-            color: var(--text-light);
-            opacity: 0.6;
-            padding-top: 0.25rem;
-            transition: opacity 0.2s ease;
-        }
-        .stats-overview:hover .stats-scroll-hint {
-            opacity: 1;
-            color: var(--primary-blue);
-        }
-
-        /* Chart-Card Akzent-Border oben via Background-Gradient */
-        .chart-card {
-            background:
-                linear-gradient(to right, var(--primary-blue), var(--primary-green)) no-repeat top center / 100% 3px,
-                var(--white);
-        }
-
-        /* Letzte Aktualisierung aufwerten */
-        .last-updated {
-            text-align: center;
-            color: var(--text-light);
-            font-size: 0.85rem;
-            margin-top: 2rem;
-            padding: 1rem 1.5rem;
-            background: var(--white);
-            border-radius: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-        }
-
         /* Highlight-Animation für Charts-Sektion */
         @keyframes highlight {
             0% {
@@ -1539,7 +1472,7 @@
             <!-- Hinweisbanner (gesteuert durch STATISTIKEN_NICHT_FUNKTIONAL) -->
             <div id="wartungshinweis" style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: none; align-items: center; gap: 0.75rem; color: #856404;">
                 <i class="fas fa-triangle-exclamation" style="font-size: 1.2rem; flex-shrink: 0;"></i>
-                <span><strong>Hinweis:</strong> Manche Funktionen funktionieren im Moment nicht oder sind eingeschränkt</span>
+                <span><strong>Hinweis:</strong> Manche Funktionen funktionieren im Moment nicht oder sind eingeschränkt<span>
             </div>
 
             <div id="loadingMessage" style="text-align: center; padding: 2rem;">
@@ -1550,12 +1483,6 @@
             <div id="errorMessage" class="error-message" style="display: none;"></div>
             
             <div id="dashboardContent" style="display: none;">
-            <!-- Dashboard Titel -->
-            <div class="dashboard-page-header">
-                <h1 class="dashboard-page-title">Statistiken</h1>
-                <p class="dashboard-page-subtitle">Übersicht Ihrer Gebäudenavi-Aufrufe und Nutzungsdaten</p>
-            </div>
-
             <!-- Modern Device Selector -->
             <div class="device-selector-container" id="deviceSelectorHeader" style="display: none;">
                 <div class="device-dropdown" id="deviceDropdown">
@@ -1623,55 +1550,6 @@
                             <span class="stat-average-option" id="averageOptionHour">pro Stunde</span>
                         </div>
                     </div>
-                    <div class="stats-scroll-hint">
-                        <i class="fas fa-arrow-down"></i> Zu den Diagrammen
-                    </div>
-                </div>
-
-                <!-- Zeitraum-Auswahl -->
-                <div class="time-range-selector">
-                    <h3 style="margin: 0; color: var(--text-dark);">Zeitraum:</h3>
-                    <div class="time-range-buttons">
-                        <button class="time-btn" data-range="7">Letzte 7 Tage</button>
-                        <button class="time-btn" data-range="all">Gesamter Zeitraum</button>
-                        <button class="time-btn active" data-range="custom" id="customRangeBtn">Benutzerdefiniert</button>
-                    </div>
-                    
-                    <!-- Benutzerdefinierte Datumsauswahl -->
-                    <div class="custom-date-range" id="customDateRange" style="display: block;">
-                        <div class="date-inputs">
-                            <div class="date-input-group">
-                                <label for="startDate">Von:</label>
-                                <div class="date-input-container">
-                                    <button class="date-nav-btn" id="startDatePrev" type="button">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </button>
-                                    <input type="date" id="startDate" class="date-input">
-                                    <button class="date-nav-btn" id="startDateNext" type="button">
-                                        <i class="fas fa-chevron-right"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="date-input-group">
-                                <label for="endDate">Bis:</label>
-                                <div class="date-input-container">
-                                    <button class="date-nav-btn" id="endDatePrev" type="button">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </button>
-                                    <input type="date" id="endDate" class="date-input">
-                                    <button class="date-nav-btn" id="endDateNext" type="button">
-                                        <i class="fas fa-chevron-right"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="reset-button-container">
-                            <button class="reset-date-btn" id="resetDateBtn" type="button">
-                                <i class="fas fa-undo"></i>
-                                Zurücksetzen
-                            </button>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Erweiterte Einstellungen -->
@@ -1733,6 +1611,52 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Zeitraum-Auswahl -->
+                <div class="time-range-selector">
+                    <h3 style="margin: 0; color: var(--text-dark);">Zeitraum:</h3>
+                    <div class="time-range-buttons">
+                        <button class="time-btn" data-range="7">Letzte 7 Tage</button>
+                        <button class="time-btn" data-range="all">Gesamter Zeitraum</button>
+                        <button class="time-btn active" data-range="custom" id="customRangeBtn">Benutzerdefiniert</button>
+                    </div>
+                    
+                    <!-- Benutzerdefinierte Datumsauswahl -->
+                    <div class="custom-date-range" id="customDateRange" style="display: block;">
+                        <div class="date-inputs">
+                            <div class="date-input-group">
+                                <label for="startDate">Von:</label>
+                                <div class="date-input-container">
+                                    <button class="date-nav-btn" id="startDatePrev" type="button">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <input type="date" id="startDate" class="date-input">
+                                    <button class="date-nav-btn" id="startDateNext" type="button">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="date-input-group">
+                                <label for="endDate">Bis:</label>
+                                <div class="date-input-container">
+                                    <button class="date-nav-btn" id="endDatePrev" type="button">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <input type="date" id="endDate" class="date-input">
+                                    <button class="date-nav-btn" id="endDateNext" type="button">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="reset-button-container">
+                            <button class="reset-date-btn" id="resetDateBtn" type="button">
+                                <i class="fas fa-undo"></i>
+                                Zurücksetzen
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 
                 <!-- Charts -->
                 <div class="charts-section" id="chartsSection">
@@ -1749,7 +1673,7 @@
                                     Aufrufe nach Videos
                                 </button>
                                 <button type="button" class="line-chart-mode-btn active" data-mode="totalViews" id="lineChartModeTotalViews">
-                                    Aufrufe insgesamt
+                                    Insgesamte Aufrufe
                                 </button>
                             </div>
                         </div>
@@ -1786,10 +1710,10 @@
                         </div>
                     </div>
 
-                    <!-- Kumulierte Aufrufe (ehemals Line Race) -->
+                    <!-- Line Race (wie in der App) -->
                     <div class="chart-card">
                         <div class="chart-header chart-header-with-mode-toggle">
-                            <h3 class="chart-title" id="lineRaceChartTitle">Kumulierte Aufrufe</h3>
+                            <h3 class="chart-title" id="lineRaceChartTitle">Line Race</h3>
                             <div class="chart-time-range-hint" id="lineRaceChartTimeHint" style="display: none;" role="status">
                                 <i class="fas fa-info-circle"></i>
                                 <span>Bezieht sich auf den gewählten Zeitraum.</span>
@@ -1799,7 +1723,7 @@
                                     Aufrufe nach Videos
                                 </button>
                                 <button type="button" class="line-chart-mode-btn active" data-mode="totalViews" id="lineRaceChartModeTotalViews">
-                                    Aufrufe insgesamt
+                                    Insgesamte Aufrufe
                                 </button>
                             </div>
                         </div>
@@ -4470,7 +4394,7 @@
             if (lineTitle) lineTitle.textContent = lineChartMode === 'totalViews' ? 'Liniendiagramm' : 'Liniendiagramm: ' + suffix;
             if (pieTitle) pieTitle.textContent = 'Tortendiagramm: ' + suffix;
             if (barTitle) barTitle.textContent = 'Balkendiagramm: ' + suffix;
-            if (lineRaceTitle) lineRaceTitle.textContent = lineRaceChartMode === 'totalViews' ? 'Kumulierte Aufrufe' : 'Kumulierte Aufrufe: ' + suffix;
+            if (lineRaceTitle) lineRaceTitle.textContent = lineRaceChartMode === 'totalViews' ? 'Line Race' : 'Line Race: ' + suffix;
         }
         
         // Oberste Statistik-Karten und Zeitraum-Hinweis aktualisieren (ohne komplette displayStatistics)
@@ -4801,7 +4725,7 @@
                 </nav>
             </div>
             <div class="footer-bottom">
-                <p class="footer-copy">&copy; 2026 Seraphin Solutions. Alle Rechte vorbehalten.</p>
+                <p class="footer-copy">&copy; 2025 Seraphin Solutions. Alle Rechte vorbehalten.</p>
             </div>
         </div>
     </footer>
