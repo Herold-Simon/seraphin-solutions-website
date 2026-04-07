@@ -1,24 +1,21 @@
 // Mobile Navigation Toggle
-const hamburger = document.getElementById('hamburger');
-const nav = document.getElementById('nav');
+var hamburger = document.getElementById('hamburger');
+var nav = document.getElementById('nav');
 
 if (hamburger && nav) {
-    hamburger.addEventListener('click', () => {
+    hamburger.addEventListener('click', function() {
         nav.classList.toggle('active');
         hamburger.classList.toggle('active');
     });
 
-    // Close menu when clicking on a link
-    const navLinks = nav.querySelectorAll('.nav-link');
-    navLinks.forEach(link => {
-        link.addEventListener('click', () => {
+    nav.querySelectorAll('.nav-link').forEach(function(link) {
+        link.addEventListener('click', function() {
             nav.classList.remove('active');
             hamburger.classList.remove('active');
         });
     });
 
-    // Close menu when clicking outside
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', function(e) {
         if (!nav.contains(e.target) && !hamburger.contains(e.target)) {
             nav.classList.remove('active');
             hamburger.classList.remove('active');
@@ -26,64 +23,56 @@ if (hamburger && nav) {
     });
 }
 
-// Mobile Navigation Toggle (navbar variant: .navbar + .nav-menu)
-const navbarHamburger = document.querySelector('.navbar .hamburger');
-const navbarMenu = document.querySelector('.navbar .nav-menu');
+// Navbar variant toggle (.navbar + .nav-menu)
+var navbarHamburger = document.querySelector('.navbar .hamburger');
+var navbarMenu = document.querySelector('.navbar .nav-menu');
 
 if (navbarHamburger && navbarMenu) {
-    navbarHamburger.addEventListener('click', (e) => {
+    navbarHamburger.addEventListener('click', function(e) {
         e.stopPropagation();
         navbarMenu.classList.toggle('active');
     });
 
-    // Close menu when clicking a link
-    navbarMenu.querySelectorAll('a').forEach(link => {
-        link.addEventListener('click', () => {
+    navbarMenu.querySelectorAll('a').forEach(function(link) {
+        link.addEventListener('click', function() {
             navbarMenu.classList.remove('active');
         });
     });
 
-    // Close menu when clicking outside
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', function(e) {
         if (!navbarMenu.contains(e.target) && !navbarHamburger.contains(e.target)) {
             navbarMenu.classList.remove('active');
         }
     });
 }
 
-// Smooth Scrolling
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        const href = this.getAttribute('href');
+// Smooth scrolling for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+    anchor.addEventListener('click', function(e) {
+        var href = this.getAttribute('href');
         if (href !== '#' && href.length > 1) {
             e.preventDefault();
-            const target = document.querySelector(href);
+            var target = document.querySelector(href);
             if (target) {
-                const headerOffset = 80;
-                const elementPosition = target.getBoundingClientRect().top;
-                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-                window.scrollTo({
-                    top: offsetPosition,
-                    behavior: 'smooth'
-                });
+                var headerOffset = 80;
+                var top = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+                window.scrollTo({ top: top, behavior: 'smooth' });
             }
         }
     });
 });
 
 // References Carousel
-const carousel = document.getElementById('carousel');
-const carouselPrev = document.getElementById('carouselPrev');
-const carouselNext = document.getElementById('carouselNext');
-let currentSlide = 0;
+var carousel = document.getElementById('carousel');
+var carouselPrev = document.getElementById('carouselPrev');
+var carouselNext = document.getElementById('carouselNext');
+var currentSlide = 0;
 
 if (carousel && carouselPrev && carouselNext) {
-    const track = document.getElementById('carouselTrack');
-    const slides = carousel.querySelectorAll('.carousel-slide');
-    const totalSlides = slides.length;
+    var track = document.getElementById('carouselTrack');
+    var slides = carousel.querySelectorAll('.carousel-slide');
+    var totalSlides = slides.length;
 
-    // Only show arrows if there are multiple slides
     if (totalSlides > 1) {
         carouselPrev.style.display = 'flex';
         carouselNext.style.display = 'flex';
@@ -92,37 +81,32 @@ if (carousel && carouselPrev && carouselNext) {
     function showSlide(index) {
         currentSlide = index;
         if (track) {
-            track.style.transform = `translateX(-${index * 100}%)`;
+            track.style.transform = 'translateX(-' + (index * 100) + '%)';
         }
-        slides.forEach((slide, i) => {
+        slides.forEach(function(slide, i) {
             slide.classList.toggle('active', i === index);
         });
     }
 
-    function nextSlide() {
-        currentSlide = (currentSlide + 1) % totalSlides;
-        showSlide(currentSlide);
-    }
-
-    function prevSlide() {
-        currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
-        showSlide(currentSlide);
-    }
-
     if (totalSlides > 1) {
-        carouselNext.addEventListener('click', nextSlide);
-        carouselPrev.addEventListener('click', prevSlide);
+        carouselNext.addEventListener('click', function() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            showSlide(currentSlide);
+        });
+        carouselPrev.addEventListener('click', function() {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            showSlide(currentSlide);
+        });
     }
     showSlide(0);
 }
 
-// Price Calculator with Sliders
-const flaecheSlider = document.getElementById('flaeche');
-const kioskeSlider = document.getElementById('kioske');
-const kioskeValue = document.getElementById('kioskeValue');
-const calculatorResult = document.getElementById('calculatorResult');
-const resultPrice = document.getElementById('resultPrice');
-const resultBreakdown = document.getElementById('resultBreakdown');
+// Price Calculator
+var flaecheSlider = document.getElementById('flaeche');
+var kioskeSlider = document.getElementById('kioske');
+var kioskeValue = document.getElementById('kioskeValue');
+var resultPrice = document.getElementById('resultPrice');
+var resultBreakdown = document.getElementById('resultBreakdown');
 
 function formatNumber(num) {
     return Math.round(num).toLocaleString('de-DE');
@@ -131,65 +115,46 @@ function formatNumber(num) {
 function calculatePrice() {
     if (!flaecheSlider || !kioskeSlider) return;
 
-    // Fläche aus Number-Input (falls vorhanden und gültig) oder Slider; mindestens 0
-    const flaecheInput = document.getElementById('flaecheInput');
-    const inputVal = flaecheInput ? parseFloat(flaecheInput.value) : NaN;
-    const flaeche = (flaecheInput && !isNaN(inputVal) && flaecheInput.value.trim() !== '')
+    var flaecheInput = document.getElementById('flaecheInput');
+    var inputVal = flaecheInput ? parseFloat(flaecheInput.value) : NaN;
+    var flaeche = (flaecheInput && !isNaN(inputVal) && flaecheInput.value.trim() !== '')
         ? Math.max(0, inputVal)
         : parseFloat(flaecheSlider.value);
-    const kioske = parseInt(kioskeSlider.value);
+    var kioske = parseInt(kioskeSlider.value);
 
-    // Update display values (Fläche wird im Input angezeigt)
-    if (kioskeValue) {
-        kioskeValue.textContent = kioske;
-    }
+    if (kioskeValue) kioskeValue.textContent = kioske;
 
-    // Preisberechnung (exakte Brüche)
-    const N = 119500;
-    const basePrice = flaeche <= 500 ? 750 : 750 + (flaeche - 500) * (5550 / 119500);
-    const kioskSetupPrice = (150 + flaeche * (1850 / 120000)) * (3 / 2) * kioske;
-    let floorPlanPrice;
+    var N = 119500;
+    var basePrice = flaeche <= 500 ? 750 : 750 + (flaeche - 500) * (5550 / 119500);
+    var kioskSetupPrice = (150 + flaeche * (1850 / 120000)) * (3 / 2) * kioske;
+    var floorPlanPrice;
     if (flaeche <= 500) {
         floorPlanPrice = flaeche * (9 / 2);
     } else {
-        const k = (flaeche - 500) / N;
+        var k = (flaeche - 500) / N;
         floorPlanPrice = 2250 + 24750 * Math.sqrt(k);
     }
-    const finalBaseFee = basePrice * (9 / 16);
-    const finalTotalKioskPrice = kioskSetupPrice * (3 / 4);
-    const finalFloorPlanPrice = floorPlanPrice * (3 / 4);
-    const finalTotalPrice = finalBaseFee + finalTotalKioskPrice + finalFloorPlanPrice;
+    var finalBaseFee = basePrice * (9 / 16);
+    var finalTotalKioskPrice = kioskSetupPrice * (3 / 4);
+    var finalFloorPlanPrice = floorPlanPrice * (3 / 4);
+    var finalTotalPrice = finalBaseFee + finalTotalKioskPrice + finalFloorPlanPrice;
 
-    // Update result display
     if (resultPrice) {
-        resultPrice.textContent = formatNumber(finalTotalPrice) + ' €';
+        resultPrice.textContent = formatNumber(finalTotalPrice) + ' \u20AC';
     }
     if (resultBreakdown) {
-        resultBreakdown.innerHTML = `
-            <div class="result-item">
-                <span>Grundgebühr:</span>
-                <span>${formatNumber(finalBaseFee)} €</span>
-            </div>
-            <div class="result-item">
-                <span>Einrichtung (${kioske} Interaktive Touch-Bildschirme):</span>
-                <span>${formatNumber(finalTotalKioskPrice)} €</span>
-            </div>
-            <div class="result-item">
-                <span>Grundriss & Wegbeschreibungen:</span>
-                <span>${formatNumber(finalFloorPlanPrice)} €</span>
-            </div>
-            <div class="result-item" style="font-weight: 700; font-size: 1.1rem; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border-color);">
-                <span>Gesamt:</span>
-                <span>${formatNumber(finalTotalPrice)} €</span>
-            </div>
-        `;
+        resultBreakdown.innerHTML =
+            '<div class="result-item"><span>Grundgebühr:</span><span>' + formatNumber(finalBaseFee) + ' \u20AC</span></div>' +
+            '<div class="result-item"><span>Einrichtung (' + kioske + ' Bildschirm' + (kioske > 1 ? 'e' : '') + '):</span><span>' + formatNumber(finalTotalKioskPrice) + ' \u20AC</span></div>' +
+            '<div class="result-item"><span>Grundriss & Wegbeschreibungen:</span><span>' + formatNumber(finalFloorPlanPrice) + ' \u20AC</span></div>' +
+            '<div class="result-item" style="font-weight:700;font-size:0.9375rem;margin-top:8px;padding-top:8px;border-top:1px solid var(--color-border)"><span>Gesamt:</span><span>' + formatNumber(finalTotalPrice) + ' \u20AC</span></div>';
     }
 }
 
-// Hold-to-repeat for buttons
+// Hold-to-repeat for +/- buttons
 function setupHoldRepeat(btn, onAction) {
-    let repeatTimer = null;
-    let intervalId = null;
+    var repeatTimer = null;
+    var intervalId = null;
 
     function start() {
         stop();
@@ -201,70 +166,52 @@ function setupHoldRepeat(btn, onAction) {
     }
 
     function stop() {
-        if (repeatTimer) {
-            clearTimeout(repeatTimer);
-            repeatTimer = null;
-        }
-        if (intervalId) {
-            clearInterval(intervalId);
-            intervalId = null;
-        }
+        if (repeatTimer) { clearTimeout(repeatTimer); repeatTimer = null; }
+        if (intervalId) { clearInterval(intervalId); intervalId = null; }
     }
 
-    btn.addEventListener('mousedown', function(e) {
-        e.preventDefault();
-        start();
-    });
-    btn.addEventListener('touchstart', function(e) {
-        e.preventDefault();
-        start();
-    });
+    btn.addEventListener('mousedown', function(e) { e.preventDefault(); start(); });
+    btn.addEventListener('touchstart', function(e) { e.preventDefault(); start(); });
     btn.addEventListener('mouseup', stop);
     btn.addEventListener('mouseleave', stop);
     btn.addEventListener('touchend', stop);
     btn.addEventListener('touchcancel', stop);
 }
 
-// Initialize calculator on page load
 if (flaecheSlider && kioskeSlider) {
-    const flaecheInput = document.getElementById('flaecheInput');
-    const kioskeMinus = document.getElementById('kioskeMinus');
-    const kioskePlus = document.getElementById('kioskePlus');
-    const flaecheMinus = document.getElementById('flaecheMinus');
-    const flaechePlus = document.getElementById('flaechePlus');
+    var flaecheInput = document.getElementById('flaecheInput');
+    var kioskeMinus = document.getElementById('kioskeMinus');
+    var kioskePlus = document.getElementById('kioskePlus');
+    var flaecheMinus = document.getElementById('flaecheMinus');
+    var flaechePlus = document.getElementById('flaechePlus');
 
-    // Sync: Slider -> Number-Input
     flaecheSlider.addEventListener('input', function() {
-        if (flaecheInput) {
-            flaecheInput.value = flaecheSlider.value;
-        }
+        if (flaecheInput) flaecheInput.value = flaecheSlider.value;
         calculatePrice();
     });
 
-    // Sync: Number-Input -> Slider
     if (flaecheInput) {
         flaecheInput.addEventListener('input', function() {
-            const val = parseFloat(flaecheInput.value);
+            var val = parseFloat(flaecheInput.value);
             if (!isNaN(val)) {
                 flaecheSlider.value = Math.min(120000, Math.max(500, val));
             }
             calculatePrice();
         });
         flaecheInput.addEventListener('change', function() {
-            const val = parseFloat(flaecheInput.value);
+            var val = parseFloat(flaecheInput.value);
             if (!isNaN(val) && val >= 0) {
                 flaecheSlider.value = Math.min(120000, Math.max(500, val));
-            } else if (isNaN(val) || val < 0) {
+            } else {
                 flaecheInput.value = flaecheSlider.value;
             }
             calculatePrice();
         });
     }
 
-    // Gebäudegröße +/- 500 m² (mit Halten zum Wiederholen)
     if (flaecheMinus) {
         setupHoldRepeat(flaecheMinus, function() {
-            const v = Math.max(0, parseFloat(flaecheInput?.value || flaecheSlider.value) - 500);
+            var v = Math.max(0, parseFloat(flaecheInput ? flaecheInput.value : flaecheSlider.value) - 500);
             if (flaecheInput) flaecheInput.value = Math.round(v);
             flaecheSlider.value = Math.min(120000, Math.max(500, Math.round(v)));
             calculatePrice();
@@ -272,17 +219,16 @@ if (flaecheSlider && kioskeSlider) {
     }
     if (flaechePlus) {
         setupHoldRepeat(flaechePlus, function() {
-            const v = parseFloat(flaecheInput?.value || flaecheSlider.value) + 500;
+            var v = parseFloat(flaecheInput ? flaecheInput.value : flaecheSlider.value) + 500;
             if (flaecheInput) flaecheInput.value = Math.round(v);
             flaecheSlider.value = Math.min(120000, Math.max(500, Math.round(v)));
             calculatePrice();
         });
     }
 
-    // Counter buttons (mit Halten zum Wiederholen)
     if (kioskeMinus) {
         setupHoldRepeat(kioskeMinus, function() {
-            const v = Math.max(1, parseInt(kioskeSlider.value) - 1);
+            var v = Math.max(1, parseInt(kioskeSlider.value) - 1);
             kioskeSlider.value = v;
             if (kioskeValue) kioskeValue.textContent = v;
             calculatePrice();
@@ -290,7 +236,7 @@ if (flaecheSlider && kioskeSlider) {
     }
     if (kioskePlus) {
         setupHoldRepeat(kioskePlus, function() {
-            const v = Math.min(20, parseInt(kioskeSlider.value) + 1);
+            var v = Math.min(20, parseInt(kioskeSlider.value) + 1);
             kioskeSlider.value = v;
             if (kioskeValue) kioskeValue.textContent = v;
             calculatePrice();
@@ -305,175 +251,91 @@ if (flaecheSlider && kioskeSlider) {
     calculatePrice();
 }
 
-// Helper function to show notifications
-function showNotification(message, type = 'success') {
-    // Remove existing notification if any
-    const existingNotification = document.querySelector('.notification');
-    if (existingNotification) {
-        existingNotification.remove();
+// Notification helper
+function showNotification(message, type) {
+    var existing = document.querySelector('.notification');
+    if (existing) existing.remove();
+
+    var el = document.createElement('div');
+    el.className = 'notification';
+    el.style.cssText = 'position:fixed;top:20px;right:20px;background:' +
+        (type === 'success' ? '#32A71A' : '#ef4444') +
+        ';color:#fff;padding:14px 20px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:10000;max-width:400px;font-size:0.9375rem;line-height:1.5;animation:notifIn .3s ease';
+    el.textContent = message;
+
+    if (!document.querySelector('style[data-notif]')) {
+        var s = document.createElement('style');
+        s.setAttribute('data-notif', '1');
+        s.textContent = '@keyframes notifIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}';
+        document.head.appendChild(s);
     }
-    
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${type === 'success' ? '#10b981' : '#ef4444'};
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        z-index: 10000;
-        max-width: 400px;
-        animation: slideIn 0.3s ease-out;
-    `;
-    notification.textContent = message;
-    
-    // Add animation
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-    `;
-    if (!document.querySelector('style[data-notification]')) {
-        style.setAttribute('data-notification', 'true');
-        document.head.appendChild(style);
-    }
-    
-    document.body.appendChild(notification);
-    
-    // Remove after 5 seconds
-    setTimeout(() => {
-        notification.style.animation = 'slideIn 0.3s ease-out reverse';
-        setTimeout(() => notification.remove(), 300);
+
+    document.body.appendChild(el);
+    setTimeout(function() {
+        el.style.animation = 'notifIn .3s ease reverse';
+        setTimeout(function() { el.remove(); }, 300);
     }, 5000);
 }
 
-// Helper function to validate email
 function isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-// Contact Form with EmailJS - now handled directly in index.html
-
 // FAQ Accordion
-const faqItems = document.querySelectorAll('.faq-item');
-
-faqItems.forEach(item => {
-    const question = item.querySelector('.faq-question');
-    
+document.querySelectorAll('.faq-item').forEach(function(item) {
+    var question = item.querySelector('.faq-question');
     if (question) {
-        question.addEventListener('click', () => {
-            const isActive = item.classList.contains('active');
-            
-            // Close all other items
-            faqItems.forEach(otherItem => {
-                if (otherItem !== item) {
-                    otherItem.classList.remove('active');
-                }
+        question.addEventListener('click', function() {
+            var isActive = item.classList.contains('active');
+            document.querySelectorAll('.faq-item').forEach(function(other) {
+                if (other !== item) other.classList.remove('active');
             });
-            
-            // Toggle current item
             item.classList.toggle('active', !isActive);
         });
     }
 });
 
-// Intersection Observer for animations
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-        }
-    });
-}, observerOptions);
-
-// Observe elements for fade-in animation
-document.addEventListener('DOMContentLoaded', () => {
-    const animatedElements = document.querySelectorAll('.feature-card, .admin-card, .benefit-card, .process-step, .timeline-item');
-    
-    animatedElements.forEach(el => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(20px)';
-        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-        observer.observe(el);
-    });
-});
-
-// Header scroll effect - hide on scroll down, show on scroll up
-let lastScroll = 0;
-const header = document.querySelector('.header');
+// Header hide/show on scroll
+var lastScroll = 0;
+var header = document.querySelector('.header');
 
 if (header) {
     document.body.classList.add('has-fixed-header');
 
-    const setHeaderHeight = () => {
+    var setHeaderHeight = function() {
         document.documentElement.style.setProperty('--header-height', header.offsetHeight + 'px');
     };
     setHeaderHeight();
     window.addEventListener('resize', setHeaderHeight);
 
-    window.addEventListener('scroll', () => {
-        const currentScroll = window.pageYOffset;
-        const scrollThreshold = 100; // Minimum scroll distance before hiding
-        
+    window.addEventListener('scroll', function() {
+        var currentScroll = window.pageYOffset;
         header.classList.toggle('is-scrolled', currentScroll > 10);
-        
-        // Hide/show header based on scroll direction
-        if (currentScroll > scrollThreshold) {
+
+        if (currentScroll > 100) {
             if (currentScroll > lastScroll) {
-                // Scrolling down - hide header
                 header.classList.add('is-hidden');
             } else {
-                // Scrolling up - show header
                 header.classList.remove('is-hidden');
             }
         } else {
-            // Always show header when near top
             header.classList.remove('is-hidden');
         }
-        
         lastScroll = currentScroll;
     });
 }
 
-// Navbar scroll effect (.navbar variant): hide on scroll down, show on scroll up
-const navbar = document.querySelector('.navbar');
+// Navbar variant scroll effect
+var navbar = document.querySelector('.navbar');
 if (navbar) {
-    // Make sure it's visible on load
     navbar.classList.add('visible');
-
-    window.addEventListener('scroll', () => {
-        const currentScroll = window.pageYOffset;
-        const scrollThreshold = 100;
-
-        if (currentScroll > scrollThreshold) {
-            if (currentScroll > lastScroll) {
-                navbar.classList.remove('visible');
-            } else {
-                navbar.classList.add('visible');
-            }
+    window.addEventListener('scroll', function() {
+        var currentScroll = window.pageYOffset;
+        if (currentScroll > 100) {
+            navbar.classList.toggle('visible', currentScroll <= lastScroll);
         } else {
             navbar.classList.add('visible');
         }
-
         lastScroll = currentScroll;
     });
 }

@@ -6,8 +6,11 @@
     <title>Anmeldung - Seraphin Solutions</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=6">
     
     <!-- Google Analytics 4 -->
     <script src="analytics.js"></script>
@@ -16,7 +19,7 @@
         :root {
             --primary-blue: #008CFF;
             --primary-green: #32A71A;
-            --gradient-primary: linear-gradient(135deg, #008CFF 0%, #32A71A 100%);
+            --gradient-primary: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             --gradient-blue: linear-gradient(135deg, #008CFF 0%, #0066CC 100%);
             --gradient-green: linear-gradient(135deg, #32A71A 0%, #2A8F15 100%);
             --text-dark: #2C3E50;
@@ -39,9 +42,33 @@
             background: var(--gradient-primary);
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
+            padding: 0;
+        }
+
+        .login-page-body {
+            flex: 1;
+            display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            position: relative;
+            z-index: 0;
+        }
+
+        .login-page-body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #32A71A 0%, #008CFF 100%);
+            opacity: 0;
+            transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        body.login-success .login-page-body::before {
+            opacity: 1;
         }
 
         .login-container {
@@ -53,15 +80,20 @@
             max-width: 400px;
             position: relative;
             overflow: hidden;
+            transition: box-shadow 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body.login-success .login-container {
+            box-shadow: 0 20px 60px rgba(50, 167, 26, 0.25), 0 8px 20px rgba(0, 140, 255, 0.15);
         }
 
 
-        .logo-section {
+        .login-logo-section {
             text-align: center;
             margin-bottom: 30px;
         }
 
-        .logo {
+        .login-logo {
             width: 80px;
             height: 80px;
             background: var(--gradient-primary);
@@ -140,9 +172,25 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            transition: transform 0.15s ease, box-shadow 0.3s ease;
+        }
+
+        body.login-success .login-button {
+            background: linear-gradient(135deg, #32A71A 0%, #008CFF 100%);
+            animation: btn-gradient-in 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes btn-gradient-in {
+            0% {
+                background-size: 300% 300%;
+                background-position: 100% 0%;
+            }
+            100% {
+                background-size: 300% 300%;
+                background-position: 0% 100%;
+            }
         }
 
         .login-button:hover:not(:disabled) {
@@ -371,9 +419,34 @@
     </style>
 </head>
 <body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <a href="index.html" class="logo">
+                        <img src="logo.png" alt="Seraphin Solutions Logo">
+                    </a>
+                    <span class="company-name">Seraphin Solutions</span>
+                </div>
+                <nav class="nav" id="nav">
+                    <a href="index.html" class="nav-link">Startseite</a>
+                    <a href="programm.html" class="nav-link">Das Programm</a>
+                    <a href="weitere-informationen.html" class="nav-link">Weitere Infos</a>
+                    <a href="support.html" class="nav-link">Support</a>
+                    <a href="login.html" class="nav-link nav-login-link active">Login</a>
+                </nav>
+                <button class="hamburger" id="hamburger" aria-label="Menü öffnen">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+    <div class="login-page-body">
     <div class="login-container">
-        <div class="logo-section">
-            <div class="logo">
+        <div class="login-logo-section">
+            <div class="login-logo">
                 <i class="fas fa-chart-line"></i>
             </div>
             <h1 class="login-title">Anmeldung</h1>
@@ -437,6 +510,7 @@
                 <i class="fas fa-arrow-left"></i> Zurück zur Startseite
             </a>
         </div>
+    </div>
     </div>
 
     <script>
@@ -534,20 +608,18 @@
                 const data = await response.json();
                 
                 if (response.ok && data.success) {
-                    // Save credentials if "Remember Me" is checked
                     if (rememberMe) {
                         saveCredentials(username, password);
                     } else {
-                        // Clear saved credentials if "Remember Me" is unchecked
                         clearCredentials();
                     }
                     
+                    document.body.classList.add('login-success');
                     showMessage('Anmeldung erfolgreich! Weiterleitung zum Dashboard...', 'success');
                     
-                    // Redirect to dashboard after success
                     setTimeout(() => {
                         window.location.href = 'dashboard.html';
-                    }, 2000);
+                    }, 2200);
                 } else {
                     showMessage(data.error || 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Daten.', 'error');
                 }
@@ -555,9 +627,10 @@
                 console.error('Login error:', error);
                 showMessage('Verbindungsfehler. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.', 'error');
             } finally {
-                // Reset UI State
-                loginButton.disabled = false;
-                loginButtonText.textContent = 'Anmelden';
+                if (!document.body.classList.contains('login-success')) {
+                    loginButton.disabled = false;
+                    loginButtonText.textContent = 'Anmelden';
+                }
             }
         });
 
@@ -671,5 +744,31 @@
             }
         });
     </script>
+
+    <footer class="footer" role="contentinfo">
+        <div class="footer-inner">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <a class="footer-logo-link" href="index.html" aria-label="Seraphin Solutions – Startseite">
+                        <img src="logo.png" alt="" class="footer-logo-img" width="120" height="40">
+                        <span class="footer-logo-text">Seraphin Solutions</span>
+                    </a>
+                    <p class="footer-tagline">Interaktive Wegleitsysteme für große Gebäude.</p>
+                    <div class="footer-actions">
+                        <a href="tel:+4917622911006" class="footer-contact-link">+49 176 2291 1006</a>
+                        <a href="mailto:kontakt@seraphin-solutions.de" class="footer-contact-link">kontakt@seraphin-solutions.de</a>
+                    </div>
+                </div>
+                <nav class="footer-nav" aria-label="Footer-Navigation">
+                    <div class="footer-nav-block"><span class="footer-nav-title">Produkt</span><ul class="footer-nav-list"><li><a href="programm.html">Das Programm</a></li><li><a href="weitere-informationen.html">Weitere Infos</a></li><li><a href="support.html">Support</a></li></ul></div>
+                    <div class="footer-nav-block"><span class="footer-nav-title">Unternehmen</span><ul class="footer-nav-list"><li><a href="index.html#pricing">Preise</a></li><li><a href="preispolitik.html">Preispolitik</a></li><li><a href="index.html#kontakt">Kontakt</a></li></ul></div>
+                    <div class="footer-nav-block"><span class="footer-nav-title">Rechtliches</span><ul class="footer-nav-list"><li><a href="impressum.html">Impressum</a></li><li><a href="datenschutz.html">Datenschutz</a></li></ul></div>
+                    <div class="footer-nav-block"><span class="footer-nav-title">Zugang</span><ul class="footer-nav-list"><li><a href="login.html">Statistiken Login</a></li><li><a href="passwortverlust.html">Passwort vergessen</a></li></ul></div>
+                </nav>
+            </div>
+            <div class="footer-bottom"><p class="footer-copy">&copy; 2025 Seraphin Solutions. Alle Rechte vorbehalten.</p></div>
+        </div>
+    </footer>
+    <script src="script.js?v=3"></script>
 </body>
 </html>
