@@ -627,6 +627,7 @@ body.has-fixed-header {
     gap: 32px;
     max-width: 960px;
     margin: 0 auto;
+    overflow: hidden;
 }
 
 .calculator-form {
@@ -635,6 +636,8 @@ body.has-fixed-header {
     border-radius: var(--radius-xl);
     color: var(--color-text);
     border: 1px solid var(--color-border);
+    overflow: hidden;
+    min-width: 0;
 }
 
 .calc-step {
@@ -686,12 +689,14 @@ body.has-fixed-header {
 .calc-flaeche-input-wrap {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     background: var(--color-bg);
     border: 1px solid var(--color-border);
-    padding: 10px 14px;
+    padding: 10px 12px;
     border-radius: var(--radius-md);
     margin-bottom: 12px;
+    overflow: hidden;
+    max-width: 100%;
 }
 
 .calc-flaeche-input {
@@ -794,6 +799,8 @@ body.has-fixed-header {
     align-items: center;
     justify-content: center;
     min-height: 200px;
+    overflow: hidden;
+    min-width: 0;
 }
 
 .result-content {
@@ -2253,6 +2260,10 @@ body.has-fixed-header {
     .hero-buttons { flex-direction: column; }
     .hero-note { font-size: 0.8125rem; }
 
+    .calculator-form { padding: 28px; }
+    .calculator-result { padding: 28px; }
+    .calc-flaeche-input { font-size: 1.25rem; }
+
     .pain-section,
     .solution-section,
     .benefits-section,
@@ -2308,9 +2319,52 @@ body.has-fixed-header {
     .hero-text h1 { font-size: 1.75rem; }
     .section-title { font-size: 1.5rem; }
 
-    .calculator-form { padding: 24px; }
-    .calculator-result { padding: 24px; }
+    .calculator-form { padding: 20px; }
+    .calculator-result { padding: 20px; }
     .result-price { font-size: 2rem; }
+
+    .calculator-container { gap: 16px; }
+
+    .calc-step-header { gap: 10px; }
+
+    .calc-step-number {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
+
+    .calc-step-title { font-size: 0.9375rem; }
+    .calc-step-question { font-size: 0.75rem; }
+
+    .calc-flaeche-input-wrap {
+        gap: 6px;
+        padding: 8px 10px;
+    }
+
+    .calc-flaeche-input {
+        font-size: 1.125rem;
+    }
+
+    .calc-flaeche-unit {
+        font-size: 0.8125rem;
+    }
+
+    .calc-counter-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 1.125rem;
+    }
+
+    .calc-counter-value {
+        font-size: 1.25rem;
+        min-width: 2rem;
+    }
+
+    .calc-counter { gap: 12px; }
+
+    .result-item {
+        font-size: 0.8125rem;
+    }
 
     .carousel-slide { padding: 24px; }
 
@@ -2390,4 +2444,153 @@ body.has-fixed-header {
 
 .legal-content a:hover {
     text-decoration: underline;
+}
+
+/* ===== Large Screens (1440px+) ===== */
+@media (min-width: 1440px) {
+    .container {
+        max-width: 1280px;
+    }
+
+    .footer-inner {
+        max-width: 1280px;
+    }
+
+    .nav-container {
+        max-width: 1280px;
+    }
+
+    .dashboard-content {
+        max-width: 1280px;
+    }
+
+    body {
+        font-size: 1.0625rem;
+    }
+
+    .hero-text h1 {
+        font-size: 3.75rem;
+    }
+
+    .hero-description {
+        font-size: 1.25rem;
+    }
+
+    .section-title {
+        font-size: 2.5rem;
+    }
+
+    .section-subtitle {
+        font-size: 1.125rem;
+    }
+
+    .calculator-container,
+    .contact-content {
+        max-width: 1100px;
+    }
+
+    .carousel-container {
+        max-width: 1080px;
+    }
+
+    .info-steps,
+    .pw-reset-content {
+        max-width: 760px;
+    }
+
+    .legal-content,
+    .preispolitik-content,
+    .support-content {
+        max-width: 800px;
+    }
+}
+
+/* ===== 4K / Ultra-wide Screens (1920px+) ===== */
+@media (min-width: 1920px) {
+    html {
+        font-size: 18px;
+    }
+
+    .container {
+        max-width: 1440px;
+        padding: 0 48px;
+    }
+
+    .footer-inner {
+        max-width: 1440px;
+        padding: 64px 48px 40px;
+    }
+
+    .nav-container {
+        max-width: 1440px;
+    }
+
+    .dashboard-content {
+        max-width: 1440px;
+    }
+
+    .hero {
+        padding: 120px 0 100px;
+    }
+
+    .hero-text h1 {
+        font-size: 4.25rem;
+    }
+
+    .section-title {
+        font-size: 2.75rem;
+    }
+
+    .pain-section,
+    .solution-section,
+    .benefits-section,
+    .references,
+    .price-calculator,
+    .contact-landing {
+        padding: 120px 0;
+    }
+
+    .page-header {
+        padding: 72px 0 60px;
+    }
+
+    .calculator-container,
+    .contact-content {
+        max-width: 1200px;
+    }
+
+    .carousel-container {
+        max-width: 1200px;
+    }
+
+    .benefits-list {
+        gap: 0;
+    }
+
+    .benefit-item {
+        padding: 48px 44px;
+    }
+
+    .benefit-number {
+        font-size: 3rem;
+    }
+
+    .info-steps,
+    .pw-reset-content {
+        max-width: 840px;
+    }
+
+    .legal-content,
+    .preispolitik-content,
+    .support-content {
+        max-width: 880px;
+    }
+
+    .support-methods {
+        max-width: 780px;
+    }
+
+    .faq-list {
+        max-width: 780px;
+    }
 }
