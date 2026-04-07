@@ -609,6 +609,12 @@ body.has-fixed-header {
 /* ===== Price Calculator ===== */
 .price-calculator {
     padding: 100px 0;
+    overflow: hidden;
+}
+
+.price-calculator .container {
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .calculator-header {
@@ -628,6 +634,8 @@ body.has-fixed-header {
     max-width: 960px;
     margin: 0 auto;
     overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .calculator-form {
@@ -638,6 +646,8 @@ body.has-fixed-header {
     border: 1px solid var(--color-border);
     overflow: hidden;
     min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .calc-step {
@@ -696,18 +706,22 @@ body.has-fixed-header {
     border-radius: var(--radius-md);
     margin-bottom: 12px;
     overflow: hidden;
-    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .calc-flaeche-input {
-    flex: 1;
+    flex: 1 1 0%;
     min-width: 0;
+    width: 0;
     border: none;
     background: transparent;
     color: var(--color-text);
     font-size: 1.375rem;
     font-weight: 700;
     font-family: inherit;
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
 }
 
 .calc-flaeche-input:focus { outline: none; }
@@ -723,6 +737,8 @@ body.has-fixed-header {
     font-size: 0.9375rem;
     font-weight: 600;
     color: var(--color-text-muted);
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .calc-counter {
@@ -747,6 +763,8 @@ body.has-fixed-header {
     font-weight: 700;
     cursor: pointer;
     transition: border-color var(--transition), box-shadow var(--transition);
+    flex-shrink: 0;
+    -webkit-appearance: none;
 }
 
 .calc-counter-btn:hover {
@@ -762,7 +780,9 @@ body.has-fixed-header {
 }
 
 .calc-slider {
+    display: block;
     width: 100%;
+    max-width: 100%;
     height: 6px;
     border-radius: 3px;
     background: var(--color-border);
@@ -801,6 +821,8 @@ body.has-fixed-header {
     min-height: 200px;
     overflow: hidden;
     min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .result-content {
@@ -814,6 +836,8 @@ body.has-fixed-header {
     color: var(--color-text);
     margin-bottom: 8px;
     letter-spacing: -0.02em;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .result-breakdown {
