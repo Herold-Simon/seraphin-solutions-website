@@ -84,14 +84,14 @@ a {
 }
 
 body.has-fixed-header {
-    padding-top: var(--header-height, 72px);
+    padding-top: var(--header-height, 80px);
 }
 
 .header-content {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 72px;
+    height: 80px;
 }
 
 .logo-section {
@@ -101,15 +101,22 @@ body.has-fixed-header {
 }
 
 .logo img {
-    height: 36px;
+    height: 40px;
     width: auto;
 }
 
 .company-name {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: var(--color-text);
+    font-size: 1.375rem;
+    font-weight: 800;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
     letter-spacing: -0.02em;
+}
+
+a.company-name {
+    text-decoration: none;
 }
 
 .nav {
@@ -119,10 +126,10 @@ body.has-fixed-header {
 }
 
 .nav-link {
-    font-size: 0.9rem;
+    font-size: 0.9375rem;
     font-weight: 500;
     color: var(--color-text-secondary);
-    padding: 6px 14px;
+    padding: 8px 16px;
     border-radius: var(--radius-sm);
     transition: color var(--transition), background var(--transition);
 }
@@ -143,9 +150,9 @@ body.has-fixed-header {
     margin-left: 8px;
     background: var(--color-text);
     color: #fff !important;
-    padding: 7px 18px;
+    padding: 8px 20px;
     border-radius: var(--radius-md);
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
     transition: background var(--transition);
 }
 
@@ -722,6 +729,7 @@ body.has-fixed-header {
     font-family: inherit;
     -webkit-appearance: none;
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 .calc-flaeche-input:focus { outline: none; }
@@ -729,9 +737,10 @@ body.has-fixed-header {
 .calc-flaeche-input::-webkit-outer-spin-button,
 .calc-flaeche-input::-webkit-inner-spin-button {
     -webkit-appearance: none;
+    appearance: none;
     margin: 0;
 }
-.calc-flaeche-input[type="number"] { -moz-appearance: textfield; }
+.calc-flaeche-input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 .calc-flaeche-unit {
     font-size: 0.9375rem;
@@ -765,6 +774,7 @@ body.has-fixed-header {
     transition: border-color var(--transition), box-shadow var(--transition);
     flex-shrink: 0;
     -webkit-appearance: none;
+    appearance: none;
 }
 
 .calc-counter-btn:hover {
@@ -2060,7 +2070,7 @@ body.has-fixed-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 72px;
+    height: 80px;
 }
 
 .nav-logo {
@@ -2275,8 +2285,19 @@ body.has-fixed-header {
 
     .nav-login-link {
         margin-left: 0;
-        margin-top: 8px;
-        justify-content: center;
+        margin-top: 4px;
+        background: transparent;
+        color: var(--color-text-secondary) !important;
+        padding: 12px 14px;
+        font-size: 0.9375rem;
+        font-weight: 500;
+        border-radius: var(--radius-sm);
+        justify-content: flex-start;
+    }
+
+    .nav-login-link:hover {
+        background: var(--color-surface);
+        color: var(--color-text) !important;
     }
 
     .hero { padding: 48px 0 64px; }
@@ -2315,7 +2336,7 @@ body.has-fixed-header {
     .nav-menu {
         position: fixed;
         left: -100%;
-        top: 72px;
+        top: 80px;
         flex-direction: column;
         background: var(--color-bg);
         width: 100%;
