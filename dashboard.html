@@ -21,8 +21,7 @@
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <!-- ExcelJS for XLSX export -->
     <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
-    <!-- sql.js for SQLite .db export -->
-    <script src="https://cdn.jsdelivr.net/npm/sql.js@1.10.3/dist/sql-wasm.js"></script>
+
     
     <style>
         .dashboard-container {
@@ -652,8 +651,7 @@
             flex-wrap: wrap;
         }
 
-        .export-xlsx-btn,
-        .export-db-btn {
+        .export-xlsx-btn {
             display: inline-flex;
             align-items: center;
             gap: 0.6rem;
@@ -672,12 +670,7 @@
             background: linear-gradient(135deg, #1a7f37 0%, #2da44e 100%);
         }
 
-        .export-db-btn {
-            background: linear-gradient(135deg, #3b4f6b 0%, #5a7094 100%);
-        }
-
-        .export-xlsx-btn:hover,
-        .export-db-btn:hover {
+        .export-xlsx-btn:hover {
             filter: brightness(1.08);
             transform: translateY(-1px);
         }
@@ -686,12 +679,7 @@
             box-shadow: 0 4px 12px rgba(45, 164, 78, 0.3);
         }
 
-        .export-db-btn:hover {
-            box-shadow: 0 4px 12px rgba(90, 112, 148, 0.3);
-        }
-
-        .export-xlsx-btn:disabled,
-        .export-db-btn:disabled {
+        .export-xlsx-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
@@ -1687,10 +1675,6 @@
                                 <button type="button" class="export-xlsx-btn" id="exportXlsxBtn" onclick="exportToXlsx()">
                                     <i class="fas fa-file-excel"></i>
                                     .xlsx exportieren
-                                </button>
-                                <button type="button" class="export-db-btn" id="exportDbBtn" onclick="exportToDb()">
-                                    <i class="fas fa-database"></i>
-                                    .db exportieren
                                 </button>
                             </div>
                         </div>
@@ -4943,74 +4927,6 @@
             }
         }
 
-        // ===== DB-Export (echte SQLite-Datenbank) =====
-        async function exportToDb() {
-            const btn = document.getElementById('exportDbBtn');
-            if (!btn || !statistics) return;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wird erstellt…';
-
-            try {
-                const SQL = await initSqlJs({
-                    locateFile: file => 'https://cdn.jsdelivr.net/npm/sql.js@1.10.3/dist/' + file
-                });
-                const db = new SQL.Database();
-
-                db.run('CREATE TABLE videos (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, total_views INTEGER DEFAULT 0, days_with_views INTEGER DEFAULT 0)');
-                db.run('CREATE TABLE daily_views (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, video_id INTEGER NOT NULL, views INTEGER DEFAULT 0, FOREIGN KEY (video_id) REFERENCES videos(id))');
-                db.run('CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT)');
-
-                const { allVideos, videoTitles, sortedDates } = getExportData();
-
-                db.run("INSERT INTO meta VALUES ('exported_at', ?)", [new Date().toISOString()]);
-                db.run("INSERT INTO meta VALUES ('total_days', ?)", [String(sortedDates.length)]);
-                db.run("INSERT INTO meta VALUES ('date_range_from', ?)", [sortedDates[0] || '']);
-                db.run("INSERT INTO meta VALUES ('date_range_to', ?)", [sortedDates[sortedDates.length - 1] || '']);
-
-                const videoIdMap = {};
-                videoTitles.forEach((title, i) => {
-                    const v = allVideos[i];
-                    const h = v.viewHistory || v.view_history || {};
-                    const totalViews = parseInt(v.views) || 0;
-                    const daysWithViews = Object.values(h).filter(val => parseInt(val, 10) > 0).length;
-                    db.run('INSERT INTO videos (title, total_views, days_with_views) VALUES (?, ?, ?)', [title, totalViews, daysWithViews]);
-                    videoIdMap[i] = i + 1;
-                });
-
-                const insertStmt = db.prepare('INSERT INTO daily_views (date, video_id, views) VALUES (?, ?, ?)');
-                sortedDates.forEach(date => {
-                    videoTitles.forEach((_, i) => {
-                        const h = allVideos[i].viewHistory || allVideos[i].view_history || {};
-                        const views = parseInt(h[date], 10) || 0;
-                        if (views > 0) {
-                            insertStmt.run([date, videoIdMap[i], views]);
-                        }
-                    });
-                });
-                insertStmt.free();
-
-                db.run('CREATE INDEX idx_daily_date ON daily_views(date)');
-                db.run('CREATE INDEX idx_daily_video ON daily_views(video_id)');
-
-                const data = db.export();
-                db.close();
-
-                const blob = new Blob([data], { type: 'application/x-sqlite3' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'Gebaeudenavi_Daten_' + new Date().toISOString().split('T')[0] + '.db';
-                a.click();
-                URL.revokeObjectURL(url);
-
-            } catch (err) {
-                console.error('DB-Export fehlgeschlagen:', err);
-                alert('Export fehlgeschlagen: ' + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-database"></i> .db exportieren';
-            }
-        }
 
         // Globale Funktionen für externe Aufrufe
         // Toggle-Funktionen entfernt - alle Charts werden immer angezeigt
