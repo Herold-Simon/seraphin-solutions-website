@@ -19,7 +19,7 @@
         :root {
             --primary-blue: #008CFF;
             --primary-green: #32A71A;
-            --gradient-primary: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --login-bg: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             --gradient-blue: linear-gradient(135deg, #008CFF 0%, #0066CC 100%);
             --gradient-green: linear-gradient(135deg, #32A71A 0%, #2A8F15 100%);
             --text-dark: #2C3E50;
@@ -39,7 +39,7 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background: var(--gradient-primary);
+            background: var(--login-bg);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -96,7 +96,7 @@
         .login-logo {
             width: 80px;
             height: 80px;
-            background: var(--gradient-primary);
+            background: var(--login-bg);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -105,6 +105,11 @@
             color: var(--white);
             font-size: 32px;
             font-weight: bold;
+            transition: background 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body.login-success .login-logo {
+            background: linear-gradient(135deg, #32A71A 0%, #008CFF 100%);
         }
 
         .login-title {
@@ -165,7 +170,7 @@
         .login-button {
             width: 100%;
             padding: 14px;
-            background: var(--gradient-primary);
+            background: var(--login-bg);
             color: var(--white);
             border: none;
             border-radius: 10px;
