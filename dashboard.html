@@ -19,6 +19,8 @@
     
     <!-- ECharts (same as the app) -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <!-- ExcelJS for XLSX export -->
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
     
     <style>
         .dashboard-container {
@@ -627,6 +629,44 @@
             background: var(--primary-blue);
             color: var(--white);
             border-color: var(--primary-blue);
+        }
+
+        /* Datenexport-Sektion */
+        .data-export-section {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .export-xlsx-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.7rem 1.5rem;
+            background: linear-gradient(135deg, #1a7f37 0%, #2da44e 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .export-xlsx-btn:hover {
+            filter: brightness(1.08);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(45, 164, 78, 0.3);
+        }
+
+        .export-xlsx-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            filter: none;
         }
 
         /* Zeitraum-Auswahl */
@@ -1612,11 +1652,22 @@
                     </div>
                 </div>
 
+                <!-- Datenexport für Datenanalysten -->
+                <div class="data-export-section">
+                    <h3 style="margin: 0 0 0.25rem; color: var(--text-dark);">Für Datenanalysten</h3>
+                    <p style="margin: 0 0 1rem; color: var(--text-light); font-size: 0.9rem;">Exportiert alle Aufrufdaten, ein Linien- und ein Tortendiagramm als Excel-Datei.</p>
+                    <button type="button" class="export-xlsx-btn" id="exportXlsxBtn" onclick="exportToXlsx()">
+                        <i class="fas fa-file-excel"></i>
+                        Als .xlsx exportieren
+                    </button>
+                </div>
+
                 <!-- Zeitraum-Auswahl -->
                 <div class="time-range-selector">
                     <h3 style="margin: 0; color: var(--text-dark);">Zeitraum:</h3>
                     <div class="time-range-buttons">
                         <button class="time-btn" data-range="7">Letzte 7 Tage</button>
+                        <button class="time-btn" data-range="30">Letzte 30 Tage</button>
                         <button class="time-btn" data-range="all">Gesamter Zeitraum</button>
                         <button class="time-btn active" data-range="custom" id="customRangeBtn">Benutzerdefiniert</button>
                     </div>
@@ -2434,15 +2485,29 @@
                     // Synchronisiere den benutzerdefinierten Zeitraum mit dem Gesamten Zeitraum
                     setTimeout(() => {
                         syncCustomTimeRangeWithAllTime();
-                        
-                        // Automatisch zu "Gesamter Zeitraum" wechseln
-                        currentTimeRange = 'all';
+
+                        // Bestimme den optimalen Standard-Zeitraum
+                        let defaultRange = 'all';
+                        if (statistics && statistics.history && statistics.history.length > 0) {
+                            const datesWithViews = statistics.history
+                                .map(item => new Date(item.date))
+                                .sort((a, b) => a - b);
+                            const firstDay = datesWithViews[0];
+                            const lastDay = datesWithViews[datesWithViews.length - 1];
+                            const daySpan = Math.round((lastDay - firstDay) / (1000 * 60 * 60 * 24));
+                            if (daySpan > 29) {
+                                defaultRange = '30';
+                                console.log('📅 Datenspanne ' + daySpan + ' Tage → Standard: Letzte 30 Tage');
+                            }
+                        }
+
+                        currentTimeRange = defaultRange;
                         
                         // Aktualisiere die Button-Auswahl
                         document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
-                        const allTimeBtn = document.querySelector('.time-btn[data-range="all"]');
-                        if (allTimeBtn) {
-                            allTimeBtn.classList.add('active');
+                        const defaultBtn = document.querySelector('.time-btn[data-range="' + defaultRange + '"]');
+                        if (defaultBtn) {
+                            defaultBtn.classList.add('active');
                         }
                         
                         // Verstecke benutzerdefinierte Datumsauswahl
@@ -2452,7 +2517,7 @@
                         }
                         
                         updateCharts();
-                        console.log('🔄 Automatisch zu "Gesamter Zeitraum" gewechselt');
+                        console.log('🔄 Automatisch zu "' + defaultRange + '" gewechselt');
                     }, 200); // 200ms Verzögerung
                     
                 } else {
@@ -3037,6 +3102,12 @@
             if (currentTimeRange === '7') {
                 const start = new Date(today);
                 start.setDate(start.getDate() - 7);
+                start.setHours(0, 0, 0, 0);
+                return { startDate: start, endDate: new Date(today) };
+            }
+            if (currentTimeRange === '30') {
+                const start = new Date(today);
+                start.setDate(start.getDate() - 30);
                 start.setHours(0, 0, 0, 0);
                 return { startDate: start, endDate: new Date(today) };
             }
@@ -4671,6 +4742,135 @@
             }
         }
         
+        // ===== XLSX-Export =====
+        async function exportToXlsx() {
+            const btn = document.getElementById('exportXlsxBtn');
+            if (!btn || !statistics) return;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wird erstellt…';
+
+            try {
+                const workbook = new ExcelJS.Workbook();
+                workbook.creator = 'Seraphin Solutions – Gebäudenavi';
+                workbook.created = new Date();
+
+                // --- Blatt 1: Tägliche Aufrufe ---
+                const ws = workbook.addWorksheet('Tägliche Aufrufe');
+                const allVideos = mergeVideosByTitle(statistics.videos || []);
+                const videoTitles = allVideos.map(v => v.title || 'Unbenannt');
+
+                const allDates = new Set();
+                allVideos.forEach(v => {
+                    const h = v.viewHistory || v.view_history || {};
+                    Object.keys(h).forEach(d => allDates.add(d));
+                });
+                const sortedDates = Array.from(allDates).sort();
+
+                const headerRow = ['Datum', 'Gesamt', ...videoTitles];
+                ws.addRow(headerRow);
+                const hdrRow = ws.getRow(1);
+                hdrRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                hdrRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF008CFF' } };
+                hdrRow.alignment = { horizontal: 'center' };
+
+                sortedDates.forEach(date => {
+                    let dayTotal = 0;
+                    const perVideo = videoTitles.map((_, i) => {
+                        const h = allVideos[i].viewHistory || allVideos[i].view_history || {};
+                        const val = parseInt(h[date], 10) || 0;
+                        dayTotal += val;
+                        return val;
+                    });
+                    ws.addRow([formatDateToGerman(date), dayTotal, ...perVideo]);
+                });
+
+                const totalRow = ['GESAMT', { formula: 'SUM(B2:B' + (sortedDates.length + 1) + ')' }];
+                videoTitles.forEach((_, i) => {
+                    const col = String.fromCharCode(67 + i);
+                    totalRow.push({ formula: 'SUM(' + col + '2:' + col + (sortedDates.length + 1) + ')' });
+                });
+                const tRow = ws.addRow(totalRow);
+                tRow.font = { bold: true };
+                tRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0F0F0' } };
+
+                ws.getColumn(1).width = 14;
+                ws.getColumn(2).width = 10;
+                for (let i = 0; i < videoTitles.length; i++) {
+                    ws.getColumn(i + 3).width = Math.max(12, Math.min(30, videoTitles[i].length + 2));
+                }
+
+                // --- Chart-Bilder erzeugen mit temporären ECharts-Instanzen ---
+                const offscreen = document.createElement('div');
+                offscreen.style.cssText = 'position:fixed;left:-9999px;top:0;width:900px;height:500px;';
+                document.body.appendChild(offscreen);
+
+                // Liniendiagramm (Gesamte Aufrufe)
+                const lineInstance = echarts.init(offscreen);
+                const cumulativeData = sortedDates.map(date => {
+                    return allVideos.reduce((sum, v) => {
+                        const h = v.viewHistory || v.view_history || {};
+                        return sum + (parseInt(h[date], 10) || 0);
+                    }, 0);
+                });
+                lineInstance.setOption({
+                    backgroundColor: '#fff',
+                    title: { text: 'Gesamte Aufrufe pro Tag', left: 'center', textStyle: { fontSize: 16, color: '#1a1a1a' } },
+                    xAxis: { type: 'category', data: sortedDates.map(d => formatDateToGerman(d)), axisLabel: { rotate: 45, fontSize: 10 } },
+                    yAxis: { type: 'value', name: 'Aufrufe' },
+                    series: [{ type: 'line', data: cumulativeData, smooth: true, areaStyle: { opacity: 0.15 }, itemStyle: { color: '#008CFF' }, lineStyle: { width: 2.5 } }],
+                    grid: { left: 60, right: 30, top: 50, bottom: 80 },
+                    animation: false
+                });
+                const lineImgBase64 = lineInstance.getDataURL({ type: 'png', pixelRatio: 2 }).split(',')[1];
+                lineInstance.dispose();
+
+                // Tortendiagramm (alle Videos, gesamter Zeitraum)
+                const pieInstance = echarts.init(offscreen);
+                const pieData = allVideos
+                    .map(v => ({ name: v.title || 'Unbenannt', value: parseInt(v.views) || 0 }))
+                    .filter(d => d.value > 0)
+                    .sort((a, b) => b.value - a.value);
+                const chartColors = ['#5470c6','#91cc75','#fac858','#ee6666','#73c0de','#3ba272','#fc8452','#9a60b4','#ea7ccc','#ff9f7f'];
+                pieInstance.setOption({
+                    backgroundColor: '#fff',
+                    title: { text: 'Aufrufe nach Video (Gesamter Zeitraum)', left: 'center', textStyle: { fontSize: 16, color: '#1a1a1a' } },
+                    series: [{ type: 'pie', radius: ['30%', '60%'], center: ['50%', '55%'], data: pieData.map((d, i) => ({ ...d, itemStyle: { color: chartColors[i % chartColors.length] } })), label: { show: true, formatter: '{b}: {d}%', fontSize: 10 } }],
+                    animation: false
+                });
+                const pieImgBase64 = pieInstance.getDataURL({ type: 'png', pixelRatio: 2 }).split(',')[1];
+                pieInstance.dispose();
+                document.body.removeChild(offscreen);
+
+                // --- Blatt 2: Liniendiagramm ---
+                const wsLine = workbook.addWorksheet('Liniendiagramm');
+                const lineImgId = workbook.addImage({ base64: lineImgBase64, extension: 'png' });
+                wsLine.addImage(lineImgId, { tl: { col: 0.5, row: 0.5 }, ext: { width: 860, height: 480 } });
+
+                // --- Blatt 3: Tortendiagramm ---
+                const wsPie = workbook.addWorksheet('Tortendiagramm');
+                const pieImgId = workbook.addImage({ base64: pieImgBase64, extension: 'png' });
+                wsPie.addImage(pieImgId, { tl: { col: 0.5, row: 0.5 }, ext: { width: 860, height: 480 } });
+
+                // --- Download ---
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                const today = new Date().toISOString().split('T')[0];
+                a.href = url;
+                a.download = 'Gebaeudenavi_Statistiken_' + today + '.xlsx';
+                a.click();
+                URL.revokeObjectURL(url);
+
+            } catch (err) {
+                console.error('XLSX-Export fehlgeschlagen:', err);
+                alert('Export fehlgeschlagen: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-file-excel"></i> Als .xlsx exportieren';
+            }
+        }
+
         // Globale Funktionen für externe Aufrufe
         // Toggle-Funktionen entfernt - alle Charts werden immer angezeigt
         window.scrollToCharts = scrollToCharts;
