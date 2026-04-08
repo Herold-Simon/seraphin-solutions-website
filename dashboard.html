@@ -21,6 +21,8 @@
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <!-- ExcelJS for XLSX export -->
     <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+    <!-- sql.js for SQLite .db export -->
+    <script src="https://cdn.jsdelivr.net/npm/sql.js@1.10.3/dist/sql-wasm.js"></script>
     
     <style>
         .dashboard-container {
@@ -2519,19 +2521,29 @@
                     setTimeout(() => {
                         syncCustomTimeRangeWithAllTime();
 
-                        // Bestimme den optimalen Standard-Zeitraum
+                        // Bestimme den optimalen Standard-Zeitraum anhand der viewHistory aller Videos
                         let defaultRange = 'all';
-                        if (statistics && statistics.history && statistics.history.length > 0) {
-                            const datesWithViews = statistics.history
-                                .map(item => new Date(item.date))
-                                .sort((a, b) => a - b);
-                            const firstDay = datesWithViews[0];
-                            const lastDay = datesWithViews[datesWithViews.length - 1];
-                            const daySpan = Math.round((lastDay - firstDay) / (1000 * 60 * 60 * 24));
-                            if (daySpan > 29) {
-                                defaultRange = '30';
-                                console.log('📅 Datenspanne ' + daySpan + ' Tage → Standard: Letzte 30 Tage');
+                        try {
+                            const videos = statistics.videos || [];
+                            const allDatesSet = new Set();
+                            videos.forEach(v => {
+                                const h = v.viewHistory || v.view_history || {};
+                                Object.keys(h).forEach(d => {
+                                    if (parseInt(h[d], 10) > 0) allDatesSet.add(d);
+                                });
+                            });
+                            if (allDatesSet.size > 0) {
+                                const sortedViewDates = Array.from(allDatesSet).sort();
+                                const firstDay = new Date(sortedViewDates[0]);
+                                const lastDay = new Date(sortedViewDates[sortedViewDates.length - 1]);
+                                const daySpan = Math.round((lastDay - firstDay) / (1000 * 60 * 60 * 24));
+                                console.log('📅 Datenspanne: ' + daySpan + ' Tage (von ' + sortedViewDates[0] + ' bis ' + sortedViewDates[sortedViewDates.length - 1] + ')');
+                                if (daySpan > 29) {
+                                    defaultRange = '30';
+                                }
                             }
+                        } catch (e) {
+                            console.warn('Fehler bei Standard-Zeitraum-Berechnung:', e);
                         }
 
                         currentTimeRange = defaultRange;
@@ -3253,7 +3265,7 @@
                     });
                 } else {
                     const today = new Date();
-                    let daysToShow = currentTimeRange === '7' ? 7 : (currentTimeRange === 'custom' && customDateRange.startDate && customDateRange.endDate)
+                    let daysToShow = currentTimeRange === '7' ? 7 : currentTimeRange === '30' ? 30 : (currentTimeRange === 'custom' && customDateRange.startDate && customDateRange.endDate)
                         ? Math.ceil((new Date(customDateRange.endDate) - new Date(customDateRange.startDate)) / (1000 * 60 * 60 * 24)) + 1 : 365;
                     for (let i = daysToShow - 1; i >= 0; i--) {
                         const d = new Date(today);
@@ -3379,17 +3391,17 @@
                 
                 if (currentTimeRange === '7') {
                     daysToShow = 7;
+                } else if (currentTimeRange === '30') {
+                    daysToShow = 30;
                 } else if (currentTimeRange === 'custom') {
-                    // Benutzerdefinierter Zeitraum
                     if (customDateRange.startDate && customDateRange.endDate) {
                         const startDate = new Date(customDateRange.startDate);
                         const endDate = new Date(customDateRange.endDate);
                         daysToShow = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
                     } else {
-                        daysToShow = 30; // Fallback
+                        daysToShow = 30;
                     }
                 } else {
-                    // Alle Zeit - zeige 365 Tage als Maximum
                     daysToShow = 365;
                 }
                 
@@ -3865,7 +3877,7 @@
                     cumulativeData = dailyTotals.map(d => cum += d);
                 } else {
                     const today = new Date();
-                    let daysToShow = currentTimeRange === '7' ? 7 : (currentTimeRange === 'custom' && customDateRange.startDate && customDateRange.endDate)
+                    let daysToShow = currentTimeRange === '7' ? 7 : currentTimeRange === '30' ? 30 : (currentTimeRange === 'custom' && customDateRange.startDate && customDateRange.endDate)
                         ? Math.ceil((new Date(customDateRange.endDate) - new Date(customDateRange.startDate)) / (1000 * 60 * 60 * 24)) + 1 : 365;
                     for (let i = daysToShow - 1; i >= 0; i--) {
                         const d = new Date(today);
@@ -3996,17 +4008,17 @@
                 
                 if (currentTimeRange === '7') {
                     daysToShow = 7;
+                } else if (currentTimeRange === '30') {
+                    daysToShow = 30;
                 } else if (currentTimeRange === 'custom') {
-                    // Benutzerdefinierter Zeitraum
                     if (customDateRange.startDate && customDateRange.endDate) {
                         const startDate = new Date(customDateRange.startDate);
                         const endDate = new Date(customDateRange.endDate);
                         daysToShow = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
                     } else {
-                        daysToShow = 30; // Fallback
+                        daysToShow = 30;
                     }
                 } else {
-                    // Alle Zeit - zeige 365 Tage als Maximum
                     daysToShow = 365;
                 }
                 
@@ -4401,7 +4413,9 @@
                 let startDate = new Date(lastDate);
                 
                 if (timeRange === '7') {
-                    startDate.setDate(lastDate.getDate() - 6); // 7 Tage inklusive letzter Tag
+                    startDate.setDate(lastDate.getDate() - 6);
+                } else if (timeRange === '30') {
+                    startDate.setDate(lastDate.getDate() - 29);
                 }
                 
                 // Verwende den ursprünglichen Zeitraum ohne Offset
@@ -4449,12 +4463,16 @@
             
             if (currentTimeRange === '7') {
                 startDate.setDate(now.getDate() - 7);
-                // Für 7 Tage: begrenze auf 30 Einträge für Performance
                 const filtered = history
                     .filter(item => new Date(item.date) >= startDate)
                     .slice(0, 30)
                     .reverse();
-                console.log('📅 Gefilterte Historie-Daten (7 Tage):', filtered);
+                return filtered;
+            } else if (currentTimeRange === '30') {
+                startDate.setDate(now.getDate() - 30);
+                const filtered = history
+                    .filter(item => new Date(item.date) >= startDate)
+                    .reverse();
                 return filtered;
             } else if (currentTimeRange === 'custom') {
                 // Benutzerdefinierter Zeitraum
@@ -4925,48 +4943,59 @@
             }
         }
 
-        // ===== DB-Export (SQLite-kompatibles JSON-basiertes Format) =====
-        function exportToDb() {
+        // ===== DB-Export (echte SQLite-Datenbank) =====
+        async function exportToDb() {
             const btn = document.getElementById('exportDbBtn');
             if (!btn || !statistics) return;
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wird erstellt…';
 
             try {
+                const SQL = await initSqlJs({
+                    locateFile: file => 'https://cdn.jsdelivr.net/npm/sql.js@1.10.3/dist/' + file
+                });
+                const db = new SQL.Database();
+
+                db.run('CREATE TABLE videos (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, total_views INTEGER DEFAULT 0, days_with_views INTEGER DEFAULT 0)');
+                db.run('CREATE TABLE daily_views (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, video_id INTEGER NOT NULL, views INTEGER DEFAULT 0, FOREIGN KEY (video_id) REFERENCES videos(id))');
+                db.run('CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT)');
+
                 const { allVideos, videoTitles, sortedDates } = getExportData();
 
-                const rows = [];
+                db.run("INSERT INTO meta VALUES ('exported_at', ?)", [new Date().toISOString()]);
+                db.run("INSERT INTO meta VALUES ('total_days', ?)", [String(sortedDates.length)]);
+                db.run("INSERT INTO meta VALUES ('date_range_from', ?)", [sortedDates[0] || '']);
+                db.run("INSERT INTO meta VALUES ('date_range_to', ?)", [sortedDates[sortedDates.length - 1] || '']);
+
+                const videoIdMap = {};
+                videoTitles.forEach((title, i) => {
+                    const v = allVideos[i];
+                    const h = v.viewHistory || v.view_history || {};
+                    const totalViews = parseInt(v.views) || 0;
+                    const daysWithViews = Object.values(h).filter(val => parseInt(val, 10) > 0).length;
+                    db.run('INSERT INTO videos (title, total_views, days_with_views) VALUES (?, ?, ?)', [title, totalViews, daysWithViews]);
+                    videoIdMap[i] = i + 1;
+                });
+
+                const insertStmt = db.prepare('INSERT INTO daily_views (date, video_id, views) VALUES (?, ?, ?)');
                 sortedDates.forEach(date => {
-                    videoTitles.forEach((title, i) => {
+                    videoTitles.forEach((_, i) => {
                         const h = allVideos[i].viewHistory || allVideos[i].view_history || {};
                         const views = parseInt(h[date], 10) || 0;
                         if (views > 0) {
-                            rows.push({ date: date, video: title, views: views });
+                            insertStmt.run([date, videoIdMap[i], views]);
                         }
                     });
                 });
+                insertStmt.free();
 
-                const videoSummary = allVideos.map(v => ({
-                    video: v.title || 'Unbenannt',
-                    total_views: parseInt(v.views) || 0,
-                    days_with_views: Object.keys(v.viewHistory || v.view_history || {}).filter(d => parseInt((v.viewHistory || v.view_history || {})[d], 10) > 0).length
-                })).filter(v => v.total_views > 0).sort((a, b) => b.total_views - a.total_views);
+                db.run('CREATE INDEX idx_daily_date ON daily_views(date)');
+                db.run('CREATE INDEX idx_daily_video ON daily_views(video_id)');
 
-                const dbExport = {
-                    _meta: {
-                        format: 'gebaeudenavi-stats-db',
-                        version: 1,
-                        exported_at: new Date().toISOString(),
-                        total_videos: videoTitles.length,
-                        total_days: sortedDates.length,
-                        date_range: sortedDates.length > 0 ? { from: sortedDates[0], to: sortedDates[sortedDates.length - 1] } : null
-                    },
-                    daily_views: rows,
-                    video_summary: videoSummary
-                };
+                const data = db.export();
+                db.close();
 
-                const jsonStr = JSON.stringify(dbExport, null, 2);
-                const blob = new Blob([jsonStr], { type: 'application/octet-stream' });
+                const blob = new Blob([data], { type: 'application/x-sqlite3' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
