@@ -205,6 +205,25 @@
             flex-shrink: 0;
         }
 
+        .pie-chart-tap-hint {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            background: rgba(0, 140, 255, 0.08);
+            border: 1px solid rgba(0, 140, 255, 0.25);
+            color: var(--text-dark);
+            padding: 0.45rem 0.75rem;
+            border-radius: 6px;
+            margin-top: 0.75rem;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+        .pie-chart-tap-hint i {
+            color: var(--primary-blue);
+            flex-shrink: 0;
+            margin-top: 0.1rem;
+        }
+
         .stats-overview {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -926,23 +945,34 @@
             padding: 0.35rem 0.75rem;
             font-size: 0.85rem;
             font-weight: 500;
-            border: 2px solid var(--border-color);
+            border: none;
             border-radius: 8px;
-            background: var(--white);
+            background: var(--light-gray);
             color: var(--text-dark);
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            box-shadow: none;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
         .line-chart-mode-btn:hover {
-            border-color: var(--primary-blue);
+            background: rgba(0, 140, 255, 0.1);
             color: var(--primary-blue);
         }
 
         .line-chart-mode-btn.active {
             background: var(--gradient-primary);
-            border-color: transparent;
             color: white;
+        }
+
+        .line-chart-mode-btn:focus {
+            outline: none;
+        }
+
+        .line-chart-mode-btn:focus-visible {
+            outline: 2px solid var(--primary-blue);
+            outline-offset: 2px;
         }
 
         @media (max-width: 600px) {
@@ -1771,6 +1801,10 @@
                         </div>
                         <div class="chart-container pie-chart" id="pieChartContainer">
                             <div id="pieChart" style="width: 100%; height: 100%;"></div>
+                        </div>
+                        <div class="pie-chart-tap-hint" id="pieChartTapHint" role="note" style="display: none;">
+                            <i class="fas fa-hand-pointer" aria-hidden="true"></i>
+                            <span>Tippen Sie auf ein Tortenstück, um den Namen und die Aufrufzahl anzuzeigen.</span>
                         </div>
                     </div>
 
@@ -4119,6 +4153,11 @@
             }, 100);
         }
         
+        function setPieChartTapHintVisible(show) {
+            const el = document.getElementById('pieChartTapHint');
+            if (el) el.style.display = show ? 'flex' : 'none';
+        }
+
         // Tortendiagramm erstellen (wie in der App)
         function createPieChart() {
             const chartElement = document.getElementById('pieChart');
@@ -4155,6 +4194,7 @@
             
             if (!mergedVideos || mergedVideos.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Video-Daten verfügbar</div>';
+                setPieChartTapHintVisible(false);
                 return;
             }
             
@@ -4163,6 +4203,7 @@
             
             if (filteredVideos.length === 0) {
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Videos mit Aufrufen verfügbar</div>';
+                setPieChartTapHintVisible(false);
                 return;
             }
 
@@ -4242,6 +4283,8 @@
                     charts.pieChart.resize();
                 }
             }, 100);
+
+            setPieChartTapHintVisible(!pieChartSegmentLabels);
         }
         
         // Hilfsfunktion für Datumsformatierung
