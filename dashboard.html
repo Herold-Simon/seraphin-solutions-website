@@ -46,7 +46,7 @@
             background: var(--white);
             padding: 1.5rem;
             border-radius: 12px;
-            box-shadow: var(--shadow);
+            box-shadow: none;
             margin-bottom: 2rem;
             display: flex;
             align-items: center;
@@ -80,7 +80,7 @@
         .device-dropdown-trigger:hover {
             border-color: var(--primary-blue);
             transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: none;
         }
         
         .device-dropdown-trigger:active {
@@ -121,7 +121,7 @@
             right: 0;
             background: var(--white);
             border-radius: 0 0 8px 8px;
-            box-shadow: var(--shadow-lg);
+            box-shadow: none;
             z-index: 1000;
             max-height: 300px;
             overflow-y: auto;
@@ -307,7 +307,7 @@
             background: var(--white);
             border-radius: 50%;
             transition: 0.3s;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            box-shadow: none;
         }
         .stat-average-toggle input:checked + .stat-average-slider {
             background: var(--primary-blue);
@@ -347,7 +347,7 @@
         .advanced-settings {
             background: var(--white);
             border-radius: 12px;
-            box-shadow: var(--shadow);
+            box-shadow: none;
             margin-bottom: 2rem;
             overflow: hidden;
         }
@@ -691,7 +691,7 @@
             background: var(--white);
             padding: 1.5rem;
             border-radius: 12px;
-            box-shadow: var(--shadow);
+            box-shadow: none;
             margin-bottom: 2rem;
             display: flex;
             flex-wrap: wrap;
@@ -1285,13 +1285,13 @@
             /* Pie Chart mobile Optimierungen */
             .chart-container.pie-chart {
                 height: 300px;
-                padding-bottom: 60px; /* Platz für Legende */
+                padding-bottom: 12px;
             }
 
             /* Balkendiagramm mobile Optimierungen */
             .chart-container.bar-chart {
                 overflow-x: auto;
-                padding-bottom: 40px; /* Platz für Legende */
+                padding-bottom: 12px;
             }
             
             /* Zeitraum-Buttons für sehr kleine Bildschirme */
@@ -3467,25 +3467,11 @@
                         return result;
                     }
                 },
-                legend: {
-                    data: filteredVideos.map(v => v.title || v.video_title || 'Unbenanntes Video'),
-                    textStyle: { color: '#666' },
-                    type: 'scroll',
-                    bottom: 0,
-                    pageButtonItemGap: 5,
-                    pageButtonGap: 5,
-                    pageButtonPosition: 'end',
-                    pageIconColor: '#2563eb',
-                    pageIconInactiveColor: '#ccc',
-                    pageIconSize: 28,
-                    pageTextStyle: {
-                        color: '#666'
-                    }
-                },
+                legend: { show: false },
                 grid: {
                     left: '3%',
                     right: '4%',
-                    bottom: '15%',
+                    bottom: '8%',
                     containLabel: true
                 },
                 color: getChartColors(),
@@ -4086,25 +4072,11 @@
                         return hasValidData ? result : '';
                     }
                 },
-                legend: {
-                    data: series.map(s => s.name),
-                    textStyle: { color: '#666' },
-                    type: 'scroll',
-                    bottom: 0,
-                    pageButtonItemGap: 5,
-                    pageButtonGap: 5,
-                    pageButtonPosition: 'end',
-                    pageIconColor: '#2563eb',
-                    pageIconInactiveColor: '#ccc',
-                    pageIconSize: 28,
-                    pageTextStyle: {
-                        color: '#666'
-                    }
-                },
+                legend: { show: false },
                 grid: {
                     left: '3%',
                     right: '4%',
-                    bottom: '15%',
+                    bottom: '8%',
                     containLabel: true
                 },
                 color: getChartColors(),
@@ -4196,28 +4168,7 @@
                         show: false
                     }
                 }],
-                legend: {
-                    data: filteredVideos.map((video, index) => ({
-                        name: video.title,
-                        icon: 'circle',
-                        textStyle: { color: getChartColor(index) }
-                    })),
-                    orient: 'horizontal',
-                    bottom: 0,
-                    left: 'center',
-                    textStyle: { fontSize: 12 },
-                    type: 'scroll',
-                    pageButtonItemGap: 5,
-                    pageButtonGap: 5,
-                    pageButtonPosition: 'end',
-                    pageIconColor: '#2563eb',
-                    pageIconInactiveColor: '#ccc',
-                    pageIconSize: 20,
-                    pageTextStyle: {
-                        color: '#666',
-                        fontSize: 10
-                    }
-                },
+                legend: { show: false },
                 tooltip: {
                     trigger: 'item',
                     show: true,
