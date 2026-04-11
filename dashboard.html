@@ -1754,11 +1754,19 @@
 
                     <!-- Tortendiagramm (wie in der App) -->
                     <div class="chart-card">
-                        <div class="chart-header">
+                        <div class="chart-header chart-header-with-mode-toggle">
                             <h3 class="chart-title" id="pieChartTitle">Tortendiagramm</h3>
                             <div class="chart-time-range-hint" id="pieChartTimeHint" style="display: none;" role="status">
                                 <i class="fas fa-info-circle"></i>
                                 <span>Bezieht sich auf den gewählten Zeitraum.</span>
+                            </div>
+                            <div class="line-chart-mode-toggle" id="pieChartLabelToggle" role="group" aria-label="Beschriftung Tortendiagramm">
+                                <button type="button" class="line-chart-mode-btn active" data-pie-labels="0" id="pieChartLabelsCompact">
+                                    Nur Diagramm
+                                </button>
+                                <button type="button" class="line-chart-mode-btn" data-pie-labels="1" id="pieChartLabelsOutside">
+                                    Namen mit Linien
+                                </button>
                             </div>
                         </div>
                         <div class="chart-container pie-chart" id="pieChartContainer">
@@ -1838,6 +1846,8 @@
         let allAvailableVideos = []; // All available videos for selection
         let lineChartMode = 'totalViews'; // 'byVideos' | 'totalViews'
         let lineRaceChartMode = 'totalViews'; // 'byVideos' | 'totalViews'
+        /** Tortendiagramm: Verbindungslinien + Namen außerhalb der Ringe */
+        let pieChartSegmentLabels = false;
         let allTimeRangeData = null; // Speichert den Zeitraum von "Gesamter Zeitraum"
         let lastAveragePerDay = 0;
         let lastAveragePerHour = 0;
@@ -2434,6 +2444,20 @@
                     this.classList.add('active');
                     updateChartTitles();
                     createLineRaceChart();
+                });
+            });
+
+            // Tortendiagramm: Beschriftung mit Verbindungslinien ein/aus
+            document.querySelectorAll('#pieChartLabelToggle .line-chart-mode-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const on = this.dataset.pieLabels === '1';
+                    if (on === pieChartSegmentLabels) return;
+                    pieChartSegmentLabels = on;
+                    document.querySelectorAll('#pieChartLabelToggle .line-chart-mode-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    createPieChart();
                 });
             });
         }
@@ -4141,12 +4165,15 @@
                 chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Videos mit Aufrufen verfügbar</div>';
                 return;
             }
-            
+
+            const showSegLabels = pieChartSegmentLabels;
+            const labelMaxLen = window.innerWidth < 600 ? 22 : 36;
+
             const option = {
                 series: [{
                     type: 'pie',
-                    radius: ['40%', '70%'],
-                    center: ['50%', '50%'],
+                    radius: showSegLabels ? ['26%', '48%'] : ['40%', '70%'],
+                    center: showSegLabels ? ['50%', '50%'] : ['50%', '50%'],
                     data: filteredVideos.map((video, index) => ({
                         name: video.title,
                         value: video.views || 0,
@@ -4161,10 +4188,27 @@
                             shadowColor: 'rgba(0, 0, 0, 0.5)'
                         }
                     },
-                    label: {
-                        show: false // Entferne Labels vom Pie Chart
+                    avoidLabelOverlap: true,
+                    label: showSegLabels ? {
+                        show: true,
+                        position: 'outside',
+                        color: '#444',
+                        fontSize: window.innerWidth < 600 ? 10 : 12,
+                        formatter: function(params) {
+                            const raw = params.name || '';
+                            const short = raw.length > labelMaxLen ? raw.slice(0, labelMaxLen - 1) + '…' : raw;
+                            const pct = params.percent != null ? params.percent.toFixed(1) : '0';
+                            return short + '\n' + pct + '%';
+                        }
+                    } : {
+                        show: false
                     },
-                    labelLine: {
+                    labelLine: showSegLabels ? {
+                        show: true,
+                        length: 12,
+                        length2: 10,
+                        lineStyle: { color: '#999', width: 1 }
+                    } : {
                         show: false
                     }
                 }],
@@ -4186,7 +4230,16 @@
             
             charts.pieChart = echarts.init(chartElement);
             charts.pieChart.setOption(option);
-            
+
+            document.querySelectorAll('#pieChartLabelToggle .line-chart-mode-btn').forEach(b => {
+                b.classList.toggle('active', (b.dataset.pieLabels === '1') === pieChartSegmentLabels);
+            });
+
+            setTimeout(() => {
+                if (charts.pieChart && !charts.pieChart.isDisposed()) {
+                    charts.pieChart.resize();
+                }
+            }, 100);
         }
         
         // Hilfsfunktion für Datumsformatierung
