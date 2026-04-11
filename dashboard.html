@@ -216,7 +216,7 @@
             padding: 1.5rem;
             position: relative;
             background: var(--white);
-            box-shadow: var(--shadow);
+            box-shadow: none;
             min-width: 0;
         }
         
@@ -225,7 +225,7 @@
             background: var(--light-gray);
             padding: 1.5rem;
             border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            box-shadow: none;
             text-align: center;
             transition: transform 0.3s ease;
             border: 1px solid var(--border-color);
@@ -235,7 +235,7 @@
         
         .stat-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: none;
             background: var(--white);
         }
         
@@ -2505,36 +2505,11 @@
                     setTimeout(() => {
                         syncCustomTimeRangeWithAllTime();
 
-                        // Bestimme den optimalen Standard-Zeitraum anhand der viewHistory aller Videos
-                        let defaultRange = 'all';
-                        try {
-                            const videos = statistics.videos || [];
-                            const allDatesSet = new Set();
-                            videos.forEach(v => {
-                                const h = v.viewHistory || v.view_history || {};
-                                Object.keys(h).forEach(d => {
-                                    if (parseInt(h[d], 10) > 0) allDatesSet.add(d);
-                                });
-                            });
-                            if (allDatesSet.size > 0) {
-                                const sortedViewDates = Array.from(allDatesSet).sort();
-                                const firstDay = new Date(sortedViewDates[0]);
-                                const lastDay = new Date(sortedViewDates[sortedViewDates.length - 1]);
-                                const daySpan = Math.round((lastDay - firstDay) / (1000 * 60 * 60 * 24));
-                                console.log('📅 Datenspanne: ' + daySpan + ' Tage (von ' + sortedViewDates[0] + ' bis ' + sortedViewDates[sortedViewDates.length - 1] + ')');
-                                if (daySpan > 29) {
-                                    defaultRange = '30';
-                                }
-                            }
-                        } catch (e) {
-                            console.warn('Fehler bei Standard-Zeitraum-Berechnung:', e);
-                        }
-
-                        currentTimeRange = defaultRange;
+                        currentTimeRange = 'all';
                         
                         // Aktualisiere die Button-Auswahl
                         document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
-                        const defaultBtn = document.querySelector('.time-btn[data-range="' + defaultRange + '"]');
+                        const defaultBtn = document.querySelector('.time-btn[data-range="all"]');
                         if (defaultBtn) {
                             defaultBtn.classList.add('active');
                         }
@@ -2546,7 +2521,7 @@
                         }
                         
                         updateCharts();
-                        console.log('🔄 Automatisch zu "' + defaultRange + '" gewechselt');
+                        console.log('🔄 Automatisch zu "all" gewechselt');
                     }, 200); // 200ms Verzögerung
                     
                 } else {
@@ -3589,18 +3564,25 @@
             const chartContainer = document.getElementById('barChartContainer');
             chartContainer.style.height = barHeight + 'px';
             
+            const isMobile = window.innerWidth < 600;
             const option = {
                 xAxis: {
                     type: 'value',
-                    axisLabel: { color: '#666', fontSize: 16 }
+                    axisLabel: {
+                        color: '#666',
+                        fontSize: isMobile ? 11 : 16,
+                        hideOverlap: true
+                    },
+                    minInterval: 1
                 },
                 yAxis: {
                     type: 'category',
                     data: visibleVideos.map((v, idx) => {
                         const title = v.title || v.video_title || `Video ${idx + 1}`;
-                        return title.length > 10 ? title.substring(0, 10) + '...' : title;
-                    }), // Begrenze Video-Titel auf 10 Zeichen mit ...
-                    axisLabel: { color: '#666', fontSize: 16 },
+                        const maxLen = isMobile ? 8 : 10;
+                        return title.length > maxLen ? title.substring(0, maxLen) + '...' : title;
+                    }),
+                    axisLabel: { color: '#666', fontSize: isMobile ? 12 : 16 },
                     inverse: true
                 },
                 series: [{
@@ -3699,9 +3681,10 @@
                         chartContainer.style.height = newHeight + 'px';
                         
                         // Erstelle erweiterte Version mit allen Videos
+                        const expandMaxLen = isMobile ? 8 : 10;
                         const allLabels = filteredVideos.map(video => {
                             const title = video.title || video.video_title || 'Unbekanntes Video';
-                            return title.length > 10 ? title.substring(0, 10) + '...' : title;
+                            return title.length > expandMaxLen ? title.substring(0, expandMaxLen) + '...' : title;
                         });
                         const allData = filteredVideos.map((video, idx) => ({
                             value: video.views || 0,
@@ -3716,7 +3699,7 @@
                             yAxis: {
                                 type: 'category',
                                 data: allLabels,
-                                axisLabel: { color: '#666', fontSize: 16 },
+                                axisLabel: { color: '#666', fontSize: isMobile ? 12 : 16 },
                                 inverse: true
                             },
                             series: [{
