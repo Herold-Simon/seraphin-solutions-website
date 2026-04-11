@@ -4172,8 +4172,8 @@
             const option = {
                 series: [{
                     type: 'pie',
-                    radius: showSegLabels ? ['26%', '48%'] : ['40%', '70%'],
-                    center: showSegLabels ? ['50%', '50%'] : ['50%', '50%'],
+                    radius: ['40%', '70%'],
+                    center: ['50%', '50%'],
                     data: filteredVideos.map((video, index) => ({
                         name: video.title,
                         value: video.views || 0,
@@ -4198,7 +4198,9 @@
                             const raw = params.name || '';
                             const short = raw.length > labelMaxLen ? raw.slice(0, labelMaxLen - 1) + '…' : raw;
                             const pct = params.percent != null ? params.percent.toFixed(1) : '0';
-                            return short + '\n' + pct + '%';
+                            const val = params.value != null ? Number(params.value) : 0;
+                            const valStr = Number.isInteger(val) ? String(val) : val.toFixed(1);
+                            return short + '\n' + pct + '% · ' + valStr + ' Aufrufe';
                         }
                     } : {
                         show: false
