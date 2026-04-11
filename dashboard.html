@@ -206,9 +206,7 @@
         }
 
         .pie-chart-tap-hint {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.5rem;
+            display: block;
             background: rgba(0, 140, 255, 0.08);
             border: 1px solid rgba(0, 140, 255, 0.25);
             color: var(--text-dark);
@@ -217,11 +215,7 @@
             margin-top: 0.75rem;
             font-size: 0.8rem;
             line-height: 1.4;
-        }
-        .pie-chart-tap-hint i {
-            color: var(--primary-blue);
-            flex-shrink: 0;
-            margin-top: 0.1rem;
+            text-align: center;
         }
 
         .stats-overview {
@@ -893,7 +887,7 @@
             background: var(--white);
             padding: 2rem;
             border-radius: 15px;
-            box-shadow: var(--shadow);
+            box-shadow: none;
             max-width: 100%;
             min-width: 0; /* wichtig in CSS-Grid, sonst kann Content die Card aufblähen */
             overflow: hidden; /* verhindert horizontalen Overflow nach Rotation */
@@ -1024,7 +1018,7 @@
             background: var(--white);
             padding: 2rem;
             border-radius: 15px;
-            box-shadow: var(--shadow);
+            box-shadow: none;
             margin-bottom: 2rem;
         }
 
@@ -1803,8 +1797,7 @@
                             <div id="pieChart" style="width: 100%; height: 100%;"></div>
                         </div>
                         <div class="pie-chart-tap-hint" id="pieChartTapHint" role="note" style="display: none;">
-                            <i class="fas fa-hand-pointer" aria-hidden="true"></i>
-                            <span>Tippen Sie auf ein Tortenstück, um den Namen und die Aufrufzahl anzuzeigen.</span>
+                            Tippen oder klicken Sie auf ein Tortenstück, um den Namen und die Aufrufzahl anzuzeigen.
                         </div>
                     </div>
 
@@ -1882,6 +1875,8 @@
         let lineRaceChartMode = 'totalViews'; // 'byVideos' | 'totalViews'
         /** Tortendiagramm: Verbindungslinien + Namen außerhalb der Ringe */
         let pieChartSegmentLabels = false;
+        /** Hinweis „Tippen …“ nach erstem Tortenstück-Tap ausblenden, bis wieder „Nur Diagramm“ gewählt wird */
+        let pieChartTapHintDismissed = false;
         let allTimeRangeData = null; // Speichert den Zeitraum von "Gesamter Zeitraum"
         let lastAveragePerDay = 0;
         let lastAveragePerHour = 0;
@@ -2489,6 +2484,9 @@
                     const on = this.dataset.pieLabels === '1';
                     if (on === pieChartSegmentLabels) return;
                     pieChartSegmentLabels = on;
+                    if (!pieChartSegmentLabels) {
+                        pieChartTapHintDismissed = false;
+                    }
                     document.querySelectorAll('#pieChartLabelToggle .line-chart-mode-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     createPieChart();
@@ -4155,7 +4153,20 @@
         
         function setPieChartTapHintVisible(show) {
             const el = document.getElementById('pieChartTapHint');
-            if (el) el.style.display = show ? 'flex' : 'none';
+            if (el) el.style.display = show ? 'block' : 'none';
+        }
+
+        function attachPieChartTapHintDismisser() {
+            if (!charts.pieChart || charts.pieChart.isDisposed()) return;
+            charts.pieChart.off('click', onPieChartSliceClick);
+            charts.pieChart.on('click', onPieChartSliceClick);
+        }
+
+        function onPieChartSliceClick(params) {
+            if (!params || params.componentType !== 'series' || params.seriesType !== 'pie') return;
+            if (pieChartSegmentLabels) return;
+            pieChartTapHintDismissed = true;
+            setPieChartTapHintVisible(false);
         }
 
         // Tortendiagramm erstellen (wie in der App)
@@ -4274,6 +4285,8 @@
             charts.pieChart = echarts.init(chartElement);
             charts.pieChart.setOption(option);
 
+            attachPieChartTapHintDismisser();
+
             document.querySelectorAll('#pieChartLabelToggle .line-chart-mode-btn').forEach(b => {
                 b.classList.toggle('active', (b.dataset.pieLabels === '1') === pieChartSegmentLabels);
             });
@@ -4284,7 +4297,7 @@
                 }
             }, 100);
 
-            setPieChartTapHintVisible(!pieChartSegmentLabels);
+            setPieChartTapHintVisible(!pieChartSegmentLabels && !pieChartTapHintDismissed);
         }
         
         // Hilfsfunktion für Datumsformatierung
