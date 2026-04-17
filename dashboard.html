@@ -3361,7 +3361,12 @@
                 charts.lineChart = echarts.init(chartElement);
                 charts.lineChart.setOption(option);
                 attachLineChartDataZoom(charts.lineChart, 'line');
-                setTimeout(() => { if (charts.lineChart) charts.lineChart.resize(); }, 100);
+                setTimeout(function() {
+                    if (charts.lineChart && !charts.lineChart.isDisposed()) {
+                        charts.lineChart.resize();
+                        applyLineChartYAxisFromVisibleRange(charts.lineChart);
+                    }
+                }, 100);
                 return;
             }
             
@@ -3571,11 +3576,10 @@
             charts.lineChart = echarts.init(chartElement);
             charts.lineChart.setOption(option);
             attachLineChartDataZoom(charts.lineChart, 'line');
-            
-            // Chart nach Initialisierung neu zeichnen
-            setTimeout(() => {
-                if (charts.lineChart) {
+            setTimeout(function() {
+                if (charts.lineChart && !charts.lineChart.isDisposed()) {
                     charts.lineChart.resize();
+                    applyLineChartYAxisFromVisibleRange(charts.lineChart);
                 }
             }, 100);
         }
@@ -3966,7 +3970,12 @@
                 charts.lineRaceChart.setOption(option);
                 attachLineChartDataZoom(charts.lineRaceChart, 'lineRace');
                 tryConnectDashboardLineChartsZoom();
-                setTimeout(() => { if (charts.lineRaceChart) charts.lineRaceChart.resize(); }, 100);
+                setTimeout(function() {
+                    if (charts.lineRaceChart && !charts.lineRaceChart.isDisposed()) {
+                        charts.lineRaceChart.resize();
+                        applyLineChartYAxisFromVisibleRange(charts.lineRaceChart);
+                    }
+                }, 100);
                 return;
             }
             
@@ -4183,11 +4192,10 @@
             charts.lineRaceChart.setOption(option);
             attachLineChartDataZoom(charts.lineRaceChart, 'lineRace');
             tryConnectDashboardLineChartsZoom();
-            
-            // Chart nach Initialisierung neu zeichnen
-            setTimeout(() => {
-                if (charts.lineRaceChart) {
+            setTimeout(function() {
+                if (charts.lineRaceChart && !charts.lineRaceChart.isDisposed()) {
                     charts.lineRaceChart.resize();
+                    applyLineChartYAxisFromVisibleRange(charts.lineRaceChart);
                 }
             }, 100);
         }
@@ -4473,15 +4481,93 @@
             updateChartTitles();
         }
 
-        function doApplyDataZoomRangeToCustom(points, startPct, endPct) {
-            if (suppressChartZoomSync) return;
-            var n = points.length;
-            if (n < 2) return;
+        /** X-Index-Bereich aus dataZoom-Prozent (gleiche Logik wie bei Custom-Zeitraum). */
+        function indicesFromDataZoomPercent(startPct, endPct, n) {
+            if (n < 1) return [0, 0];
             var i0 = Math.floor((startPct / 100) * n);
             var i1 = Math.min(n - 1, Math.max(0, Math.ceil((endPct / 100) * n) - 1));
             i0 = Math.max(0, Math.min(n - 1, i0));
             i1 = Math.max(0, Math.min(n - 1, i1));
             if (i0 > i1) { var t = i0; i0 = i1; i1 = t; }
+            return [i0, i1];
+        }
+
+        /** Max. Y aus allen Linien-Serien im sichtbaren Indexbereich inkl. MarkLine (Durchschnitt). */
+        function maxYInLineSeriesSlice(seriesList, i0, i1) {
+            var max = 0;
+            if (!seriesList || !seriesList.length) return 0;
+            for (var s = 0; s < seriesList.length; s++) {
+                var ser = seriesList[s];
+                if (!ser || ser.type !== 'line' || !ser.data) continue;
+                var arr = ser.data;
+                for (var i = i0; i <= i1; i++) {
+                    if (i < 0 || i >= arr.length) continue;
+                    var v = arr[i];
+                    if (typeof v === 'number' && !isNaN(v) && v > max) max = v;
+                }
+                if (ser.markLine && ser.markLine.data && ser.markLine.data.length) {
+                    for (var m = 0; m < ser.markLine.data.length; m++) {
+                        var md = ser.markLine.data[m];
+                        if (md && typeof md.yAxis === 'number' && !isNaN(md.yAxis) && md.yAxis > max) max = md.yAxis;
+                    }
+                }
+            }
+            return max;
+        }
+
+        function padLineChartYMax(raw) {
+            if (raw == null || raw <= 0) return 5;
+            var headroom = Math.max(1, Math.ceil(raw * 0.08));
+            return Math.ceil(raw + headroom);
+        }
+
+        var lineChartYAxisRaf = null;
+        var lineRaceChartYAxisRaf = null;
+
+        /** Y-Achse an den sichtbaren X-Ausschnitt (Zoom/Pan) anpassen. */
+        function applyLineChartYAxisFromVisibleRange(chart) {
+            if (!chart || chart.isDisposed()) return;
+            try {
+                var opt = chart.getOption();
+                var xData = opt.xAxis && opt.xAxis[0] && opt.xAxis[0].data;
+                var n = xData ? xData.length : 0;
+                if (n < 1) return;
+                var dz = opt.dataZoom && opt.dataZoom[0];
+                var start = dz && dz.start !== undefined ? dz.start : 0;
+                var end = dz && dz.end !== undefined ? dz.end : 100;
+                var ij = indicesFromDataZoomPercent(start, end, n);
+                var maxVal = maxYInLineSeriesSlice(opt.series || [], ij[0], ij[1]);
+                var padded = padLineChartYMax(maxVal);
+                chart.setOption({
+                    yAxis: [{ min: 0, max: padded }]
+                }, false);
+            } catch (e) { /* ignore */ }
+        }
+
+        function scheduleLineChartYAxisUpdate(chart, key) {
+            if (!chart || chart.isDisposed()) return;
+            var rafKey = key === 'lineRace' ? 'lineRace' : 'line';
+            if (rafKey === 'lineRace') {
+                if (lineRaceChartYAxisRaf) cancelAnimationFrame(lineRaceChartYAxisRaf);
+                lineRaceChartYAxisRaf = requestAnimationFrame(function() {
+                    lineRaceChartYAxisRaf = null;
+                    applyLineChartYAxisFromVisibleRange(chart);
+                });
+            } else {
+                if (lineChartYAxisRaf) cancelAnimationFrame(lineChartYAxisRaf);
+                lineChartYAxisRaf = requestAnimationFrame(function() {
+                    lineChartYAxisRaf = null;
+                    applyLineChartYAxisFromVisibleRange(chart);
+                });
+            }
+        }
+
+        function doApplyDataZoomRangeToCustom(points, startPct, endPct) {
+            if (suppressChartZoomSync) return;
+            var n = points.length;
+            if (n < 2) return;
+            var ij = indicesFromDataZoomPercent(startPct, endPct, n);
+            var i0 = ij[0], i1 = ij[1];
             var startStr = normalizeTimePointToYMD(points[i0]);
             var endStr = normalizeTimePointToYMD(points[i1]);
             if (!startStr || !endStr) return;
@@ -4493,6 +4579,7 @@
             chart.off('datazoom');
             chart.on('datazoom', function(ev) {
                 if (suppressChartZoomSync) return;
+                scheduleLineChartYAxisUpdate(chart, key);
                 if (!ev.batch || !ev.batch.length) return;
                 var b = ev.batch[0];
                 var start = b.start;
