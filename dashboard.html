@@ -3180,13 +3180,13 @@
             today.setHours(23, 59, 59, 999);
             if (currentTimeRange === '7') {
                 const start = new Date(today);
-                start.setDate(start.getDate() - 7);
+                start.setDate(start.getDate() - 6);
                 start.setHours(0, 0, 0, 0);
                 return { startDate: start, endDate: new Date(today) };
             }
             if (currentTimeRange === '30') {
                 const start = new Date(today);
-                start.setDate(start.getDate() - 30);
+                start.setDate(start.getDate() - 29);
                 start.setHours(0, 0, 0, 0);
                 return { startDate: start, endDate: new Date(today) };
             }
@@ -4478,18 +4478,17 @@
                     addEndOffset: false
                 };
             } else {
-                const lastDate = new Date(sortedDates[sortedDates.length - 1]);
-                let startDate = new Date(lastDate);
-                
-                if (timeRange === '7') {
-                    startDate.setDate(lastDate.getDate() - 6);
-                } else if (timeRange === '30') {
-                    startDate.setDate(lastDate.getDate() - 29);
+                // 7 / 30 Tage: Ende = heutiger Kalendertag (lokal), nicht das letzte Datum in den Rohdaten —
+                // sonst fehlt „heute“, wenn es noch keine Aufrufe gibt.
+                const now = new Date();
+                const todayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const extendedEndDate = new Date(todayLocal);
+                const extendedStartDate = new Date(extendedEndDate);
+                if (timeRange === '30') {
+                    extendedStartDate.setDate(extendedStartDate.getDate() - 29);
+                } else {
+                    extendedStartDate.setDate(extendedStartDate.getDate() - 6);
                 }
-                
-                // Verwende den ursprünglichen Zeitraum ohne Offset
-                const extendedStartDate = new Date(startDate);
-                const extendedEndDate = new Date(lastDate);
                 
                 // Erstelle Zeitpunkte ohne Offset
                 const extendedTimePoints = [];
@@ -4531,14 +4530,14 @@
             let startDate = new Date();
             
             if (currentTimeRange === '7') {
-                startDate.setDate(now.getDate() - 7);
+                startDate.setDate(now.getDate() - 6);
                 const filtered = history
                     .filter(item => new Date(item.date) >= startDate)
                     .slice(0, 30)
                     .reverse();
                 return filtered;
             } else if (currentTimeRange === '30') {
-                startDate.setDate(now.getDate() - 30);
+                startDate.setDate(now.getDate() - 29);
                 const filtered = history
                     .filter(item => new Date(item.date) >= startDate)
                     .reverse();
