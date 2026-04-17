@@ -1015,6 +1015,11 @@
         #lineRaceChart {
             max-width: 100%;
         }
+        /* Pinch-Zoom auf Touch-Geräten (Liniendiagramme) */
+        #lineChart,
+        #lineRaceChart {
+            touch-action: none;
+        }
         
         .chart-container.bar-chart {
             min-width: 100%;
@@ -1899,6 +1904,11 @@
         let allTimeRangeData = null; // Speichert den Zeitraum von "Gesamter Zeitraum"
         let lastAveragePerDay = 0;
         let lastAveragePerHour = 0;
+        /** Roh-Zeitpunkte (YYYY-MM-DD oder DD.MM.JJJJ) für Zoom → benutzerdefinierter Zeitraum */
+        let lastLineChartTimePointsRaw = [];
+        let lastLineRaceChartTimePointsRaw = [];
+        let suppressChartZoomSync = false;
+        let chartZoomApplyTimer = null;
         
         /** Anzahl der Tage, an denen mindestens ein Aufruf stattfand (nur diese zählen für den Durchschnitt). */
         function getNumberOfDaysWithViews(mergedVideos, bounds) {
@@ -3316,6 +3326,7 @@
                 const option = {
                     xAxis: { type: 'category', data: timePoints.map(d => formatDateToGerman(d)), axisLabel: { color: '#666', rotate: 45 }, axisTick: { alignWithLabel: true } },
                     yAxis: { type: 'value', axisLabel: { color: '#666' }, name: 'Aufrufe', nameTextStyle: { color: '#666' } },
+                    dataZoom: timePoints.length >= 2 ? [lineChartDataZoomInsideConfig()] : [],
                     series: [{
                         name: 'Gesamte Aufrufe',
                         type: 'line',
@@ -3345,8 +3356,10 @@
                     grid: { left: '3%', right: '4%', bottom: '8%', containLabel: true },
                     color: getChartColors()
                 };
+                lastLineChartTimePointsRaw = timePoints.slice();
                 charts.lineChart = echarts.init(chartElement);
                 charts.lineChart.setOption(option);
+                attachLineChartDataZoom(charts.lineChart, 'line');
                 setTimeout(() => { if (charts.lineChart) charts.lineChart.resize(); }, 100);
                 return;
             }
@@ -3492,6 +3505,7 @@
                     name: 'Aufrufe',
                     nameTextStyle: { color: '#666' }
                 },
+                dataZoom: timePoints.length >= 2 ? [lineChartDataZoomInsideConfig()] : [],
                 series: series,
                 tooltip: {
                     trigger: 'axis',
@@ -3549,13 +3563,13 @@
                     bottom: '8%',
                     containLabel: true
                 },
-                color: getChartColors(),
-                zoom: false
+                color: getChartColors()
             };
             
+            lastLineChartTimePointsRaw = timePoints.slice();
             charts.lineChart = echarts.init(chartElement);
             charts.lineChart.setOption(option);
-            
+            attachLineChartDataZoom(charts.lineChart, 'line');
             
             // Chart nach Initialisierung neu zeichnen
             setTimeout(() => {
@@ -3920,6 +3934,7 @@
                 const option = {
                     xAxis: { type: 'category', data: timePoints.map(d => formatDateToGerman(d)), axisLabel: { color: '#666', rotate: 45, fontSize: 12 }, axisTick: { alignWithLabel: true } },
                     yAxis: { type: 'value', axisLabel: { color: '#666', fontSize: 12 }, name: 'Kumulierte Aufrufe', nameTextStyle: { color: '#666' } },
+                    dataZoom: timePoints.length >= 2 ? [lineChartDataZoomInsideConfig()] : [],
                     series: [{
                         name: 'Gesamte Aufrufe',
                         type: 'line',
@@ -3944,8 +3959,10 @@
                     grid: { left: '3%', right: '4%', bottom: '8%', containLabel: true },
                     color: getChartColors()
                 };
+                lastLineRaceChartTimePointsRaw = timePoints.slice();
                 charts.lineRaceChart = echarts.init(chartElement);
                 charts.lineRaceChart.setOption(option);
+                attachLineChartDataZoom(charts.lineRaceChart, 'lineRace');
                 setTimeout(() => { if (charts.lineRaceChart) charts.lineRaceChart.resize(); }, 100);
                 return;
             }
@@ -4110,6 +4127,7 @@
                     name: 'Kumulierte Aufrufe',
                     nameTextStyle: { color: '#666' }
                 },
+                dataZoom: timePoints.length >= 2 ? [lineChartDataZoomInsideConfig()] : [],
                 series,
                 tooltip: {
                     trigger: 'axis',
@@ -4154,13 +4172,13 @@
                     bottom: '8%',
                     containLabel: true
                 },
-                color: getChartColors(),
-                zoom: false
+                color: getChartColors()
             };
             
+            lastLineRaceChartTimePointsRaw = timePoints.slice();
             charts.lineRaceChart = echarts.init(chartElement);
             charts.lineRaceChart.setOption(option);
-            
+            attachLineChartDataZoom(charts.lineRaceChart, 'lineRace');
             
             // Chart nach Initialisierung neu zeichnen
             setTimeout(() => {
@@ -4385,6 +4403,79 @@
                 return germanDateString;
             }
             return germanDateString; // Fallback falls Format nicht erkannt wird
+        }
+
+        function normalizeTimePointToYMD(tp) {
+            if (tp == null || tp === '') return '';
+            var s = String(tp).trim();
+            if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+            return formatDateToAPI(s);
+        }
+
+        function lineChartDataZoomInsideConfig() {
+            return {
+                type: 'inside',
+                xAxisIndex: [0],
+                filterMode: 'none',
+                zoomOnMouseWheel: true,
+                moveOnMouseMove: true,
+                moveOnMouseWheel: false,
+                throttle: 80
+            };
+        }
+
+        function doApplyDataZoomRangeToCustom(points, startPct, endPct) {
+            if (suppressChartZoomSync) return;
+            var n = points.length;
+            if (n < 2) return;
+            var i0 = Math.floor((startPct / 100) * n);
+            var i1 = Math.min(n - 1, Math.max(0, Math.ceil((endPct / 100) * n) - 1));
+            i0 = Math.max(0, Math.min(n - 1, i0));
+            i1 = Math.max(0, Math.min(n - 1, i1));
+            if (i0 > i1) { var t = i0; i0 = i1; i1 = t; }
+            var startStr = normalizeTimePointToYMD(points[i0]);
+            var endStr = normalizeTimePointToYMD(points[i1]);
+            if (!startStr || !endStr) return;
+            if (currentTimeRange === 'custom' && customDateRange.startDate === startStr && customDateRange.endDate === endStr) return;
+            currentTimeRange = 'custom';
+            customDateRange.startDate = startStr;
+            customDateRange.endDate = endStr;
+            document.querySelectorAll('.time-btn').forEach(function(b) { b.classList.remove('active'); });
+            var cb = document.querySelector('.time-btn[data-range="custom"]');
+            if (cb) cb.classList.add('active');
+            var cre = document.getElementById('customDateRange');
+            if (cre) cre.style.display = 'block';
+            var si = document.getElementById('startDate');
+            var ei = document.getElementById('endDate');
+            if (si) si.value = startStr;
+            if (ei) ei.value = endStr;
+            suppressChartZoomSync = true;
+            try {
+                updateCharts();
+            } finally {
+                setTimeout(function() { suppressChartZoomSync = false; }, 50);
+            }
+        }
+
+        function attachLineChartDataZoom(chart, key) {
+            if (!chart || chart.isDisposed()) return;
+            chart.off('datazoom');
+            chart.on('datazoom', function(ev) {
+                if (suppressChartZoomSync) return;
+                if (!ev.batch || !ev.batch.length) return;
+                var b = ev.batch[0];
+                var start = b.start;
+                var end = b.end;
+                if (start === undefined || end === undefined) return;
+                if (start <= 0.01 && end >= 99.99) return;
+                var points = key === 'lineRace' ? lastLineRaceChartTimePointsRaw : lastLineChartTimePointsRaw;
+                if (!points || points.length < 2) return;
+                if (chartZoomApplyTimer) clearTimeout(chartZoomApplyTimer);
+                chartZoomApplyTimer = setTimeout(function() {
+                    chartZoomApplyTimer = null;
+                    doApplyDataZoomRangeToCustom(points, start, end);
+                }, 120);
+            });
         }
         
         // Chart-Farben (wie in der App)
