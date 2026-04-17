@@ -3203,7 +3203,7 @@
         /** Liefert die Aufrufe eines Videos für heute (viewHistory). */
         function getViewsTodayForVideo(video) {
             const today = new Date();
-            const todayStr = today.toISOString().split('T')[0];
+            const todayStr = formatLocalDateYMD(today);
             const viewHistory = video.viewHistory || video.view_history || {};
             return parseInt(viewHistory[todayStr], 10) || 0;
         }
@@ -3287,9 +3287,9 @@
                     const timeRangeResult = calculateTimeRange(sortedDates, currentTimeRange);
                     timePoints = timeRangeResult.timePoints;
                     if (timeRangeResult.addEndOffset && timePoints.length > 0) {
-                        const lastDate = new Date(timePoints[timePoints.length - 1]);
+                        const lastDate = parseLocalYMDDate(timePoints[timePoints.length - 1]);
                         lastDate.setDate(lastDate.getDate() + 2);
-                        timePoints.push(lastDate.toISOString().split('T')[0]);
+                        timePoints.push(formatLocalDateYMD(lastDate));
                     }
                     cumulativeData = timePoints.map(date => {
                         return allVideosWithViews.reduce((sum, v) => {
@@ -3304,7 +3304,7 @@
                     for (let i = daysToShow - 1; i >= 0; i--) {
                         const d = new Date(today);
                         d.setDate(d.getDate() - i);
-                        timePoints.push(d.toISOString().split('T')[0]);
+                        timePoints.push(formatLocalDateYMD(d));
                     }
                     const totalViews = allVideosWithViews.reduce((s, v) => s + (parseInt(v.views) || 0), 0);
                     const dailyAvg = Math.round(totalViews / daysToShow);
@@ -3389,9 +3389,9 @@
                 
                 // Für "Alle Zeit" füge auch Offset nach dem letzten Datum hinzu
                 if (timeRangeResult.addEndOffset && timePoints.length > 0) {
-                    const lastDate = new Date(timePoints[timePoints.length - 1]);
+                    const lastDate = parseLocalYMDDate(timePoints[timePoints.length - 1]);
                     lastDate.setDate(lastDate.getDate() + 2);
-                    timePoints.push(lastDate.toISOString().split('T')[0]);
+                    timePoints.push(formatLocalDateYMD(lastDate));
                 }
                 
                 // Erstelle Series für jedes Video mit echten Daten
@@ -3891,9 +3891,9 @@
                     const timeRangeResult = calculateTimeRange(sortedDates, currentTimeRange);
                     timePoints = timeRangeResult.timePoints;
                     if (timeRangeResult.addEndOffset && timePoints.length > 0) {
-                        const lastDate = new Date(timePoints[timePoints.length - 1]);
+                        const lastDate = parseLocalYMDDate(timePoints[timePoints.length - 1]);
                         lastDate.setDate(lastDate.getDate() + 2);
-                        timePoints.push(lastDate.toISOString().split('T')[0]);
+                        timePoints.push(formatLocalDateYMD(lastDate));
                     }
                     const dailyTotals = timePoints.map(date => {
                         return allVideosWithViews.reduce((sum, v) => {
@@ -3910,7 +3910,7 @@
                     for (let i = daysToShow - 1; i >= 0; i--) {
                         const d = new Date(today);
                         d.setDate(d.getDate() - i);
-                        timePoints.push(d.toISOString().split('T')[0]);
+                        timePoints.push(formatLocalDateYMD(d));
                     }
                     const totalViews = allVideosWithViews.reduce((s, v) => s + (parseInt(v.views) || 0), 0);
                     const dailyAvg = Math.round(totalViews / daysToShow);
@@ -3988,9 +3988,9 @@
                 
                 // Für "Alle Zeit" füge auch Offset nach dem letzten Datum hinzu
                 if (timeRangeResult.addEndOffset && timePoints.length > 0) {
-                    const lastDate = new Date(timePoints[timePoints.length - 1]);
+                    const lastDate = parseLocalYMDDate(timePoints[timePoints.length - 1]);
                     lastDate.setDate(lastDate.getDate() + 2);
-                    timePoints.push(lastDate.toISOString().split('T')[0]);
+                    timePoints.push(formatLocalDateYMD(lastDate));
                 }
                 
                 // Für jedes Video: Kumulierte Aufrufe pro Tag mit echten Daten
@@ -4340,10 +4340,31 @@
             setPieChartTapHintVisible(!pieChartSegmentLabels && !pieChartTapHintDismissed);
         }
         
+        /** YYYY-MM-DD aus lokalem Kalenderdatum (toISOString() würde durch UTC oft einen Tag zurücksetzen). */
+        function formatLocalDateYMD(d) {
+            var y = d.getFullYear();
+            var m = (d.getMonth() + 1).toString().padStart(2, '0');
+            var day = d.getDate().toString().padStart(2, '0');
+            return y + '-' + m + '-' + day;
+        }
+
+        /** Parst YYYY-MM-DD als lokales Kalenderdatum (nicht UTC-Mitternacht). */
+        function parseLocalYMDDate(s) {
+            if (typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return new Date(s);
+            var p = s.split('-');
+            return new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+        }
+
         // Hilfsfunktion für Datumsformatierung
         function formatDateToGerman(dateString) {
-            // Konvertiert "2025-08-30" zu "30.08.2025"
-            const date = new Date(dateString);
+            // Konvertiert "2025-08-30" zu "30.08.2025" (YYYY-MM-DD als lokales Datum, nicht UTC)
+            var date;
+            if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+                var parts = dateString.split('-');
+                date = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            } else {
+                date = new Date(dateString);
+            }
             const day = date.getDate().toString().padStart(2, '0');
             const month = (date.getMonth() + 1).toString().padStart(2, '0');
             const year = date.getFullYear();
@@ -4388,8 +4409,8 @@
                 
                 // Speichere den Zeitraum für "Benutzerdefiniert" (immer aktualisieren)
                 allTimeRangeData = {
-                    startDate: allTimeStartDate.toISOString().split('T')[0],
-                    endDate: allTimeEndDate.toISOString().split('T')[0]
+                    startDate: formatLocalDateYMD(allTimeStartDate),
+                    endDate: formatLocalDateYMD(allTimeEndDate)
                 };
                 
                 console.log('📅 AllTimeRangeData aktualisiert:', allTimeRangeData);
@@ -4406,8 +4427,7 @@
                 const currentDate = new Date(startDate);
                 
                 while (currentDate <= endDate) {
-                    const dateString = currentDate.toISOString().split('T')[0];
-                    timePointsWithOffset.push(dateString);
+                    timePointsWithOffset.push(formatLocalDateYMD(currentDate));
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
                 
@@ -4452,8 +4472,8 @@
                         const endDate = new Date(sortedDates[sortedDates.length - 1]);
                         endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
                         
-                        customDateRange.startDate = startDate.toISOString().split('T')[0];
-                        customDateRange.endDate = endDate.toISOString().split('T')[0];
+                        customDateRange.startDate = formatLocalDateYMD(startDate);
+                        customDateRange.endDate = formatLocalDateYMD(endDate);
                         
                         console.log('🔄 Custom-Zeitraum berechnet (Fallback):', customDateRange);
                     }
@@ -4467,8 +4487,7 @@
                 const currentDate = new Date(customStartDate);
                 
                 while (currentDate <= customEndDate) {
-                    const dateString = currentDate.toISOString().split('T')[0];
-                    customTimePoints.push(dateString);
+                    customTimePoints.push(formatLocalDateYMD(currentDate));
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
                 
@@ -4495,8 +4514,7 @@
                 const currentDate = new Date(extendedStartDate);
                 
                 while (currentDate <= extendedEndDate) {
-                    const dateString = currentDate.toISOString().split('T')[0];
-                    extendedTimePoints.push(dateString);
+                    extendedTimePoints.push(formatLocalDateYMD(currentDate));
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
                 
