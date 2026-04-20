@@ -120,7 +120,26 @@
                 </div>
                 <div class="hero-image">
                     <div class="hero-video-frame">
-                        <video src="Routeviz.mp4" autoplay loop muted playsinline aria-label="Gebäudenavi auf einem interaktiven Touch-Bildschirm"></video>
+                        <video id="hero-routeviz-video" preload="auto" autoplay loop muted playsinline aria-label="Gebäudenavi auf einem interaktiven Touch-Bildschirm"></video>
+                        <script>
+                        (function () {
+                            var v = document.getElementById("hero-routeviz-video");
+                            if (!v) return;
+                            function pickRoutevizFile() {
+                                var c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                                if (c && c.saveData) return "Routeviz-512.mp4";
+                                if (c && typeof c.downlink === "number" && c.downlink < 1.5) return "Routeviz-512.mp4";
+                                if (c && c.effectiveType) {
+                                    if (c.effectiveType === "slow-2g" || c.effectiveType === "2g" || c.effectiveType === "3g") {
+                                        return "Routeviz-512.mp4";
+                                    }
+                                }
+                                return "Routeviz-1000.mp4";
+                            }
+                            v.src = pickRoutevizFile();
+                            v.load();
+                        })();
+                        </script>
                     </div>
                 </div>
             </div>
