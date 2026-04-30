@@ -326,6 +326,13 @@ a.company-name {
     border-top: 1px solid var(--color-border);
 }
 
+.hero-note a {
+    color: var(--color-primary);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
 .hero-image {
     position: relative;
     width: 100%;
@@ -590,6 +597,12 @@ a.company-name {
     padding: 48px;
 }
 
+.reference-slide {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
 .reference-content {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -598,6 +611,7 @@ a.company-name {
 }
 
 .reference-image-main img {
+    display: block;
     width: 100%;
     border-radius: var(--radius-lg);
     object-fit: cover;
@@ -638,6 +652,36 @@ a.company-name {
     font-size: 0.9375rem;
     color: var(--color-text-secondary);
     line-height: 1.7;
+}
+
+.reference-quote-box {
+    margin: 0;
+    padding: 20px 22px 22px;
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    border-left-width: 4px;
+    border-left-color: var(--color-primary);
+}
+
+.reference-quote p {
+    margin: 0;
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--color-text);
+    line-height: 1.65;
+}
+
+.reference-quote-meta {
+    margin-top: 12px;
+    font-size: 0.8125rem;
+    font-style: normal;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+}
+
+.reference-quote-meta cite {
+    font-style: normal;
 }
 
 .carousel-btn {
