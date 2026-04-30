@@ -659,9 +659,8 @@ a.company-name {
     padding: 20px 22px 22px;
     background: var(--color-surface);
     border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border);
-    border-left-width: 4px;
-    border-left-color: var(--color-primary);
+    border: none;
+    outline: none;
 }
 
 .reference-quote p {
