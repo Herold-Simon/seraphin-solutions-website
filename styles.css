@@ -293,15 +293,20 @@ a.company-name {
     font-weight: 800;
     line-height: 1.1;
     letter-spacing: -0.03em;
-    color: var(--color-text);
     margin-bottom: 24px;
-}
-
-.hero-text h1 span {
     background: var(--gradient-primary-subtle);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    color: var(--color-text);
+}
+
+.hero-text h1 span {
+    background: none;
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+    -webkit-text-fill-color: var(--color-text);
+    color: var(--color-text);
 }
 
 .hero-description {
