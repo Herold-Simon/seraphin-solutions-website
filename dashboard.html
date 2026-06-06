@@ -2004,8 +2004,8 @@
                 
                 // Aktualisiere allTimeRangeData
                 allTimeRangeData = {
-                    startDate: startDate.toISOString().split('T')[0],
-                    endDate: endDate.toISOString().split('T')[0]
+                    startDate: formatLocalDateYMD(startDate),
+                    endDate: formatLocalDateYMD(endDate)
                 };
                 
                 // Aktualisiere den benutzerdefinierten Zeitraum
@@ -2379,16 +2379,24 @@
             
             function navigateDate(inputId, direction) {
                 const input = document.getElementById(inputId);
-                if (!input.value) {
-                    // Wenn kein Datum ausgewählt ist, setze heute als Standard
-                    const today = new Date();
-                    input.value = today.toISOString().split('T')[0];
-                } else {
-                    const currentDate = new Date(input.value);
-                    currentDate.setDate(currentDate.getDate() + direction);
-                    input.value = currentDate.toISOString().split('T')[0];
+                const otherInputId = inputId === 'startDate' ? 'endDate' : 'startDate';
+                const otherInput = document.getElementById(otherInputId);
+
+                const currentDate = input.value
+                    ? parseLocalYMDDate(input.value)
+                    : new Date();
+                const newDate = new Date(currentDate);
+                newDate.setDate(newDate.getDate() + direction);
+                const newDateStr = formatLocalDateYMD(newDate);
+
+                if (inputId === 'startDate' && otherInput && otherInput.value && newDateStr > otherInput.value) {
+                    return;
                 }
-                // Trigger change event um die Charts zu aktualisieren
+                if (inputId === 'endDate' && otherInput && otherInput.value && newDateStr < otherInput.value) {
+                    return;
+                }
+
+                input.value = newDateStr;
                 input.dispatchEvent(new Event('change'));
             }
             
@@ -2579,8 +2587,8 @@
                         endDate.setDate(endDate.getDate() + 2); // Offset nach dem letzten Datum
                         
                         allTimeRangeData = {
-                            startDate: startDate.toISOString().split('T')[0],
-                            endDate: endDate.toISOString().split('T')[0]
+                            startDate: formatLocalDateYMD(startDate),
+                            endDate: formatLocalDateYMD(endDate)
                         };
                         
                         console.log('📅 AllTimeRangeData initial gesetzt:', allTimeRangeData);
@@ -3228,6 +3236,21 @@
             });
             return sum;
         }
+
+        /** Kumulierte Aufrufe eines Videos bis einschließlich dateStr (YYYY-MM-DD). */
+        function getCumulativeViewsForVideoUpToDate(video, dateStr) {
+            const viewHistory = video.viewHistory || video.view_history || {};
+            let sum = 0;
+            Object.keys(viewHistory).forEach(d => {
+                if (d <= dateStr) sum += parseInt(viewHistory[d], 10) || 0;
+            });
+            return sum;
+        }
+
+        /** Kumulierte Gesamtaufrufe aller Videos bis einschließlich dateStr (YYYY-MM-DD). */
+        function getCumulativeViewsUpToDate(videos, dateStr) {
+            return videos.reduce((sum, video) => sum + getCumulativeViewsForVideoUpToDate(video, dateStr), 0);
+        }
         
         // Liniendiagramm erstellen (wie in der App)
         function createLineChart() {
@@ -3333,7 +3356,7 @@
                         type: 'line',
                         data: cumulativeData,
                         smooth: true,
-                        lineStyle: { width: 3 },
+                        lineStyle: { width: 1.5 },
                         itemStyle: { color: getChartColor(0) },
                         emphasis: { focus: 'series' },
                         markLine: {
@@ -3426,7 +3449,7 @@
                         data: data,
                         smooth: true,
                         lineStyle: {
-                            width: 2
+                            width: 1
                         },
                         itemStyle: {
                             color: getChartColor(idx)
@@ -3486,7 +3509,7 @@
                         data: data,
                         smooth: true,
                         lineStyle: {
-                            width: 2
+                            width: 1
                         },
                         itemStyle: {
                             color: getChartColor(idx)
@@ -3887,19 +3910,22 @@
             // Modus "Insgesamte Aufrufe": Alle Videos, kumulierte Gesamtaufrufe pro Tag
             if (lineRaceChartMode === 'totalViews') {
                 const bounds = getTimeRangeBounds();
-                const allVideosWithViews = bounds
-                    ? mergedVideos.map(v => ({ ...v, views: getViewsInRangeForVideo(v, bounds.startDate, bounds.endDate) })).filter(v => (v.views || 0) > 0)
-                    : mergedVideos.filter(video => (video.views || 0) > 0);
-                if (allVideosWithViews.length === 0) {
-                    chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Videos mit Aufrufen verfügbar</div>';
-                    return;
+                const hasViewHistory = mergedVideos.some(v => (v.viewHistory && Object.keys(v.viewHistory || {}).length > 0) || (v.view_history && Object.keys(v.view_history || {}).length > 0));
+                let allVideosWithViews = mergedVideos.filter(video => (video.views || 0) > 0);
+                if (!hasViewHistory) {
+                    allVideosWithViews = bounds
+                        ? mergedVideos.map(v => ({ ...v, views: getViewsInRangeForVideo(v, bounds.startDate, bounds.endDate) })).filter(v => (v.views || 0) > 0)
+                        : mergedVideos.filter(video => (video.views || 0) > 0);
+                    if (allVideosWithViews.length === 0) {
+                        chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Videos mit Aufrufen verfügbar</div>';
+                        return;
+                    }
                 }
-                const hasViewHistory = allVideosWithViews.some(v => (v.viewHistory && Object.keys(v.viewHistory || {}).length > 0) || (v.view_history && Object.keys(v.view_history || {}).length > 0));
                 let timePoints = [];
                 let cumulativeData = [];
                 if (hasViewHistory) {
                     const allDates = new Set();
-                    allVideosWithViews.forEach(video => {
+                    mergedVideos.forEach(video => {
                         const h = video.viewHistory || video.view_history || {};
                         Object.keys(h).forEach(date => allDates.add(date));
                     });
@@ -3915,14 +3941,7 @@
                         lastDate.setDate(lastDate.getDate() + 2);
                         timePoints.push(formatLocalDateYMD(lastDate));
                     }
-                    const dailyTotals = timePoints.map(date => {
-                        return allVideosWithViews.reduce((sum, v) => {
-                            const h = v.viewHistory || v.view_history || {};
-                            return sum + (parseInt(h[date], 10) || 0);
-                        }, 0);
-                    });
-                    let cum = 0;
-                    cumulativeData = dailyTotals.map(d => cum += d);
+                    cumulativeData = timePoints.map(date => getCumulativeViewsUpToDate(mergedVideos, date));
                 } else {
                     const today = new Date();
                     let daysToShow = currentTimeRange === '7' ? 7 : currentTimeRange === '30' ? 30 : (currentTimeRange === 'custom' && customDateRange.startDate && customDateRange.endDate)
@@ -3946,7 +3965,7 @@
                         type: 'line',
                         data: cumulativeData,
                         smooth: true,
-                        lineStyle: { width: 3 },
+                        lineStyle: { width: 1.5 },
                         itemStyle: { color: getChartColor(0) },
                         emphasis: { focus: 'series' }
                     }],
@@ -4027,19 +4046,7 @@
                     const viewHistory = video.viewHistory || video.view_history;
                     
                     // Erstelle die Daten: Kumulierte Aufrufe pro Tag
-                    const data = timePoints.map((date, dayIndex) => {
-                        let cumulativeViews = 0;
-                        
-                        // Berechne kumulierte Aufrufe bis zu diesem Tag
-                        for (let i = 0; i <= dayIndex; i++) {
-                            const currentDate = timePoints[i];
-                            if (viewHistory && viewHistory[currentDate]) {
-                                cumulativeViews += viewHistory[currentDate];
-                            }
-                        }
-                        
-                        return cumulativeViews;
-                    });
+                    const data = timePoints.map((date) => getCumulativeViewsForVideoUpToDate(video, date));
                     
                     return {
                         name: video.title,
@@ -4047,7 +4054,7 @@
                         data: data,
                         smooth: true,
                         lineStyle: {
-                            width: 2
+                            width: 1
                         },
                         itemStyle: {
                             color: getChartColor(idx)
@@ -4116,7 +4123,7 @@
                         data: data,
                         smooth: true,
                         lineStyle: {
-                            width: 2
+                            width: 1
                         },
                         itemStyle: {
                             color: getChartColor(idx)
