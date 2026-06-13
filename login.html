@@ -384,6 +384,25 @@
             border: 1px solid #bee5eb;
         }
 
+        .login-notice {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 14px;
+            margin-bottom: 24px;
+            border-radius: 10px;
+            font-size: 13px;
+            line-height: 1.5;
+            background: #fff8e6;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .login-notice i {
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
         .back-link {
             text-align: center;
             margin-top: 30px;
@@ -568,6 +587,11 @@
             </div>
             <h1 class="login-title">Anmeldung</h1>
             <p class="login-subtitle">Statistiken-Dashboard</p>
+        </div>
+
+        <div class="login-notice" role="status">
+            <i class="fas fa-info-circle" aria-hidden="true"></i>
+            <p>Aufgrund tiefgreifenden strukturellen Änderungen sind die Statistiken im Moment nicht verfügbar. Wir bitten Sie um Verständnis.</p>
         </div>
 
         <form id="loginForm">
