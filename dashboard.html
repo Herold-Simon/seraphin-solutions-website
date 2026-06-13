@@ -31,6 +31,148 @@
             overflow-x: hidden;
             width: 100%;
         }
+
+        /* ===== Master: Konto-Auswahl ===== */
+        .master-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+        .master-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-light);
+            margin-bottom: 2rem;
+        }
+        .master-search {
+            position: relative;
+            max-width: 420px;
+            margin-bottom: 2rem;
+        }
+        .master-search i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+        .master-search input {
+            width: 100%;
+            padding: 0.8rem 1rem 0.8rem 2.6rem;
+            font-size: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--white);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+        .master-search input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(0, 140, 255, 0.08);
+        }
+        .master-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1.25rem;
+        }
+        .master-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-align: left;
+            width: 100%;
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 1.25rem 1.5rem;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+            font-family: inherit;
+        }
+        .master-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-blue);
+        }
+        .master-card-avatar {
+            width: 46px;
+            height: 46px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        .master-card-body { flex: 1; min-width: 0; }
+        .master-card-name {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .master-card-meta {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-top: 0.15rem;
+        }
+        .master-card-arrow {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+        .master-empty {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        /* ===== Master-Hinweisleiste ===== */
+        .master-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            background: rgba(0, 140, 255, 0.06);
+            border: 1px solid rgba(0, 140, 255, 0.2);
+            border-radius: 10px;
+            padding: 0.85rem 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+        .master-bar-icon { color: var(--primary-blue); font-size: 1.1rem; }
+        .master-bar-text { color: var(--text-dark); font-size: 0.95rem; }
+        .master-bar-btn {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--primary-blue);
+            background: var(--white);
+            color: var(--primary-blue);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-family: inherit;
+        }
+        .master-bar-btn:hover { background: rgba(0, 140, 255, 0.08); }
+
+        @media (max-width: 768px) {
+            .master-grid { grid-template-columns: 1fr; }
+            .master-bar-btn { margin-left: 0; width: 100%; justify-content: center; }
+        }
         
         .dashboard-content {
             max-width: 1200px;
@@ -1556,6 +1698,7 @@
                 </div>
                 <nav class="nav" id="nav">
                     <a href="dashboard.html" class="nav-link active">Dashboard</a>
+                    <a href="labels.html" class="nav-link">Beschriftungen</a>
                     <a href="account.html" class="nav-link">Account</a>
                     <a href="#" class="nav-link nav-logout-link" onclick="logout(); return false;">
                         <i class="fas fa-sign-out-alt"></i> Abmelden
@@ -1586,36 +1729,27 @@
             </div>
             
             <div id="errorMessage" class="error-message" style="display: none;"></div>
-            
-            <div id="dashboardContent" style="display: none;">
-            <!-- Master-Account-Auswahl (nur fuer Master-Konten sichtbar) -->
-            <div id="masterAccountBar" style="display: none; background: var(--bg-light, #f8f9fa); border: 1px solid var(--border-color, #e0e0e0); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1.25rem;">
-                <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-                    <i class="fas fa-user-shield" style="color: var(--primary-color, #4f46e5); font-size: 1.1rem;"></i>
-                    <strong style="white-space: nowrap;">Master-Modus:</strong>
-                    <select id="masterAccountSelect" style="flex: 1; min-width: 220px; padding: 0.5rem 0.75rem; border: 1px solid var(--border-color, #ccc); border-radius: 8px; font-size: 0.95rem;">
-                        <option value="">— Konto auswählen —</option>
-                    </select>
-                    <button id="masterAccountClear" class="btn" style="padding: 0.5rem 0.9rem; border-radius: 8px; border: 1px solid var(--border-color, #ccc); background: #fff; cursor: pointer;">Auswahl aufheben</button>
+
+            <!-- Master: Konto-Auswahl (nur fuer Master-Konten, wenn kein Konto gewaehlt) -->
+            <div id="masterSelectScreen" style="display: none;">
+                <h1 class="master-title">Konten</h1>
+                <p class="master-subtitle">Wählen Sie ein Konto aus, um dessen Statistiken und Beschriftungen einzusehen und zu verwalten.</p>
+                <div class="master-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="masterAccountSearch" placeholder="Konto suchen…" autocomplete="off">
                 </div>
-                <div id="masterAccountHint" style="margin-top: 0.5rem; color: var(--text-light, #666); font-size: 0.85rem;"></div>
+                <div id="masterAccountGrid" class="master-grid"></div>
+                <div id="masterAccountEmpty" class="master-empty" style="display: none;">Es wurden noch keine Konten erstellt.</div>
             </div>
 
-            <!-- Beschriftungen verwalten (Label-Editor) -->
-            <div id="labelsManager" style="margin-bottom: 1.25rem;">
-                <button id="labelsToggleBtn" class="btn" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1rem; border-radius: 8px; border: 1px solid var(--border-color, #ccc); background: #fff; cursor: pointer; font-size: 0.95rem;">
-                    <i class="fas fa-tags" style="color: var(--primary-color, #4f46e5);"></i>
-                    <span>Beschriftungen verwalten</span>
-                    <i class="fas fa-chevron-down" id="labelsToggleIcon"></i>
+            <div id="dashboardContent" style="display: none;">
+            <!-- Master-Hinweisleiste (sichtbar, wenn ein Konto verkoerpert wird) -->
+            <div id="masterAccountBar" class="master-bar" style="display: none;">
+                <i class="fas fa-user-shield master-bar-icon"></i>
+                <span class="master-bar-text">Sie betrachten das Konto <strong id="masterBarAccountName">—</strong>.</span>
+                <button id="masterAccountClear" class="master-bar-btn">
+                    <i class="fas fa-arrow-left"></i> Zur Konten-Übersicht
                 </button>
-                <div id="labelsPanel" style="display: none; margin-top: 1rem; background: #fff; border: 1px solid var(--border-color, #e0e0e0); border-radius: 10px; padding: 1.25rem;">
-                    <p style="color: var(--text-light, #666); font-size: 0.9rem; margin-top: 0;">
-                        Hier können Sie Titel und Untertitel der mit Wegbeschreibungen verknüpften Beschriftungen je Sprache anpassen. Änderungen werden auf allen verbundenen Geräten übernommen.
-                    </p>
-                    <div id="labelsLoading" style="text-align: center; padding: 1rem; color: var(--text-light, #666);">Lade Beschriftungen…</div>
-                    <div id="labelsEmpty" style="display: none; text-align: center; padding: 1rem; color: var(--text-light, #666);">Keine verknüpften Beschriftungen gefunden.</div>
-                    <div id="labelsList"></div>
-                </div>
             </div>
 
             <!-- Modern Device Selector -->
@@ -2561,9 +2695,19 @@
             });
         }
         
-        // Dashboard laden (verify-session übersprungen – statistics/get prüft Session und spart 1 API-Request)
+        // Dashboard laden
         async function loadDashboard() {
             try {
+                // Session pruefen: Master ohne gewaehltes Konto -> Konten-Uebersicht statt Statistiken
+                const sessionData = await fetchSession();
+                dashboardSessionInfo = sessionData;
+                if (sessionData && sessionData.user && sessionData.user.is_master
+                    && !(sessionData.acting_account && sessionData.acting_account.id)) {
+                    hideLoading();
+                    await showMasterSelectScreen();
+                    return;
+                }
+
                 const response = await fetch(`/api/statistics/get?include_history=true`, {
                     method: 'GET',
                     credentials: 'include'
@@ -2587,8 +2731,8 @@
                     
                     displayStatistics();
 
-                    // Master-Account-Auswahl + Label-Editor initialisieren
-                    try { await initMasterAndLabels(); } catch (e) { console.error('initMasterAndLabels:', e); }
+                    // Master-Hinweisleiste, wenn ein Konto verkoerpert wird
+                    try { setupMasterBar(dashboardSessionInfo); } catch (e) { console.error('setupMasterBar:', e); }
                     
                     try {
                     await loadDevices();
@@ -2683,8 +2827,9 @@
             }
         }
         
-        // ===== Master-Account-Auswahl + Label-Editor =====
+        // ===== Master-Account-Auswahl =====
         let dashboardSessionInfo = null;
+        let masterAccountsCache = [];
 
         function lblEscapeHtml(str) {
             return String(str == null ? '' : str)
@@ -2692,55 +2837,102 @@
                 .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
-        async function initMasterAndLabels() {
+        // Liefert Session-Daten oder null
+        async function fetchSession() {
             try {
                 const res = await fetch('/api/auth/session', { method: 'GET', credentials: 'include' });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.success) {
-                        dashboardSessionInfo = data;
-                        if (data.user && data.user.is_master) {
-                            await setupMasterBar(data);
-                        }
-                    }
-                }
+                if (!res.ok) return null;
+                const data = await res.json();
+                return data && data.success ? data : null;
             } catch (e) {
                 console.error('Session-Info Fehler:', e);
+                return null;
             }
-            setupLabelsToggle();
         }
 
-        async function setupMasterBar(sessionData) {
-            const bar = document.getElementById('masterAccountBar');
-            const select = document.getElementById('masterAccountSelect');
-            const hint = document.getElementById('masterAccountHint');
-            const clearBtn = document.getElementById('masterAccountClear');
-            if (!bar || !select) return;
-            bar.style.display = 'block';
+        // Master-Konten-Uebersicht anzeigen (kein Konto gewaehlt)
+        async function showMasterSelectScreen() {
+            const screen = document.getElementById('masterSelectScreen');
+            const content = document.getElementById('dashboardContent');
+            const grid = document.getElementById('masterAccountGrid');
+            const empty = document.getElementById('masterAccountEmpty');
+            const search = document.getElementById('masterAccountSearch');
+            if (!screen || !grid) return;
+            if (content) content.style.display = 'none';
+            screen.style.display = 'block';
+            grid.innerHTML = '<div class="master-empty">Lade Konten…</div>';
+
             try {
                 const res = await fetch('/api/accounts/list', { method: 'GET', credentials: 'include' });
                 const data = await res.json();
-                if (data.success && Array.isArray(data.accounts)) {
-                    select.innerHTML = '<option value="">— Konto auswählen —</option>';
-                    data.accounts.forEach(acc => {
-                        const opt = document.createElement('option');
-                        opt.value = acc.id;
-                        opt.textContent = acc.username + (acc.device_count ? ` (${acc.device_count} Gerät(e))` : '');
-                        select.appendChild(opt);
-                    });
-                    const acting = sessionData.acting_account;
-                    if (acting && acting.id) {
-                        select.value = acting.id;
-                        hint.textContent = `Sie betrachten gerade das Konto „${acting.username}".`;
-                    } else {
-                        hint.textContent = 'Wählen Sie ein Konto, um dessen Statistiken und Beschriftungen zu sehen.';
-                    }
-                }
+                masterAccountsCache = (data.success && Array.isArray(data.accounts)) ? data.accounts : [];
             } catch (e) {
                 console.error('Accounts-Liste Fehler:', e);
+                masterAccountsCache = [];
             }
-            select.onchange = async () => { await selectMasterAccount(select.value || null); };
-            if (clearBtn) clearBtn.onclick = async () => { await selectMasterAccount(null); };
+
+            renderMasterAccounts('');
+            if (search) {
+                search.oninput = () => renderMasterAccounts(search.value);
+                search.focus();
+            }
+            if (empty) empty.style.display = masterAccountsCache.length === 0 ? 'block' : 'none';
+        }
+
+        function renderMasterAccounts(filter) {
+            const grid = document.getElementById('masterAccountGrid');
+            const empty = document.getElementById('masterAccountEmpty');
+            if (!grid) return;
+            const q = (filter || '').trim().toLowerCase();
+            const list = masterAccountsCache.filter(acc =>
+                !q || (acc.username || '').toLowerCase().includes(q));
+            grid.innerHTML = '';
+
+            if (masterAccountsCache.length === 0) {
+                if (empty) { empty.textContent = 'Es wurden noch keine Konten erstellt.'; empty.style.display = 'block'; }
+                return;
+            }
+            if (list.length === 0) {
+                if (empty) { empty.textContent = 'Keine Konten gefunden.'; empty.style.display = 'block'; }
+                return;
+            }
+            if (empty) empty.style.display = 'none';
+
+            list.forEach(acc => {
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = 'master-card';
+                const initial = (acc.username || '?').charAt(0).toUpperCase();
+                const devText = acc.device_count
+                    ? `${acc.device_count} Gerät${acc.device_count === 1 ? '' : 'e'}`
+                    : 'Keine Geräte';
+                card.innerHTML = `
+                    <span class="master-card-avatar">${lblEscapeHtml(initial)}</span>
+                    <span class="master-card-body">
+                        <span class="master-card-name">${lblEscapeHtml(acc.username)}</span>
+                        <span class="master-card-meta">${lblEscapeHtml(devText)}</span>
+                    </span>
+                    <i class="fas fa-chevron-right master-card-arrow"></i>`;
+                card.onclick = () => selectMasterAccount(acc.id);
+                grid.appendChild(card);
+            });
+        }
+
+        // Hinweisleiste, wenn ein Konto verkoerpert wird
+        function setupMasterBar(sessionData) {
+            const bar = document.getElementById('masterAccountBar');
+            const nameEl = document.getElementById('masterBarAccountName');
+            const clearBtn = document.getElementById('masterAccountClear');
+            if (!bar) return;
+            const isMaster = sessionData && sessionData.user && sessionData.user.is_master;
+            const acting = sessionData && sessionData.acting_account;
+            if (isMaster && acting && acting.id) {
+                bar.style.display = 'flex';
+                if (nameEl) nameEl.textContent = acting.username || '—';
+                if (clearBtn) clearBtn.onclick = async () => { await selectMasterAccount(null); };
+            } else {
+                bar.style.display = 'none';
+            }
         }
 
         async function selectMasterAccount(accountId) {
@@ -2756,91 +2948,6 @@
             } catch (e) {
                 console.error('Konto-Auswahl Fehler:', e);
             }
-        }
-
-        function setupLabelsToggle() {
-            const btn = document.getElementById('labelsToggleBtn');
-            const panel = document.getElementById('labelsPanel');
-            const icon = document.getElementById('labelsToggleIcon');
-            if (!btn || !panel) return;
-            let loaded = false;
-            btn.onclick = async () => {
-                const open = panel.style.display !== 'none';
-                panel.style.display = open ? 'none' : 'block';
-                if (icon) icon.className = open ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
-                if (!open && !loaded) { loaded = true; await loadLabels(); }
-            };
-        }
-
-        async function loadLabels() {
-            const loading = document.getElementById('labelsLoading');
-            const empty = document.getElementById('labelsEmpty');
-            const list = document.getElementById('labelsList');
-            if (!list) return;
-            loading.style.display = 'block';
-            empty.style.display = 'none';
-            list.innerHTML = '';
-            try {
-                const res = await fetch('/api/labels/list', { method: 'GET', credentials: 'include' });
-                const data = await res.json();
-                loading.style.display = 'none';
-                if (!data.success || !Array.isArray(data.labels) || data.labels.length === 0) {
-                    empty.style.display = 'block';
-                    return;
-                }
-                data.labels.forEach(label => list.appendChild(renderLabelCard(label)));
-            } catch (e) {
-                loading.style.display = 'none';
-                empty.style.display = 'block';
-                console.error('Labels laden Fehler:', e);
-            }
-        }
-
-        function renderLabelCard(label) {
-            const card = document.createElement('div');
-            card.style.cssText = 'border:1px solid var(--border-color,#e0e0e0);border-radius:8px;padding:1rem;margin-bottom:1rem;';
-            const langs = Object.keys(label.languages || {});
-            const firstLang = langs[0];
-            const headerTitle = (firstLang && label.languages[firstLang] && label.languages[firstLang].title) || label.label_id;
-            let html = `<div style="font-weight:600;margin-bottom:0.75rem;">${lblEscapeHtml(headerTitle)} <span style="font-weight:400;color:var(--text-light,#888);font-size:0.85rem;">(ID: ${lblEscapeHtml(label.label_id)})</span></div>`;
-            langs.forEach(lang => {
-                const l = label.languages[lang] || {};
-                html += `
-                <div style="display:grid;grid-template-columns:60px 1fr 1fr;gap:0.5rem;align-items:center;margin-bottom:0.5rem;">
-                    <span style="font-weight:600;text-transform:uppercase;color:var(--text-light,#666);font-size:0.85rem;">${lblEscapeHtml(lang)}</span>
-                    <input type="text" data-lang="${lblEscapeHtml(lang)}" data-field="title" value="${lblEscapeHtml(l.title || '')}" placeholder="Titel" style="padding:0.45rem 0.6rem;border:1px solid var(--border-color,#ccc);border-radius:6px;font-size:0.9rem;">
-                    <input type="text" data-lang="${lblEscapeHtml(lang)}" data-field="subtitle" value="${lblEscapeHtml(l.subtitle || '')}" placeholder="Untertitel" style="padding:0.45rem 0.6rem;border:1px solid var(--border-color,#ccc);border-radius:6px;font-size:0.9rem;">
-                </div>`;
-            });
-            html += `<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.5rem;">
-                <button class="label-save-btn" style="padding:0.45rem 1rem;border-radius:6px;border:none;background:var(--primary-color,#4f46e5);color:#fff;cursor:pointer;">Speichern</button>
-                <span class="label-save-status" style="font-size:0.85rem;color:var(--text-light,#666);"></span>
-            </div>`;
-            card.innerHTML = html;
-            const saveBtn = card.querySelector('.label-save-btn');
-            const status = card.querySelector('.label-save-status');
-            saveBtn.onclick = async () => {
-                const per_language = {};
-                card.querySelectorAll('input[data-lang]').forEach(inp => {
-                    const lang = inp.getAttribute('data-lang');
-                    const field = inp.getAttribute('data-field');
-                    if (!per_language[lang]) per_language[lang] = { title: '', subtitle: '' };
-                    per_language[lang][field] = inp.value;
-                });
-                status.textContent = 'Speichern…';
-                try {
-                    const res = await fetch('/api/labels/update', {
-                        method: 'POST', credentials: 'include',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ floor_id: label.floor_id, label_id: label.label_id, per_language })
-                    });
-                    const data = await res.json();
-                    status.textContent = (res.ok && data.success) ? '✅ Gespeichert' : ('⚠️ ' + (data.error || 'Fehler'));
-                } catch (e) {
-                    status.textContent = '⚠️ Verbindungsfehler';
-                }
-            };
-            return card;
         }
 
         // NEUE EINFACHE GERÄTE-LADUNG (mit 5-Min-Cache)

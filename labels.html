@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Beschriftungen - Gebäudenavi | Seraphin Solutions</title>
+
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="description" content="Verwalten Sie die Beschriftungen Ihres Gebäudenavi">
+    <meta name="robots" content="noindex, nofollow">
+
+    <link rel="stylesheet" href="styles-app.css?v=1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        .labels-page {
+            min-height: 100vh;
+            background: var(--light-gray);
+            padding-top: 80px;
+            padding-bottom: 4rem;
+        }
+        .labels-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+        .labels-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+        .labels-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-light);
+            margin-bottom: 2rem;
+        }
+
+        /* Master-Hinweisleiste */
+        .labels-master-bar {
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            background: rgba(0, 140, 255, 0.06);
+            border: 1px solid rgba(0, 140, 255, 0.2);
+            border-radius: 10px;
+            padding: 0.85rem 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .labels-master-bar i { color: var(--primary-blue); font-size: 1.1rem; }
+        .labels-master-bar span { color: var(--text-dark); font-size: 0.95rem; }
+        .labels-master-bar a {
+            margin-left: auto;
+            color: var(--primary-blue);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+        }
+        .labels-master-bar a:hover { text-decoration: underline; }
+
+        /* Suchbar */
+        .labels-search {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        .labels-search i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+        .labels-search input {
+            width: 100%;
+            padding: 0.8rem 1rem 0.8rem 2.6rem;
+            font-size: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--white);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+        .labels-search input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(0, 140, 255, 0.08);
+        }
+
+        .labels-alert {
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .labels-alert-error {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        .labels-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .labels-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .label-card {
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+        }
+        .label-card-head {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+        .label-card-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        .label-badge {
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 0.2rem 0.55rem;
+            border-radius: 999px;
+        }
+        .label-badge-id {
+            background: var(--light-gray);
+            color: var(--text-light);
+        }
+        .label-badge-override {
+            background: rgba(0, 140, 255, 0.1);
+            color: var(--primary-blue);
+        }
+
+        .label-lang-row {
+            display: grid;
+            grid-template-columns: 64px 1fr 1fr;
+            gap: 0.75rem;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        .label-lang-tag {
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-light);
+            font-size: 0.85rem;
+        }
+        .label-card input {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            font-size: 0.95rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--white);
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .label-card input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(0, 140, 255, 0.08);
+        }
+        .label-field-head {
+            display: grid;
+            grid-template-columns: 64px 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 0.4rem;
+        }
+        .label-field-head span {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-light);
+        }
+
+        .label-card-foot {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1.25rem;
+        }
+        .label-save-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.65rem 1.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #fff;
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .label-save-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 140, 255, 0.25);
+        }
+        .label-save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .label-save-status { font-size: 0.9rem; color: var(--text-light); }
+        .label-save-status.ok { color: #16a34a; }
+        .label-save-status.err { color: #b91c1c; }
+
+        .label-spinner {
+            width: 16px; height: 16px;
+            border: 2px solid currentColor;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: label-spin 0.8s linear infinite;
+        }
+        @keyframes label-spin { to { transform: rotate(360deg); } }
+
+        @media (min-width: 1024px) {
+            .labels-page { padding-top: 6rem; padding-bottom: 5rem; }
+            .labels-inner { padding: 0 2rem; }
+            .labels-title { font-size: 2.25rem; }
+            .labels-subtitle { font-size: 1.05rem; margin-bottom: 2.5rem; }
+        }
+
+        @media (max-width: 768px) {
+            .labels-page { padding-top: 70px; }
+            .labels-inner { padding: 0 1rem; }
+            .labels-title { font-size: 1.5rem; }
+            .label-lang-row, .label-field-head {
+                grid-template-columns: 1fr;
+                gap: 0.4rem;
+            }
+            .label-field-head { display: none; }
+            .label-lang-tag { margin-top: 0.25rem; }
+            .labels-master-bar a { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <a href="index.html" class="logo">
+                        <img src="logo.png" alt="Seraphin Solutions Logo">
+                    </a>
+                    <span class="company-name">Seraphin Solutions</span>
+                </div>
+                <nav class="nav" id="nav">
+                    <a href="dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="labels.html" class="nav-link active">Beschriftungen</a>
+                    <a href="account.html" class="nav-link">Account</a>
+                    <a href="#" class="nav-link nav-logout-link" onclick="logout(); return false;">
+                        <i class="fas fa-sign-out-alt"></i> Abmelden
+                    </a>
+                </nav>
+                <button class="hamburger" id="hamburger" aria-label="Menü öffnen">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="labels-page">
+        <div class="labels-inner">
+            <h1 class="labels-title">Beschriftungen</h1>
+            <p class="labels-subtitle">
+                Passen Sie Titel und Untertitel der mit Wegbeschreibungen verknüpften Beschriftungen je Sprache an.
+                Änderungen werden automatisch auf allen mit dem Konto verbundenen Geräten übernommen.
+            </p>
+
+            <div id="errorAlert" class="labels-alert labels-alert-error"></div>
+
+            <div id="masterBar" class="labels-master-bar">
+                <i class="fas fa-user-shield"></i>
+                <span>Sie bearbeiten die Beschriftungen des Kontos <strong id="masterBarName">—</strong>.</span>
+                <a href="dashboard.html">Konto wechseln</a>
+            </div>
+
+            <div class="labels-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="labelSearch" placeholder="Beschriftung suchen (Titel, Untertitel oder ID)…" autocomplete="off">
+            </div>
+
+            <div id="labelsLoading" class="labels-state">Lade Beschriftungen…</div>
+            <div id="labelsEmpty" class="labels-state" style="display: none;">Keine verknüpften Beschriftungen gefunden.</div>
+            <div id="labelsList" class="labels-list"></div>
+        </div>
+    </main>
+
+    <footer class="footer" role="contentinfo">
+        <div class="footer-inner">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <a class="footer-logo-link" href="index.html" aria-label="Seraphin Solutions – Startseite">
+                        <img src="logo.png" alt="" class="footer-logo-img" width="120" height="40">
+                        <span class="footer-logo-text">Seraphin Solutions</span>
+                    </a>
+                    <p class="footer-tagline">Interaktive Wegleitsysteme für große Gebäude.</p>
+                    <div class="footer-actions">
+                        <a href="tel:+4917622911006" class="footer-contact-link">+49 176 2291 1006</a>
+                        <a href="mailto:kontakt@seraphin-solutions.de" class="footer-contact-link">kontakt@seraphin-solutions.de</a>
+                    </div>
+                </div>
+                <nav class="footer-nav" aria-label="Footer-Navigation">
+                    <div class="footer-nav-block">
+                        <span class="footer-nav-title">Produkt</span>
+                        <ul class="footer-nav-list">
+                            <li><a href="programm.html">Das Programm</a></li>
+                            <li><a href="weitere-informationen.html">Weitere Informationen</a></li>
+                            <li><a href="support.html">Support</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-nav-block">
+                        <span class="footer-nav-title">Unternehmen</span>
+                        <ul class="footer-nav-list">
+                            <li><a href="index.html#pricing">Preise</a></li>
+                            <li><a href="preispolitik.html">Preispolitik</a></li>
+                            <li><a href="index.html#kontakt">Kontakt</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-nav-block">
+                        <span class="footer-nav-title">Rechtliches</span>
+                        <ul class="footer-nav-list">
+                            <li><a href="impressum.html">Impressum</a></li>
+                            <li><a href="datenschutz.html">Datenschutz</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-nav-block">
+                        <span class="footer-nav-title">Zugang</span>
+                        <ul class="footer-nav-list">
+                            <li><a href="login.html">Statistiken Login</a></li>
+                            <li><a href="passwortverlust.html">Passwort vergessen</a></li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            <div class="footer-bottom">
+                <p class="footer-copy">&copy; 2025 Seraphin Solutions. Alle Rechte vorbehalten.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let allLabels = [];
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            await checkSession();
+            await loadLabels();
+            const search = document.getElementById('labelSearch');
+            if (search) search.addEventListener('input', () => renderLabels(search.value));
+        });
+
+        function escapeHtml(str) {
+            return String(str == null ? '' : str)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        async function checkSession() {
+            try {
+                const res = await fetch('/api/auth/session', { method: 'GET', credentials: 'include' });
+                if (res.status === 401) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                const data = await res.json();
+                if (!data || !data.success) return;
+                if (data.user && data.user.is_master) {
+                    const acting = data.acting_account;
+                    if (acting && acting.id) {
+                        const bar = document.getElementById('masterBar');
+                        const name = document.getElementById('masterBarName');
+                        if (name) name.textContent = acting.username || '—';
+                        if (bar) bar.style.display = 'flex';
+                    } else {
+                        showError('Bitte wählen Sie zuerst im Dashboard ein Konto aus, um dessen Beschriftungen zu bearbeiten.');
+                    }
+                }
+            } catch (e) {
+                console.error('Session-Check Fehler:', e);
+            }
+        }
+
+        async function loadLabels() {
+            const loading = document.getElementById('labelsLoading');
+            const empty = document.getElementById('labelsEmpty');
+            const list = document.getElementById('labelsList');
+            loading.style.display = 'block';
+            empty.style.display = 'none';
+            list.innerHTML = '';
+            try {
+                const res = await fetch('/api/labels/list', { method: 'GET', credentials: 'include' });
+                if (res.status === 401) { window.location.href = 'login.html'; return; }
+                const data = await res.json();
+                loading.style.display = 'none';
+                allLabels = (data.success && Array.isArray(data.labels)) ? data.labels : [];
+                renderLabels('');
+            } catch (e) {
+                loading.style.display = 'none';
+                console.error('Labels laden Fehler:', e);
+                showError('Beschriftungen konnten nicht geladen werden.');
+            }
+        }
+
+        function labelMatchesQuery(label, q) {
+            if (!q) return true;
+            if (String(label.label_id).toLowerCase().includes(q)) return true;
+            const langs = label.languages || {};
+            return Object.keys(langs).some(lang => {
+                const l = langs[lang] || {};
+                return (l.title || '').toLowerCase().includes(q)
+                    || (l.subtitle || '').toLowerCase().includes(q);
+            });
+        }
+
+        function renderLabels(filter) {
+            const empty = document.getElementById('labelsEmpty');
+            const list = document.getElementById('labelsList');
+            const q = (filter || '').trim().toLowerCase();
+            list.innerHTML = '';
+
+            if (allLabels.length === 0) {
+                empty.textContent = 'Keine verknüpften Beschriftungen gefunden.';
+                empty.style.display = 'block';
+                return;
+            }
+            const filtered = allLabels.filter(l => labelMatchesQuery(l, q));
+            if (filtered.length === 0) {
+                empty.textContent = 'Keine Beschriftung passt zu Ihrer Suche.';
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+            filtered.forEach(label => list.appendChild(renderLabelCard(label)));
+        }
+
+        function renderLabelCard(label) {
+            const card = document.createElement('div');
+            card.className = 'label-card';
+            const langs = Object.keys(label.languages || {});
+            const firstLang = langs[0];
+            const headerTitle = (firstLang && label.languages[firstLang] && label.languages[firstLang].title) || ('Beschriftung ' + label.label_id);
+
+            let html = `<div class="label-card-head">
+                <span class="label-card-name">${escapeHtml(headerTitle)}</span>
+                <span class="label-badge label-badge-id">ID: ${escapeHtml(label.label_id)}</span>
+                ${label.has_override ? '<span class="label-badge label-badge-override">Angepasst</span>' : ''}
+            </div>`;
+
+            html += `<div class="label-field-head"><span></span><span>Titel</span><span>Untertitel</span></div>`;
+
+            langs.forEach(lang => {
+                const l = label.languages[lang] || {};
+                html += `
+                <div class="label-lang-row">
+                    <span class="label-lang-tag">${escapeHtml(lang)}</span>
+                    <input type="text" data-lang="${escapeHtml(lang)}" data-field="title" value="${escapeHtml(l.title || '')}" placeholder="Titel">
+                    <input type="text" data-lang="${escapeHtml(lang)}" data-field="subtitle" value="${escapeHtml(l.subtitle || '')}" placeholder="Untertitel">
+                </div>`;
+            });
+
+            html += `<div class="label-card-foot">
+                <button class="label-save-btn" type="button">Speichern</button>
+                <span class="label-save-status"></span>
+            </div>`;
+            card.innerHTML = html;
+
+            const saveBtn = card.querySelector('.label-save-btn');
+            const status = card.querySelector('.label-save-status');
+            saveBtn.onclick = async () => {
+                const per_language = {};
+                card.querySelectorAll('input[data-lang]').forEach(inp => {
+                    const lang = inp.getAttribute('data-lang');
+                    const field = inp.getAttribute('data-field');
+                    if (!per_language[lang]) per_language[lang] = { title: '', subtitle: '' };
+                    per_language[lang][field] = inp.value;
+                });
+                status.className = 'label-save-status';
+                status.textContent = '';
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<span class="label-spinner"></span> Speichern…';
+                try {
+                    const res = await fetch('/api/labels/update', {
+                        method: 'POST', credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ floor_id: label.floor_id, label_id: label.label_id, per_language })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.success) {
+                        status.className = 'label-save-status ok';
+                        status.innerHTML = '<i class="fas fa-check"></i> Gespeichert';
+                        label.languages = mergeLangs(label.languages, per_language);
+                        label.has_override = true;
+                        const badgeHead = card.querySelector('.label-card-head');
+                        if (badgeHead && !badgeHead.querySelector('.label-badge-override')) {
+                            const b = document.createElement('span');
+                            b.className = 'label-badge label-badge-override';
+                            b.textContent = 'Angepasst';
+                            badgeHead.appendChild(b);
+                        }
+                    } else {
+                        status.className = 'label-save-status err';
+                        status.textContent = data.error || 'Fehler beim Speichern';
+                    }
+                } catch (e) {
+                    status.className = 'label-save-status err';
+                    status.textContent = 'Verbindungsfehler';
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = 'Speichern';
+                }
+            };
+            return card;
+        }
+
+        function mergeLangs(base, updates) {
+            const out = Object.assign({}, base);
+            Object.keys(updates || {}).forEach(lang => {
+                out[lang] = Object.assign({}, out[lang], updates[lang]);
+            });
+            return out;
+        }
+
+        function showError(message) {
+            const el = document.getElementById('errorAlert');
+            if (!el) return;
+            el.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${escapeHtml(message)}`;
+            el.style.display = 'flex';
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+            } catch (_) {}
+            window.location.href = 'login.html';
+        }
+    </script>
+    <script src="script.js?v=2"></script>
+</body>
+</html>
