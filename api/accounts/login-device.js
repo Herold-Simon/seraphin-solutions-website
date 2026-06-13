@@ -1,6 +1,6 @@
-// api/accounts/create.js - Neuen Account aus der Desktop-App anlegen
+// api/accounts/login-device.js - Aktuelles Geraet in ein bestehendes Konto einloggen (Multi-Geraet)
 const {
-  supabase, hasSupabaseConfig, setCors, send, readBody, hashPassword
+  supabase, hasSupabaseConfig, setCors, send, readBody, verifyPassword
 } = require('../_lib/db');
 
 module.exports = async function handler(req, res) {
@@ -19,33 +19,23 @@ module.exports = async function handler(req, res) {
       return send(res, 400, { success: false, error: 'Benutzername und Passwort sind erforderlich' });
     }
 
-    const cleanUsername = String(username).trim();
-
-    const { data: existing } = await supabase
+    const { data: account } = await supabase
       .from('accounts')
-      .select('id')
-      .eq('username', cleanUsername)
+      .select('id, username, password_hash, is_master')
+      .eq('username', String(username).trim())
       .maybeSingle();
 
-    if (existing) {
-      return send(res, 409, { success: false, error: 'Benutzername bereits vergeben' });
+    if (!account || account.is_master) {
+      return send(res, 401, { success: false, error: 'Dieses Konto existiert nicht. Der Anmeldename oder das Passwort ist falsch.' });
     }
 
-    const passwordHash = await hashPassword(password);
-
-    const { data: account, error: accountError } = await supabase
-      .from('accounts')
-      .insert({ username: cleanUsername, password_hash: passwordHash, is_master: false })
-      .select('id, username')
-      .single();
-
-    if (accountError) {
-      console.error('Account creation error:', accountError.message);
-      return send(res, 500, { success: false, error: 'Fehler beim Erstellen des Accounts' });
+    const valid = await verifyPassword(password, account.password_hash);
+    if (!valid) {
+      return send(res, 401, { success: false, error: 'Das Passwort ist falsch. Bitte überprüfen Sie Ihre Eingaben.' });
     }
 
     if (device_id) {
-      await supabase
+      const { error: deviceError } = await supabase
         .from('devices')
         .upsert({
           account_id: account.id,
@@ -53,16 +43,20 @@ module.exports = async function handler(req, res) {
           device_name: device_name || `Gerät ${String(device_id).substring(0, 8)}`,
           last_active: new Date().toISOString()
         }, { onConflict: 'account_id,device_id' });
+      if (deviceError) {
+        console.error('Device registration error:', deviceError.message);
+        return send(res, 500, { success: false, error: 'Fehler beim Registrieren des Geräts' });
+      }
     }
 
-    return send(res, 201, {
+    return send(res, 200, {
       success: true,
-      message: 'Account erfolgreich erstellt',
+      message: 'Gerät erfolgreich mit dem Konto verbunden',
       account_id: account.id,
       username: account.username
     });
   } catch (error) {
-    console.error('Account creation error:', error.message);
+    console.error('Device login error:', error.message);
     return send(res, 500, { success: false, error: 'Interner Serverfehler' });
   }
 };

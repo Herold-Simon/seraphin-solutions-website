@@ -76,15 +76,6 @@
   ],
   "headers": [
     {
-      "source": "/api/statistics/get",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "private, max-age=120, stale-while-revalidate=300"
-        }
-      ]
-    },
-    {
       "source": "/(.*)",
       "headers": [
         {
@@ -94,16 +85,7 @@
       ]
     },
     {
-      "source": "/api/auth/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/api/statistics/sync",
+      "source": "/api/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

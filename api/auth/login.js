@@ -1,141 +1,55 @@
-const { createClient } = require('@supabase/supabase-js');
-const cookie = require('cookie');
+// api/auth/login.js - Website-Login (Account + Master) per Session-Cookie
+const {
+  supabase, hasSupabaseConfig, setCors, send, readBody,
+  verifyPassword, createSession, buildSessionCookie
+} = require('../_lib/db');
 
-// CORS-Header setzen
-function setCorsHeaders(res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Max-Age', '86400');
-}
+module.exports = async function handler(req, res) {
+  setCors(res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return send(res, 405, { success: false, error: 'Method not allowed' });
 
-module.exports = async (req, res) => {
-  // CORS-Header setzen
-  setCorsHeaders(res);
-
-  // OPTIONS-Request für CORS-Preflight behandeln
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-
-  // Nur POST-Requests erlauben
-  if (req.method !== 'POST') {
-    res.status(405).json({
-      success: false,
-      error: 'Method not allowed. Use POST.'
-    });
-    return;
+  if (!hasSupabaseConfig()) {
+    return send(res, 500, { success: false, error: 'Server-Konfiguration fehlt' });
   }
 
   try {
-    const { username, password } = req.body;
+    const { username, password, rememberMe } = readBody(req);
 
     if (!username || !password) {
-      res.status(400).json({
-        success: false,
-        error: 'Benutzername und Passwort sind erforderlich'
-      });
-      return;
+      return send(res, 400, { success: false, error: 'Benutzername und Passwort sind erforderlich' });
     }
 
-    // Supabase-Umgebungsvariablen prüfen
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const { data: account } = await supabase
+      .from('accounts')
+      .select('id, username, password_hash, is_master')
+      .eq('username', String(username).trim())
+      .maybeSingle();
 
-    if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('❌ Supabase-Umgebungsvariablen fehlen');
-      res.status(500).json({
-        success: false,
-        error: 'Server-Konfiguration fehlt'
-      });
-      return;
+    if (!account) {
+      return send(res, 401, { success: false, error: 'Dieses Konto existiert nicht. Der Anmeldename oder das Passwort ist falsch.' });
     }
 
-    // Supabase-Client erstellen
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Website-User aus der Datenbank abrufen
-    const { data: websiteUser, error: userError } = await supabase
-      .from('website_users')
-      .select('*')
-      .eq('username', username)
-      .single();
-
-    if (userError) {
-      console.error('❌ Fehler beim Abrufen des Users:', userError);
-      res.status(500).json({
-        success: false,
-        error: 'Benutzername oder Passwort sind falsch'
-      });
-      return;
+    const valid = await verifyPassword(password, account.password_hash);
+    if (!valid) {
+      return send(res, 401, { success: false, error: 'Das Passwort ist falsch. Bitte überprüfen Sie Ihre Eingaben.' });
     }
 
-    if (!websiteUser) {
-      res.status(401).json({
-        success: false,
-        error: 'Ungültige Anmeldedaten'
-      });
-      return;
-    }
+    const token = await createSession(account.id);
+    const maxAge = rememberMe ? 30 * 24 * 60 * 60 : 7 * 24 * 60 * 60;
+    res.setHeader('Set-Cookie', buildSessionCookie(token, maxAge));
 
-    // Passwort überprüfen (Klartext-Vergleich)
-    if (password !== websiteUser.password_hash) {
-      res.status(401).json({
-        success: false,
-        error: 'Ungültige Anmeldedaten'
-      });
-      return;
-    }
-
-    // Session-Token generieren
-    const sessionToken = require('crypto').randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 Stunden
-
-    // Session in der Datenbank speichern
-    const { error: sessionError } = await supabase
-      .from('website_sessions')
-      .insert({
-        user_id: websiteUser.id,
-        session_token: sessionToken,
-        expires_at: expiresAt.toISOString()
-      });
-
-    if (sessionError) {
-      console.error('❌ Fehler beim Speichern der Session:', sessionError);
-      res.status(500).json({
-        success: false,
-        error: 'Fehler beim Erstellen der Session'
-      });
-      return;
-    }
-
-    // Session-Cookie setzen
-    const sessionCookie = cookie.serialize('session_token', sessionToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Lax',
-      maxAge: 60 * 60 * 24 * 7, // 1 Woche
-      path: '/'
-    });
-
-    res.setHeader('Set-Cookie', sessionCookie);
-    console.log('🍪 Session-Cookie gesetzt:', sessionToken);
-
-    res.status(200).json({
+    return send(res, 200, {
       success: true,
       message: 'Login erfolgreich',
       user: {
-        username: websiteUser.username,
-        admin_user_id: websiteUser.admin_user_id
+        id: account.id,
+        username: account.username,
+        is_master: Boolean(account.is_master)
       }
     });
-
   } catch (error) {
-    console.error('❌ Unerwarteter Fehler im Login:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Interner Serverfehler'
-    });
+    console.error('Login error:', error.message);
+    return send(res, 500, { success: false, error: 'Interner Serverfehler' });
   }
 };

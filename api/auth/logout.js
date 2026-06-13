@@ -1,39 +1,22 @@
-// api/auth/logout.js - Website Logout API
-import cookie from 'cookie';
+// api/auth/logout.js - Session beenden und Cookie loeschen
+const { supabase, setCors, send, getCookies, clearSessionCookie, SESSION_COOKIE } = require('../_lib/db');
 
-// CORS-Header setzen
-function setCorsHeaders(res) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-}
+module.exports = async function handler(req, res) {
+  setCors(res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return send(res, 405, { success: false, error: 'Method not allowed' });
 
-export default async function handler(req, res) {
-    // CORS-Header für alle Anfragen setzen
-    setCorsHeaders(res);
-    
-    // OPTIONS-Anfrage für Preflight behandeln
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
+  try {
+    const cookies = getCookies(req);
+    const token = cookies[SESSION_COOKIE];
+    if (token) {
+      await supabase.from('sessions').delete().eq('session_token', token);
     }
-    
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
-
-    try {
-        // Lösche Cookie
-        res.setHeader('Set-Cookie', cookie.serialize('session_token', '', {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            expires: new Date(0), // Expire immediately
-            path: '/',
-        }));
-
-        return res.status(200).json({ success: true, message: 'Logout erfolgreich' });
-
-    } catch (error) {
-        console.error('Logout error:', error);
-        return res.status(500).json({ error: 'Interner Serverfehler' });
-    }
-}
+    res.setHeader('Set-Cookie', clearSessionCookie());
+    return send(res, 200, { success: true, message: 'Erfolgreich abgemeldet' });
+  } catch (error) {
+    console.error('Logout error:', error.message);
+    res.setHeader('Set-Cookie', clearSessionCookie());
+    return send(res, 200, { success: true, message: 'Abgemeldet' });
+  }
+};

@@ -1588,6 +1588,36 @@
             <div id="errorMessage" class="error-message" style="display: none;"></div>
             
             <div id="dashboardContent" style="display: none;">
+            <!-- Master-Account-Auswahl (nur fuer Master-Konten sichtbar) -->
+            <div id="masterAccountBar" style="display: none; background: var(--bg-light, #f8f9fa); border: 1px solid var(--border-color, #e0e0e0); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                    <i class="fas fa-user-shield" style="color: var(--primary-color, #4f46e5); font-size: 1.1rem;"></i>
+                    <strong style="white-space: nowrap;">Master-Modus:</strong>
+                    <select id="masterAccountSelect" style="flex: 1; min-width: 220px; padding: 0.5rem 0.75rem; border: 1px solid var(--border-color, #ccc); border-radius: 8px; font-size: 0.95rem;">
+                        <option value="">— Konto auswählen —</option>
+                    </select>
+                    <button id="masterAccountClear" class="btn" style="padding: 0.5rem 0.9rem; border-radius: 8px; border: 1px solid var(--border-color, #ccc); background: #fff; cursor: pointer;">Auswahl aufheben</button>
+                </div>
+                <div id="masterAccountHint" style="margin-top: 0.5rem; color: var(--text-light, #666); font-size: 0.85rem;"></div>
+            </div>
+
+            <!-- Beschriftungen verwalten (Label-Editor) -->
+            <div id="labelsManager" style="margin-bottom: 1.25rem;">
+                <button id="labelsToggleBtn" class="btn" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1rem; border-radius: 8px; border: 1px solid var(--border-color, #ccc); background: #fff; cursor: pointer; font-size: 0.95rem;">
+                    <i class="fas fa-tags" style="color: var(--primary-color, #4f46e5);"></i>
+                    <span>Beschriftungen verwalten</span>
+                    <i class="fas fa-chevron-down" id="labelsToggleIcon"></i>
+                </button>
+                <div id="labelsPanel" style="display: none; margin-top: 1rem; background: #fff; border: 1px solid var(--border-color, #e0e0e0); border-radius: 10px; padding: 1.25rem;">
+                    <p style="color: var(--text-light, #666); font-size: 0.9rem; margin-top: 0;">
+                        Hier können Sie Titel und Untertitel der mit Wegbeschreibungen verknüpften Beschriftungen je Sprache anpassen. Änderungen werden auf allen verbundenen Geräten übernommen.
+                    </p>
+                    <div id="labelsLoading" style="text-align: center; padding: 1rem; color: var(--text-light, #666);">Lade Beschriftungen…</div>
+                    <div id="labelsEmpty" style="display: none; text-align: center; padding: 1rem; color: var(--text-light, #666);">Keine verknüpften Beschriftungen gefunden.</div>
+                    <div id="labelsList"></div>
+                </div>
+            </div>
+
             <!-- Modern Device Selector -->
             <div class="device-selector-container" id="deviceSelectorHeader" style="display: none;">
                 <div class="device-dropdown" id="deviceDropdown">
@@ -2556,6 +2586,9 @@
                     statistics = data.statistics;
                     
                     displayStatistics();
+
+                    // Master-Account-Auswahl + Label-Editor initialisieren
+                    try { await initMasterAndLabels(); } catch (e) { console.error('initMasterAndLabels:', e); }
                     
                     try {
                     await loadDevices();
@@ -2650,6 +2683,166 @@
             }
         }
         
+        // ===== Master-Account-Auswahl + Label-Editor =====
+        let dashboardSessionInfo = null;
+
+        function lblEscapeHtml(str) {
+            return String(str == null ? '' : str)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        async function initMasterAndLabels() {
+            try {
+                const res = await fetch('/api/auth/session', { method: 'GET', credentials: 'include' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success) {
+                        dashboardSessionInfo = data;
+                        if (data.user && data.user.is_master) {
+                            await setupMasterBar(data);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Session-Info Fehler:', e);
+            }
+            setupLabelsToggle();
+        }
+
+        async function setupMasterBar(sessionData) {
+            const bar = document.getElementById('masterAccountBar');
+            const select = document.getElementById('masterAccountSelect');
+            const hint = document.getElementById('masterAccountHint');
+            const clearBtn = document.getElementById('masterAccountClear');
+            if (!bar || !select) return;
+            bar.style.display = 'block';
+            try {
+                const res = await fetch('/api/accounts/list', { method: 'GET', credentials: 'include' });
+                const data = await res.json();
+                if (data.success && Array.isArray(data.accounts)) {
+                    select.innerHTML = '<option value="">— Konto auswählen —</option>';
+                    data.accounts.forEach(acc => {
+                        const opt = document.createElement('option');
+                        opt.value = acc.id;
+                        opt.textContent = acc.username + (acc.device_count ? ` (${acc.device_count} Gerät(e))` : '');
+                        select.appendChild(opt);
+                    });
+                    const acting = sessionData.acting_account;
+                    if (acting && acting.id) {
+                        select.value = acting.id;
+                        hint.textContent = `Sie betrachten gerade das Konto „${acting.username}".`;
+                    } else {
+                        hint.textContent = 'Wählen Sie ein Konto, um dessen Statistiken und Beschriftungen zu sehen.';
+                    }
+                }
+            } catch (e) {
+                console.error('Accounts-Liste Fehler:', e);
+            }
+            select.onchange = async () => { await selectMasterAccount(select.value || null); };
+            if (clearBtn) clearBtn.onclick = async () => { await selectMasterAccount(null); };
+        }
+
+        async function selectMasterAccount(accountId) {
+            try {
+                const res = await fetch('/api/accounts/select', {
+                    method: 'POST', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ account_id: accountId })
+                });
+                if (res.ok) {
+                    window.location.reload();
+                }
+            } catch (e) {
+                console.error('Konto-Auswahl Fehler:', e);
+            }
+        }
+
+        function setupLabelsToggle() {
+            const btn = document.getElementById('labelsToggleBtn');
+            const panel = document.getElementById('labelsPanel');
+            const icon = document.getElementById('labelsToggleIcon');
+            if (!btn || !panel) return;
+            let loaded = false;
+            btn.onclick = async () => {
+                const open = panel.style.display !== 'none';
+                panel.style.display = open ? 'none' : 'block';
+                if (icon) icon.className = open ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+                if (!open && !loaded) { loaded = true; await loadLabels(); }
+            };
+        }
+
+        async function loadLabels() {
+            const loading = document.getElementById('labelsLoading');
+            const empty = document.getElementById('labelsEmpty');
+            const list = document.getElementById('labelsList');
+            if (!list) return;
+            loading.style.display = 'block';
+            empty.style.display = 'none';
+            list.innerHTML = '';
+            try {
+                const res = await fetch('/api/labels/list', { method: 'GET', credentials: 'include' });
+                const data = await res.json();
+                loading.style.display = 'none';
+                if (!data.success || !Array.isArray(data.labels) || data.labels.length === 0) {
+                    empty.style.display = 'block';
+                    return;
+                }
+                data.labels.forEach(label => list.appendChild(renderLabelCard(label)));
+            } catch (e) {
+                loading.style.display = 'none';
+                empty.style.display = 'block';
+                console.error('Labels laden Fehler:', e);
+            }
+        }
+
+        function renderLabelCard(label) {
+            const card = document.createElement('div');
+            card.style.cssText = 'border:1px solid var(--border-color,#e0e0e0);border-radius:8px;padding:1rem;margin-bottom:1rem;';
+            const langs = Object.keys(label.languages || {});
+            const firstLang = langs[0];
+            const headerTitle = (firstLang && label.languages[firstLang] && label.languages[firstLang].title) || label.label_id;
+            let html = `<div style="font-weight:600;margin-bottom:0.75rem;">${lblEscapeHtml(headerTitle)} <span style="font-weight:400;color:var(--text-light,#888);font-size:0.85rem;">(ID: ${lblEscapeHtml(label.label_id)})</span></div>`;
+            langs.forEach(lang => {
+                const l = label.languages[lang] || {};
+                html += `
+                <div style="display:grid;grid-template-columns:60px 1fr 1fr;gap:0.5rem;align-items:center;margin-bottom:0.5rem;">
+                    <span style="font-weight:600;text-transform:uppercase;color:var(--text-light,#666);font-size:0.85rem;">${lblEscapeHtml(lang)}</span>
+                    <input type="text" data-lang="${lblEscapeHtml(lang)}" data-field="title" value="${lblEscapeHtml(l.title || '')}" placeholder="Titel" style="padding:0.45rem 0.6rem;border:1px solid var(--border-color,#ccc);border-radius:6px;font-size:0.9rem;">
+                    <input type="text" data-lang="${lblEscapeHtml(lang)}" data-field="subtitle" value="${lblEscapeHtml(l.subtitle || '')}" placeholder="Untertitel" style="padding:0.45rem 0.6rem;border:1px solid var(--border-color,#ccc);border-radius:6px;font-size:0.9rem;">
+                </div>`;
+            });
+            html += `<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.5rem;">
+                <button class="label-save-btn" style="padding:0.45rem 1rem;border-radius:6px;border:none;background:var(--primary-color,#4f46e5);color:#fff;cursor:pointer;">Speichern</button>
+                <span class="label-save-status" style="font-size:0.85rem;color:var(--text-light,#666);"></span>
+            </div>`;
+            card.innerHTML = html;
+            const saveBtn = card.querySelector('.label-save-btn');
+            const status = card.querySelector('.label-save-status');
+            saveBtn.onclick = async () => {
+                const per_language = {};
+                card.querySelectorAll('input[data-lang]').forEach(inp => {
+                    const lang = inp.getAttribute('data-lang');
+                    const field = inp.getAttribute('data-field');
+                    if (!per_language[lang]) per_language[lang] = { title: '', subtitle: '' };
+                    per_language[lang][field] = inp.value;
+                });
+                status.textContent = 'Speichern…';
+                try {
+                    const res = await fetch('/api/labels/update', {
+                        method: 'POST', credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ floor_id: label.floor_id, label_id: label.label_id, per_language })
+                    });
+                    const data = await res.json();
+                    status.textContent = (res.ok && data.success) ? '✅ Gespeichert' : ('⚠️ ' + (data.error || 'Fehler'));
+                } catch (e) {
+                    status.textContent = '⚠️ Verbindungsfehler';
+                }
+            };
+            return card;
+        }
+
         // NEUE EINFACHE GERÄTE-LADUNG (mit 5-Min-Cache)
         async function loadDevices() {
             if (isLoadingDevices) {

@@ -542,7 +542,7 @@
 
         async function testApiConnectivity() {
             try {
-                const res = await fetch('/api/auth/verify-session', { method: 'GET', credentials: 'include' });
+                const res = await fetch('/api/auth/session', { method: 'GET', credentials: 'include' });
                 if (!res.ok && res.status !== 401) {
                     showError('API möglicherweise nicht erreichbar.');
                 }
@@ -558,7 +558,7 @@
 
         async function loadAccountData() {
             try {
-                const sessionRes = await fetch('/api/auth/verify-session', { method: 'GET', credentials: 'include' });
+                const sessionRes = await fetch('/api/auth/session', { method: 'GET', credentials: 'include' });
                 if (sessionRes.status === 401) {
                     window.location.href = 'login.html';
                     return;
@@ -568,10 +568,11 @@
                 const sessionData = await sessionRes.json();
                 currentUser = sessionData.user;
 
-                const accountRes = await fetch('/api/accounts/get', { method: 'GET', credentials: 'include' });
-                if (!accountRes.ok) throw new Error('Account-Daten konnten nicht geladen werden');
-
-                accountData = await accountRes.json();
+                // Account-Daten kommen direkt aus der Session (effektives/verkoerpertes Konto)
+                accountData = {
+                    hasAccount: !!sessionData.account,
+                    account: sessionData.account
+                };
                 displayAccountInfo();
             } catch (e) {
                 showError(e.message || 'Fehler beim Laden');
@@ -685,7 +686,7 @@
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
-                    body: JSON.stringify({ admin_user_id: accountData.account.id })
+                    body: JSON.stringify({ account_id: accountData.account.id })
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
