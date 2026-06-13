@@ -1,22 +1,9 @@
 // api/labels/list.js - Routen-verknuepfte Labels fuer das Dashboard (geraeteuebergreifend gemergt)
 // Schluessel der Zusammenfuehrung: label_id (geraete- UND stockwerkuebergreifend).
-// Labels mit gleicher ID auf mehreren Geraeten/Stockwerken werden zu EINEM Eintrag vereint.
+// Sprachen werden nach NAMEN (nicht nach Code/ID) zusammengefuehrt, da Geraete fuer dieselbe
+// Sprache unterschiedliche IDs vergeben koennen. So entsteht pro Sprachname genau ein Eintrag.
 // Effektiver Text = Override falls vorhanden, sonst der vom Geraet gemeldete Text.
 const { supabase, setCors, send, resolveSession } = require('../_lib/db');
-
-function mergeLanguageMaps(target, source) {
-  if (!source || typeof source !== 'object') return;
-  Object.keys(source).forEach(lang => {
-    const entry = source[lang] || {};
-    if (!target[lang]) target[lang] = { title: '', subtitle: '' };
-    if (entry.title !== undefined && entry.title !== null && String(entry.title).length > 0 && !target[lang].title) {
-      target[lang].title = entry.title;
-    }
-    if (entry.subtitle !== undefined && entry.subtitle !== null && String(entry.subtitle).length > 0 && !target[lang].subtitle) {
-      target[lang].subtitle = entry.subtitle;
-    }
-  });
-}
 
 module.exports = async function handler(req, res) {
   setCors(res);
@@ -58,7 +45,27 @@ module.exports = async function handler(req, res) {
       }
     });
 
-    // Overrides nach label_id buendeln (zuletzt aktualisiertes Override gewinnt je Sprache)
+    // Sprachcode -> Anzeigename (Fallback: Code selbst)
+    const codeToName = (code) =>
+      languageNames[String(code)] || languageNames[String(code).toLowerCase()] || String(code);
+
+    // Texte nach NAMEN zusammenfuehren (erstes nicht-leeres gewinnt)
+    const mergeByName = (target, source) => {
+      if (!source || typeof source !== 'object') return;
+      Object.keys(source).forEach(code => {
+        const name = codeToName(code);
+        const entry = source[code] || {};
+        if (!target[name]) target[name] = { title: '', subtitle: '' };
+        if (entry.title != null && String(entry.title).length > 0 && !target[name].title) {
+          target[name].title = entry.title;
+        }
+        if (entry.subtitle != null && String(entry.subtitle).length > 0 && !target[name].subtitle) {
+          target[name].subtitle = entry.subtitle;
+        }
+      });
+    };
+
+    // Overrides nach label_id buendeln, Sprachen nach NAMEN (zuletzt aktualisiertes gewinnt)
     const overrideByLabel = new Map();
     (overrideRows || [])
       .sort((a, b) => String(a.updated_at || '').localeCompare(String(b.updated_at || '')))
@@ -66,15 +73,16 @@ module.exports = async function handler(req, res) {
         const key = String(o.label_id);
         if (!overrideByLabel.has(key)) overrideByLabel.set(key, {});
         const target = overrideByLabel.get(key);
-        Object.keys(o.per_language || {}).forEach(lang => {
-          const e = o.per_language[lang] || {};
-          if (!target[lang]) target[lang] = { title: '', subtitle: '' };
-          if (e.title !== undefined && e.title !== null) target[lang].title = e.title;
-          if (e.subtitle !== undefined && e.subtitle !== null) target[lang].subtitle = e.subtitle;
+        Object.keys(o.per_language || {}).forEach(code => {
+          const name = codeToName(code);
+          const e = o.per_language[code] || {};
+          if (!target[name]) target[name] = { title: '', subtitle: '' };
+          if (e.title !== undefined && e.title !== null) target[name].title = e.title;
+          if (e.subtitle !== undefined && e.subtitle !== null) target[name].subtitle = e.subtitle;
         });
       });
 
-    // Gruppieren nach label_id (geraete- und stockwerkuebergreifend)
+    // Gruppieren nach label_id (geraete- und stockwerkuebergreifend), Sprachen nach NAMEN
     const groups = new Map();
     (labelRows || []).forEach(l => {
       const key = String(l.label_id);
@@ -91,7 +99,7 @@ module.exports = async function handler(req, res) {
       if (l.floor_id != null) g.floor_ids.add(String(l.floor_id));
       if (l.device_id) g.device_ids.add(l.device_id);
       if (!g.route_id && l.route_id) g.route_id = l.route_id;
-      mergeLanguageMaps(g.reported, l.per_language);
+      mergeByName(g.reported, l.per_language);
     });
 
     const labels = [];

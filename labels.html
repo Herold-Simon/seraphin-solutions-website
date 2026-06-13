@@ -366,13 +366,6 @@
 
     <script>
         let allLabels = [];
-        let languageNames = {};
-
-        // Liefert den Anzeigenamen einer Sprache (Name statt Code, Fallback: Code in Großbuchstaben)
-        function languageLabel(code) {
-            const name = languageNames[code] || languageNames[String(code).toLowerCase()];
-            return name || String(code).toUpperCase();
-        }
 
         document.addEventListener('DOMContentLoaded', async function() {
             await checkSession();
@@ -425,7 +418,6 @@
                 const data = await res.json();
                 loading.style.display = 'none';
                 allLabels = (data.success && Array.isArray(data.labels)) ? data.labels : [];
-                languageNames = (data && data.language_names) ? data.language_names : {};
                 renderLabels('');
             } catch (e) {
                 loading.style.display = 'none';
@@ -485,7 +477,7 @@
                 const l = label.languages[lang] || {};
                 html += `
                 <div class="label-lang-row">
-                    <span class="label-lang-tag">${escapeHtml(languageLabel(lang))}</span>
+                    <span class="label-lang-tag">${escapeHtml(lang)}</span>
                     <input type="text" data-lang="${escapeHtml(lang)}" data-field="title" value="${escapeHtml(l.title || '')}" placeholder="Titel">
                     <input type="text" data-lang="${escapeHtml(lang)}" data-field="subtitle" value="${escapeHtml(l.subtitle || '')}" placeholder="Untertitel">
                 </div>`;

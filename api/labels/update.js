@@ -1,5 +1,7 @@
 // api/labels/update.js - Label-Texte (Titel/Untertitel je Sprache) bearbeiten
-// Schreibt eine kanonische Override-Zeile (floor_id + label_id), die alle Geraete beim Pull anwenden.
+// Eingang: per_language nach SPRACHNAMEN. Wird auf alle Sprach-Codes/IDs aller Geraete
+// zurueckgemappt, damit jedes Geraet beim Pull seine eigene Sprach-ID bedient bekommt.
+// Schreibt kanonische Override-Zeilen (floor_id + label_id) fuer alle betroffenen Stockwerke.
 const { supabase, setCors, send, readBody, resolveSession } = require('../_lib/db');
 
 module.exports = async function handler(req, res) {
@@ -22,14 +24,39 @@ module.exports = async function handler(req, res) {
       return send(res, 400, { success: false, error: 'label_id und per_language sind erforderlich' });
     }
 
-    // per_language saeubern: nur title/subtitle je Sprache uebernehmen
+    // Sprachnamen -> Codes/IDs (geraeteuebergreifend). Eine Sprache (Name) kann auf mehreren
+    // Geraeten unterschiedliche IDs haben; daher schreiben wir den Text fuer ALLE diese IDs.
+    const { data: deviceRows } = await supabase
+      .from('devices')
+      .select('languages')
+      .eq('account_id', accountId);
+    const nameToCodes = new Map(); // name (lowercase) -> Set(codes)
+    (deviceRows || []).forEach(d => {
+      if (Array.isArray(d.languages)) {
+        d.languages.forEach(l => {
+          if (l && l.id != null) {
+            const name = String(l.name != null ? l.name : l.id).toLowerCase();
+            if (!nameToCodes.has(name)) nameToCodes.set(name, new Set());
+            nameToCodes.get(name).add(String(l.id));
+          }
+        });
+      }
+    });
+
+    // per_language (nach Namen) saeubern und auf alle Codes mappen
     const cleaned = {};
-    Object.keys(per_language).forEach(lang => {
-      const entry = per_language[lang] || {};
-      cleaned[lang] = {
+    Object.keys(per_language).forEach(name => {
+      const entry = per_language[name] || {};
+      const value = {
         title: entry.title != null ? String(entry.title) : '',
         subtitle: entry.subtitle != null ? String(entry.subtitle) : ''
       };
+      // Den Namen selbst ebenfalls als Schluessel hinterlegen (Fallback)
+      cleaned[name] = value;
+      const codes = nameToCodes.get(String(name).toLowerCase());
+      if (codes) {
+        codes.forEach(code => { cleaned[code] = value; });
+      }
     });
 
     // Identitaet ist label_id: Override fuer ALLE Stockwerke schreiben, die diese label_id fuehren.
