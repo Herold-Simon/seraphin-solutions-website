@@ -1,10 +1,9 @@
 // api/labels/update.js - Label-Texte (Titel/Untertitel je Sprache) bearbeiten
 // Eingang: per_language nach SPRACHNAMEN. Wird auf alle Sprach-Codes/IDs aller Geraete
 // zurueckgemappt, damit jedes Geraet beim Pull seine eigene Sprach-ID bedient bekommt.
-// Identitaet ist (floor_id + label_id): Es wird GENAU eine kanonische Override-Zeile fuer
-// dieses Stockwerk + Label geschrieben. Da dasselbe Gebaeude auf allen Geraeten dieselbe
-// floor_id hat, wirkt die Aenderung geraeteuebergreifend; gleiche IDs auf anderen Stockwerken
-// bleiben unberuehrt.
+// Identitaet ist die route_id: Es werden Override-Zeilen fuer ALLE (floor_id + label_id)-Paare
+// geschrieben, die zu dieser Route gehoeren (mehrstoeckige Routen fuehren das Label auf mehreren
+// Stockwerken). Ohne route_id wird genau das uebergebene (floor_id + label_id) geschrieben.
 const { supabase, setCors, send, readBody, resolveSession } = require('../_lib/db');
 
 module.exports = async function handler(req, res) {
@@ -21,10 +20,13 @@ module.exports = async function handler(req, res) {
     }
 
     const accountId = ctx.effectiveAccountId;
-    const { floor_id, label_id, per_language } = readBody(req);
+    const { floor_id, label_id, route_id, per_language } = readBody(req);
 
-    if (!floor_id || !label_id || !per_language || typeof per_language !== 'object') {
-      return send(res, 400, { success: false, error: 'floor_id, label_id und per_language sind erforderlich' });
+    if ((!floor_id || !label_id) && !route_id) {
+      return send(res, 400, { success: false, error: 'route_id oder (floor_id + label_id) sind erforderlich' });
+    }
+    if (!per_language || typeof per_language !== 'object') {
+      return send(res, 400, { success: false, error: 'per_language ist erforderlich' });
     }
 
     // Sprachnamen -> Codes/IDs (geraeteuebergreifend). Eine Sprache (Name) kann auf mehreren
@@ -62,17 +64,40 @@ module.exports = async function handler(req, res) {
       }
     });
 
-    // Genau eine Override-Zeile fuer dieses (floor_id + label_id) schreiben.
+    // Zielzeilen bestimmen: bei route_id ALLE (floor_id,label_id)-Paare dieser Route,
+    // sonst genau das uebergebene Paar.
+    const pairSet = new Map(); // "floor\u001flabel" -> { floor_id, label_id }
+    const addPair = (fid, lid) => {
+      if (fid == null || lid == null) return;
+      pairSet.set(`${String(fid)}\u001f${String(lid)}`, { floor_id: String(fid), label_id: String(lid) });
+    };
+
+    if (route_id) {
+      const { data: routeLabels } = await supabase
+        .from('labels')
+        .select('floor_id, label_id')
+        .eq('account_id', accountId)
+        .eq('route_id', String(route_id));
+      (routeLabels || []).forEach(r => addPair(r.floor_id, r.label_id));
+    }
+    if (floor_id && label_id) addPair(floor_id, label_id);
+
+    if (pairSet.size === 0) {
+      return send(res, 404, { success: false, error: 'Keine zugehörige Beschriftung gefunden' });
+    }
+
     const now = new Date().toISOString();
+    const rows = Array.from(pairSet.values()).map(p => ({
+      account_id: accountId,
+      floor_id: p.floor_id,
+      label_id: p.label_id,
+      per_language: cleaned,
+      updated_at: now
+    }));
+
     const { error } = await supabase
       .from('label_overrides')
-      .upsert({
-        account_id: accountId,
-        floor_id: String(floor_id),
-        label_id: String(label_id),
-        per_language: cleaned,
-        updated_at: now
-      }, { onConflict: 'account_id,floor_id,label_id' });
+      .upsert(rows, { onConflict: 'account_id,floor_id,label_id' });
 
     if (error) {
       console.error('Label override upsert error:', error.message);
@@ -83,7 +108,7 @@ module.exports = async function handler(req, res) {
       success: true,
       message: 'Label-Änderung gespeichert',
       updated_at: now,
-      affected_floors: 1
+      affected_floors: rows.length
     });
   } catch (error) {
     console.error('Label update error:', error.message);

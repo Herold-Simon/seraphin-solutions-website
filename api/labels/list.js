@@ -1,9 +1,10 @@
 // api/labels/list.js - Routen-verknuepfte Labels fuer das Dashboard (geraeteuebergreifend gemergt)
-// Schluessel der Zusammenfuehrung: (floor_id + label_id).
-//   - Geraeteuebergreifend: dasselbe Gebaeude hat auf allen Geraeten dieselbe floor_id, daher
-//     werden identische Labels mehrerer Geraete zu einem Eintrag zusammengefuehrt.
-//   - Stockwerksweise getrennt: dieselbe label_id auf VERSCHIEDENEN Stockwerken bezeichnet
-//     unterschiedliche Beschriftungen (Blender vergibt IDs pro Stockwerk neu) und bleibt getrennt.
+// Schluessel der Zusammenfuehrung: route_id (Fallback: floor_id + label_id ohne Route).
+//   - Jede Beschriftung gehoert zu genau einer Route; eine mehrstoeckige Route kann dasselbe
+//     Label auf mehreren Stockwerken fuehren -> wird zu EINEM Eintrag zusammengefasst.
+//   - Verschiedene Routen bleiben getrennt, auch wenn sie dieselbe label_id haben (Blender
+//     vergibt IDs pro Stockwerk neu).
+//   - Geraeteuebergreifend: dieselbe route_id auf allen Geraeten -> ein Eintrag.
 // Sprachen werden nach NAMEN (nicht nach Code/ID) zusammengefuehrt, da Geraete fuer dieselbe
 // Sprache unterschiedliche IDs vergeben koennen. So entsteht pro Sprachname genau ein Eintrag.
 // Effektiver Text = Override falls vorhanden, sonst der vom Geraet gemeldete Text.
@@ -77,18 +78,23 @@ module.exports = async function handler(req, res) {
       });
     };
 
-    // Composite-Key aus floor_id + label_id
+    // Composite-Key aus floor_id + label_id (eine konkrete Beschriftungs-Zeile)
     const compositeKey = (floorId, labelId) => `${String(floorId)}\u001f${String(labelId)}`;
+    // Gruppen-Key: primaer die route_id (eine Beschriftung gehoert zu genau einer Route und
+    // kann bei mehrstoeckigen Routen auf mehreren Stockwerken liegen -> ein Eintrag).
+    // Fallback ohne Route: (floor_id + label_id).
+    const groupKeyFor = (routeId, floorId, labelId) =>
+      routeId ? `r:${String(routeId)}` : `fl:${compositeKey(floorId, labelId)}`;
 
-    // Overrides nach (floor_id + label_id) buendeln, Sprachen nach NAMEN (zuletzt aktualisiertes gewinnt)
-    const overrideByLabel = new Map();
-    const overrideIconByLabel = new Map(); // key -> icon (string oder '' zum Loeschen)
+    // Overrides je konkreter Zeile (floor_id + label_id) buendeln, Sprachen nach NAMEN.
+    const overrideByPair = new Map();
+    const overrideIconByPair = new Map(); // pairKey -> icon (string oder '' zum Loeschen)
     (overrideRows || [])
       .sort((a, b) => String(a.updated_at || '').localeCompare(String(b.updated_at || '')))
       .forEach(o => {
         const key = compositeKey(o.floor_id, o.label_id);
-        if (!overrideByLabel.has(key)) overrideByLabel.set(key, {});
-        const target = overrideByLabel.get(key);
+        if (!overrideByPair.has(key)) overrideByPair.set(key, {});
+        const target = overrideByPair.get(key);
         Object.keys(o.per_language || {}).forEach(code => {
           const name = codeToName(code);
           const e = o.per_language[code] || {};
@@ -98,37 +104,62 @@ module.exports = async function handler(req, res) {
         });
         // Icon-Override (zuletzt aktualisiertes gewinnt; null = kein Override)
         if (o.icon !== undefined && o.icon !== null) {
-          overrideIconByLabel.set(key, String(o.icon));
+          overrideIconByPair.set(key, String(o.icon));
         }
       });
 
-    // Gruppieren nach (floor_id + label_id): geraeteuebergreifend gemergt, stockwerksweise getrennt
+    // Gruppieren nach route_id: geraete- UND stockwerkuebergreifend zu einem Eintrag.
     const groups = new Map();
     (labelRows || []).forEach(l => {
       if (l.floor_id == null) return;
-      const key = compositeKey(l.floor_id, l.label_id);
+      const routeId = l.route_id || null;
+      const key = groupKeyFor(routeId, l.floor_id, l.label_id);
       if (!groups.has(key)) {
         groups.set(key, {
           label_id: l.label_id,
+          route_id: routeId,
           floor_id: String(l.floor_id),
-          route_id: l.route_id || null,
+          pairs: new Map(),       // pairKey -> { floor_id, label_id }
+          floor_ids: new Set(),
+          floor_names: new Set(),
           device_ids: new Set(),
           reported: {},
           reportedIcon: ''
         });
       }
       const g = groups.get(key);
+      const pairKey = compositeKey(l.floor_id, l.label_id);
+      g.pairs.set(pairKey, { floor_id: String(l.floor_id), label_id: String(l.label_id) });
+      g.floor_ids.add(String(l.floor_id));
+      if (floorNames[String(l.floor_id)]) g.floor_names.add(floorNames[String(l.floor_id)]);
       if (l.device_id) g.device_ids.add(l.device_id);
-      if (!g.route_id && l.route_id) g.route_id = l.route_id;
       if (!g.reportedIcon && l.icon) g.reportedIcon = String(l.icon);
       mergeByName(g.reported, l.per_language);
     });
 
     const labels = [];
-    groups.forEach((g, key) => {
-      const override = overrideByLabel.get(key);
-      const iconOverride = overrideIconByLabel.get(key); // string oder undefined
-      const hasIconOverride = iconOverride !== undefined;
+    groups.forEach(g => {
+      // Overrides ueber alle Zeilen der Gruppe sammeln (bei einer Route identisch geschrieben)
+      const override = {};
+      let hasOverride = false;
+      let iconOverride; // string oder undefined
+      let hasIconOverride = false;
+      g.pairs.forEach((_p, pairKey) => {
+        const ov = overrideByPair.get(pairKey);
+        if (ov) {
+          hasOverride = true;
+          Object.keys(ov).forEach(name => {
+            if (!override[name]) override[name] = { title: '', subtitle: '' };
+            if (ov[name].title !== undefined && ov[name].title !== null) override[name].title = ov[name].title;
+            if (ov[name].subtitle !== undefined && ov[name].subtitle !== null) override[name].subtitle = ov[name].subtitle;
+          });
+        }
+        if (overrideIconByPair.has(pairKey)) {
+          iconOverride = overrideIconByPair.get(pairKey);
+          hasIconOverride = true;
+        }
+      });
+
       const effectiveIcon = hasIconOverride ? iconOverride : (g.reportedIcon || '');
       const languages = {};
 
@@ -141,7 +172,7 @@ module.exports = async function handler(req, res) {
       });
 
       // Overlay: Override (kanonisch)
-      if (override) {
+      if (hasOverride) {
         Object.keys(override).forEach(lang => {
           const o = override[lang] || {};
           if (!languages[lang]) languages[lang] = { title: '', subtitle: '' };
@@ -153,12 +184,14 @@ module.exports = async function handler(req, res) {
       labels.push({
         label_id: g.label_id,
         floor_id: g.floor_id,
-        floor_ids: [g.floor_id],
-        floor_name: floorNames[g.floor_id] || '',
+        floor_ids: Array.from(g.floor_ids),
+        floor_name: Array.from(g.floor_names).join(', '),
         route_id: g.route_id,
+        // Alle konkreten (floor_id,label_id)-Paare dieser Route fuer gezielte Updates
+        pairs: Array.from(g.pairs.values()),
         device_ids: Array.from(g.device_ids),
         languages,
-        has_override: Boolean(override),
+        has_override: hasOverride,
         icon: effectiveIcon,
         has_icon: Boolean(effectiveIcon),
         has_icon_override: hasIconOverride

@@ -663,7 +663,7 @@
                     const res = await fetch('/api/labels/update', {
                         method: 'POST', credentials: 'include',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ floor_id: label.floor_id, label_id: label.label_id, per_language })
+                        body: JSON.stringify({ route_id: label.route_id, floor_id: label.floor_id, label_id: label.label_id, per_language })
                     });
                     const data = await res.json();
                     if (!res.ok || !data.success) {
@@ -677,7 +677,7 @@
                         const iconRes = await fetch('/api/labels/update-icon', {
                             method: 'POST', credentials: 'include',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ floor_id: label.floor_id, label_id: label.label_id, icon: pendingIcon })
+                            body: JSON.stringify({ route_id: label.route_id, floor_id: label.floor_id, label_id: label.label_id, icon: pendingIcon })
                         });
                         const iconData = await iconRes.json();
                         if (!iconRes.ok || !iconData.success) {
