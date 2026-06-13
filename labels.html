@@ -153,15 +153,26 @@
             color: var(--primary-blue);
         }
 
-        /* Icon-Bereich */
+        /* Icon-Bereich (Drag & Drop) */
         .label-icon-row {
             display: flex;
             align-items: center;
             gap: 1rem;
-            padding: 0.9rem 0;
-            margin-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border-color);
+            padding: 0.9rem 1rem;
+            margin-bottom: 1rem;
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            background: var(--light-gray);
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
             flex-wrap: wrap;
+        }
+        .label-icon-row:hover {
+            border-color: var(--primary-blue);
+        }
+        .label-icon-row.dragover {
+            border-color: var(--primary-blue);
+            background: rgba(0, 140, 255, 0.06);
         }
         .label-icon-preview {
             width: 56px;
@@ -445,6 +456,15 @@
             await loadLabels();
             const search = document.getElementById('labelSearch');
             if (search) search.addEventListener('input', () => renderLabels(search.value));
+
+            // Verhindern, dass ein neben dem Feld fallengelassenes Bild die Seite ersetzt
+            ['dragover', 'drop'].forEach(evt => {
+                window.addEventListener(evt, (e) => {
+                    if (!e.target.closest || !e.target.closest('.js-icon-dropzone')) {
+                        e.preventDefault();
+                    }
+                });
+            });
         });
 
         function escapeHtml(str) {
@@ -548,15 +568,14 @@
             const iconPreview = label.icon
                 ? `<img src="${escapeHtml(label.icon)}" alt="Icon">`
                 : `<i class="fas fa-image label-icon-empty" title="Kein Icon"></i>`;
-            html += `<div class="label-icon-row">
+            html += `<div class="label-icon-row js-icon-dropzone" title="Bild hierher ziehen oder klicken">
                 <div class="label-icon-preview js-icon-preview">${iconPreview}</div>
                 <div class="label-icon-info">
-                    <div class="label-icon-title">Icon</div>
-                    <div class="label-icon-hint">PNG/JPG, wird auf allen Geräten übernommen.</div>
+                    <div class="label-icon-title"><i class="fas fa-cloud-arrow-up"></i> Icon</div>
+                    <div class="label-icon-hint">Bild hierher ziehen oder klicken zum Auswählen (PNG/JPG). Wird auf allen Geräten übernommen.</div>
                 </div>
                 <div class="label-icon-actions">
                     <input type="file" accept="image/*" class="js-icon-file" style="display:none;">
-                    <button type="button" class="label-icon-btn js-icon-change"><i class="fas fa-upload"></i> Icon ändern</button>
                     <button type="button" class="label-icon-btn danger js-icon-reset" ${label.has_icon_override ? '' : 'style="display:none;"'}><i class="fas fa-rotate-left"></i> Zurücksetzen</button>
                     <span class="label-icon-status js-icon-status"></span>
                 </div>
@@ -626,10 +645,10 @@
                 }
             };
 
-            // ===== Icon-Verwaltung =====
+            // ===== Icon-Verwaltung (Drag & Drop) =====
+            const dropzone = card.querySelector('.js-icon-dropzone');
             const iconPreviewEl = card.querySelector('.js-icon-preview');
             const iconFileEl = card.querySelector('.js-icon-file');
-            const iconChangeBtn = card.querySelector('.js-icon-change');
             const iconResetBtn = card.querySelector('.js-icon-reset');
             const iconStatus = card.querySelector('.js-icon-status');
 
@@ -646,7 +665,6 @@
 
             const saveIcon = async (iconValue) => {
                 setIconStatus('', '<span class="label-spinner"></span> Speichern…');
-                iconChangeBtn.disabled = true;
                 iconResetBtn.disabled = true;
                 try {
                     const res = await fetch('/api/labels/update-icon', {
@@ -659,7 +677,6 @@
                         setIconStatus('ok', '<i class="fas fa-check"></i> Gespeichert');
                         if (iconValue === null) {
                             label.has_icon_override = false;
-                            // Icon bleibt visuell wie zuletzt bekannt; Seite neu laden für App-Original
                         } else {
                             label.icon = iconValue;
                             label.has_icon_override = true;
@@ -671,26 +688,61 @@
                 } catch (e) {
                     setIconStatus('err', 'Verbindungsfehler');
                 } finally {
-                    iconChangeBtn.disabled = false;
                     iconResetBtn.disabled = false;
                 }
             };
 
-            iconChangeBtn.onclick = () => iconFileEl.click();
-            iconFileEl.onchange = () => {
-                const file = iconFileEl.files && iconFileEl.files[0];
+            // Datei (Bild) verarbeiten und speichern
+            const handleFile = (file) => {
                 if (!file) return;
+                if (!file.type || !file.type.startsWith('image/')) {
+                    setIconStatus('err', 'Bitte eine Bilddatei wählen.');
+                    return;
+                }
                 if (file.size > 1_500_000) {
                     setIconStatus('err', 'Bild zu groß (max. 1,5 MB).');
-                    iconFileEl.value = '';
                     return;
                 }
                 const reader = new FileReader();
-                reader.onload = () => { saveIcon(String(reader.result)); iconFileEl.value = ''; };
+                reader.onload = () => saveIcon(String(reader.result));
                 reader.onerror = () => setIconStatus('err', 'Datei konnte nicht gelesen werden.');
                 reader.readAsDataURL(file);
             };
-            iconResetBtn.onclick = () => saveIcon(null);
+
+            // Klick auf das Feld öffnet den Dateidialog (außer auf dem Zurücksetzen-Button)
+            dropzone.onclick = (e) => {
+                if (e.target.closest('.js-icon-reset')) return;
+                iconFileEl.click();
+            };
+            iconFileEl.onchange = () => {
+                handleFile(iconFileEl.files && iconFileEl.files[0]);
+                iconFileEl.value = '';
+            };
+
+            // Drag & Drop
+            ['dragenter', 'dragover'].forEach(evt => {
+                dropzone.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.add('dragover');
+                });
+            });
+            ['dragleave', 'dragend'].forEach(evt => {
+                dropzone.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.remove('dragover');
+                });
+            });
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.remove('dragover');
+                const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+                handleFile(file);
+            });
+
+            iconResetBtn.onclick = (e) => { e.stopPropagation(); saveIcon(null); };
 
             return card;
         }
