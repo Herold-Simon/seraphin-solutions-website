@@ -1,6 +1,7 @@
 // api/labels/list.js - Routen-verknuepfte Labels fuer das Dashboard (geraeteuebergreifend gemergt)
-// Schluessel der Zusammenfuehrung: (floor_id + label_id). Effektiver Text = Override falls vorhanden,
-// sonst der vom Geraet gemeldete Text.
+// Schluessel der Zusammenfuehrung: label_id (geraete- UND stockwerkuebergreifend).
+// Labels mit gleicher ID auf mehreren Geraeten/Stockwerken werden zu EINEM Eintrag vereint.
+// Effektiver Text = Override falls vorhanden, sonst der vom Geraet gemeldete Text.
 const { supabase, setCors, send, resolveSession } = require('../_lib/db');
 
 function mergeLanguageMaps(target, source) {
@@ -43,25 +44,51 @@ module.exports = async function handler(req, res) {
       .select('floor_id, label_id, per_language, updated_at')
       .eq('account_id', accountId);
 
-    const overrideMap = new Map();
-    (overrideRows || []).forEach(o => {
-      overrideMap.set(`${o.floor_id}\u001f${o.label_id}`, o);
+    // Sprachnamen (Code -> Name) aus den Geraeten des Kontos sammeln
+    const { data: deviceRows } = await supabase
+      .from('devices')
+      .select('languages')
+      .eq('account_id', accountId);
+    const languageNames = {};
+    (deviceRows || []).forEach(d => {
+      if (Array.isArray(d.languages)) {
+        d.languages.forEach(l => {
+          if (l && l.id != null && l.name) languageNames[String(l.id)] = String(l.name);
+        });
+      }
     });
 
-    // Gruppieren nach (floor_id, label_id)
+    // Overrides nach label_id buendeln (zuletzt aktualisiertes Override gewinnt je Sprache)
+    const overrideByLabel = new Map();
+    (overrideRows || [])
+      .sort((a, b) => String(a.updated_at || '').localeCompare(String(b.updated_at || '')))
+      .forEach(o => {
+        const key = String(o.label_id);
+        if (!overrideByLabel.has(key)) overrideByLabel.set(key, {});
+        const target = overrideByLabel.get(key);
+        Object.keys(o.per_language || {}).forEach(lang => {
+          const e = o.per_language[lang] || {};
+          if (!target[lang]) target[lang] = { title: '', subtitle: '' };
+          if (e.title !== undefined && e.title !== null) target[lang].title = e.title;
+          if (e.subtitle !== undefined && e.subtitle !== null) target[lang].subtitle = e.subtitle;
+        });
+      });
+
+    // Gruppieren nach label_id (geraete- und stockwerkuebergreifend)
     const groups = new Map();
     (labelRows || []).forEach(l => {
-      const key = `${l.floor_id}\u001f${l.label_id}`;
+      const key = String(l.label_id);
       if (!groups.has(key)) {
         groups.set(key, {
-          floor_id: l.floor_id,
           label_id: l.label_id,
+          floor_ids: new Set(),
           route_id: l.route_id || null,
           device_ids: new Set(),
           reported: {}
         });
       }
       const g = groups.get(key);
+      if (l.floor_id != null) g.floor_ids.add(String(l.floor_id));
       if (l.device_id) g.device_ids.add(l.device_id);
       if (!g.route_id && l.route_id) g.route_id = l.route_id;
       mergeLanguageMaps(g.reported, l.per_language);
@@ -69,7 +96,7 @@ module.exports = async function handler(req, res) {
 
     const labels = [];
     groups.forEach((g, key) => {
-      const override = overrideMap.get(key);
+      const override = overrideByLabel.get(key);
       const languages = {};
 
       // Basis: gemeldete Texte
@@ -81,9 +108,9 @@ module.exports = async function handler(req, res) {
       });
 
       // Overlay: Override (kanonisch)
-      if (override && override.per_language) {
-        Object.keys(override.per_language).forEach(lang => {
-          const o = override.per_language[lang] || {};
+      if (override) {
+        Object.keys(override).forEach(lang => {
+          const o = override[lang] || {};
           if (!languages[lang]) languages[lang] = { title: '', subtitle: '' };
           if (o.title !== undefined && o.title !== null) languages[lang].title = o.title;
           if (o.subtitle !== undefined && o.subtitle !== null) languages[lang].subtitle = o.subtitle;
@@ -91,8 +118,10 @@ module.exports = async function handler(req, res) {
       }
 
       labels.push({
-        floor_id: g.floor_id,
         label_id: g.label_id,
+        // Repraesentative floor_id (Kompatibilitaet); floor_ids enthaelt alle betroffenen Stockwerke
+        floor_id: Array.from(g.floor_ids)[0] || null,
+        floor_ids: Array.from(g.floor_ids),
         route_id: g.route_id,
         device_ids: Array.from(g.device_ids),
         languages,
@@ -100,12 +129,9 @@ module.exports = async function handler(req, res) {
       });
     });
 
-    labels.sort((a, b) => {
-      if (a.floor_id === b.floor_id) return String(a.label_id).localeCompare(String(b.label_id));
-      return String(a.floor_id).localeCompare(String(b.floor_id));
-    });
+    labels.sort((a, b) => String(a.label_id).localeCompare(String(b.label_id)));
 
-    return send(res, 200, { success: true, labels });
+    return send(res, 200, { success: true, labels, language_names: languageNames });
   } catch (error) {
     console.error('Labels list error:', error.message);
     return send(res, 500, { success: false, error: 'Interner Serverfehler' });

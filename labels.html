@@ -155,16 +155,18 @@
 
         .label-lang-row {
             display: grid;
-            grid-template-columns: 64px 1fr 1fr;
+            grid-template-columns: 120px 1fr 1fr;
             gap: 0.75rem;
             align-items: center;
             margin-bottom: 0.75rem;
         }
         .label-lang-tag {
             font-weight: 600;
-            text-transform: uppercase;
             color: var(--text-light);
             font-size: 0.85rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .label-card input {
             width: 100%;
@@ -183,7 +185,7 @@
         }
         .label-field-head {
             display: grid;
-            grid-template-columns: 64px 1fr 1fr;
+            grid-template-columns: 120px 1fr 1fr;
             gap: 0.75rem;
             margin-bottom: 0.4rem;
         }
@@ -364,6 +366,13 @@
 
     <script>
         let allLabels = [];
+        let languageNames = {};
+
+        // Liefert den Anzeigenamen einer Sprache (Name statt Code, Fallback: Code in Großbuchstaben)
+        function languageLabel(code) {
+            const name = languageNames[code] || languageNames[String(code).toLowerCase()];
+            return name || String(code).toUpperCase();
+        }
 
         document.addEventListener('DOMContentLoaded', async function() {
             await checkSession();
@@ -416,6 +425,7 @@
                 const data = await res.json();
                 loading.style.display = 'none';
                 allLabels = (data.success && Array.isArray(data.labels)) ? data.labels : [];
+                languageNames = (data && data.language_names) ? data.language_names : {};
                 renderLabels('');
             } catch (e) {
                 loading.style.display = 'none';
@@ -475,7 +485,7 @@
                 const l = label.languages[lang] || {};
                 html += `
                 <div class="label-lang-row">
-                    <span class="label-lang-tag">${escapeHtml(lang)}</span>
+                    <span class="label-lang-tag">${escapeHtml(languageLabel(lang))}</span>
                     <input type="text" data-lang="${escapeHtml(lang)}" data-field="title" value="${escapeHtml(l.title || '')}" placeholder="Titel">
                     <input type="text" data-lang="${escapeHtml(lang)}" data-field="subtitle" value="${escapeHtml(l.subtitle || '')}" placeholder="Untertitel">
                 </div>`;

@@ -18,8 +18,8 @@ module.exports = async function handler(req, res) {
     const accountId = ctx.effectiveAccountId;
     const { floor_id, label_id, per_language } = readBody(req);
 
-    if (!floor_id || !label_id || !per_language || typeof per_language !== 'object') {
-      return send(res, 400, { success: false, error: 'floor_id, label_id und per_language sind erforderlich' });
+    if (!label_id || !per_language || typeof per_language !== 'object') {
+      return send(res, 400, { success: false, error: 'label_id und per_language sind erforderlich' });
     }
 
     // per_language saeubern: nur title/subtitle je Sprache uebernehmen
@@ -32,23 +32,55 @@ module.exports = async function handler(req, res) {
       };
     });
 
+    // Identitaet ist label_id: Override fuer ALLE Stockwerke schreiben, die diese label_id fuehren.
+    // So wirkt die Aenderung geraeteuebergreifend (jedes Geraet hat eigene floor_id).
+    const floorIdSet = new Set();
+    const { data: labelRows } = await supabase
+      .from('labels')
+      .select('floor_id')
+      .eq('account_id', accountId)
+      .eq('label_id', String(label_id));
+    (labelRows || []).forEach(r => { if (r.floor_id != null) floorIdSet.add(String(r.floor_id)); });
+
+    // Bereits bestehende Overrides dieser label_id ebenfalls aktualisieren
+    const { data: existingOverrides } = await supabase
+      .from('label_overrides')
+      .select('floor_id')
+      .eq('account_id', accountId)
+      .eq('label_id', String(label_id));
+    (existingOverrides || []).forEach(r => { if (r.floor_id != null) floorIdSet.add(String(r.floor_id)); });
+
+    // Fallback: explizit uebergebene floor_id beruecksichtigen
+    if (floor_id != null) floorIdSet.add(String(floor_id));
+
+    if (floorIdSet.size === 0) {
+      return send(res, 404, { success: false, error: 'Keine zugehörigen Stockwerke gefunden' });
+    }
+
     const now = new Date().toISOString();
+    const rows = Array.from(floorIdSet).map(fid => ({
+      account_id: accountId,
+      floor_id: fid,
+      label_id: String(label_id),
+      per_language: cleaned,
+      updated_at: now
+    }));
+
     const { error } = await supabase
       .from('label_overrides')
-      .upsert({
-        account_id: accountId,
-        floor_id: String(floor_id),
-        label_id: String(label_id),
-        per_language: cleaned,
-        updated_at: now
-      }, { onConflict: 'account_id,floor_id,label_id' });
+      .upsert(rows, { onConflict: 'account_id,floor_id,label_id' });
 
     if (error) {
       console.error('Label override upsert error:', error.message);
       return send(res, 500, { success: false, error: 'Fehler beim Speichern der Label-Änderung' });
     }
 
-    return send(res, 200, { success: true, message: 'Label-Änderung gespeichert', updated_at: now });
+    return send(res, 200, {
+      success: true,
+      message: 'Label-Änderung gespeichert',
+      updated_at: now,
+      affected_floors: rows.length
+    });
   } catch (error) {
     console.error('Label update error:', error.message);
     return send(res, 500, { success: false, error: 'Interner Serverfehler' });

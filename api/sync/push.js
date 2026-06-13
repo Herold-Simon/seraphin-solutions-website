@@ -18,6 +18,7 @@ module.exports = async function handler(req, res) {
     const routes = Array.isArray(body.routes) ? body.routes : [];
     const labels = Array.isArray(body.labels) ? body.labels : [];
     const floors = Array.isArray(body.floors) ? body.floors : [];
+    const languages = Array.isArray(body.languages) ? body.languages : [];
 
     if (!account_id || !device_id) {
       return send(res, 400, { success: false, error: 'account_id und device_id sind erforderlich' });
@@ -48,6 +49,11 @@ module.exports = async function handler(req, res) {
           : (Array.isArray(f.objectRouteMappings) ? f.objectRouteMappings.length : 0))
     }));
 
+    // Sprachdefinitionen (id + Name) saeubern
+    const languageList = languages
+      .filter(l => l && l.id != null)
+      .map(l => ({ id: String(l.id), name: String(l.name != null ? l.name : l.id) }));
+
     await supabase
       .from('devices')
       .upsert({
@@ -56,7 +62,8 @@ module.exports = async function handler(req, res) {
         device_name: device_name || `Gerät ${deviceId.substring(0, 8)}`,
         last_active: now,
         total_videos: routes.length,
-        floors: floorSummary
+        floors: floorSummary,
+        languages: languageList
       }, { onConflict: 'account_id,device_id' });
 
     // Route-Statistiken: vollstaendiger Ersatz fuer dieses Geraet
