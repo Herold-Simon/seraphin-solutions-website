@@ -148,6 +148,10 @@
             background: var(--light-gray);
             color: var(--text-light);
         }
+        .label-badge-floor {
+            background: rgba(16, 185, 129, 0.12);
+            color: #0f9d6b;
+        }
         .label-badge-override {
             background: rgba(0, 140, 255, 0.1);
             color: var(--primary-blue);
@@ -522,6 +526,7 @@
         function labelMatchesQuery(label, q) {
             if (!q) return true;
             if (String(label.label_id).toLowerCase().includes(q)) return true;
+            if (String(label.floor_name || '').toLowerCase().includes(q)) return true;
             const langs = label.languages || {};
             return Object.keys(langs).some(lang => {
                 const l = langs[lang] || {};
@@ -560,6 +565,7 @@
 
             let html = `<div class="label-card-head">
                 <span class="label-card-name">${escapeHtml(headerTitle)}</span>
+                ${label.floor_name ? `<span class="label-badge label-badge-floor">${escapeHtml(label.floor_name)}</span>` : ''}
                 <span class="label-badge label-badge-id">ID: ${escapeHtml(label.label_id)}</span>
                 ${label.has_override ? '<span class="label-badge label-badge-override">Angepasst</span>' : ''}
             </div>`;

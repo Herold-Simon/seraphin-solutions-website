@@ -1,5 +1,9 @@
 // api/labels/list.js - Routen-verknuepfte Labels fuer das Dashboard (geraeteuebergreifend gemergt)
-// Schluessel der Zusammenfuehrung: label_id (geraete- UND stockwerkuebergreifend).
+// Schluessel der Zusammenfuehrung: (floor_id + label_id).
+//   - Geraeteuebergreifend: dasselbe Gebaeude hat auf allen Geraeten dieselbe floor_id, daher
+//     werden identische Labels mehrerer Geraete zu einem Eintrag zusammengefuehrt.
+//   - Stockwerksweise getrennt: dieselbe label_id auf VERSCHIEDENEN Stockwerken bezeichnet
+//     unterschiedliche Beschriftungen (Blender vergibt IDs pro Stockwerk neu) und bleibt getrennt.
 // Sprachen werden nach NAMEN (nicht nach Code/ID) zusammengefuehrt, da Geraete fuer dieselbe
 // Sprache unterschiedliche IDs vergeben koennen. So entsteht pro Sprachname genau ein Eintrag.
 // Effektiver Text = Override falls vorhanden, sonst der vom Geraet gemeldete Text.
@@ -31,16 +35,24 @@ module.exports = async function handler(req, res) {
       .select('floor_id, label_id, per_language, icon, updated_at')
       .eq('account_id', accountId);
 
-    // Sprachnamen (Code -> Name) aus den Geraeten des Kontos sammeln
+    // Sprachnamen (Code -> Name) und Stockwerksnamen (floor_id -> Name) aus den Geraeten sammeln
     const { data: deviceRows } = await supabase
       .from('devices')
-      .select('languages')
+      .select('languages, floors')
       .eq('account_id', accountId);
     const languageNames = {};
+    const floorNames = {};
     (deviceRows || []).forEach(d => {
       if (Array.isArray(d.languages)) {
         d.languages.forEach(l => {
           if (l && l.id != null && l.name) languageNames[String(l.id)] = String(l.name);
+        });
+      }
+      if (Array.isArray(d.floors)) {
+        d.floors.forEach(f => {
+          if (f && f.id != null && f.name && !floorNames[String(f.id)]) {
+            floorNames[String(f.id)] = String(f.name);
+          }
         });
       }
     });
@@ -65,13 +77,16 @@ module.exports = async function handler(req, res) {
       });
     };
 
-    // Overrides nach label_id buendeln, Sprachen nach NAMEN (zuletzt aktualisiertes gewinnt)
+    // Composite-Key aus floor_id + label_id
+    const compositeKey = (floorId, labelId) => `${String(floorId)}\u001f${String(labelId)}`;
+
+    // Overrides nach (floor_id + label_id) buendeln, Sprachen nach NAMEN (zuletzt aktualisiertes gewinnt)
     const overrideByLabel = new Map();
-    const overrideIconByLabel = new Map(); // label_id -> icon (string oder '' zum Loeschen)
+    const overrideIconByLabel = new Map(); // key -> icon (string oder '' zum Loeschen)
     (overrideRows || [])
       .sort((a, b) => String(a.updated_at || '').localeCompare(String(b.updated_at || '')))
       .forEach(o => {
-        const key = String(o.label_id);
+        const key = compositeKey(o.floor_id, o.label_id);
         if (!overrideByLabel.has(key)) overrideByLabel.set(key, {});
         const target = overrideByLabel.get(key);
         Object.keys(o.per_language || {}).forEach(code => {
@@ -87,14 +102,15 @@ module.exports = async function handler(req, res) {
         }
       });
 
-    // Gruppieren nach label_id (geraete- und stockwerkuebergreifend), Sprachen nach NAMEN
+    // Gruppieren nach (floor_id + label_id): geraeteuebergreifend gemergt, stockwerksweise getrennt
     const groups = new Map();
     (labelRows || []).forEach(l => {
-      const key = String(l.label_id);
+      if (l.floor_id == null) return;
+      const key = compositeKey(l.floor_id, l.label_id);
       if (!groups.has(key)) {
         groups.set(key, {
           label_id: l.label_id,
-          floor_ids: new Set(),
+          floor_id: String(l.floor_id),
           route_id: l.route_id || null,
           device_ids: new Set(),
           reported: {},
@@ -102,7 +118,6 @@ module.exports = async function handler(req, res) {
         });
       }
       const g = groups.get(key);
-      if (l.floor_id != null) g.floor_ids.add(String(l.floor_id));
       if (l.device_id) g.device_ids.add(l.device_id);
       if (!g.route_id && l.route_id) g.route_id = l.route_id;
       if (!g.reportedIcon && l.icon) g.reportedIcon = String(l.icon);
@@ -137,9 +152,9 @@ module.exports = async function handler(req, res) {
 
       labels.push({
         label_id: g.label_id,
-        // Repraesentative floor_id (Kompatibilitaet); floor_ids enthaelt alle betroffenen Stockwerke
-        floor_id: Array.from(g.floor_ids)[0] || null,
-        floor_ids: Array.from(g.floor_ids),
+        floor_id: g.floor_id,
+        floor_ids: [g.floor_id],
+        floor_name: floorNames[g.floor_id] || '',
         route_id: g.route_id,
         device_ids: Array.from(g.device_ids),
         languages,
@@ -150,7 +165,11 @@ module.exports = async function handler(req, res) {
       });
     });
 
-    labels.sort((a, b) => String(a.label_id).localeCompare(String(b.label_id)));
+    labels.sort((a, b) => {
+      const f = String(a.floor_name || a.floor_id).localeCompare(String(b.floor_name || b.floor_id));
+      if (f !== 0) return f;
+      return String(a.label_id).localeCompare(String(b.label_id), undefined, { numeric: true });
+    });
 
     return send(res, 200, { success: true, labels, language_names: languageNames });
   } catch (error) {
