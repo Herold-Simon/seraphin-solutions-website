@@ -117,6 +117,7 @@ module.exports = async function handler(req, res) {
           label_id: String(l.label_id),
           route_id: l.route_id != null ? String(l.route_id) : null,
           per_language: l.per_language || {},
+          icon: l.icon != null ? String(l.icon) : null,
           updated_at: now
         });
       }

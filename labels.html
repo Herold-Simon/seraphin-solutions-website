@@ -153,6 +153,79 @@
             color: var(--primary-blue);
         }
 
+        /* Icon-Bereich */
+        .label-icon-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.9rem 0;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+        .label-icon-preview {
+            width: 56px;
+            height: 56px;
+            flex-shrink: 0;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .label-icon-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .label-icon-preview .label-icon-empty {
+            color: var(--text-light);
+            font-size: 1.2rem;
+        }
+        .label-icon-info {
+            flex: 1;
+            min-width: 140px;
+        }
+        .label-icon-info .label-icon-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-light);
+        }
+        .label-icon-info .label-icon-hint {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 0.15rem;
+        }
+        .label-icon-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .label-icon-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 0.9rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--white);
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .label-icon-btn:hover { border-color: var(--primary-blue); color: var(--primary-blue); }
+        .label-icon-btn.danger:hover { border-color: #dc3545; color: #dc3545; }
+        .label-icon-status { font-size: 0.85rem; color: var(--text-light); }
+        .label-icon-status.ok { color: #16a34a; }
+        .label-icon-status.err { color: #b91c1c; }
+
         .label-lang-row {
             display: grid;
             grid-template-columns: 120px 1fr 1fr;
@@ -471,6 +544,24 @@
                 ${label.has_override ? '<span class="label-badge label-badge-override">Angepasst</span>' : ''}
             </div>`;
 
+            // Icon der verknüpften Wegbeschreibung
+            const iconPreview = label.icon
+                ? `<img src="${escapeHtml(label.icon)}" alt="Icon">`
+                : `<i class="fas fa-image label-icon-empty" title="Kein Icon"></i>`;
+            html += `<div class="label-icon-row">
+                <div class="label-icon-preview js-icon-preview">${iconPreview}</div>
+                <div class="label-icon-info">
+                    <div class="label-icon-title">Icon</div>
+                    <div class="label-icon-hint">PNG/JPG, wird auf allen Geräten übernommen.</div>
+                </div>
+                <div class="label-icon-actions">
+                    <input type="file" accept="image/*" class="js-icon-file" style="display:none;">
+                    <button type="button" class="label-icon-btn js-icon-change"><i class="fas fa-upload"></i> Icon ändern</button>
+                    <button type="button" class="label-icon-btn danger js-icon-reset" ${label.has_icon_override ? '' : 'style="display:none;"'}><i class="fas fa-rotate-left"></i> Zurücksetzen</button>
+                    <span class="label-icon-status js-icon-status"></span>
+                </div>
+            </div>`;
+
             html += `<div class="label-field-head"><span></span><span>Titel</span><span>Untertitel</span></div>`;
 
             langs.forEach(lang => {
@@ -534,6 +625,73 @@
                     saveBtn.innerHTML = 'Speichern';
                 }
             };
+
+            // ===== Icon-Verwaltung =====
+            const iconPreviewEl = card.querySelector('.js-icon-preview');
+            const iconFileEl = card.querySelector('.js-icon-file');
+            const iconChangeBtn = card.querySelector('.js-icon-change');
+            const iconResetBtn = card.querySelector('.js-icon-reset');
+            const iconStatus = card.querySelector('.js-icon-status');
+
+            const setIconStatus = (cls, text) => {
+                iconStatus.className = 'label-icon-status' + (cls ? ' ' + cls : '');
+                iconStatus.innerHTML = text;
+            };
+            const renderIconPreview = () => {
+                iconPreviewEl.innerHTML = label.icon
+                    ? `<img src="${escapeHtml(label.icon)}" alt="Icon">`
+                    : '<i class="fas fa-image label-icon-empty"></i>';
+                iconResetBtn.style.display = label.has_icon_override ? '' : 'none';
+            };
+
+            const saveIcon = async (iconValue) => {
+                setIconStatus('', '<span class="label-spinner"></span> Speichern…');
+                iconChangeBtn.disabled = true;
+                iconResetBtn.disabled = true;
+                try {
+                    const res = await fetch('/api/labels/update-icon', {
+                        method: 'POST', credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ floor_id: label.floor_id, label_id: label.label_id, icon: iconValue })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.success) {
+                        setIconStatus('ok', '<i class="fas fa-check"></i> Gespeichert');
+                        if (iconValue === null) {
+                            label.has_icon_override = false;
+                            // Icon bleibt visuell wie zuletzt bekannt; Seite neu laden für App-Original
+                        } else {
+                            label.icon = iconValue;
+                            label.has_icon_override = true;
+                        }
+                        renderIconPreview();
+                    } else {
+                        setIconStatus('err', escapeHtml(data.error || 'Fehler beim Speichern'));
+                    }
+                } catch (e) {
+                    setIconStatus('err', 'Verbindungsfehler');
+                } finally {
+                    iconChangeBtn.disabled = false;
+                    iconResetBtn.disabled = false;
+                }
+            };
+
+            iconChangeBtn.onclick = () => iconFileEl.click();
+            iconFileEl.onchange = () => {
+                const file = iconFileEl.files && iconFileEl.files[0];
+                if (!file) return;
+                if (file.size > 1_500_000) {
+                    setIconStatus('err', 'Bild zu groß (max. 1,5 MB).');
+                    iconFileEl.value = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = () => { saveIcon(String(reader.result)); iconFileEl.value = ''; };
+                reader.onerror = () => setIconStatus('err', 'Datei konnte nicht gelesen werden.');
+                reader.readAsDataURL(file);
+            };
+            iconResetBtn.onclick = () => saveIcon(null);
+
             return card;
         }
 

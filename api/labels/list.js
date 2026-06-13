@@ -20,7 +20,7 @@ module.exports = async function handler(req, res) {
 
     const { data: labelRows, error: labelError } = await supabase
       .from('labels')
-      .select('device_id, floor_id, label_id, route_id, per_language')
+      .select('device_id, floor_id, label_id, route_id, per_language, icon')
       .eq('account_id', accountId);
     if (labelError) {
       return send(res, 500, { success: false, error: 'Fehler beim Laden der Labels' });
@@ -28,7 +28,7 @@ module.exports = async function handler(req, res) {
 
     const { data: overrideRows } = await supabase
       .from('label_overrides')
-      .select('floor_id, label_id, per_language, updated_at')
+      .select('floor_id, label_id, per_language, icon, updated_at')
       .eq('account_id', accountId);
 
     // Sprachnamen (Code -> Name) aus den Geraeten des Kontos sammeln
@@ -67,6 +67,7 @@ module.exports = async function handler(req, res) {
 
     // Overrides nach label_id buendeln, Sprachen nach NAMEN (zuletzt aktualisiertes gewinnt)
     const overrideByLabel = new Map();
+    const overrideIconByLabel = new Map(); // label_id -> icon (string oder '' zum Loeschen)
     (overrideRows || [])
       .sort((a, b) => String(a.updated_at || '').localeCompare(String(b.updated_at || '')))
       .forEach(o => {
@@ -80,6 +81,10 @@ module.exports = async function handler(req, res) {
           if (e.title !== undefined && e.title !== null) target[name].title = e.title;
           if (e.subtitle !== undefined && e.subtitle !== null) target[name].subtitle = e.subtitle;
         });
+        // Icon-Override (zuletzt aktualisiertes gewinnt; null = kein Override)
+        if (o.icon !== undefined && o.icon !== null) {
+          overrideIconByLabel.set(key, String(o.icon));
+        }
       });
 
     // Gruppieren nach label_id (geraete- und stockwerkuebergreifend), Sprachen nach NAMEN
@@ -92,19 +97,24 @@ module.exports = async function handler(req, res) {
           floor_ids: new Set(),
           route_id: l.route_id || null,
           device_ids: new Set(),
-          reported: {}
+          reported: {},
+          reportedIcon: ''
         });
       }
       const g = groups.get(key);
       if (l.floor_id != null) g.floor_ids.add(String(l.floor_id));
       if (l.device_id) g.device_ids.add(l.device_id);
       if (!g.route_id && l.route_id) g.route_id = l.route_id;
+      if (!g.reportedIcon && l.icon) g.reportedIcon = String(l.icon);
       mergeByName(g.reported, l.per_language);
     });
 
     const labels = [];
     groups.forEach((g, key) => {
       const override = overrideByLabel.get(key);
+      const iconOverride = overrideIconByLabel.get(key); // string oder undefined
+      const hasIconOverride = iconOverride !== undefined;
+      const effectiveIcon = hasIconOverride ? iconOverride : (g.reportedIcon || '');
       const languages = {};
 
       // Basis: gemeldete Texte
@@ -133,7 +143,10 @@ module.exports = async function handler(req, res) {
         route_id: g.route_id,
         device_ids: Array.from(g.device_ids),
         languages,
-        has_override: Boolean(override)
+        has_override: Boolean(override),
+        icon: effectiveIcon,
+        has_icon: Boolean(effectiveIcon),
+        has_icon_override: hasIconOverride
       });
     });
 
