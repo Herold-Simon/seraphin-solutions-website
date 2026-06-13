@@ -598,6 +598,47 @@
             </div>`;
             card.innerHTML = html;
 
+            // ===== Icon-Verwaltung (Drag & Drop) =====
+            const dropzone = card.querySelector('.js-icon-dropzone');
+            const iconPreviewEl = card.querySelector('.js-icon-preview');
+            const iconFileEl = card.querySelector('.js-icon-file');
+            const iconStatus = card.querySelector('.js-icon-status');
+
+            // Noch nicht gespeichertes Icon (Base64). undefined = keine Änderung.
+            let pendingIcon;
+
+            const setIconStatus = (cls, text) => {
+                iconStatus.className = 'label-icon-status' + (cls ? ' ' + cls : '');
+                iconStatus.innerHTML = text;
+            };
+            const renderIconPreview = (src) => {
+                const value = (src !== undefined) ? src : label.icon;
+                iconPreviewEl.innerHTML = value
+                    ? `<img src="${escapeHtml(value)}" alt="Icon">`
+                    : '<i class="fas fa-image label-icon-empty"></i>';
+            };
+
+            // Datei (Bild) nur vormerken + Vorschau zeigen; Speichern erst per Button
+            const handleFile = (file) => {
+                if (!file) return;
+                if (!file.type || !file.type.startsWith('image/')) {
+                    setIconStatus('err', 'Bitte eine Bilddatei wählen.');
+                    return;
+                }
+                if (file.size > 1_500_000) {
+                    setIconStatus('err', 'Bild zu groß (max. 1,5 MB).');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = () => {
+                    pendingIcon = String(reader.result);
+                    renderIconPreview(pendingIcon);
+                    setIconStatus('', 'Wird beim Speichern übernommen');
+                };
+                reader.onerror = () => setIconStatus('err', 'Datei konnte nicht gelesen werden.');
+                reader.readAsDataURL(file);
+            };
+
             const saveBtn = card.querySelector('.label-save-btn');
             const status = card.querySelector('.label-save-status');
             saveBtn.onclick = async () => {
@@ -619,21 +660,41 @@
                         body: JSON.stringify({ floor_id: label.floor_id, label_id: label.label_id, per_language })
                     });
                     const data = await res.json();
-                    if (res.ok && data.success) {
-                        status.className = 'label-save-status ok';
-                        status.innerHTML = '<i class="fas fa-check"></i> Gespeichert';
-                        label.languages = mergeLangs(label.languages, per_language);
-                        label.has_override = true;
-                        const badgeHead = card.querySelector('.label-card-head');
-                        if (badgeHead && !badgeHead.querySelector('.label-badge-override')) {
-                            const b = document.createElement('span');
-                            b.className = 'label-badge label-badge-override';
-                            b.textContent = 'Angepasst';
-                            badgeHead.appendChild(b);
-                        }
-                    } else {
+                    if (!res.ok || !data.success) {
                         status.className = 'label-save-status err';
                         status.textContent = data.error || 'Fehler beim Speichern';
+                        return;
+                    }
+
+                    // Icon mitspeichern, falls eines vorgemerkt wurde
+                    if (pendingIcon !== undefined) {
+                        const iconRes = await fetch('/api/labels/update-icon', {
+                            method: 'POST', credentials: 'include',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ floor_id: label.floor_id, label_id: label.label_id, icon: pendingIcon })
+                        });
+                        const iconData = await iconRes.json();
+                        if (!iconRes.ok || !iconData.success) {
+                            status.className = 'label-save-status err';
+                            status.textContent = (iconData && iconData.error) || 'Fehler beim Speichern des Icons';
+                            return;
+                        }
+                        label.icon = pendingIcon;
+                        label.has_icon_override = true;
+                        pendingIcon = undefined;
+                        setIconStatus('', '');
+                    }
+
+                    status.className = 'label-save-status ok';
+                    status.innerHTML = '<i class="fas fa-check"></i> Gespeichert';
+                    label.languages = mergeLangs(label.languages, per_language);
+                    label.has_override = true;
+                    const badgeHead = card.querySelector('.label-card-head');
+                    if (badgeHead && !badgeHead.querySelector('.label-badge-override')) {
+                        const b = document.createElement('span');
+                        b.className = 'label-badge label-badge-override';
+                        b.textContent = 'Angepasst';
+                        badgeHead.appendChild(b);
                     }
                 } catch (e) {
                     status.className = 'label-save-status err';
@@ -642,61 +703,6 @@
                     saveBtn.disabled = false;
                     saveBtn.innerHTML = 'Speichern';
                 }
-            };
-
-            // ===== Icon-Verwaltung (Drag & Drop) =====
-            const dropzone = card.querySelector('.js-icon-dropzone');
-            const iconPreviewEl = card.querySelector('.js-icon-preview');
-            const iconFileEl = card.querySelector('.js-icon-file');
-            const iconStatus = card.querySelector('.js-icon-status');
-
-            const setIconStatus = (cls, text) => {
-                iconStatus.className = 'label-icon-status' + (cls ? ' ' + cls : '');
-                iconStatus.innerHTML = text;
-            };
-            const renderIconPreview = () => {
-                iconPreviewEl.innerHTML = label.icon
-                    ? `<img src="${escapeHtml(label.icon)}" alt="Icon">`
-                    : '<i class="fas fa-image label-icon-empty"></i>';
-            };
-
-            const saveIcon = async (iconValue) => {
-                setIconStatus('', '<span class="label-spinner"></span> Speichern…');
-                try {
-                    const res = await fetch('/api/labels/update-icon', {
-                        method: 'POST', credentials: 'include',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ floor_id: label.floor_id, label_id: label.label_id, icon: iconValue })
-                    });
-                    const data = await res.json();
-                    if (res.ok && data.success) {
-                        setIconStatus('ok', '<i class="fas fa-check"></i> Gespeichert');
-                        label.icon = iconValue;
-                        label.has_icon_override = true;
-                        renderIconPreview();
-                    } else {
-                        setIconStatus('err', escapeHtml(data.error || 'Fehler beim Speichern'));
-                    }
-                } catch (e) {
-                    setIconStatus('err', 'Verbindungsfehler');
-                }
-            };
-
-            // Datei (Bild) verarbeiten und speichern
-            const handleFile = (file) => {
-                if (!file) return;
-                if (!file.type || !file.type.startsWith('image/')) {
-                    setIconStatus('err', 'Bitte eine Bilddatei wählen.');
-                    return;
-                }
-                if (file.size > 1_500_000) {
-                    setIconStatus('err', 'Bild zu groß (max. 1,5 MB).');
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = () => saveIcon(String(reader.result));
-                reader.onerror = () => setIconStatus('err', 'Datei konnte nicht gelesen werden.');
-                reader.readAsDataURL(file);
             };
 
             // Klick auf das Feld öffnet den Dateidialog
