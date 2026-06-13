@@ -231,6 +231,22 @@
             margin-bottom: 1rem;
         }
         
+        .account-master-hint {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--primary-blue);
+            background: rgba(0, 140, 255, 0.06);
+            border: 1px solid rgba(0, 140, 255, 0.2);
+            border-radius: 8px;
+            padding: 0.7rem 0.9rem;
+            line-height: 1.45;
+            margin-bottom: 1.25rem;
+        }
+        
+        .account-master-hint i { margin-top: 2px; flex-shrink: 0; }
+        
         .account-alert {
             padding: 1rem 1.25rem;
             border-radius: 8px;
@@ -420,10 +436,14 @@
                 <section class="account-card account-card-password">
                     <h2 class="account-card-title">Passwort ändern</h2>
                     <form id="passwordForm" class="account-form">
-                        <div class="field">
+                        <div class="field" id="currentPasswordField">
                             <label for="currentPassword">Aktuelles Passwort</label>
                             <input type="password" id="currentPassword" placeholder="Aktuelles Passwort" required>
                         </div>
+                        <p id="masterPasswordHint" class="account-master-hint" style="display: none;">
+                            <i class="fas fa-user-shield"></i>
+                            Als Master können Sie das Passwort dieses Kontos ohne aktuelles Kennwort ändern.
+                        </p>
                         <div class="field">
                             <label for="newPassword">Neues Passwort</label>
                             <input type="password" id="newPassword" placeholder="Neues Passwort" required>
@@ -531,6 +551,7 @@
     <script>
         let currentUser = null;
         let accountData = null;
+        let isMasterActing = false;
 
         document.addEventListener('DOMContentLoaded', async function() {
             await testApiConnectivity();
@@ -569,12 +590,17 @@
                 const sessionData = await sessionRes.json();
                 currentUser = sessionData.user;
 
+                // Master verkoerpert ein anderes Konto -> Passwortwechsel ohne aktuelles Kennwort
+                isMasterActing = !!(sessionData.user && sessionData.user.is_master
+                    && sessionData.acting_account && sessionData.acting_account.id);
+
                 // Account-Daten kommen direkt aus der Session (effektives/verkoerpertes Konto)
                 accountData = {
                     hasAccount: !!sessionData.account,
                     account: sessionData.account
                 };
                 displayAccountInfo();
+                applyMasterPasswordMode();
             } catch (e) {
                 showError(e.message || 'Fehler beim Laden');
             }
@@ -586,6 +612,25 @@
                 document.getElementById('accountCreated').textContent = new Date(accountData.account.created_at).toLocaleDateString('de-DE');
             } else {
                 showError('Kein Account gefunden');
+            }
+        }
+
+        // Master-Modus: Feld "Aktuelles Passwort" ausblenden und Hinweis zeigen
+        function applyMasterPasswordMode() {
+            const field = document.getElementById('currentPasswordField');
+            const hint = document.getElementById('masterPasswordHint');
+            const currentInput = document.getElementById('currentPassword');
+            if (isMasterActing) {
+                if (field) field.style.display = 'none';
+                if (hint) hint.style.display = 'flex';
+                if (currentInput) {
+                    currentInput.required = false;
+                    currentInput.value = '';
+                }
+            } else {
+                if (field) field.style.display = '';
+                if (hint) hint.style.display = 'none';
+                if (currentInput) currentInput.required = true;
             }
         }
 
@@ -630,18 +675,21 @@
             const confirm = document.getElementById('confirmPassword').value;
             const btn = document.getElementById('passwordSubmitBtn');
 
-            if (!current || !newer || !confirm) { showError('Alle Felder ausfüllen'); return; }
+            if (!newer || !confirm || (!isMasterActing && !current)) { showError('Alle Felder ausfüllen'); return; }
             if (newer !== confirm) { showError('Passwörter stimmen nicht überein'); return; }
 
             try {
                 setBtnLoading(btn, true);
                 hideAlerts();
 
+                const payload = isMasterActing
+                    ? { newPassword: newer }
+                    : { currentPassword: current, newPassword: newer };
                 const res = await fetch('/api/accounts/update', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
-                    body: JSON.stringify({ currentPassword: current, newPassword: newer })
+                    body: JSON.stringify(payload)
                 });
                 const data = await res.json();
 
