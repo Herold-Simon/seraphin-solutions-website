@@ -576,7 +576,6 @@
                 </div>
                 <div class="label-icon-actions">
                     <input type="file" accept="image/*" class="js-icon-file" style="display:none;">
-                    <button type="button" class="label-icon-btn danger js-icon-reset" ${label.has_icon_override ? '' : 'style="display:none;"'}><i class="fas fa-rotate-left"></i> Zurücksetzen</button>
                     <span class="label-icon-status js-icon-status"></span>
                 </div>
             </div>`;
@@ -649,7 +648,6 @@
             const dropzone = card.querySelector('.js-icon-dropzone');
             const iconPreviewEl = card.querySelector('.js-icon-preview');
             const iconFileEl = card.querySelector('.js-icon-file');
-            const iconResetBtn = card.querySelector('.js-icon-reset');
             const iconStatus = card.querySelector('.js-icon-status');
 
             const setIconStatus = (cls, text) => {
@@ -660,12 +658,10 @@
                 iconPreviewEl.innerHTML = label.icon
                     ? `<img src="${escapeHtml(label.icon)}" alt="Icon">`
                     : '<i class="fas fa-image label-icon-empty"></i>';
-                iconResetBtn.style.display = label.has_icon_override ? '' : 'none';
             };
 
             const saveIcon = async (iconValue) => {
                 setIconStatus('', '<span class="label-spinner"></span> Speichern…');
-                iconResetBtn.disabled = true;
                 try {
                     const res = await fetch('/api/labels/update-icon', {
                         method: 'POST', credentials: 'include',
@@ -675,20 +671,14 @@
                     const data = await res.json();
                     if (res.ok && data.success) {
                         setIconStatus('ok', '<i class="fas fa-check"></i> Gespeichert');
-                        if (iconValue === null) {
-                            label.has_icon_override = false;
-                        } else {
-                            label.icon = iconValue;
-                            label.has_icon_override = true;
-                        }
+                        label.icon = iconValue;
+                        label.has_icon_override = true;
                         renderIconPreview();
                     } else {
                         setIconStatus('err', escapeHtml(data.error || 'Fehler beim Speichern'));
                     }
                 } catch (e) {
                     setIconStatus('err', 'Verbindungsfehler');
-                } finally {
-                    iconResetBtn.disabled = false;
                 }
             };
 
@@ -709,11 +699,8 @@
                 reader.readAsDataURL(file);
             };
 
-            // Klick auf das Feld öffnet den Dateidialog (außer auf dem Zurücksetzen-Button)
-            dropzone.onclick = (e) => {
-                if (e.target.closest('.js-icon-reset')) return;
-                iconFileEl.click();
-            };
+            // Klick auf das Feld öffnet den Dateidialog
+            dropzone.onclick = () => iconFileEl.click();
             iconFileEl.onchange = () => {
                 handleFile(iconFileEl.files && iconFileEl.files[0]);
                 iconFileEl.value = '';
@@ -741,8 +728,6 @@
                 const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
                 handleFile(file);
             });
-
-            iconResetBtn.onclick = (e) => { e.stopPropagation(); saveIcon(null); };
 
             return card;
         }

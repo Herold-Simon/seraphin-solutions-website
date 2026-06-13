@@ -74,16 +74,17 @@
             box-shadow: 0 0 0 3px rgba(0, 140, 255, 0.08);
         }
         .master-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            display: flex;
+            flex-wrap: wrap;
             gap: 1.25rem;
         }
         .master-card {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 1rem;
             text-align: left;
-            width: 100%;
+            width: auto;
+            max-width: 100%;
             background: var(--white);
             border: 1px solid var(--border-color);
             border-radius: 12px;
@@ -111,7 +112,7 @@
             font-size: 1.2rem;
             font-weight: 600;
         }
-        .master-card-body { flex: 1; min-width: 0; }
+        .master-card-body { flex: 0 1 auto; min-width: 0; }
         .master-card-name {
             font-size: 1.05rem;
             font-weight: 600;
@@ -170,7 +171,7 @@
         .master-bar-btn:hover { background: rgba(0, 140, 255, 0.08); }
 
         @media (max-width: 768px) {
-            .master-grid { grid-template-columns: 1fr; }
+            .master-card { width: 100%; }
             .master-bar-btn { margin-left: 0; width: 100%; justify-content: center; }
         }
         
