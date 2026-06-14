@@ -331,20 +331,15 @@
         .labels-info-hint {
             display: flex; align-items: flex-start; gap: .85rem;
             margin-top: 2.5rem; padding: 1rem 1.25rem;
-            background: linear-gradient(135deg, rgba(0,140,255,.07) 0%, rgba(50,167,26,.07) 100%);
-            border-left: 3px solid transparent;
-            background-image:
-                linear-gradient(135deg, rgba(0,140,255,.07) 0%, rgba(50,167,26,.07) 100%),
-                var(--brand-grad);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
+            background: var(--white);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             font-size: .88rem; color: var(--text-light); line-height: 1.55;
+            box-shadow: 0 1px 4px rgba(0,0,0,.05);
         }
         .labels-info-hint i {
-            flex-shrink: 0; margin-top: .15rem; font-size: 1rem;
-            background: var(--brand-grad);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            flex-shrink: 0; margin-top: .18rem; font-size: .95rem;
+            color: var(--text-light);
         }
         .labels-info-hint strong { color: var(--text-dark); }
 
