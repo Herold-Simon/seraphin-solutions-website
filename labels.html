@@ -191,7 +191,9 @@
         }
         .label-tile-badge--id   { background: var(--light-gray); color: var(--text-light); }
         .label-tile-badge--floor{ background: rgba(16,185,129,.12); color: #0f9d6b; }
-        .label-tile-badge--mod  { background: rgba(0,140,255,.1); color: var(--primary-blue); }
+        /* "Angepasst"-Badge nur im ausgeklappten Zustand zeigen */
+        .label-tile-badge--mod  { background: rgba(0,140,255,.1); color: var(--primary-blue); display: none; }
+        .label-tile--open .label-tile-badge--mod { display: inline-block; }
         .label-tile-chevron {
             color: var(--text-light); font-size: .9rem;
             transition: transform .3s cubic-bezier(.4,0,.2,1);
@@ -708,45 +710,61 @@
         const MORPH_EASE = 'cubic-bezier(.4,0,.2,1)';
         const MORPH_MS   = 420;
 
-        // FLIP-Animation: animiert Breite + horizontale Position weich,
-        // weil sich grid-column (Sprung auf volle Zeile) nicht transitionen lässt.
-        // Die Höhe wird parallel über grid-template-rows animiert.
-        function morphTile(tile, applyChange) {
+        // FLIP-Animation über ALLE Kacheln im Grid:
+        // - Die umgeschaltete Kachel animiert Breite + Position (grid-column lässt
+        //   sich nicht transitionen, daher per JS).
+        // - Alle anderen Kacheln, deren Position sich durch das Auf-/Zuklappen
+        //   ändert, gleiten ebenfalls weich an ihre neue Stelle, statt zu springen.
+        // Die Höhe der geöffneten Kachel läuft parallel über grid-template-rows.
+        function morphTile(toggled, applyChange) {
             const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             if (reduce) { applyChange(); return; }
 
-            const first = tile.getBoundingClientRect();
-            applyChange();                          // Klasse setzen → finaler Grid-Zustand
-            const last  = tile.getBoundingClientRect();
+            const grid  = document.getElementById('labelsGrid');
+            const tiles = Array.from(grid.querySelectorAll('.label-tile'));
+            const firsts = tiles.map(t => t.getBoundingClientRect());
 
-            const dx = first.left - last.left;
-            if (Math.abs(dx) < 0.5 && Math.abs(first.width - last.width) < 0.5) return;
+            applyChange();                          // Klassen/Reihenfolge → finaler Grid-Zustand
 
-            // Invert: Kachel wieder auf Ausgangs-Breite/-Position bringen
-            tile.style.transition  = 'none';
-            tile.style.justifySelf = 'start';
-            tile.style.width       = first.width + 'px';
-            tile.style.transform   = `translateX(${dx}px)`;
-            void tile.offsetWidth;                  // Reflow erzwingen
+            tiles.forEach((t, i) => {
+                const first = firsts[i];
+                const last  = t.getBoundingClientRect();
+                const dx = first.left - last.left;
+                const dy = first.top  - last.top;
+                const isTog = (t === toggled);
+                const dw = isTog ? (first.width - last.width) : 0;
 
-            // Play: auf Zielzustand animieren
-            tile.style.transition = `width ${MORPH_MS}ms ${MORPH_EASE}, transform ${MORPH_MS}ms ${MORPH_EASE}`;
-            tile.style.width      = last.width + 'px';
-            tile.style.transform  = 'translateX(0)';
+                if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5 && Math.abs(dw) < 0.5) return;
 
-            let done = false;
-            const cleanup = () => {
-                if (done) return;
-                done = true;
-                tile.style.transition  = '';
-                tile.style.width       = '';
-                tile.style.transform   = '';
-                tile.style.justifySelf = '';
-                tile.removeEventListener('transitionend', onEnd);
-            };
-            const onEnd = (e) => { if (e.target === tile && e.propertyName === 'width') cleanup(); };
-            tile.addEventListener('transitionend', onEnd);
-            setTimeout(cleanup, MORPH_MS + 80);     // Fallback
+                // Invert: Kachel optisch auf Ausgangs-Position (und -Breite) bringen
+                t.style.transition = 'none';
+                if (isTog) {
+                    t.style.justifySelf = 'start';
+                    t.style.width       = first.width + 'px';
+                }
+                t.style.transform = `translate(${dx}px, ${dy}px)`;
+                void t.offsetWidth;                 // Reflow erzwingen
+
+                // Play: auf Zielzustand animieren
+                t.style.transition = isTog
+                    ? `width ${MORPH_MS}ms ${MORPH_EASE}, transform ${MORPH_MS}ms ${MORPH_EASE}`
+                    : `transform ${MORPH_MS}ms ${MORPH_EASE}`;
+                if (isTog) t.style.width = last.width + 'px';
+                t.style.transform = 'translate(0, 0)';
+
+                let done = false;
+                const cleanup = () => {
+                    if (done) return;
+                    done = true;
+                    t.style.transition  = '';
+                    t.style.transform   = '';
+                    if (isTog) { t.style.width = ''; t.style.justifySelf = ''; }
+                    t.removeEventListener('transitionend', onEnd);
+                };
+                const onEnd = (e) => { if (e.target === t && e.propertyName === 'transform') cleanup(); };
+                t.addEventListener('transitionend', onEnd);
+                setTimeout(cleanup, MORPH_MS + 80); // Fallback
+            });
         }
 
         // Erste Kachel der gleichen (visuellen) Zeile wie `tile`
