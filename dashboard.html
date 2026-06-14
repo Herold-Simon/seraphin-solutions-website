@@ -4028,16 +4028,13 @@
                     formatter: function(params) {
                         if (!params || params.length === 0) return '';
                         let out = params[0].axisValue + ' Uhr';
-                        let shown = 0;
                         params.forEach(function(p) {
                             const val = p.value;
                             // Nur Aufrufe der gewählten Stunde anzeigen (keine 0-Einträge anderer Stunden)
                             if (!(val > 0)) return;
                             const str = Number.isInteger(val) ? val : (val || 0).toFixed(2);
                             out += '<br/>' + p.marker + (p.seriesName || 'Aufrufe') + ': <strong>' + str + '</strong>';
-                            shown++;
                         });
-                        if (shown === 0) out += '<br/><span style="color:#999;">Keine Aufrufe in dieser Stunde</span>';
                         return out;
                     }
                 },
@@ -4182,6 +4179,8 @@
                             if (!params || params.length === 0) return '';
                             const p = params[0];
                             const val = p.value;
+                            // An Tagen ohne Aufrufe nur das Datum anzeigen (kein "Aufrufe: 0")
+                            if (!(val > 0)) return p.axisValue;
                             const str = Number.isInteger(val) ? val : (val || 0).toFixed(2);
                             return p.axisValue + '<br/><strong>Aufrufe: ' + str + '</strong>';
                         }
@@ -4378,6 +4377,10 @@
                                 var h = v.viewHistory || v.view_history || {};
                                 return s + (parseInt(h[dateStr], 10) || 0);
                             }, 0);
+                        }
+                        // An Tagen ohne Aufrufe nur das Datum anzeigen (kein "Gesamt: 0 Aufrufe")
+                        if (!(displayTotal > 0) && entries.length === 0) {
+                            return firstParam.axisValue;
                         }
                         var totalStr = Number.isInteger(displayTotal) ? displayTotal : displayTotal.toFixed(2);
                         result += '<strong>Gesamt: ' + totalStr + ' Aufrufe</strong>';
