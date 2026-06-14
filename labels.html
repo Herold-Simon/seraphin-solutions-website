@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
+        /* ── Page shell ─────────────────────────────────── */
         .labels-page {
             min-height: 100vh;
             background: var(--light-gray);
@@ -21,7 +22,7 @@
             padding-bottom: 4rem;
         }
         .labels-inner {
-            max-width: 900px;
+            max-width: 1100px;
             margin: 0 auto;
             padding: 0 1.5rem;
         }
@@ -38,309 +39,294 @@
             margin-bottom: 2rem;
         }
 
-        /* Master-Hinweisleiste */
+        /* ── Master bar ─────────────────────────────────── */
         .labels-master-bar {
             display: none;
             align-items: center;
             gap: 0.75rem;
             flex-wrap: wrap;
-            background: rgba(0, 140, 255, 0.06);
-            border: 1px solid rgba(0, 140, 255, 0.2);
+            background: rgba(0,140,255,.06);
+            border: 1px solid rgba(0,140,255,.2);
             border-radius: 10px;
-            padding: 0.85rem 1.25rem;
+            padding: .85rem 1.25rem;
             margin-bottom: 1.5rem;
         }
         .labels-master-bar i { color: var(--primary-blue); font-size: 1.1rem; }
-        .labels-master-bar span { color: var(--text-dark); font-size: 0.95rem; }
+        .labels-master-bar span { color: var(--text-dark); font-size: .95rem; }
         .labels-master-bar a {
-            margin-left: auto;
-            color: var(--primary-blue);
-            font-weight: 600;
-            font-size: 0.9rem;
-            text-decoration: none;
+            margin-left: auto; color: var(--primary-blue);
+            font-weight: 600; font-size: .9rem; text-decoration: none;
         }
         .labels-master-bar a:hover { text-decoration: underline; }
 
-        /* Suchbar */
+        /* ── Alert ─────────────────────────────────────── */
+        .labels-alert {
+            padding: 1rem 1.25rem; border-radius: 8px;
+            margin-bottom: 1.5rem; font-size: .95rem;
+            display: none; align-items: center; gap: .75rem;
+        }
+        .labels-alert-error { background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
+
+        /* ── Search ─────────────────────────────────────── */
         .labels-search {
             position: relative;
             margin-bottom: 1.5rem;
         }
         .labels-search i {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
+            position: absolute; left: 1rem; top: 50%;
             transform: translateY(-50%);
-            color: var(--text-light);
-            font-size: 0.95rem;
+            color: var(--text-light); font-size: .95rem;
+            pointer-events: none;
         }
         .labels-search input {
             width: 100%;
-            padding: 0.8rem 1rem 0.8rem 2.6rem;
-            font-size: 1rem;
+            padding: .85rem 1rem .85rem 2.7rem;
+            font-size: 1rem; font-family: inherit;
             border: 2px solid var(--border-color);
-            border-radius: 10px;
+            border-radius: 12px;
             background: var(--white);
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: border-color .2s, box-shadow .2s;
             box-sizing: border-box;
         }
         .labels-search input:focus {
             outline: none;
             border-color: var(--primary-blue);
-            box-shadow: 0 0 0 3px rgba(0, 140, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(0,140,255,.08);
         }
 
-        .labels-alert {
-            padding: 1rem 1.25rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            font-size: 0.95rem;
-            display: none;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        .labels-alert-error {
-            background: #fef2f2;
-            color: #b91c1c;
-            border: 1px solid #fecaca;
-        }
-
+        /* ── State ──────────────────────────────────────── */
         .labels-state {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: var(--text-light);
-            font-size: 0.95rem;
+            text-align: center; padding: 3rem 1rem;
+            color: var(--text-light); font-size: .95rem;
         }
 
-        .labels-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-        }
-
-        .label-card {
-            background: var(--white);
-            border-radius: 12px;
-            box-shadow: var(--shadow);
-            padding: 1.5rem;
-        }
-        .label-card-head {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1.25rem;
-            flex-wrap: wrap;
-        }
-        .label-card-name {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-dark);
-        }
-        .label-badge {
-            font-size: 0.72rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            padding: 0.2rem 0.55rem;
-            border-radius: 999px;
-        }
-        .label-badge-id {
-            background: var(--light-gray);
-            color: var(--text-light);
-        }
-        .label-badge-floor {
-            background: rgba(16, 185, 129, 0.12);
-            color: #0f9d6b;
-        }
-        .label-badge-override {
-            background: rgba(0, 140, 255, 0.1);
-            color: var(--primary-blue);
-        }
-
-        /* Icon-Bereich (Drag & Drop) */
-        .label-icon-row {
-            display: flex;
-            align-items: center;
+        /* ── Grid of tiles ──────────────────────────────── */
+        .labels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 1rem;
-            padding: 0.9rem 1rem;
-            margin-bottom: 1rem;
-            border: 2px dashed var(--border-color);
-            border-radius: 10px;
-            background: var(--light-gray);
+            align-items: start;
+        }
+
+        /* ── Single tile (collapsed) ─────────────────────── */
+        .label-tile {
+            background: var(--white);
+            border-radius: 14px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.07), 0 2px 10px rgba(0,0,0,.04);
             cursor: pointer;
-            transition: border-color 0.15s, background 0.15s;
-            flex-wrap: wrap;
+            border: 2px solid transparent;
+            transition:
+                border-color .2s,
+                box-shadow .2s,
+                transform .15s;
+            overflow: hidden;
+            /* span is controlled via JS to avoid layout-flash */
         }
-        .label-icon-row:hover {
+        .label-tile:hover:not(.label-tile--open) {
+            border-color: rgba(0,140,255,.25);
+            box-shadow: 0 4px 18px rgba(0,140,255,.1);
+            transform: translateY(-2px);
+        }
+        .label-tile--open {
+            grid-column: 1 / -1;
             border-color: var(--primary-blue);
+            box-shadow: 0 8px 32px rgba(0,140,255,.13);
+            cursor: default;
         }
-        .label-icon-row.dragover {
-            border-color: var(--primary-blue);
-            background: rgba(0, 140, 255, 0.06);
+
+        /* ── Tile collapsed header (always visible) ──────── */
+        .label-tile-header {
+            display: flex;
+            align-items: center;
+            gap: .85rem;
+            padding: .95rem 1rem;
         }
-        .label-icon-preview {
-            width: 56px;
-            height: 56px;
+        .label-tile--open .label-tile-header {
+            padding: 1.1rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+        .label-tile-icon {
+            width: 46px; height: 46px;
             flex-shrink: 0;
             border-radius: 10px;
             border: 1px solid var(--border-color);
             background: var(--light-gray);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             overflow: hidden;
         }
-        .label-icon-preview img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
+        .label-tile-icon img { width: 100%; height: 100%; object-fit: contain; }
+        .label-tile-icon .tile-icon-empty { color: var(--text-light); font-size: 1.1rem; }
+        .label-tile-text { flex: 1; min-width: 0; }
+        .label-tile-name {
+            font-size: .97rem; font-weight: 600;
+            color: var(--text-dark);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .label-icon-preview .label-icon-empty {
-            color: var(--text-light);
-            font-size: 1.2rem;
+        .label-tile-sub {
+            font-size: .82rem; color: var(--text-light);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-top: .1rem;
         }
-        .label-icon-info {
-            flex: 1;
-            min-width: 140px;
+        .label-tile-meta {
+            display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .4rem;
         }
-        .label-icon-info .label-icon-title {
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            color: var(--text-light);
+        .label-tile-badge {
+            font-size: .68rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: .04em;
+            padding: .15rem .45rem; border-radius: 999px;
         }
-        .label-icon-info .label-icon-hint {
-            font-size: 0.8rem;
-            color: var(--text-light);
-            margin-top: 0.15rem;
+        .label-tile-badge--id   { background: var(--light-gray); color: var(--text-light); }
+        .label-tile-badge--floor{ background: rgba(16,185,129,.12); color: #0f9d6b; }
+        .label-tile-badge--mod  { background: rgba(0,140,255,.1); color: var(--primary-blue); }
+        .label-tile-chevron {
+            color: var(--text-light); font-size: .9rem;
+            transition: transform .3s cubic-bezier(.4,0,.2,1);
+            flex-shrink: 0;
         }
-        .label-icon-actions {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        .label-tile--open .label-tile-chevron { transform: rotate(180deg); }
+
+        /* ── Tile expanded editor ────────────────────────── */
+        .label-tile-editor {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows .38s cubic-bezier(.4,0,.2,1);
+        }
+        .label-tile--open .label-tile-editor {
+            grid-template-rows: 1fr;
+        }
+        .label-tile-editor-inner {
+            overflow: hidden;
+        }
+        .label-tile-editor-body {
+            padding: 1.25rem 1.25rem 1.5rem;
+            opacity: 0;
+            transform: translateY(8px);
+            transition:
+                opacity .28s .06s cubic-bezier(.4,0,.2,1),
+                transform .28s .06s cubic-bezier(.4,0,.2,1);
+        }
+        .label-tile--open .label-tile-editor-body {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ── Icon dropzone ──────────────────────────────── */
+        .label-icon-dropzone {
+            display: flex; align-items: center; gap: .9rem;
+            padding: .85rem 1rem;
+            margin-bottom: 1.25rem;
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            background: var(--light-gray);
+            cursor: pointer;
+            transition: border-color .15s, background .15s;
             flex-wrap: wrap;
         }
-        .label-icon-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.5rem 0.9rem;
-            font-size: 0.85rem;
-            font-weight: 600;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background: var(--white);
-            color: var(--text-dark);
-            cursor: pointer;
-            transition: border-color 0.15s, background 0.15s;
+        .label-icon-dropzone:hover, .label-icon-dropzone.dragover {
+            border-color: var(--primary-blue);
+            background: rgba(0,140,255,.05);
         }
-        .label-icon-btn:hover { border-color: var(--primary-blue); color: var(--primary-blue); }
-        .label-icon-btn.danger:hover { border-color: #dc3545; color: #dc3545; }
-        .label-icon-status { font-size: 0.85rem; color: var(--text-light); }
+        .label-icon-dropzone-preview {
+            width: 52px; height: 52px; flex-shrink: 0;
+            border-radius: 10px; border: 1px solid var(--border-color);
+            background: var(--white);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        .label-icon-dropzone-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .label-icon-dropzone-preview .dz-empty { color: var(--text-light); font-size: 1.1rem; }
+        .label-icon-dropzone-info { flex: 1; min-width: 120px; }
+        .label-icon-dropzone-title {
+            font-size: .78rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: .04em; color: var(--text-light);
+        }
+        .label-icon-dropzone-hint { font-size: .78rem; color: var(--text-light); margin-top: .1rem; }
+        .label-icon-status { font-size: .82rem; color: var(--text-light); margin-top: .15rem; }
         .label-icon-status.ok { color: #16a34a; }
         .label-icon-status.err { color: #b91c1c; }
 
-        .label-lang-row {
+        /* ── Language rows ──────────────────────────────── */
+        .label-langs-section { display: flex; flex-direction: column; gap: .9rem; }
+        .label-lang-block {
+            border: 1px solid var(--border-color);
+            border-radius: 10px; overflow: hidden;
+        }
+        .label-lang-head {
+            display: flex; align-items: center; gap: .6rem;
+            padding: .55rem .9rem;
+            background: var(--light-gray);
+            font-size: .82rem; font-weight: 600; color: var(--text-dark);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .label-lang-fields {
             display: grid;
-            grid-template-columns: 120px 1fr 1fr;
-            gap: 0.75rem;
-            align-items: center;
-            margin-bottom: 0.75rem;
+            grid-template-columns: 1fr 1fr;
+            gap: .75rem;
+            padding: .75rem .9rem;
         }
-        .label-lang-tag {
-            font-weight: 600;
-            color: var(--text-light);
-            font-size: 0.85rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .label-lang-field label {
+            display: block; font-size: .72rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: .04em;
+            color: var(--text-light); margin-bottom: .3rem;
         }
-        .label-card input {
-            width: 100%;
-            padding: 0.6rem 0.8rem;
-            font-size: 0.95rem;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--white);
-            box-sizing: border-box;
-            transition: border-color 0.2s, box-shadow 0.2s;
+        .label-lang-field input {
+            width: 100%; padding: .55rem .75rem;
+            font-size: .92rem; font-family: inherit;
+            border: 2px solid var(--border-color); border-radius: 8px;
+            background: var(--white); box-sizing: border-box;
+            transition: border-color .2s, box-shadow .2s;
         }
-        .label-card input:focus {
-            outline: none;
-            border-color: var(--primary-blue);
-            box-shadow: 0 0 0 3px rgba(0, 140, 255, 0.08);
-        }
-        .label-field-head {
-            display: grid;
-            grid-template-columns: 120px 1fr 1fr;
-            gap: 0.75rem;
-            margin-bottom: 0.4rem;
-        }
-        .label-field-head span {
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            color: var(--text-light);
+        .label-lang-field input:focus {
+            outline: none; border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(0,140,255,.08);
         }
 
-        .label-card-foot {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+        /* ── Save row ───────────────────────────────────── */
+        .label-save-row {
+            display: flex; align-items: center; gap: 1rem;
             margin-top: 1.25rem;
         }
         .label-save-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            padding: 0.65rem 1.5rem;
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #fff;
-            background: var(--gradient-primary);
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-flex; align-items: center; gap: .45rem;
+            padding: .6rem 1.5rem; font-size: .92rem; font-weight: 600;
+            color: #fff; background: var(--gradient-primary);
+            border: none; border-radius: 9px; cursor: pointer;
+            transition: transform .2s, box-shadow .2s;
+            font-family: inherit;
         }
         .label-save-btn:hover:not(:disabled) {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 140, 255, 0.25);
+            box-shadow: 0 4px 12px rgba(0,140,255,.28);
         }
-        .label-save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .label-save-status { font-size: 0.9rem; color: var(--text-light); }
+        .label-save-btn:disabled { opacity: .6; cursor: not-allowed; }
+        .label-save-status { font-size: .88rem; color: var(--text-light); }
         .label-save-status.ok { color: #16a34a; }
         .label-save-status.err { color: #b91c1c; }
 
+        /* ── Spinner ────────────────────────────────────── */
         .label-spinner {
-            width: 16px; height: 16px;
+            width: 14px; height: 14px;
             border: 2px solid currentColor;
             border-top-color: transparent;
             border-radius: 50%;
-            animation: label-spin 0.8s linear infinite;
+            animation: lbl-spin .8s linear infinite; display: inline-block;
         }
-        @keyframes label-spin { to { transform: rotate(360deg); } }
+        @keyframes lbl-spin { to { transform: rotate(360deg); } }
 
+        /* ── Responsive ─────────────────────────────────── */
         @media (min-width: 1024px) {
             .labels-page { padding-top: 6rem; padding-bottom: 5rem; }
             .labels-inner { padding: 0 2rem; }
             .labels-title { font-size: 2.25rem; }
             .labels-subtitle { font-size: 1.05rem; margin-bottom: 2.5rem; }
         }
-
-        @media (max-width: 768px) {
+        @media (max-width: 640px) {
             .labels-page { padding-top: 70px; }
             .labels-inner { padding: 0 1rem; }
             .labels-title { font-size: 1.5rem; }
-            .label-lang-row, .label-field-head {
-                grid-template-columns: 1fr;
-                gap: 0.4rem;
-            }
-            .label-field-head { display: none; }
-            .label-lang-tag { margin-top: 0.25rem; }
+            .labels-grid { grid-template-columns: 1fr; }
+            .label-lang-fields { grid-template-columns: 1fr; }
             .labels-master-bar a { margin-left: 0; }
         }
     </style>
@@ -395,7 +381,7 @@
 
             <div id="labelsLoading" class="labels-state">Lade Beschriftungen…</div>
             <div id="labelsEmpty" class="labels-state" style="display: none;">Keine verknüpften Beschriftungen gefunden.</div>
-            <div id="labelsList" class="labels-list"></div>
+            <div id="labelsGrid" class="labels-grid"></div>
         </div>
     </main>
 
@@ -453,316 +439,396 @@
     </footer>
 
     <script>
-        let allLabels = [];
+        'use strict';
 
-        document.addEventListener('DOMContentLoaded', async function() {
+        // CSS.escape polyfill für ältere Webviews
+        if (!window.CSS || !CSS.escape) { CSS = window.CSS || {}; CSS.escape = s => s.replace(/[^\w-]/g,'\\$&'); }
+
+        let allLabels = [];
+        let openTileId = null; // currently expanded tile key
+
+        // ── Init ───────────────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', async () => {
             await checkSession();
             await loadLabels();
-            const search = document.getElementById('labelSearch');
-            if (search) search.addEventListener('input', () => renderLabels(search.value));
 
-            // Verhindern, dass ein neben dem Feld fallengelassenes Bild die Seite ersetzt
+            const search = document.getElementById('labelSearch');
+            if (search) {
+                search.addEventListener('input', () => renderLabels(search.value));
+                search.addEventListener('keydown', e => {
+                    if (e.key === 'Escape') { search.value = ''; renderLabels(''); }
+                });
+            }
+
+            // Prevent browser from opening dropped images on the page
             ['dragover', 'drop'].forEach(evt => {
-                window.addEventListener(evt, (e) => {
-                    if (!e.target.closest || !e.target.closest('.js-icon-dropzone')) {
-                        e.preventDefault();
-                    }
+                window.addEventListener(evt, e => {
+                    if (!e.target.closest || !e.target.closest('.js-dz')) e.preventDefault();
                 });
             });
         });
 
-        function escapeHtml(str) {
+        // ── Utilities ──────────────────────────────────────────────────────
+        function esc(str) {
             return String(str == null ? '' : str)
-                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
         }
 
+        function tileKey(label) {
+            return label.route_id || (label.floor_id + '_' + label.label_id);
+        }
+
+        // ── Session ────────────────────────────────────────────────────────
         async function checkSession() {
             try {
-                const res = await fetch('/api/auth/session', { method: 'GET', credentials: 'include' });
-                if (res.status === 401) {
-                    window.location.href = 'login.html';
-                    return;
-                }
+                const res = await fetch('/api/auth/session', { credentials: 'include' });
+                if (res.status === 401) { window.location.href = 'login.html'; return; }
                 const data = await res.json();
                 if (!data || !data.success) return;
                 if (data.user && data.user.is_master) {
                     const acting = data.acting_account;
                     if (acting && acting.id) {
-                        const bar = document.getElementById('masterBar');
-                        const name = document.getElementById('masterBarName');
-                        if (name) name.textContent = acting.username || '—';
-                        if (bar) bar.style.display = 'flex';
+                        document.getElementById('masterBarName').textContent = acting.username || '—';
+                        document.getElementById('masterBar').style.display = 'flex';
                     } else {
                         showError('Bitte wählen Sie zuerst im Dashboard ein Konto aus, um dessen Beschriftungen zu bearbeiten.');
                     }
                 }
-            } catch (e) {
-                console.error('Session-Check Fehler:', e);
-            }
+            } catch(e) { console.error('Session-Check:', e); }
         }
 
+        // ── Load ───────────────────────────────────────────────────────────
         async function loadLabels() {
             const loading = document.getElementById('labelsLoading');
-            const empty = document.getElementById('labelsEmpty');
-            const list = document.getElementById('labelsList');
+            const empty   = document.getElementById('labelsEmpty');
+            const grid    = document.getElementById('labelsGrid');
             loading.style.display = 'block';
-            empty.style.display = 'none';
-            list.innerHTML = '';
+            empty.style.display   = 'none';
+            grid.innerHTML = '';
             try {
-                const res = await fetch('/api/labels/list', { method: 'GET', credentials: 'include' });
+                const res  = await fetch('/api/labels/list', { credentials: 'include' });
                 if (res.status === 401) { window.location.href = 'login.html'; return; }
                 const data = await res.json();
                 loading.style.display = 'none';
                 allLabels = (data.success && Array.isArray(data.labels)) ? data.labels : [];
                 renderLabels('');
-            } catch (e) {
-                loading.style.display = 'none';
-                console.error('Labels laden Fehler:', e);
+            } catch(e) {
+                document.getElementById('labelsLoading').style.display = 'none';
+                console.error('Labels laden:', e);
                 showError('Beschriftungen konnten nicht geladen werden.');
             }
         }
 
+        // ── Filter ─────────────────────────────────────────────────────────
         function labelMatchesQuery(label, q) {
             if (!q) return true;
             if (String(label.label_id).toLowerCase().includes(q)) return true;
             if (String(label.floor_name || '').toLowerCase().includes(q)) return true;
-            const langs = label.languages || {};
-            return Object.keys(langs).some(lang => {
-                const l = langs[lang] || {};
-                return (l.title || '').toLowerCase().includes(q)
-                    || (l.subtitle || '').toLowerCase().includes(q);
-            });
+            return Object.values(label.languages || {}).some(l =>
+                (l.title||'').toLowerCase().includes(q) ||
+                (l.subtitle||'').toLowerCase().includes(q)
+            );
         }
 
+        // ── Render grid ────────────────────────────────────────────────────
         function renderLabels(filter) {
             const empty = document.getElementById('labelsEmpty');
-            const list = document.getElementById('labelsList');
+            const grid  = document.getElementById('labelsGrid');
             const q = (filter || '').trim().toLowerCase();
-            list.innerHTML = '';
+            grid.innerHTML = '';
 
             if (allLabels.length === 0) {
                 empty.textContent = 'Keine verknüpften Beschriftungen gefunden.';
-                empty.style.display = 'block';
-                return;
+                empty.style.display = 'block'; return;
             }
             const filtered = allLabels.filter(l => labelMatchesQuery(l, q));
             if (filtered.length === 0) {
-                empty.textContent = 'Keine Beschriftung passt zu Ihrer Suche.';
-                empty.style.display = 'block';
-                return;
+                empty.textContent = 'Keine Beschriftung passt zur Suche.';
+                empty.style.display = 'block'; return;
             }
             empty.style.display = 'none';
-            filtered.forEach(label => list.appendChild(renderLabelCard(label)));
+            // Keep open tile open if still in filtered set
+            if (openTileId && !filtered.find(l => tileKey(l) === openTileId)) {
+                openTileId = null;
+            }
+            filtered.forEach(label => grid.appendChild(buildTile(label)));
         }
 
-        function renderLabelCard(label) {
-            const card = document.createElement('div');
-            card.className = 'label-card';
-            const langs = Object.keys(label.languages || {});
+        // ── Build tile ─────────────────────────────────────────────────────
+        function buildTile(label) {
+            const langs     = Object.keys(label.languages || {});
             const firstLang = langs[0];
-            const headerTitle = (firstLang && label.languages[firstLang] && label.languages[firstLang].title) || ('Beschriftung ' + label.label_id);
+            const fl        = (firstLang && label.languages[firstLang]) || {};
+            const title     = fl.title || ('Beschriftung ' + label.label_id);
+            const subtitle  = fl.subtitle || '';
+            const key       = tileKey(label);
+            const isOpen    = openTileId === key;
 
-            let html = `<div class="label-card-head">
-                <span class="label-card-name">${escapeHtml(headerTitle)}</span>
-                ${label.floor_name ? `<span class="label-badge label-badge-floor">${escapeHtml(label.floor_name)}</span>` : ''}
-                <span class="label-badge label-badge-id">ID: ${escapeHtml(label.label_id)}</span>
-                ${label.has_override ? '<span class="label-badge label-badge-override">Angepasst</span>' : ''}
-            </div>`;
+            // ── Icon HTML helper
+            const iconHtml = (src) => src
+                ? `<img src="${esc(src)}" alt="Icon">`
+                : `<i class="fas fa-image tile-icon-empty"></i>`;
 
-            // Icon der verknüpften Wegbeschreibung
-            const iconPreview = label.icon
-                ? `<img src="${escapeHtml(label.icon)}" alt="Icon">`
-                : `<i class="fas fa-image label-icon-empty" title="Kein Icon"></i>`;
-            html += `<div class="label-icon-row js-icon-dropzone" title="Bild hierher ziehen oder klicken">
-                <div class="label-icon-preview js-icon-preview">${iconPreview}</div>
-                <div class="label-icon-info">
-                    <div class="label-icon-title"><i class="fas fa-cloud-arrow-up"></i> Icon</div>
-                    <div class="label-icon-hint">Bild hierher ziehen oder klicken zum Auswählen (PNG/JPG). Wird auf allen Geräten übernommen.</div>
+            // ── Collapsed header (always visible)
+            const tile = document.createElement('div');
+            tile.className = 'label-tile' + (isOpen ? ' label-tile--open' : '');
+            tile.dataset.key = key;
+
+            tile.innerHTML = `
+                <div class="label-tile-header">
+                    <div class="label-tile-icon js-tile-icon-thumb">${iconHtml(label.icon)}</div>
+                    <div class="label-tile-text">
+                        <div class="label-tile-name">${esc(title)}</div>
+                        ${subtitle ? `<div class="label-tile-sub">${esc(subtitle)}</div>` : ''}
+                        <div class="label-tile-meta">
+                            ${label.floor_name ? `<span class="label-tile-badge label-tile-badge--floor">${esc(label.floor_name)}</span>` : ''}
+                            <span class="label-tile-badge label-tile-badge--id">ID ${esc(label.label_id)}</span>
+                            ${label.has_override ? '<span class="label-tile-badge label-tile-badge--mod">Angepasst</span>' : ''}
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-down label-tile-chevron"></i>
                 </div>
-                <div class="label-icon-actions">
-                    <input type="file" accept="image/*" class="js-icon-file" style="display:none;">
-                    <span class="label-icon-status js-icon-status"></span>
-                </div>
-            </div>`;
 
-            html += `<div class="label-field-head"><span></span><span>Titel</span><span>Untertitel</span></div>`;
+                <!-- Expandable editor -->
+                <div class="label-tile-editor">
+                    <div class="label-tile-editor-inner">
+                        <div class="label-tile-editor-body">
+                            <!-- Icon dropzone -->
+                            <div class="label-icon-dropzone js-dz" title="Bild hierher ziehen oder klicken">
+                                <div class="label-icon-dropzone-preview js-dz-preview">${iconHtml(label.icon)}</div>
+                                <div class="label-icon-dropzone-info">
+                                    <div class="label-icon-dropzone-title"><i class="fas fa-cloud-arrow-up"></i> Icon</div>
+                                    <div class="label-icon-dropzone-hint">Hierher ziehen oder klicken (PNG/JPG, max. 1,5 MB)</div>
+                                    <div class="label-icon-status js-dz-status"></div>
+                                </div>
+                                <input type="file" accept="image/*" class="js-dz-file" style="display:none">
+                            </div>
 
-            langs.forEach(lang => {
-                const l = label.languages[lang] || {};
-                html += `
-                <div class="label-lang-row">
-                    <span class="label-lang-tag">${escapeHtml(lang)}</span>
-                    <input type="text" data-lang="${escapeHtml(lang)}" data-field="title" value="${escapeHtml(l.title || '')}" placeholder="Titel">
-                    <input type="text" data-lang="${escapeHtml(lang)}" data-field="subtitle" value="${escapeHtml(l.subtitle || '')}" placeholder="Untertitel">
+                            <!-- Language fields -->
+                            <div class="label-langs-section">
+                                ${langs.map(lang => {
+                                    const l = label.languages[lang] || {};
+                                    return `<div class="label-lang-block">
+                                        <div class="label-lang-head">
+                                            <i class="fas fa-language"></i> ${esc(lang)}
+                                        </div>
+                                        <div class="label-lang-fields">
+                                            <div class="label-lang-field">
+                                                <label>Titel</label>
+                                                <input type="text" data-lang="${esc(lang)}" data-field="title"
+                                                    value="${esc(l.title||'')}" placeholder="Titel">
+                                            </div>
+                                            <div class="label-lang-field">
+                                                <label>Untertitel</label>
+                                                <input type="text" data-lang="${esc(lang)}" data-field="subtitle"
+                                                    value="${esc(l.subtitle||'')}" placeholder="Untertitel">
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                }).join('')}
+                            </div>
+
+                            <!-- Save -->
+                            <div class="label-save-row">
+                                <button class="label-save-btn js-save" type="button">Speichern</button>
+                                <span class="label-save-status js-save-status"></span>
+                            </div>
+                        </div>
+                    </div>
                 </div>`;
+
+            // ── Toggle expand/collapse
+            const header = tile.querySelector('.label-tile-header');
+            header.addEventListener('click', () => toggleTile(tile, label, key));
+
+            // ── Icon dropzone wiring
+            wireDragDrop(tile, label);
+
+            // ── Save button
+            tile.querySelector('.js-save').addEventListener('click', (e) => {
+                e.stopPropagation();
+                saveTile(tile, label);
             });
 
-            html += `<div class="label-card-foot">
-                <button class="label-save-btn" type="button">Speichern</button>
-                <span class="label-save-status"></span>
-            </div>`;
-            card.innerHTML = html;
+            return tile;
+        }
 
-            // ===== Icon-Verwaltung (Drag & Drop) =====
-            const dropzone = card.querySelector('.js-icon-dropzone');
-            const iconPreviewEl = card.querySelector('.js-icon-preview');
-            const iconFileEl = card.querySelector('.js-icon-file');
-            const iconStatus = card.querySelector('.js-icon-status');
+        // ── Toggle tile open/closed ─────────────────────────────────────────
+        function toggleTile(tile, label, key) {
+            const grid = document.getElementById('labelsGrid');
+            const wasOpen = tile.classList.contains('label-tile--open');
 
-            // Noch nicht gespeichertes Icon (Base64). undefined = keine Änderung.
+            // Close currently open tile (if different)
+            if (openTileId && openTileId !== key) {
+                const prev = grid.querySelector(`.label-tile[data-key="${CSS.escape(openTileId)}"]`);
+                if (prev) prev.classList.remove('label-tile--open');
+            }
+
+            if (wasOpen) {
+                tile.classList.remove('label-tile--open');
+                openTileId = null;
+            } else {
+                tile.classList.add('label-tile--open');
+                openTileId = key;
+                // Scroll into view after animation starts
+                setTimeout(() => tile.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 60);
+            }
+        }
+
+        // ── Drag & Drop icon ───────────────────────────────────────────────
+        function wireDragDrop(tile, label) {
+            const dz       = tile.querySelector('.js-dz');
+            const preview  = tile.querySelector('.js-dz-preview');
+            const fileIn   = tile.querySelector('.js-dz-file');
+            const status   = tile.querySelector('.js-dz-status');
+            const thumbEl  = tile.querySelector('.js-tile-icon-thumb');
             let pendingIcon;
 
-            const setIconStatus = (cls, text) => {
-                iconStatus.className = 'label-icon-status' + (cls ? ' ' + cls : '');
-                iconStatus.innerHTML = text;
-            };
-            const renderIconPreview = (src) => {
-                const value = (src !== undefined) ? src : label.icon;
-                iconPreviewEl.innerHTML = value
-                    ? `<img src="${escapeHtml(value)}" alt="Icon">`
-                    : '<i class="fas fa-image label-icon-empty"></i>';
+            const iconHtml = (src) => src
+                ? `<img src="${esc(src)}" alt="Icon">`
+                : `<i class="fas fa-image dz-empty"></i>`;
+
+            const setStatus = (cls, txt) => {
+                status.className = 'label-icon-status' + (cls ? ' ' + cls : '');
+                status.innerHTML = txt;
             };
 
-            // Datei (Bild) nur vormerken + Vorschau zeigen; Speichern erst per Button
-            const handleFile = (file) => {
+            const handleFile = file => {
                 if (!file) return;
-                if (!file.type || !file.type.startsWith('image/')) {
-                    setIconStatus('err', 'Bitte eine Bilddatei wählen.');
-                    return;
-                }
-                if (file.size > 1_500_000) {
-                    setIconStatus('err', 'Bild zu groß (max. 1,5 MB).');
-                    return;
-                }
+                if (!file.type || !file.type.startsWith('image/')) { setStatus('err','Bitte eine Bilddatei wählen.'); return; }
+                if (file.size > 1_500_000) { setStatus('err','Bild zu groß (max. 1,5 MB).'); return; }
                 const reader = new FileReader();
                 reader.onload = () => {
                     pendingIcon = String(reader.result);
-                    renderIconPreview(pendingIcon);
-                    setIconStatus('', 'Wird beim Speichern übernommen');
+                    preview.innerHTML = iconHtml(pendingIcon);
+                    thumbEl.innerHTML = iconHtml(pendingIcon);
+                    setStatus('', 'Wird beim Speichern übernommen');
                 };
-                reader.onerror = () => setIconStatus('err', 'Datei konnte nicht gelesen werden.');
+                reader.onerror = () => setStatus('err','Datei konnte nicht gelesen werden.');
                 reader.readAsDataURL(file);
             };
 
-            const saveBtn = card.querySelector('.label-save-btn');
-            const status = card.querySelector('.label-save-status');
-            saveBtn.onclick = async () => {
-                const per_language = {};
-                card.querySelectorAll('input[data-lang]').forEach(inp => {
-                    const lang = inp.getAttribute('data-lang');
-                    const field = inp.getAttribute('data-field');
-                    if (!per_language[lang]) per_language[lang] = { title: '', subtitle: '' };
-                    per_language[lang][field] = inp.value;
-                });
-                status.className = 'label-save-status';
-                status.textContent = '';
-                saveBtn.disabled = true;
-                saveBtn.innerHTML = '<span class="label-spinner"></span> Speichern…';
-                try {
-                    const res = await fetch('/api/labels/update', {
-                        method: 'POST', credentials: 'include',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ route_id: label.route_id, floor_id: label.floor_id, label_id: label.label_id, per_language })
-                    });
-                    const data = await res.json();
-                    if (!res.ok || !data.success) {
-                        status.className = 'label-save-status err';
-                        status.textContent = data.error || 'Fehler beim Speichern';
-                        return;
-                    }
-
-                    // Icon mitspeichern, falls eines vorgemerkt wurde
-                    if (pendingIcon !== undefined) {
-                        const iconRes = await fetch('/api/labels/update-icon', {
-                            method: 'POST', credentials: 'include',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ route_id: label.route_id, floor_id: label.floor_id, label_id: label.label_id, icon: pendingIcon })
-                        });
-                        const iconData = await iconRes.json();
-                        if (!iconRes.ok || !iconData.success) {
-                            status.className = 'label-save-status err';
-                            status.textContent = (iconData && iconData.error) || 'Fehler beim Speichern des Icons';
-                            return;
-                        }
-                        label.icon = pendingIcon;
-                        label.has_icon_override = true;
-                        pendingIcon = undefined;
-                        setIconStatus('', '');
-                    }
-
-                    status.className = 'label-save-status ok';
-                    status.innerHTML = '<i class="fas fa-check"></i> Gespeichert';
-                    label.languages = mergeLangs(label.languages, per_language);
-                    label.has_override = true;
-                    const badgeHead = card.querySelector('.label-card-head');
-                    if (badgeHead && !badgeHead.querySelector('.label-badge-override')) {
-                        const b = document.createElement('span');
-                        b.className = 'label-badge label-badge-override';
-                        b.textContent = 'Angepasst';
-                        badgeHead.appendChild(b);
-                    }
-                } catch (e) {
-                    status.className = 'label-save-status err';
-                    status.textContent = 'Verbindungsfehler';
-                } finally {
-                    saveBtn.disabled = false;
-                    saveBtn.innerHTML = 'Speichern';
-                }
-            };
-
-            // Klick auf das Feld öffnet den Dateidialog
-            dropzone.onclick = () => iconFileEl.click();
-            iconFileEl.onchange = () => {
-                handleFile(iconFileEl.files && iconFileEl.files[0]);
-                iconFileEl.value = '';
-            };
-
-            // Drag & Drop
-            ['dragenter', 'dragover'].forEach(evt => {
-                dropzone.addEventListener(evt, (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    dropzone.classList.add('dragover');
-                });
-            });
-            ['dragleave', 'dragend'].forEach(evt => {
-                dropzone.addEventListener(evt, (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    dropzone.classList.remove('dragover');
-                });
-            });
-            dropzone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                dropzone.classList.remove('dragover');
-                const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-                handleFile(file);
+            dz.addEventListener('click', () => fileIn.click());
+            fileIn.addEventListener('change', () => { handleFile(fileIn.files?.[0]); fileIn.value = ''; });
+            ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); dz.classList.add('dragover'); }));
+            ['dragleave','dragend'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); dz.classList.remove('dragover'); }));
+            dz.addEventListener('drop', e => {
+                e.preventDefault(); e.stopPropagation(); dz.classList.remove('dragover');
+                handleFile(e.dataTransfer?.files?.[0]);
             });
 
-            return card;
+            // expose to saveTile
+            dz._getPendingIcon = () => pendingIcon;
+            dz._clearPendingIcon = () => { pendingIcon = undefined; };
         }
 
+        // ── Save tile ──────────────────────────────────────────────────────
+        async function saveTile(tile, label) {
+            const saveBtn  = tile.querySelector('.js-save');
+            const statusEl = tile.querySelector('.js-save-status');
+            const dz       = tile.querySelector('.js-dz');
+
+            const per_language = {};
+            tile.querySelectorAll('input[data-lang]').forEach(inp => {
+                const lang  = inp.getAttribute('data-lang');
+                const field = inp.getAttribute('data-field');
+                if (!per_language[lang]) per_language[lang] = { title: '', subtitle: '' };
+                per_language[lang][field] = inp.value;
+            });
+
+            statusEl.className = 'label-save-status';
+            statusEl.textContent = '';
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="label-spinner"></span> Speichern…';
+
+            try {
+                const res = await fetch('/api/labels/update', {
+                    method: 'POST', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ route_id: label.route_id, floor_id: label.floor_id, label_id: label.label_id, per_language })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    statusEl.className = 'label-save-status err';
+                    statusEl.textContent = data.error || 'Fehler beim Speichern';
+                    return;
+                }
+
+                // Icon mitspeichern
+                const pendingIcon = dz._getPendingIcon?.();
+                if (pendingIcon !== undefined) {
+                    const iconRes = await fetch('/api/labels/update-icon', {
+                        method: 'POST', credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ route_id: label.route_id, floor_id: label.floor_id, label_id: label.label_id, icon: pendingIcon })
+                    });
+                    const iconData = await iconRes.json();
+                    if (!iconRes.ok || !iconData.success) {
+                        statusEl.className = 'label-save-status err';
+                        statusEl.textContent = (iconData && iconData.error) || 'Fehler beim Speichern des Icons';
+                        return;
+                    }
+                    label.icon = pendingIcon;
+                    dz._clearPendingIcon?.();
+                    tile.querySelector('.js-dz-status').className = 'label-icon-status';
+                    tile.querySelector('.js-dz-status').textContent = '';
+                }
+
+                // Update in-memory label
+                label.languages = mergeLangs(label.languages, per_language);
+                label.has_override = true;
+
+                // Update tile header text
+                const langs = Object.keys(label.languages || {});
+                const fl    = (langs[0] && label.languages[langs[0]]) || {};
+                tile.querySelector('.label-tile-name').textContent = fl.title || ('Beschriftung ' + label.label_id);
+                const sub = tile.querySelector('.label-tile-sub');
+                if (sub) sub.textContent = fl.subtitle || '';
+                else if (fl.subtitle) {
+                    const nameEl = tile.querySelector('.label-tile-name');
+                    const s = document.createElement('div');
+                    s.className = 'label-tile-sub';
+                    s.textContent = fl.subtitle;
+                    nameEl.after(s);
+                }
+
+                // Add "Angepasst" badge if missing
+                const meta = tile.querySelector('.label-tile-meta');
+                if (meta && !meta.querySelector('.label-tile-badge--mod')) {
+                    const b = document.createElement('span');
+                    b.className = 'label-tile-badge label-tile-badge--mod';
+                    b.textContent = 'Angepasst';
+                    meta.appendChild(b);
+                }
+
+                statusEl.className = 'label-save-status ok';
+                statusEl.innerHTML = '<i class="fas fa-check"></i> Gespeichert';
+            } catch(e) {
+                statusEl.className = 'label-save-status err';
+                statusEl.textContent = 'Verbindungsfehler';
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = 'Speichern';
+            }
+        }
+
+        // ── Helpers ────────────────────────────────────────────────────────
         function mergeLangs(base, updates) {
             const out = Object.assign({}, base);
-            Object.keys(updates || {}).forEach(lang => {
-                out[lang] = Object.assign({}, out[lang], updates[lang]);
-            });
+            Object.keys(updates || {}).forEach(lang => { out[lang] = Object.assign({}, out[lang], updates[lang]); });
             return out;
         }
 
         function showError(message) {
             const el = document.getElementById('errorAlert');
             if (!el) return;
-            el.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${escapeHtml(message)}`;
+            el.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${esc(message)}`;
             el.style.display = 'flex';
         }
 
         async function logout() {
-            try {
-                await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
-            } catch (_) {}
+            try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }); } catch(_) {}
             window.location.href = 'login.html';
         }
     </script>
