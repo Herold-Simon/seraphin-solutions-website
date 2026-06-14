@@ -108,30 +108,53 @@
             align-items: start;
         }
 
+        /* ── Brand gradient (Blau → Grün, wie auf der Website) ── */
+        :root {
+            --brand-blue:  #008CFF;
+            --brand-green: #32A71A;
+            --brand-grad:  linear-gradient(135deg, #008CFF 0%, #32A71A 100%);
+        }
+
         /* ── Single tile (collapsed) ─────────────────────── */
         .label-tile {
             background: var(--white);
             border-radius: 14px;
             box-shadow: 0 1px 4px rgba(0,0,0,.07), 0 2px 10px rgba(0,0,0,.04);
             cursor: pointer;
+            /* gradient border via outline trick */
             border: 2px solid transparent;
+            background-clip: padding-box;
             transition:
-                border-color .2s,
                 box-shadow .2s,
                 transform .15s;
             overflow: hidden;
-            /* span is controlled via JS to avoid layout-flash */
+            position: relative;
         }
+        /* Subtiler Hover-Ring */
         .label-tile:hover:not(.label-tile--open) {
-            border-color: rgba(0,140,255,.25);
             box-shadow: 0 4px 18px rgba(0,140,255,.1);
             transform: translateY(-2px);
+            border-color: rgba(0,140,255,.22);
         }
+        /* Geöffnete Tile: Gradient-Rand über Pseudo-Element */
         .label-tile--open {
             grid-column: 1 / -1;
-            border-color: var(--primary-blue);
-            box-shadow: 0 8px 32px rgba(0,140,255,.13);
             cursor: default;
+            border-color: transparent;
+            box-shadow: 0 6px 28px rgba(0,100,200,.1);
+        }
+        .label-tile--open::before {
+            content: '';
+            position: absolute; inset: 0;
+            border-radius: 14px;
+            padding: 2px;
+            background: var(--brand-grad);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box,
+                          linear-gradient(#fff 0 0);
+            -webkit-mask-composite: destination-out;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 0;
         }
 
         /* ── Tile collapsed header (always visible) ──────── */
@@ -143,8 +166,15 @@
         }
         .label-tile--open .label-tile-header {
             padding: 1.1rem 1.25rem;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: none;
             cursor: pointer;
+            /* Gradient-Trennlinie unten */
+            box-shadow: 0 1px 0 0 transparent;
+            background-image: linear-gradient(var(--white), var(--white)),
+                              var(--brand-grad);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            border-bottom: 2px solid transparent;
         }
         .label-tile-icon {
             width: 46px; height: 46px;
@@ -214,72 +244,87 @@
         /* ── Icon dropzone ──────────────────────────────── */
         .label-icon-dropzone {
             display: flex; align-items: center; gap: .9rem;
-            padding: .85rem 1rem;
+            padding: .9rem 1.1rem;
             margin-bottom: 1.25rem;
-            border: 2px dashed var(--border-color);
-            border-radius: 10px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
             background: var(--light-gray);
             cursor: pointer;
             transition: border-color .15s, background .15s;
-            flex-wrap: wrap;
         }
         .label-icon-dropzone:hover, .label-icon-dropzone.dragover {
-            border-color: var(--primary-blue);
-            background: rgba(0,140,255,.05);
+            border-color: var(--brand-blue);
+            background: rgba(0,140,255,.04);
         }
-        .label-icon-dropzone-preview {
-            width: 52px; height: 52px; flex-shrink: 0;
-            border-radius: 10px; border: 1px solid var(--border-color);
-            background: var(--white);
-            display: flex; align-items: center; justify-content: center;
-            overflow: hidden;
-        }
-        .label-icon-dropzone-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .label-icon-dropzone-preview .dz-empty { color: var(--text-light); font-size: 1.1rem; }
-        .label-icon-dropzone-info { flex: 1; min-width: 120px; }
+        /* Icon-Vorschau-Thumbnail in der Dropzone wird ausgeblendet */
+        .label-icon-dropzone-preview { display: none; }
+        .label-icon-dropzone-info { flex: 1; min-width: 0; }
         .label-icon-dropzone-title {
-            font-size: .78rem; font-weight: 600;
-            text-transform: uppercase; letter-spacing: .04em; color: var(--text-light);
+            font-size: .8rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: .05em;
+            color: var(--text-light);
+            display: flex; align-items: center; gap: .4rem;
         }
-        .label-icon-dropzone-hint { font-size: .78rem; color: var(--text-light); margin-top: .1rem; }
-        .label-icon-status { font-size: .82rem; color: var(--text-light); margin-top: .15rem; }
+        .label-icon-dropzone-hint { font-size: .78rem; color: var(--text-light); margin-top: .15rem; }
+        /* Pendend-Vorschau rechts (nur sichtbar wenn Bild gewählt) */
+        .label-dz-thumb-right {
+            width: 44px; height: 44px; flex-shrink: 0;
+            border-radius: 9px; border: 1px solid var(--border-color);
+            background: var(--white); overflow: hidden;
+            display: none; align-items: center; justify-content: center;
+        }
+        .label-dz-thumb-right.visible { display: flex; }
+        .label-dz-thumb-right img { width: 100%; height: 100%; object-fit: contain; }
+        .label-icon-status { font-size: .8rem; color: var(--text-light); margin-top: .18rem; }
         .label-icon-status.ok { color: #16a34a; }
         .label-icon-status.err { color: #b91c1c; }
 
         /* ── Language rows ──────────────────────────────── */
-        .label-langs-section { display: flex; flex-direction: column; gap: .9rem; }
+        .label-langs-section { display: flex; flex-direction: column; gap: .75rem; }
         .label-lang-block {
-            border: 1px solid var(--border-color);
-            border-radius: 10px; overflow: hidden;
+            border-radius: 12px;
+            background: var(--light-gray);
+            /* Linker Gradient-Akzentstreifen */
+            border-left: 3px solid transparent;
+            background-image: linear-gradient(var(--light-gray), var(--light-gray)),
+                              var(--brand-grad);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            overflow: hidden;
         }
         .label-lang-head {
-            display: flex; align-items: center; gap: .6rem;
-            padding: .55rem .9rem;
-            background: var(--light-gray);
-            font-size: .82rem; font-weight: 600; color: var(--text-dark);
-            border-bottom: 1px solid var(--border-color);
+            display: flex; align-items: center;
+            padding: .55rem 1rem;
+            font-size: .8rem; font-weight: 700;
+            letter-spacing: .06em; text-transform: uppercase;
+            color: var(--text-light);
         }
         .label-lang-fields {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: .75rem;
-            padding: .75rem .9rem;
+            gap: .65rem;
+            padding: .6rem 1rem 1rem;
         }
         .label-lang-field label {
-            display: block; font-size: .72rem; font-weight: 600;
-            text-transform: uppercase; letter-spacing: .04em;
-            color: var(--text-light); margin-bottom: .3rem;
+            display: block; font-size: .7rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: .05em;
+            color: var(--text-light); margin-bottom: .28rem;
         }
         .label-lang-field input {
-            width: 100%; padding: .55rem .75rem;
-            font-size: .92rem; font-family: inherit;
-            border: 2px solid var(--border-color); border-radius: 8px;
+            width: 100%; padding: .6rem .85rem;
+            font-size: .93rem; font-family: inherit;
+            border: 2px solid #e2e8f0; border-radius: 8px;
             background: var(--white); box-sizing: border-box;
-            transition: border-color .2s, box-shadow .2s;
+            transition: border-color .18s;
+            color: var(--text-dark);
         }
         .label-lang-field input:focus {
-            outline: none; border-color: var(--primary-blue);
-            box-shadow: 0 0 0 3px rgba(0,140,255,.08);
+            outline: none;
+            border-color: transparent;
+            background-image: linear-gradient(var(--white), var(--white)),
+                              var(--brand-grad);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
         }
 
         /* ── Save row ───────────────────────────────────── */
@@ -289,15 +334,16 @@
         }
         .label-save-btn {
             display: inline-flex; align-items: center; gap: .45rem;
-            padding: .6rem 1.5rem; font-size: .92rem; font-weight: 600;
-            color: #fff; background: var(--gradient-primary);
+            padding: .6rem 1.6rem; font-size: .92rem; font-weight: 600;
+            color: #fff; background: var(--brand-grad);
             border: none; border-radius: 9px; cursor: pointer;
-            transition: transform .2s, box-shadow .2s;
+            transition: transform .2s, box-shadow .2s, filter .2s;
             font-family: inherit;
         }
         .label-save-btn:hover:not(:disabled) {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,140,255,.28);
+            filter: brightness(1.07);
+            box-shadow: 0 4px 14px rgba(0,140,255,.25);
         }
         .label-save-btn:disabled { opacity: .6; cursor: not-allowed; }
         .label-save-status { font-size: .88rem; color: var(--text-light); }
@@ -596,11 +642,13 @@
                         <div class="label-tile-editor-body">
                             <!-- Icon dropzone -->
                             <div class="label-icon-dropzone js-dz" title="Bild hierher ziehen oder klicken">
-                                <div class="label-icon-dropzone-preview js-dz-preview">${iconHtml(label.icon)}</div>
                                 <div class="label-icon-dropzone-info">
-                                    <div class="label-icon-dropzone-title"><i class="fas fa-cloud-arrow-up"></i> Icon</div>
+                                    <div class="label-icon-dropzone-title"><i class="fas fa-cloud-arrow-up"></i> Icon hochladen</div>
                                     <div class="label-icon-dropzone-hint">Hierher ziehen oder klicken (PNG/JPG, max. 1,5 MB)</div>
                                     <div class="label-icon-status js-dz-status"></div>
+                                </div>
+                                <div class="label-dz-thumb-right js-dz-thumb${label.icon ? ' visible' : ''}">
+                                    ${label.icon ? `<img src="${esc(label.icon)}" alt="">` : ''}
                                 </div>
                                 <input type="file" accept="image/*" class="js-dz-file" style="display:none">
                             </div>
@@ -610,9 +658,7 @@
                                 ${langs.map(lang => {
                                     const l = label.languages[lang] || {};
                                     return `<div class="label-lang-block">
-                                        <div class="label-lang-head">
-                                            <i class="fas fa-language"></i> ${esc(lang)}
-                                        </div>
+                                        <div class="label-lang-head">${esc(lang)}</div>
                                         <div class="label-lang-fields">
                                             <div class="label-lang-field">
                                                 <label>Titel</label>
@@ -679,19 +725,32 @@
         // ── Drag & Drop icon ───────────────────────────────────────────────
         function wireDragDrop(tile, label) {
             const dz       = tile.querySelector('.js-dz');
-            const preview  = tile.querySelector('.js-dz-preview');
+            const thumb    = tile.querySelector('.js-dz-thumb');   // kleines Vorschau-Bild rechts in der Dropzone
             const fileIn   = tile.querySelector('.js-dz-file');
             const status   = tile.querySelector('.js-dz-status');
-            const thumbEl  = tile.querySelector('.js-tile-icon-thumb');
+            const thumbEl  = tile.querySelector('.js-tile-icon-thumb'); // Kachel-Thumbnail im Header
             let pendingIcon;
-
-            const iconHtml = (src) => src
-                ? `<img src="${esc(src)}" alt="Icon">`
-                : `<i class="fas fa-image dz-empty"></i>`;
 
             const setStatus = (cls, txt) => {
                 status.className = 'label-icon-status' + (cls ? ' ' + cls : '');
                 status.innerHTML = txt;
+            };
+
+            const showThumb = (src) => {
+                if (thumb) {
+                    if (src) {
+                        thumb.innerHTML = `<img src="${esc(src)}" alt="">`;
+                        thumb.classList.add('visible');
+                    } else {
+                        thumb.innerHTML = '';
+                        thumb.classList.remove('visible');
+                    }
+                }
+                if (thumbEl) {
+                    thumbEl.innerHTML = src
+                        ? `<img src="${esc(src)}" alt="Icon">`
+                        : `<i class="fas fa-image tile-icon-empty"></i>`;
+                }
             };
 
             const handleFile = file => {
@@ -701,8 +760,7 @@
                 const reader = new FileReader();
                 reader.onload = () => {
                     pendingIcon = String(reader.result);
-                    preview.innerHTML = iconHtml(pendingIcon);
-                    thumbEl.innerHTML = iconHtml(pendingIcon);
+                    showThumb(pendingIcon);
                     setStatus('', 'Wird beim Speichern übernommen');
                 };
                 reader.onerror = () => setStatus('err','Datei konnte nicht gelesen werden.');
@@ -771,8 +829,8 @@
                     }
                     label.icon = pendingIcon;
                     dz._clearPendingIcon?.();
-                    tile.querySelector('.js-dz-status').className = 'label-icon-status';
-                    tile.querySelector('.js-dz-status').textContent = '';
+                    const dzStatus = tile.querySelector('.js-dz-status');
+                    if (dzStatus) { dzStatus.className = 'label-icon-status'; dzStatus.textContent = ''; }
                 }
 
                 // Update in-memory label
