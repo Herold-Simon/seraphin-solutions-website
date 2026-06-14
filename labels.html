@@ -600,7 +600,11 @@
             if (openTileId && !filtered.find(l => tileKey(l) === openTileId)) {
                 openTileId = null;
             }
-            filtered.forEach(label => grid.appendChild(buildTile(label)));
+            filtered.forEach((label, i) => {
+                const tile = buildTile(label);
+                tile.dataset.idx = String(i);   // stabile Grundreihenfolge
+                grid.appendChild(tile);
+            });
         }
 
         // ── Build tile ─────────────────────────────────────────────────────
@@ -745,22 +749,52 @@
             setTimeout(cleanup, MORPH_MS + 80);     // Fallback
         }
 
+        // Erste Kachel der gleichen (visuellen) Zeile wie `tile`
+        function firstTileOfRow(tile) {
+            const top = tile.offsetTop;
+            let node = tile, prev = tile.previousElementSibling;
+            while (prev && Math.abs(prev.offsetTop - top) < 4) {
+                node = prev;
+                prev = prev.previousElementSibling;
+            }
+            return node;
+        }
+
+        // Grundreihenfolge (data-idx) wiederherstellen
+        function restoreGridOrder(grid) {
+            const kids = Array.from(grid.children)
+                .filter(k => k.dataset && k.dataset.idx !== undefined)
+                .sort((a, b) => (+a.dataset.idx) - (+b.dataset.idx));
+            kids.forEach(k => grid.appendChild(k));
+        }
+
         function toggleTile(tile, label, key) {
             const grid = document.getElementById('labelsGrid');
             const wasOpen = tile.classList.contains('label-tile--open');
 
-            // Aktuell offene Kachel (falls eine andere) zuerst schließen,
-            // damit das Grid bereits umbrochen ist, bevor wir messen.
+            // Aktuell offene Kachel (falls eine andere) zuerst schließen
+            // und Grundreihenfolge wiederherstellen, bevor wir messen.
             if (openTileId && openTileId !== key) {
                 const prev = grid.querySelector(`.label-tile[data-key="${CSS.escape(openTileId)}"]`);
                 if (prev) prev.classList.remove('label-tile--open');
+                restoreGridOrder(grid);
             }
 
             if (wasOpen) {
-                morphTile(tile, () => tile.classList.remove('label-tile--open'));
+                morphTile(tile, () => {
+                    tile.classList.remove('label-tile--open');
+                    restoreGridOrder(grid);
+                });
                 openTileId = null;
             } else {
-                morphTile(tile, () => tile.classList.add('label-tile--open'));
+                morphTile(tile, () => {
+                    // Kachel an den Anfang ihrer Zeile schieben, damit die volle
+                    // Zeile dort beginnt und die übrigen Kacheln nach unten rücken,
+                    // statt dass die geöffnete Kachel eine Zeile tiefer springt.
+                    const anchor = firstTileOfRow(tile);
+                    if (anchor !== tile) grid.insertBefore(tile, anchor);
+                    tile.classList.add('label-tile--open');
+                });
                 openTileId = key;
                 // Nach dem Start der Animation in den Sichtbereich scrollen
                 setTimeout(() => tile.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 120);
