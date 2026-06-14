@@ -260,13 +260,26 @@
         }
         .account-master-bar i { color: var(--primary-blue); font-size: 1.1rem; }
         .account-master-bar span { color: var(--text-dark); font-size: 0.95rem; }
-        .account-master-bar a {
-            margin-left: auto; color: var(--primary-blue);
-            font-weight: 600; font-size: 0.9rem; text-decoration: none;
+        .master-bar-btn {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--primary-blue);
+            background: var(--white);
+            color: var(--primary-blue);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-family: inherit;
         }
-        .account-master-bar a:hover { text-decoration: underline; }
+        .master-bar-btn:hover { background: rgba(0, 140, 255, 0.08); }
+        .master-bar-btn i { color: var(--primary-blue); font-size: 0.9rem; }
         @media (max-width: 600px) {
-            .account-master-bar a { margin-left: 0; }
+            .master-bar-btn { margin-left: 0; width: 100%; justify-content: center; }
         }
         
         .account-alert {
@@ -432,7 +445,9 @@
             <div id="masterBar" class="account-master-bar">
                 <i class="fas fa-user-shield"></i>
                 <span>Sie betrachten das Konto <strong id="masterBarName">—</strong>.</span>
-                <a href="#" id="masterBarSwitch" onclick="goToAccountsOverview(); return false;"><i class="fas fa-arrow-left"></i> Zur Konten-Übersicht</a>
+                <button id="masterBarSwitch" class="master-bar-btn" onclick="goToAccountsOverview(); return false;">
+                    <i class="fas fa-arrow-left"></i> Zur Konten-Übersicht
+                </button>
             </div>
 
             <div class="account-grid">
