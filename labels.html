@@ -121,6 +121,7 @@
             border-radius: 14px;
             box-shadow: 0 1px 4px rgba(0,0,0,.07), 0 2px 10px rgba(0,0,0,.04);
             cursor: pointer;
+            box-sizing: border-box;
             /* gradient border via outline trick */
             border: 2px solid transparent;
             background-clip: padding-box;
@@ -202,7 +203,7 @@
         .label-tile-editor {
             display: grid;
             grid-template-rows: 0fr;
-            transition: grid-template-rows .38s cubic-bezier(.4,0,.2,1);
+            transition: grid-template-rows .42s cubic-bezier(.4,0,.2,1);
         }
         .label-tile--open .label-tile-editor {
             grid-template-rows: 1fr;
@@ -700,24 +701,69 @@
         }
 
         // ── Toggle tile open/closed ─────────────────────────────────────────
+        const MORPH_EASE = 'cubic-bezier(.4,0,.2,1)';
+        const MORPH_MS   = 420;
+
+        // FLIP-Animation: animiert Breite + horizontale Position weich,
+        // weil sich grid-column (Sprung auf volle Zeile) nicht transitionen lässt.
+        // Die Höhe wird parallel über grid-template-rows animiert.
+        function morphTile(tile, applyChange) {
+            const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (reduce) { applyChange(); return; }
+
+            const first = tile.getBoundingClientRect();
+            applyChange();                          // Klasse setzen → finaler Grid-Zustand
+            const last  = tile.getBoundingClientRect();
+
+            const dx = first.left - last.left;
+            if (Math.abs(dx) < 0.5 && Math.abs(first.width - last.width) < 0.5) return;
+
+            // Invert: Kachel wieder auf Ausgangs-Breite/-Position bringen
+            tile.style.transition  = 'none';
+            tile.style.justifySelf = 'start';
+            tile.style.width       = first.width + 'px';
+            tile.style.transform   = `translateX(${dx}px)`;
+            void tile.offsetWidth;                  // Reflow erzwingen
+
+            // Play: auf Zielzustand animieren
+            tile.style.transition = `width ${MORPH_MS}ms ${MORPH_EASE}, transform ${MORPH_MS}ms ${MORPH_EASE}`;
+            tile.style.width      = last.width + 'px';
+            tile.style.transform  = 'translateX(0)';
+
+            let done = false;
+            const cleanup = () => {
+                if (done) return;
+                done = true;
+                tile.style.transition  = '';
+                tile.style.width       = '';
+                tile.style.transform   = '';
+                tile.style.justifySelf = '';
+                tile.removeEventListener('transitionend', onEnd);
+            };
+            const onEnd = (e) => { if (e.target === tile && e.propertyName === 'width') cleanup(); };
+            tile.addEventListener('transitionend', onEnd);
+            setTimeout(cleanup, MORPH_MS + 80);     // Fallback
+        }
+
         function toggleTile(tile, label, key) {
             const grid = document.getElementById('labelsGrid');
             const wasOpen = tile.classList.contains('label-tile--open');
 
-            // Close currently open tile (if different)
+            // Aktuell offene Kachel (falls eine andere) zuerst schließen,
+            // damit das Grid bereits umbrochen ist, bevor wir messen.
             if (openTileId && openTileId !== key) {
                 const prev = grid.querySelector(`.label-tile[data-key="${CSS.escape(openTileId)}"]`);
                 if (prev) prev.classList.remove('label-tile--open');
             }
 
             if (wasOpen) {
-                tile.classList.remove('label-tile--open');
+                morphTile(tile, () => tile.classList.remove('label-tile--open'));
                 openTileId = null;
             } else {
-                tile.classList.add('label-tile--open');
+                morphTile(tile, () => tile.classList.add('label-tile--open'));
                 openTileId = key;
-                // Scroll into view after animation starts
-                setTimeout(() => tile.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 60);
+                // Nach dem Start der Animation in den Sichtbereich scrollen
+                setTimeout(() => tile.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 120);
             }
         }
 
