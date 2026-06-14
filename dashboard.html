@@ -1455,6 +1455,17 @@
                 padding: 1rem;
             }
 
+            /* Modus-Switch füllt die Breite, beide Optionen gleich groß */
+            .view-mode-toggle {
+                display: flex;
+                width: 100%;
+            }
+
+            .view-mode-btn {
+                flex: 1;
+                text-align: center;
+            }
+
             .time-range-buttons {
                 justify-content: center;
                 gap: 0.75rem;
@@ -3565,7 +3576,8 @@
                 }
                 
                 document.querySelectorAll('.chart-time-range-hint').forEach(function(el) {
-                    el.style.display = currentTimeRange !== 'all' ? 'flex' : 'none';
+                    // Im Stundenmodus wird der "Bezieht sich auf den gewählten Zeitraum"-Hinweis nicht benötigt
+                    el.style.display = (viewMode !== 'hourly' && currentTimeRange !== 'all') ? 'flex' : 'none';
                 });
                 
                 var mergedForAvg = mergeVideosByTitle(videos);
@@ -3599,38 +3611,34 @@
                     lastUpdatedElement.textContent = now.toLocaleString('de-DE');
                 }
                 
-                // Letzter Aufruf (neuestes lastViewed aller Videos) + welches Video
-                let lastViewDate = null;
-                let lastViewVideoTitle = null;
-                (videos || []).forEach(function(v) {
-                    const lv = v.lastViewed || v.last_viewed;
-                    if (!lv) return;
-                    const d = new Date(lv);
-                    if (isNaN(d.getTime())) return;
-                    if (!lastViewDate || d > lastViewDate) {
-                        lastViewDate = d;
-                        lastViewVideoTitle = v.title || v.video_title || 'Unbenanntes Video';
-                    }
-                });
+                // Letzter Aufruf – aus der stündlichen Dokumentation abgeleitet (genauer als lastViewed)
+                const info = getLastViewInfo(videos || []);
                 const lastViewElement = document.getElementById('lastView');
                 const lastViewVideoElement = document.getElementById('lastViewVideo');
                 if (lastViewElement) {
-                    if (lastViewDate) {
-                        const timeStr = lastViewDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+                    if (info && info.day) {
                         const today = new Date();
-                        const isToday = lastViewDate.getDate() === today.getDate() &&
-                            lastViewDate.getMonth() === today.getMonth() &&
-                            lastViewDate.getFullYear() === today.getFullYear();
-                        lastViewElement.textContent = isToday
-                            ? timeStr + ' Uhr'
-                            : lastViewDate.toLocaleDateString('de-DE') + ' um ' + timeStr + ' Uhr';
+                        const isToday = info.day.getDate() === today.getDate() &&
+                            info.day.getMonth() === today.getMonth() &&
+                            info.day.getFullYear() === today.getFullYear();
+                        const dateLabel = info.day.toLocaleDateString('de-DE');
+                        if (info.hour !== null) {
+                            const mm = info.minute !== null ? String(info.minute).padStart(2, '0') : '00';
+                            const timeStr = String(info.hour).padStart(2, '0') + ':' + mm;
+                            lastViewElement.textContent = isToday
+                                ? timeStr + ' Uhr'
+                                : dateLabel + ' um ' + timeStr + ' Uhr';
+                        } else {
+                            // Uhrzeit für diesen Tag nicht dokumentiert (Backfill auf 12 Uhr)
+                            lastViewElement.textContent = (isToday ? 'Heute' : dateLabel) + ' (Uhrzeit nicht dokumentiert)';
+                        }
                     } else {
                         lastViewElement.textContent = '--';
                     }
                 }
                 if (lastViewVideoElement) {
-                    if (lastViewVideoTitle) {
-                        lastViewVideoElement.textContent = lastViewVideoTitle;
+                    if (info && info.title) {
+                        lastViewVideoElement.textContent = info.title;
                         lastViewVideoElement.style.display = '';
                     } else {
                         lastViewVideoElement.textContent = '';
@@ -3799,6 +3807,95 @@
             return videos.reduce((sum, video) => sum + getCumulativeViewsForVideoUpToDate(video, dateStr), 0);
         }
         
+        /**
+         * Ermittelt den letzten Aufruf möglichst genau aus der stündlichen Dokumentation.
+         * - Tag = jüngster Tag mit Aufrufen (aus viewHistory bzw. hourly).
+         * - Stunde = höchste dokumentierte Stunde an diesem Tag.
+         * - Minute = aus lastViewed, aber nur wenn dieser Zeitstempel auf denselben Tag UND dieselbe
+         *   dokumentierte Stunde fällt (sonst nicht vertrauenswürdig).
+         * - Liegen an dem Tag alle Aufrufe ausschließlich um 12 Uhr (Backfill), gilt die Uhrzeit als
+         *   nicht dokumentiert (hour = null).
+         */
+        function getLastViewInfo(videos) {
+            if (!videos || videos.length === 0) return null;
+
+            // 1) Jüngster Tag mit Aufrufen (aus viewHistory)
+            let lastDay = null;
+            videos.forEach(function(v) {
+                const vh = v.viewHistory || v.view_history || {};
+                Object.keys(vh).forEach(function(dk) {
+                    if ((parseInt(vh[dk], 10) || 0) <= 0) return;
+                    if (lastDay === null || dk > lastDay) lastDay = dk;
+                });
+            });
+            // Fallback: aus hourly, falls keine viewHistory vorhanden
+            if (lastDay === null) {
+                videos.forEach(function(v) {
+                    const h = v.view_history_hourly || v.viewHistoryHourly || {};
+                    Object.keys(h).forEach(function(dk) {
+                        const dayMap = h[dk] || {};
+                        const has = Object.keys(dayMap).some(function(k) { return (parseInt(dayMap[k], 10) || 0) > 0; });
+                        if (has && (lastDay === null || dk > lastDay)) lastDay = dk;
+                    });
+                });
+            }
+            if (lastDay === null) return null;
+
+            // 2) Höchste dokumentierte Stunde an diesem Tag + zugehöriges Video
+            let lastHour = -1;
+            let hourTitle = null;
+            let hourCount = -1;
+            let anyView = false;
+            let onlyNoon = true;
+            videos.forEach(function(v) {
+                const h = v.view_history_hourly || v.viewHistoryHourly || {};
+                const dayMap = h[lastDay] || {};
+                Object.keys(dayMap).forEach(function(k) {
+                    const hi = parseInt(k, 10);
+                    const n = parseInt(dayMap[k], 10) || 0;
+                    if (n <= 0 || hi < 0 || hi > 23) return;
+                    anyView = true;
+                    if (hi !== 12) onlyNoon = false;
+                    if (hi > lastHour || (hi === lastHour && n > hourCount)) {
+                        lastHour = hi;
+                        hourCount = n;
+                        hourTitle = v.title || v.video_title || 'Unbenanntes Video';
+                    }
+                });
+            });
+
+            // 3) Video mit den meisten Aufrufen an diesem Tag (Fallback-Titel)
+            let dayTitle = null;
+            let dayCount = -1;
+            videos.forEach(function(v) {
+                const vh = v.viewHistory || v.view_history || {};
+                const c = parseInt(vh[lastDay], 10) || 0;
+                if (c > dayCount) { dayCount = c; dayTitle = v.title || v.video_title || 'Unbenanntes Video'; }
+            });
+
+            // 4) Minutengenauigkeit nur, wenn lastViewed auf Tag + Stunde passt
+            let minute = null;
+            if (lastHour >= 0) {
+                videos.forEach(function(v) {
+                    const lv = v.lastViewed || v.last_viewed;
+                    if (!lv) return;
+                    const d = new Date(lv);
+                    if (isNaN(d.getTime())) return;
+                    if (formatLocalDateYMD(d) === lastDay && d.getHours() === lastHour) {
+                        if (minute === null || d.getMinutes() > minute) minute = d.getMinutes();
+                    }
+                });
+            }
+
+            const timeKnown = anyView && lastHour >= 0 && !onlyNoon;
+            return {
+                day: parseLocalYMDDate(lastDay),
+                hour: timeKnown ? lastHour : null,
+                minute: timeKnown ? minute : null,
+                title: (timeKnown ? hourTitle : dayTitle) || dayTitle || hourTitle
+            };
+        }
+
         /** Liefert ein 24-Werte-Array (Index = Stunde) der Aufrufe eines (gemergten) Videos an einem Tag. */
         function getHourlyArrayForVideo(video, dateStr) {
             const hourly = video.view_history_hourly || video.viewHistoryHourly || {};
@@ -3931,11 +4028,16 @@
                     formatter: function(params) {
                         if (!params || params.length === 0) return '';
                         let out = params[0].axisValue + ' Uhr';
+                        let shown = 0;
                         params.forEach(function(p) {
                             const val = p.value;
+                            // Nur Aufrufe der gewählten Stunde anzeigen (keine 0-Einträge anderer Stunden)
+                            if (!(val > 0)) return;
                             const str = Number.isInteger(val) ? val : (val || 0).toFixed(2);
                             out += '<br/>' + p.marker + (p.seriesName || 'Aufrufe') + ': <strong>' + str + '</strong>';
+                            shown++;
                         });
+                        if (shown === 0) out += '<br/><span style="color:#999;">Keine Aufrufe in dieser Stunde</span>';
                         return out;
                     }
                 },
@@ -4574,9 +4676,112 @@
         }
         
         // Line Race Chart erstellen (wie in der App)
+        /** Stündliches Line Race: kumulierte Aufrufe über die Stunden des gewählten Tages. */
+        function createLineRaceChartHourly() {
+            const chartElement = document.getElementById('lineRaceChart');
+            if (!chartElement) return;
+
+            disconnectDashboardLineZoomConnections();
+            if (charts.lineRaceChart) {
+                charts.lineRaceChart.dispose();
+            }
+
+            let currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
+            if (!currentStats && statistics) currentStats = statistics;
+            const videos = currentStats?.videos || [];
+            const mergedVideos = mergeVideosByTitle(videos);
+
+            const selectedDay = getHourlySelectedDate();
+            const hourLabels = [];
+            for (let h = 0; h < 24; h++) hourLabels.push(String(h).padStart(2, '0') + ':00');
+
+            const cumulate = (arr) => {
+                let c = 0;
+                return arr.map(v => { c += v; return c; });
+            };
+
+            let series = [];
+            if (lineRaceChartMode === 'totalViews') {
+                const totals = new Array(24).fill(0);
+                mergedVideos.forEach(v => {
+                    const a = getHourlyArrayForVideo(v, selectedDay);
+                    for (let h = 0; h < 24; h++) totals[h] += a[h];
+                });
+                series = [{
+                    name: 'Gesamte Aufrufe',
+                    type: 'line',
+                    data: cumulate(totals),
+                    smooth: true,
+                    lineStyle: { width: 1.5 },
+                    itemStyle: { color: getChartColor(0) },
+                    emphasis: { focus: 'series' }
+                }];
+            } else {
+                const filteredVideos = getFilteredVideosForCharts();
+                if (filteredVideos.length === 0) {
+                    chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Videos mit Aufrufen an diesem Tag</div>';
+                    return;
+                }
+                series = filteredVideos.map((video, idx) => ({
+                    name: video.title,
+                    type: 'line',
+                    data: cumulate(getHourlyArrayForVideo(video, selectedDay)),
+                    smooth: true,
+                    lineStyle: { width: 1 },
+                    itemStyle: { color: getChartColor(idx) },
+                    emphasis: { focus: 'series' }
+                }));
+            }
+
+            const hasAnyView = series.some(s => (s.data || []).some(n => n > 0));
+            if (!hasAnyView) {
+                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Aufrufe an diesem Tag</div>';
+                return;
+            }
+
+            const option = {
+                xAxis: { type: 'category', data: hourLabels, axisLabel: { color: '#666', rotate: 45, fontSize: 12 }, axisTick: { alignWithLabel: true } },
+                yAxis: { type: 'value', axisLabel: { color: '#666', fontSize: 12 }, name: 'Kumulierte Aufrufe', nameTextStyle: { color: '#666' } },
+                dataZoom: [lineChartDataZoomInsideConfig()],
+                series: series,
+                tooltip: {
+                    trigger: 'axis',
+                    confine: true,
+                    formatter: function(params) {
+                        if (!params || params.length === 0) return '';
+                        let out = params[0].axisValue + ' Uhr';
+                        params.forEach(function(p) {
+                            const val = p.value;
+                            const str = Number.isInteger(val) ? val : (val || 0).toFixed(2);
+                            out += '<br/>' + p.marker + (p.seriesName || 'Aufrufe') + ': <strong>' + str + '</strong>';
+                        });
+                        return out;
+                    }
+                },
+                legend: { show: false },
+                grid: { left: '3%', right: '4%', bottom: '8%', containLabel: true },
+                color: getChartColors()
+            };
+
+            lastLineRaceChartTimePointsRaw = [];
+            charts.lineRaceChart = echarts.init(chartElement);
+            charts.lineRaceChart.setOption(option);
+            setTimeout(function() {
+                if (charts.lineRaceChart && !charts.lineRaceChart.isDisposed()) {
+                    charts.lineRaceChart.resize();
+                }
+            }, 100);
+        }
+
         function createLineRaceChart() {
             const chartElement = document.getElementById('lineRaceChart');
             if (!chartElement) return;
+
+            // Stundenmodus: kumulierte Aufrufe über die Stunden des gewählten Tages
+            if (viewMode === 'hourly') {
+                createLineRaceChartHourly();
+                return;
+            }
             
             disconnectDashboardLineZoomConnections();
             if (charts.lineRaceChart) {
@@ -5561,7 +5766,8 @@
             if (totalViewsEl) totalViewsEl.textContent = totalViews.toLocaleString('de-DE');
             if (videosWithViewsEl) videosWithViewsEl.textContent = viewsToday.toLocaleString('de-DE');
             document.querySelectorAll('.chart-time-range-hint').forEach(function(el) {
-                el.style.display = currentTimeRange !== 'all' ? 'flex' : 'none';
+                // Im Stundenmodus wird der "Bezieht sich auf den gewählten Zeitraum"-Hinweis nicht benötigt
+                el.style.display = (viewMode !== 'hourly' && currentTimeRange !== 'all') ? 'flex' : 'none';
             });
             var daysWithViews = getNumberOfDaysWithViews(merged, bounds);
             lastAveragePerDay = totalViews / daysWithViews;
