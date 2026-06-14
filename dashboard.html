@@ -890,6 +890,72 @@
             flex-wrap: wrap;
         }
 
+        /* Modus-Switch Täglich/Stündlich */
+        .view-mode-toggle {
+            display: inline-flex;
+            background: var(--light-gray);
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            padding: 3px;
+            gap: 3px;
+        }
+
+        .view-mode-btn {
+            padding: 0.55rem 1.25rem;
+            border: none;
+            background: transparent;
+            color: var(--text-dark);
+            border-radius: 22px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.25s ease;
+            white-space: nowrap;
+        }
+
+        .view-mode-btn.active {
+            background: var(--primary-blue);
+            color: var(--white);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+        }
+
+        /* Hinweis: stündliche Aufrufe an diesem Tag nicht dokumentiert (alle um 12 Uhr) */
+        .chart-card--undocumented {
+            background: #fef2f2 !important;
+            border: 1px solid #fca5a5 !important;
+        }
+
+        .undoc-info-icon {
+            border: none;
+            background: transparent;
+            color: #dc2626;
+            cursor: pointer;
+            font-size: 1.1rem;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 4px;
+            margin-left: 0.25rem;
+        }
+
+        .undoc-info-icon:hover {
+            color: #b91c1c;
+            transform: scale(1.1);
+        }
+
+        .undoc-msg {
+            display: none;
+            margin: 0.5rem 0 0.25rem;
+            padding: 0.7rem 0.9rem;
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            border-radius: 8px;
+            color: #991b1b;
+            font-size: 0.85rem;
+            line-height: 1.45;
+        }
+
         .time-btn {
             padding: 0.75rem 1.25rem;
             border: 2px solid var(--primary-blue);
@@ -1906,13 +1972,46 @@
                 <!-- Zeitraum-Auswahl -->
                 <div class="time-range-selector">
                     <h3 style="margin: 0; color: var(--text-dark);">Zeitraum:</h3>
-                    <div class="time-range-buttons">
+
+                    <!-- Modus: Täglich / Stündlich -->
+                    <div class="view-mode-toggle" id="viewModeToggle" role="group" aria-label="Anzeigemodus">
+                        <button class="view-mode-btn active" data-viewmode="daily" type="button">Täglich</button>
+                        <button class="view-mode-btn" data-viewmode="hourly" type="button">Stündlich</button>
+                    </div>
+
+                    <!-- Tägliche Presets -->
+                    <div class="time-range-buttons" id="dailyRangeButtons">
                         <button class="time-btn" data-range="7">Letzte 7 Tage</button>
                         <button class="time-btn" data-range="30">Letzte 30 Tage</button>
                         <button class="time-btn" data-range="all">Gesamter Zeitraum</button>
                         <button class="time-btn active" data-range="custom" id="customRangeBtn">Benutzerdefiniert</button>
                     </div>
-                    
+
+                    <!-- Stündliche Presets -->
+                    <div class="time-range-buttons" id="hourlyRangeButtons" style="display: none;">
+                        <button class="time-btn active" data-hrange="today">Heute</button>
+                        <button class="time-btn" data-hrange="yesterday">Gestern</button>
+                        <button class="time-btn" data-hrange="custom" id="hourlyCustomBtn">Benutzerdefiniert</button>
+                    </div>
+
+                    <!-- Stündliche Tagesauswahl (ein Kalender mit Pfeilen) -->
+                    <div class="custom-date-range" id="hourlyDateRange" style="display: none;">
+                        <div class="date-inputs">
+                            <div class="date-input-group">
+                                <label for="hourlyDateInput">Tag:</label>
+                                <div class="date-input-container">
+                                    <button class="date-nav-btn" id="hourlyDatePrev" type="button">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <input type="date" id="hourlyDateInput" class="date-input">
+                                    <button class="date-nav-btn" id="hourlyDateNext" type="button">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Benutzerdefinierte Datumsauswahl -->
                     <div class="custom-date-range" id="customDateRange" style="display: block;">
                         <div class="date-inputs">
@@ -1956,6 +2055,9 @@
                     <div class="chart-card">
                         <div class="chart-header chart-header-with-mode-toggle">
                             <h3 class="chart-title" id="lineChartTitle">Liniendiagramm</h3>
+                            <button type="button" class="undoc-info-icon" id="lineChartUndocIcon" style="display: none;" title="Hinweis zu diesem Tag" aria-label="Hinweis: Uhrzeiten nicht dokumentiert">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
                             <div class="chart-time-range-hint" id="lineChartTimeHint" style="display: none;" role="status">
                                 <i class="fas fa-info-circle"></i>
                                 <span>Bezieht sich auf den gewählten Zeitraum.</span>
@@ -1968,6 +2070,9 @@
                                     Insgesamte Aufrufe
                                 </button>
                             </div>
+                        </div>
+                        <div class="undoc-msg" id="lineChartUndocMsg" role="note">
+                            Für diesen Tag wurden die stündlichen Aufrufe noch nicht dokumentiert. Alle Aufrufe werden ersatzweise um 12 Uhr angezeigt.
                         </div>
                         <div class="chart-container" id="lineChartContainer">
                             <div id="lineChart" style="width: 100%; height: 100%;"></div>
@@ -2017,6 +2122,9 @@
                     <div class="chart-card">
                         <div class="chart-header chart-header-with-mode-toggle">
                             <h3 class="chart-title" id="lineRaceChartTitle">Line Race</h3>
+                            <button type="button" class="undoc-info-icon" id="lineRaceChartUndocIcon" style="display: none;" title="Hinweis zu diesem Tag" aria-label="Hinweis: Uhrzeiten nicht dokumentiert">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
                             <div class="chart-time-range-hint" id="lineRaceChartTimeHint" style="display: none;" role="status">
                                 <i class="fas fa-info-circle"></i>
                                 <span>Bezieht sich auf den gewählten Zeitraum.</span>
@@ -2029,6 +2137,9 @@
                                     Insgesamte Aufrufe
                                 </button>
                             </div>
+                        </div>
+                        <div class="undoc-msg" id="lineRaceChartUndocMsg" role="note">
+                            Für diesen Tag wurden die stündlichen Aufrufe noch nicht dokumentiert. Alle Aufrufe werden ersatzweise um 12 Uhr angezeigt.
                         </div>
                         <div class="chart-container" id="lineRaceChartContainer">
                             <div id="lineRaceChart" style="width: 100%; height: 100%;"></div>
@@ -2063,6 +2174,10 @@
             startDate: null,
             endDate: null
         };
+        // Anzeigemodus: 'daily' (Tage) oder 'hourly' (Stunden eines einzelnen Tages)
+        let viewMode = 'daily';
+        let hourlyPreset = 'today'; // 'today' | 'yesterday' | 'custom'
+        let hourlyDate = null;      // YYYY-MM-DD des ausgewählten Tages (Stundenmodus)
         
         // Erweiterte Einstellungen Variablen
         /** null = alle Videos im Zeitraum (Standard); sonst obere Grenze für die Diagramme */
@@ -2604,6 +2719,94 @@
                 });
             }
             
+            // ===== Modus-Switch Täglich / Stündlich =====
+            function updateModeUI() {
+                const dailyBtns = document.getElementById('dailyRangeButtons');
+                const hourlyBtns = document.getElementById('hourlyRangeButtons');
+                const dailyCustom = document.getElementById('customDateRange');
+                const hourlyCustom = document.getElementById('hourlyDateRange');
+                const isHourly = viewMode === 'hourly';
+                if (dailyBtns) dailyBtns.style.display = isHourly ? 'none' : 'flex';
+                if (hourlyBtns) hourlyBtns.style.display = isHourly ? 'flex' : 'none';
+                if (dailyCustom) dailyCustom.style.display = (!isHourly && currentTimeRange === 'custom') ? 'block' : 'none';
+                if (hourlyCustom) hourlyCustom.style.display = (isHourly && hourlyPreset === 'custom') ? 'block' : 'none';
+                document.querySelectorAll('.view-mode-btn').forEach(b => {
+                    b.classList.toggle('active', b.dataset.viewmode === viewMode);
+                });
+            }
+
+            document.querySelectorAll('.view-mode-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const mode = this.dataset.viewmode;
+                    if (mode === viewMode) return;
+                    viewMode = mode;
+                    if (viewMode === 'hourly' && !hourlyDate) {
+                        hourlyDate = formatLocalDateYMD(new Date());
+                        const hi = document.getElementById('hourlyDateInput');
+                        if (hi) hi.value = hourlyDate;
+                    }
+                    updateModeUI();
+                    updateCharts();
+                });
+            });
+
+            // Stündliche Presets (Heute / Gestern / Benutzerdefiniert)
+            document.querySelectorAll('#hourlyRangeButtons .time-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#hourlyRangeButtons .time-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    hourlyPreset = this.dataset.hrange;
+                    if (hourlyPreset === 'custom') {
+                        if (!hourlyDate) hourlyDate = formatLocalDateYMD(new Date());
+                        const hi = document.getElementById('hourlyDateInput');
+                        if (hi) hi.value = hourlyDate;
+                    }
+                    updateModeUI();
+                    updateCharts();
+                });
+            });
+
+            // Stündliche Tagesauswahl
+            const hourlyDateInput = document.getElementById('hourlyDateInput');
+            if (hourlyDateInput) {
+                if (!hourlyDateInput.value) hourlyDateInput.value = formatLocalDateYMD(new Date());
+                hourlyDateInput.addEventListener('change', function() {
+                    if (!this.value) return;
+                    hourlyDate = this.value;
+                    hourlyPreset = 'custom';
+                    document.querySelectorAll('#hourlyRangeButtons .time-btn').forEach(b => {
+                        b.classList.toggle('active', b.dataset.hrange === 'custom');
+                    });
+                    updateCharts();
+                });
+            }
+            const hourlyDatePrev = document.getElementById('hourlyDatePrev');
+            const hourlyDateNext = document.getElementById('hourlyDateNext');
+            function navigateHourlyDate(direction) {
+                const input = document.getElementById('hourlyDateInput');
+                if (!input) return;
+                const cur = input.value ? parseLocalYMDDate(input.value) : new Date();
+                cur.setDate(cur.getDate() + direction);
+                input.value = formatLocalDateYMD(cur);
+                input.dispatchEvent(new Event('change'));
+            }
+            if (hourlyDatePrev) hourlyDatePrev.addEventListener('click', () => navigateHourlyDate(-1));
+            if (hourlyDateNext) hourlyDateNext.addEventListener('click', () => navigateHourlyDate(1));
+
+            // Info-Icons "stündliche Aufrufe nicht dokumentiert" -> Meldung ein-/ausblenden
+            [['lineChartUndocIcon', 'lineChartUndocMsg'],
+             ['lineRaceChartUndocIcon', 'lineRaceChartUndocMsg']].forEach(function(ids) {
+                const icon = document.getElementById(ids[0]);
+                const msg = document.getElementById(ids[1]);
+                if (icon && msg) {
+                    icon.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        msg.style.display = (msg.style.display === 'block') ? 'none' : 'block';
+                    });
+                }
+            });
+
             var averageToggle = document.getElementById('averageToggle');
             if (averageToggle) {
                 averageToggle.addEventListener('change', function() { updateAverageCard(); });
@@ -3457,6 +3660,7 @@
                 createBarChart();
                 createLineRaceChart();
                 updateChartTitles();
+                updateHourlyUndocumentedIndicators();
                 
                 
             } catch (error) {
@@ -3478,6 +3682,7 @@
                         views: 0,
                         viewHistory: {},
                         view_history: {},
+                        view_history_hourly: {},
                         devices: []
                     };
                 }
@@ -3493,6 +3698,20 @@
                     }
                     mergedVideos[title].viewHistory[date] += videoViewHistory[date];
                 });
+
+                // Merge stündliche Historie
+                const videoHourly = video.view_history_hourly || video.viewHistoryHourly || {};
+                Object.keys(videoHourly).forEach(date => {
+                    if (!mergedVideos[title].view_history_hourly[date]) {
+                        mergedVideos[title].view_history_hourly[date] = {};
+                    }
+                    const dayMap = videoHourly[date] || {};
+                    Object.keys(dayMap).forEach(h => {
+                        const n = parseInt(dayMap[h], 10) || 0;
+                        mergedVideos[title].view_history_hourly[date][h] =
+                            (mergedVideos[title].view_history_hourly[date][h] || 0) + n;
+                    });
+                });
                 
                 // Speichere Geräte-Info für Debugging
                 mergedVideos[title].devices.push(video.device_id || 'Unknown');
@@ -3501,8 +3720,26 @@
             return Object.values(mergedVideos);
         }
         
+        /** Liefert den aktuell gewählten Tag im Stundenmodus (YYYY-MM-DD). */
+        function getHourlySelectedDate() {
+            if (hourlyPreset === 'today') return formatLocalDateYMD(new Date());
+            if (hourlyPreset === 'yesterday') {
+                const d = new Date();
+                d.setDate(d.getDate() - 1);
+                return formatLocalDateYMD(d);
+            }
+            return hourlyDate || formatLocalDateYMD(new Date());
+        }
+
         /** Liefert Start- und Enddatum des gewählten Zeitraums (oder null bei "Gesamter Zeitraum"). */
         function getTimeRangeBounds() {
+            // Stundenmodus: genau der gewählte Tag (damit alle Tages-basierten Charts diesen Tag zeigen)
+            if (viewMode === 'hourly') {
+                const day = parseLocalYMDDate(getHourlySelectedDate());
+                const start = new Date(day); start.setHours(0, 0, 0, 0);
+                const end = new Date(day); end.setHours(23, 59, 59, 999);
+                return { startDate: start, endDate: end };
+            }
             if (currentTimeRange === 'all') return null;
             const today = new Date();
             today.setHours(23, 59, 59, 999);
@@ -3562,10 +3799,171 @@
             return videos.reduce((sum, video) => sum + getCumulativeViewsForVideoUpToDate(video, dateStr), 0);
         }
         
+        /** Liefert ein 24-Werte-Array (Index = Stunde) der Aufrufe eines (gemergten) Videos an einem Tag. */
+        function getHourlyArrayForVideo(video, dateStr) {
+            const hourly = video.view_history_hourly || video.viewHistoryHourly || {};
+            const dayMap = hourly[dateStr] || {};
+            const arr = new Array(24).fill(0);
+            Object.keys(dayMap).forEach(h => {
+                const hi = parseInt(h, 10);
+                const n = parseInt(dayMap[h], 10) || 0;
+                if (hi >= 0 && hi < 24) arr[hi] += n;
+            });
+            return arr;
+        }
+
+        /** Summiert die Stundenwerte aller Videos für den im Stundenmodus gewählten Tag (24er-Array). */
+        function getHourlyTotalsForSelectedDay() {
+            let currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
+            if (!currentStats && statistics) currentStats = statistics;
+            const videos = currentStats?.videos || [];
+            const merged = mergeVideosByTitle(videos);
+            const day = getHourlySelectedDate();
+            const totals = new Array(24).fill(0);
+            merged.forEach(v => {
+                const arr = getHourlyArrayForVideo(v, day);
+                for (let h = 0; h < 24; h++) totals[h] += arr[h];
+            });
+            return totals;
+        }
+
+        /** true, wenn am gewählten Tag Aufrufe existieren, die ausschließlich um 12 Uhr liegen
+         *  (= stündliche Uhrzeit wurde noch nicht dokumentiert / Backfill). */
+        function isHourlyDayUndocumented() {
+            if (viewMode !== 'hourly') return false;
+            const totals = getHourlyTotalsForSelectedDay();
+            const sum = totals.reduce((a, b) => a + b, 0);
+            if (sum <= 0) return false;
+            return totals[12] === sum;
+        }
+
+        /** Markiert die beiden Liniendiagramme rot und zeigt das Info-Icon, wenn der Tag nicht dokumentiert ist. */
+        function updateHourlyUndocumentedIndicators() {
+            const undoc = isHourlyDayUndocumented();
+            [['lineChart', 'lineChartUndocIcon', 'lineChartUndocMsg'],
+             ['lineRaceChart', 'lineRaceChartUndocIcon', 'lineRaceChartUndocMsg']].forEach(function(ids) {
+                const chartEl = document.getElementById(ids[0]);
+                const card = chartEl ? chartEl.closest('.chart-card') : null;
+                const icon = document.getElementById(ids[1]);
+                const msg = document.getElementById(ids[2]);
+                if (card) card.classList.toggle('chart-card--undocumented', undoc);
+                if (icon) icon.style.display = undoc ? 'inline-flex' : 'none';
+                if (!undoc && msg) msg.style.display = 'none';
+            });
+        }
+
+        /** Stündliches Liniendiagramm für den gewählten Tag (X-Achse = Uhrzeiten). */
+        function createLineChartHourly() {
+            const chartElement = document.getElementById('lineChart');
+            if (!chartElement) return;
+
+            disconnectDashboardLineZoomConnections();
+            if (charts.lineChart) {
+                charts.lineChart.dispose();
+            }
+
+            let currentStats = selectedDeviceId === 'all' ? statistics : deviceStatistics;
+            if (!currentStats && statistics) currentStats = statistics;
+            const videos = currentStats?.videos || [];
+            const mergedVideos = mergeVideosByTitle(videos);
+
+            const selectedDay = getHourlySelectedDate();
+            const hourLabels = [];
+            for (let h = 0; h < 24; h++) hourLabels.push(String(h).padStart(2, '0') + ':00');
+
+            let series = [];
+            let totalForAvg = [];
+            if (lineChartMode === 'totalViews') {
+                const totals = new Array(24).fill(0);
+                mergedVideos.forEach(v => {
+                    const arr = getHourlyArrayForVideo(v, selectedDay);
+                    for (let h = 0; h < 24; h++) totals[h] += arr[h];
+                });
+                totalForAvg = totals;
+                const hoursWithViews = totals.filter(n => n > 0).length;
+                const avgVal = hoursWithViews > 0 ? totals.reduce((a, b) => a + b, 0) / hoursWithViews : 0;
+                series = [{
+                    name: 'Gesamte Aufrufe',
+                    type: 'line',
+                    data: totals,
+                    smooth: true,
+                    lineStyle: { width: 1.5 },
+                    itemStyle: { color: getChartColor(0) },
+                    emphasis: { focus: 'series' },
+                    markLine: {
+                        data: [{ yAxis: avgVal, name: 'Durchschnitt' }],
+                        lineStyle: { type: 'dashed', color: '#999' },
+                        label: { position: 'insideEndTop', formatter: 'Ø ' + (Number.isInteger(avgVal) ? avgVal : avgVal.toFixed(2)) }
+                    }
+                }];
+            } else {
+                // Aufrufe nach Videos: jede Linie ein Video, 24 Stundenwerte
+                const filteredVideos = getFilteredVideosForCharts();
+                if (filteredVideos.length === 0) {
+                    chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Videos mit Aufrufen an diesem Tag</div>';
+                    return;
+                }
+                series = filteredVideos.map((video, idx) => ({
+                    name: video.title,
+                    type: 'line',
+                    data: getHourlyArrayForVideo(video, selectedDay),
+                    smooth: true,
+                    lineStyle: { width: 1 },
+                    itemStyle: { color: getChartColor(idx) },
+                    emphasis: { focus: 'series' }
+                }));
+            }
+
+            const hasAnyView = series.some(s => (s.data || []).some(n => n > 0));
+            if (!hasAnyView) {
+                chartElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #7F8C8D; font-size: 16px;">Keine Aufrufe an diesem Tag</div>';
+                return;
+            }
+
+            const option = {
+                xAxis: { type: 'category', data: hourLabels, axisLabel: { color: '#666', rotate: 45 }, axisTick: { alignWithLabel: true } },
+                yAxis: { type: 'value', axisLabel: { color: '#666' }, name: 'Aufrufe', nameTextStyle: { color: '#666' } },
+                dataZoom: [lineChartDataZoomInsideConfig()],
+                series: series,
+                tooltip: {
+                    trigger: 'axis',
+                    confine: true,
+                    formatter: function(params) {
+                        if (!params || params.length === 0) return '';
+                        let out = params[0].axisValue + ' Uhr';
+                        params.forEach(function(p) {
+                            const val = p.value;
+                            const str = Number.isInteger(val) ? val : (val || 0).toFixed(2);
+                            out += '<br/>' + p.marker + (p.seriesName || 'Aufrufe') + ': <strong>' + str + '</strong>';
+                        });
+                        return out;
+                    }
+                },
+                legend: { show: false },
+                grid: { left: '3%', right: '4%', bottom: '8%', containLabel: true },
+                color: getChartColors()
+            };
+
+            lastLineChartTimePointsRaw = [];
+            charts.lineChart = echarts.init(chartElement);
+            charts.lineChart.setOption(option);
+            setTimeout(function() {
+                if (charts.lineChart && !charts.lineChart.isDisposed()) {
+                    charts.lineChart.resize();
+                }
+            }, 100);
+        }
+
         // Liniendiagramm erstellen (wie in der App)
         function createLineChart() {
             const chartElement = document.getElementById('lineChart');
             if (!chartElement) return;
+
+            // Stundenmodus: eigene Uhrzeit-basierte Darstellung
+            if (viewMode === 'hourly') {
+                createLineChartHourly();
+                return;
+            }
             
             disconnectDashboardLineZoomConnections();
             if (charts.lineChart) {
@@ -5195,6 +5593,7 @@
             console.log('🏃 Erstelle Line Race neu...');
             createLineRaceChart();
             updateChartTitles();
+            updateHourlyUndocumentedIndicators();
         }
         
         // Chart-Größe bei Resize/Rotation robust anpassen (Mobile: Portrait <-> Landscape)

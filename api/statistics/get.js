@@ -22,7 +22,7 @@ module.exports = async function handler(req, res) {
     // Route-Statistiken laden
     let routeQuery = supabase
       .from('route_stats')
-      .select('route_id, device_id, title, views, last_viewed, view_history')
+      .select('route_id, device_id, title, views, last_viewed, view_history, view_history_hourly')
       .eq('account_id', accountId);
     if (singleDevice) {
       routeQuery = routeQuery.eq('device_id', String(deviceId));
@@ -48,6 +48,7 @@ module.exports = async function handler(req, res) {
       views: r.views || 0,
       last_viewed: r.last_viewed,
       view_history: r.view_history || {},
+      view_history_hourly: r.view_history_hourly || {},
       device_id: r.device_id
     }));
 

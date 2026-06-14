@@ -127,6 +127,7 @@ module.exports = async function handler(req, res) {
         views: parseInt(r.views, 10) || 0,
         last_viewed: timestampToIso(r.last_viewed != null ? r.last_viewed : r.lastViewed),
         view_history: r.view_history || r.viewHistory || {},
+        view_history_hourly: r.view_history_hourly || r.viewHistoryHourly || {},
         updated_at: now
       });
     }
