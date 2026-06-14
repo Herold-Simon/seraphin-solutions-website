@@ -136,25 +136,12 @@
             transform: translateY(-2px);
             border-color: rgba(0,140,255,.22);
         }
-        /* Geöffnete Tile: Gradient-Rand über Pseudo-Element */
+        /* Geöffnete Tile */
         .label-tile--open {
             grid-column: 1 / -1;
             cursor: default;
-            border-color: transparent;
-            box-shadow: 0 6px 28px rgba(0,100,200,.1);
-        }
-        .label-tile--open::before {
-            content: '';
-            position: absolute; inset: 0;
-            border-radius: 14px;
-            padding: 2px;
-            background: var(--brand-grad);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box,
-                          linear-gradient(#fff 0 0);
-            -webkit-mask-composite: destination-out;
-            mask-composite: exclude;
-            pointer-events: none;
-            z-index: 0;
+            border-color: var(--border-color);
+            box-shadow: 0 4px 20px rgba(0,0,0,.07);
         }
 
         /* ── Tile collapsed header (always visible) ──────── */
@@ -166,15 +153,8 @@
         }
         .label-tile--open .label-tile-header {
             padding: 1.1rem 1.25rem;
-            border-bottom: none;
+            border-bottom: 1px solid var(--border-color);
             cursor: pointer;
-            /* Gradient-Trennlinie unten */
-            box-shadow: 0 1px 0 0 transparent;
-            background-image: linear-gradient(var(--white), var(--white)),
-                              var(--brand-grad);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            border-bottom: 2px solid transparent;
         }
         .label-tile-icon {
             width: 46px; height: 46px;
@@ -193,10 +173,12 @@
             color: var(--text-dark);
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
+        /* Immer zwei Zeilen reservieren, damit alle Kacheln gleich hoch sind */
         .label-tile-sub {
             font-size: .82rem; color: var(--text-light);
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
             margin-top: .1rem;
+            min-height: 1.15em; /* reserviert Platz, auch wenn leer */
         }
         .label-tile-meta {
             display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .4rem;
@@ -284,12 +266,7 @@
         .label-lang-block {
             border-radius: 12px;
             background: var(--light-gray);
-            /* Linker Gradient-Akzentstreifen */
-            border-left: 3px solid transparent;
-            background-image: linear-gradient(var(--light-gray), var(--light-gray)),
-                              var(--brand-grad);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
+            border: 1px solid var(--border-color);
             overflow: hidden;
         }
         .label-lang-head {
@@ -349,6 +326,27 @@
         .label-save-status { font-size: .88rem; color: var(--text-light); }
         .label-save-status.ok { color: #16a34a; }
         .label-save-status.err { color: #b91c1c; }
+
+        /* ── Hinweis-Banner am Seitenende ───────────────── */
+        .labels-info-hint {
+            display: flex; align-items: flex-start; gap: .85rem;
+            margin-top: 2.5rem; padding: 1rem 1.25rem;
+            background: linear-gradient(135deg, rgba(0,140,255,.07) 0%, rgba(50,167,26,.07) 100%);
+            border-left: 3px solid transparent;
+            background-image:
+                linear-gradient(135deg, rgba(0,140,255,.07) 0%, rgba(50,167,26,.07) 100%),
+                var(--brand-grad);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            border-radius: 12px;
+            font-size: .88rem; color: var(--text-light); line-height: 1.55;
+        }
+        .labels-info-hint i {
+            flex-shrink: 0; margin-top: .15rem; font-size: 1rem;
+            background: var(--brand-grad);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .labels-info-hint strong { color: var(--text-dark); }
 
         /* ── Spinner ────────────────────────────────────── */
         .label-spinner {
@@ -428,6 +426,17 @@
             <div id="labelsLoading" class="labels-state">Lade Beschriftungen…</div>
             <div id="labelsEmpty" class="labels-state" style="display: none;">Keine verknüpften Beschriftungen gefunden.</div>
             <div id="labelsGrid" class="labels-grid"></div>
+
+            <div class="labels-info-hint">
+                <i class="fas fa-circle-info"></i>
+                <span>
+                    <strong>Nicht alle Labels hier sichtbar?</strong>
+                    Hier werden ausschließlich Labels angezeigt, die im Gebäudenavi-Programm mit einer Route verknüpft wurden.
+                    Möchten Sie weitere Labels oder deren allgemeine Darstellungseinstellungen bearbeiten,
+                    wechseln Sie bitte ins <strong>Adminpanel des Gebäudenavi-Programms</strong> unter
+                    <em>Beschriftungen verwalten</em>.
+                </span>
+            </div>
         </div>
     </main>
 
@@ -626,7 +635,7 @@
                     <div class="label-tile-icon js-tile-icon-thumb">${iconHtml(label.icon)}</div>
                     <div class="label-tile-text">
                         <div class="label-tile-name">${esc(title)}</div>
-                        ${subtitle ? `<div class="label-tile-sub">${esc(subtitle)}</div>` : ''}
+                        <div class="label-tile-sub">${subtitle ? esc(subtitle) : ''}</div>
                         <div class="label-tile-meta">
                             ${label.floor_name ? `<span class="label-tile-badge label-tile-badge--floor">${esc(label.floor_name)}</span>` : ''}
                             <span class="label-tile-badge label-tile-badge--id">ID ${esc(label.label_id)}</span>
@@ -647,9 +656,7 @@
                                     <div class="label-icon-dropzone-hint">Hierher ziehen oder klicken (PNG/JPG, max. 1,5 MB)</div>
                                     <div class="label-icon-status js-dz-status"></div>
                                 </div>
-                                <div class="label-dz-thumb-right js-dz-thumb${label.icon ? ' visible' : ''}">
-                                    ${label.icon ? `<img src="${esc(label.icon)}" alt="">` : ''}
-                                </div>
+                                <div class="label-dz-thumb-right js-dz-thumb"></div>
                                 <input type="file" accept="image/*" class="js-dz-file" style="display:none">
                             </div>
 
