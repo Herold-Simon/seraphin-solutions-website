@@ -246,6 +246,28 @@
         }
         
         .account-master-hint i { margin-top: 2px; flex-shrink: 0; }
+
+        .account-master-bar {
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            background: rgba(0, 140, 255, 0.06);
+            border: 1px solid rgba(0, 140, 255, 0.2);
+            border-radius: 10px;
+            padding: 0.85rem 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .account-master-bar i { color: var(--primary-blue); font-size: 1.1rem; }
+        .account-master-bar span { color: var(--text-dark); font-size: 0.95rem; }
+        .account-master-bar a {
+            margin-left: auto; color: var(--primary-blue);
+            font-weight: 600; font-size: 0.9rem; text-decoration: none;
+        }
+        .account-master-bar a:hover { text-decoration: underline; }
+        @media (max-width: 600px) {
+            .account-master-bar a { margin-left: 0; }
+        }
         
         .account-alert {
             padding: 1rem 1.25rem;
@@ -406,6 +428,12 @@
             <h1 class="account-title">Account</h1>
             <p class="account-subtitle">Hier können Sie Ihre Account-Daten einsehen und verwalten. Verändern Sie die Eigenschaften nur nach Aufforderung oder wenn Sie sich sicher sind, was Sie tun.</p>
             <div id="errorAlert" class="account-alert account-alert-error"></div>
+
+            <div id="masterBar" class="account-master-bar">
+                <i class="fas fa-user-shield"></i>
+                <span>Sie betrachten das Konto <strong id="masterBarName">—</strong>.</span>
+                <a href="#" id="masterBarSwitch" onclick="goToAccountsOverview(); return false;"><i class="fas fa-arrow-left"></i> Zur Konten-Übersicht</a>
+            </div>
 
             <div class="account-grid">
                 <section class="account-card">
@@ -578,6 +606,18 @@
             document.getElementById('passwordForm')?.addEventListener('submit', handlePasswordChange);
         }
 
+        // Master: aktuell verkoerpertes Konto zuruecksetzen und zur Konten-Uebersicht
+        async function goToAccountsOverview() {
+            try {
+                await fetch('/api/accounts/select', {
+                    method: 'POST', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ account_id: null })
+                });
+            } catch (e) { console.error('Konto-Auswahl Fehler:', e); }
+            window.location.href = 'dashboard.html';
+        }
+
         async function loadAccountData() {
             try {
                 const sessionRes = await fetch('/api/auth/session', { method: 'GET', credentials: 'include' });
@@ -593,6 +633,14 @@
                 // Master verkoerpert ein anderes Konto -> Passwortwechsel ohne aktuelles Kennwort
                 isMasterActing = !!(sessionData.user && sessionData.user.is_master
                     && sessionData.acting_account && sessionData.acting_account.id);
+
+                // Master-Hinweisleiste mit "Zur Konten-Übersicht" anzeigen
+                if (isMasterActing) {
+                    const bar = document.getElementById('masterBar');
+                    const nameEl = document.getElementById('masterBarName');
+                    if (nameEl) nameEl.textContent = sessionData.acting_account.username || '—';
+                    if (bar) bar.style.display = 'flex';
+                }
 
                 // Account-Daten kommen direkt aus der Session (effektives/verkoerpertes Konto)
                 accountData = {

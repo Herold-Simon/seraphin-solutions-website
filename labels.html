@@ -411,7 +411,7 @@
             <div id="masterBar" class="labels-master-bar">
                 <i class="fas fa-user-shield"></i>
                 <span>Sie bearbeiten die Beschriftungen des Kontos <strong id="masterBarName">—</strong>.</span>
-                <a href="dashboard.html">Konto wechseln</a>
+                <a href="#" id="masterBarSwitch" onclick="goToAccountsOverview(); return false;"><i class="fas fa-arrow-left"></i> Zur Konten-Übersicht</a>
             </div>
 
             <div class="labels-search">
@@ -528,6 +528,18 @@
 
         function tileKey(label) {
             return label.route_id || (label.floor_id + '_' + label.label_id);
+        }
+
+        // Master: aktuell verkoerpertes Konto zuruecksetzen und zur Konten-Uebersicht
+        async function goToAccountsOverview() {
+            try {
+                await fetch('/api/accounts/select', {
+                    method: 'POST', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ account_id: null })
+                });
+            } catch (e) { console.error('Konto-Auswahl Fehler:', e); }
+            window.location.href = 'dashboard.html';
         }
 
         // ── Session ────────────────────────────────────────────────────────
