@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="styles-app.css?v=1">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Gleiche Fuzzy-Suche wie im Gebäudenavi-Programm (Fuse.js v7) -->
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
 
     <style>
         /* ── Page shell ─────────────────────────────────── */
@@ -561,6 +563,7 @@
                 const data = await res.json();
                 loading.style.display = 'none';
                 allLabels = (data.success && Array.isArray(data.labels)) ? data.labels : [];
+                invalidateLabelFuse();
                 renderLabels('');
                 document.getElementById('labelsHint').style.display = 'flex';
             } catch(e) {
@@ -570,69 +573,56 @@
             }
         }
 
-        // ── Fuzzy-Suche ─────────────────────────────────────────────────────
-        // Klein schreiben + Akzente/Umlaute entfernen (ä→a, é→e …)
-        function normalizeStr(s) {
-            return String(s == null ? '' : s)
-                .toLowerCase()
-                .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '');
-        }
+        // ── Fuzzy-Suche (identisch zum Gebäudenavi-Programm, Fuse.js v7) ─────
+        let labelFuse = null;
 
-        // Liefert 0 = kein Treffer, sonst je höher desto besser.
-        // Erlaubt unscharfe Treffer (Zeichen müssen nur in Reihenfolge vorkommen).
-        function fuzzyScore(q, text) {
-            if (!q) return 1;
-            if (!text) return 0;
-
-            // Exakter Teilstring → starker Bonus, früher im Text = besser
-            const idx = text.indexOf(q);
-            if (idx !== -1) {
-                let s = 1000 - idx;
-                if (idx === 0 || /\s/.test(text[idx - 1])) s += 300; // Wortanfang
-                return s;
-            }
-
-            // Subsequenz-Match (tippfehler-/lücken-tolerant)
-            let ti = 0, score = 0, streak = 0, prev = -1;
-            for (let qi = 0; qi < q.length; qi++) {
-                const c = q[qi];
-                let found = -1;
-                for (; ti < text.length; ti++) {
-                    if (text[ti] === c) { found = ti; break; }
-                }
-                if (found === -1) return 0; // Zeichen nicht mehr gefunden → kein Treffer
-                if (qi > 0 && found === prev + 1) { streak++; score += 6 + streak * 4; }
-                else { streak = 0; score += 1; }
-                if (found === 0 || /\s/.test(text[found - 1])) score += 10; // Wortanfang
-                prev = found;
-                ti = found + 1;
-            }
-            return score;
-        }
-
-        // Bester Score über alle durchsuchbaren Felder eines Labels
-        function labelBestScore(label, q) {
-            if (!q) return 1;
-            let best = 0;
-            const consider = (txt) => {
-                const s = fuzzyScore(q, normalizeStr(txt));
-                if (s > best) best = s;
-            };
-            consider(label.label_id);
-            consider(label.floor_name);
-            Object.values(label.languages || {}).forEach(l => {
-                consider(l.title);
-                consider(l.subtitle);
+        // Suchindex aus den aktuellen Labels (neu) aufbauen
+        function buildLabelFuse() {
+            const records = allLabels.map(label => {
+                const langs = Object.values(label.languages || {});
+                return {
+                    label,
+                    title:    langs.map(l => (l && l.title)    || '').join(' ').trim(),
+                    subtitle: langs.map(l => (l && l.subtitle) || '').join(' ').trim(),
+                    keywords: [label.floor_name || '', 'ID ' + label.label_id, label.label_id]
+                        .join(' ').trim(),
+                };
             });
-            return best;
+            if (typeof Fuse === 'undefined') { labelFuse = null; return; }
+            labelFuse = new Fuse(records, {
+                keys: [
+                    { name: 'title',    weight: 0.45 },
+                    { name: 'subtitle', weight: 0.35 },
+                    { name: 'keywords', weight: 0.2 },
+                ],
+                threshold: 0.42,
+                ignoreLocation: true,
+                minMatchCharLength: 1,
+                includeScore: true,
+                ignoreDiacritics: true,
+            });
+        }
+
+        // Index als veraltet markieren (nach Laden/Speichern neu aufbauen)
+        function invalidateLabelFuse() { labelFuse = null; }
+
+        // Einfacher Substring-Fallback, falls Fuse.js (CDN) nicht lädt
+        function fallbackFilter(q) {
+            const n = q.toLowerCase();
+            return allLabels.filter(label => {
+                if (String(label.label_id).toLowerCase().includes(n)) return true;
+                if (String(label.floor_name || '').toLowerCase().includes(n)) return true;
+                return Object.values(label.languages || {}).some(l =>
+                    ((l && l.title) || '').toLowerCase().includes(n) ||
+                    ((l && l.subtitle) || '').toLowerCase().includes(n));
+            });
         }
 
         // ── Render grid ────────────────────────────────────────────────────
         function renderLabels(filter) {
             const empty = document.getElementById('labelsEmpty');
             const grid  = document.getElementById('labelsGrid');
-            const q = normalizeStr((filter || '').trim());
+            const q = (filter || '').trim();
             grid.innerHTML = '';
 
             if (allLabels.length === 0) {
@@ -642,12 +632,13 @@
 
             let filtered;
             if (q) {
-                // Fuzzy-Treffer ermitteln und nach Relevanz sortieren
-                filtered = allLabels
-                    .map((l, i) => ({ l, i, score: labelBestScore(l, q) }))
-                    .filter(x => x.score > 0)
-                    .sort((a, b) => (b.score - a.score) || (a.i - b.i))
-                    .map(x => x.l);
+                if (typeof Fuse !== 'undefined') {
+                    if (!labelFuse) buildLabelFuse();
+                    // Fuse liefert bereits nach Relevanz sortiert (bester Score zuerst)
+                    filtered = labelFuse.search(q).map(r => r.item.label);
+                } else {
+                    filtered = fallbackFilter(q);
+                }
             } else {
                 filtered = allLabels.slice();
             }
@@ -992,6 +983,7 @@
                 // Update in-memory label
                 label.languages = mergeLangs(label.languages, per_language);
                 label.has_override = true;
+                invalidateLabelFuse();   // Suchindex nach Textänderung neu aufbauen
 
                 // Update tile header text
                 const langs = Object.keys(label.languages || {});
