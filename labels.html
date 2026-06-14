@@ -570,29 +570,88 @@
             }
         }
 
-        // ── Filter ─────────────────────────────────────────────────────────
-        function labelMatchesQuery(label, q) {
-            if (!q) return true;
-            if (String(label.label_id).toLowerCase().includes(q)) return true;
-            if (String(label.floor_name || '').toLowerCase().includes(q)) return true;
-            return Object.values(label.languages || {}).some(l =>
-                (l.title||'').toLowerCase().includes(q) ||
-                (l.subtitle||'').toLowerCase().includes(q)
-            );
+        // ── Fuzzy-Suche ─────────────────────────────────────────────────────
+        // Klein schreiben + Akzente/Umlaute entfernen (ä→a, é→e …)
+        function normalizeStr(s) {
+            return String(s == null ? '' : s)
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '');
+        }
+
+        // Liefert 0 = kein Treffer, sonst je höher desto besser.
+        // Erlaubt unscharfe Treffer (Zeichen müssen nur in Reihenfolge vorkommen).
+        function fuzzyScore(q, text) {
+            if (!q) return 1;
+            if (!text) return 0;
+
+            // Exakter Teilstring → starker Bonus, früher im Text = besser
+            const idx = text.indexOf(q);
+            if (idx !== -1) {
+                let s = 1000 - idx;
+                if (idx === 0 || /\s/.test(text[idx - 1])) s += 300; // Wortanfang
+                return s;
+            }
+
+            // Subsequenz-Match (tippfehler-/lücken-tolerant)
+            let ti = 0, score = 0, streak = 0, prev = -1;
+            for (let qi = 0; qi < q.length; qi++) {
+                const c = q[qi];
+                let found = -1;
+                for (; ti < text.length; ti++) {
+                    if (text[ti] === c) { found = ti; break; }
+                }
+                if (found === -1) return 0; // Zeichen nicht mehr gefunden → kein Treffer
+                if (qi > 0 && found === prev + 1) { streak++; score += 6 + streak * 4; }
+                else { streak = 0; score += 1; }
+                if (found === 0 || /\s/.test(text[found - 1])) score += 10; // Wortanfang
+                prev = found;
+                ti = found + 1;
+            }
+            return score;
+        }
+
+        // Bester Score über alle durchsuchbaren Felder eines Labels
+        function labelBestScore(label, q) {
+            if (!q) return 1;
+            let best = 0;
+            const consider = (txt) => {
+                const s = fuzzyScore(q, normalizeStr(txt));
+                if (s > best) best = s;
+            };
+            consider(label.label_id);
+            consider(label.floor_name);
+            Object.values(label.languages || {}).forEach(l => {
+                consider(l.title);
+                consider(l.subtitle);
+            });
+            return best;
         }
 
         // ── Render grid ────────────────────────────────────────────────────
         function renderLabels(filter) {
             const empty = document.getElementById('labelsEmpty');
             const grid  = document.getElementById('labelsGrid');
-            const q = (filter || '').trim().toLowerCase();
+            const q = normalizeStr((filter || '').trim());
             grid.innerHTML = '';
 
             if (allLabels.length === 0) {
                 empty.textContent = 'Keine verknüpften Beschriftungen gefunden.';
                 empty.style.display = 'block'; return;
             }
-            const filtered = allLabels.filter(l => labelMatchesQuery(l, q));
+
+            let filtered;
+            if (q) {
+                // Fuzzy-Treffer ermitteln und nach Relevanz sortieren
+                filtered = allLabels
+                    .map((l, i) => ({ l, i, score: labelBestScore(l, q) }))
+                    .filter(x => x.score > 0)
+                    .sort((a, b) => (b.score - a.score) || (a.i - b.i))
+                    .map(x => x.l);
+            } else {
+                filtered = allLabels.slice();
+            }
+
             if (filtered.length === 0) {
                 empty.textContent = 'Keine Beschriftung passt zur Suche.';
                 empty.style.display = 'block'; return;
