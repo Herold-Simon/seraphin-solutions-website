@@ -2731,6 +2731,15 @@
             }
             
             // ===== Modus-Switch Täglich / Stündlich =====
+            function syncLineChartModeButtons() {
+                document.querySelectorAll('#lineChartModeToggle .line-chart-mode-btn').forEach(function(b) {
+                    b.classList.toggle('active', b.dataset.mode === lineChartMode);
+                });
+                document.querySelectorAll('#lineRaceChartModeToggle .line-chart-mode-btn').forEach(function(b) {
+                    b.classList.toggle('active', b.dataset.mode === lineRaceChartMode);
+                });
+            }
+
             function updateModeUI() {
                 const dailyBtns = document.getElementById('dailyRangeButtons');
                 const hourlyBtns = document.getElementById('hourlyRangeButtons');
@@ -2751,6 +2760,13 @@
                     const mode = this.dataset.viewmode;
                     if (mode === viewMode) return;
                     viewMode = mode;
+                    if (viewMode === 'hourly') {
+                        // Im Stundenmodus standardmäßig einzelne Videos statt Gesamtsumme
+                        lineChartMode = 'byVideos';
+                        lineRaceChartMode = 'byVideos';
+                        syncLineChartModeButtons();
+                        updateChartTitles();
+                    }
                     if (viewMode === 'hourly' && !hourlyDate) {
                         hourlyDate = formatLocalDateYMD(new Date());
                         const hi = document.getElementById('hourlyDateInput');
@@ -3969,16 +3985,13 @@
             for (let h = 0; h < 24; h++) hourLabels.push(String(h).padStart(2, '0') + ':00');
 
             let series = [];
-            let totalForAvg = [];
             if (lineChartMode === 'totalViews') {
                 const totals = new Array(24).fill(0);
                 mergedVideos.forEach(v => {
                     const arr = getHourlyArrayForVideo(v, selectedDay);
                     for (let h = 0; h < 24; h++) totals[h] += arr[h];
                 });
-                totalForAvg = totals;
-                const hoursWithViews = totals.filter(n => n > 0).length;
-                const avgVal = hoursWithViews > 0 ? totals.reduce((a, b) => a + b, 0) / hoursWithViews : 0;
+                // Keine Durchschnittslinie im Stundenmodus – für einen Tag wenig aussagekräftig
                 series = [{
                     name: 'Gesamte Aufrufe',
                     type: 'line',
@@ -3986,12 +3999,7 @@
                     smooth: true,
                     lineStyle: { width: 1.5 },
                     itemStyle: { color: getChartColor(0) },
-                    emphasis: { focus: 'series' },
-                    markLine: {
-                        data: [{ yAxis: avgVal, name: 'Durchschnitt' }],
-                        lineStyle: { type: 'dashed', color: '#999' },
-                        label: { position: 'insideEndTop', formatter: 'Ø ' + (Number.isInteger(avgVal) ? avgVal : avgVal.toFixed(2)) }
-                    }
+                    emphasis: { focus: 'series' }
                 }];
             } else {
                 // Aufrufe nach Videos: jede Linie ein Video, 24 Stundenwerte
