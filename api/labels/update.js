@@ -20,7 +20,7 @@ module.exports = async function handler(req, res) {
     }
 
     const accountId = ctx.effectiveAccountId;
-    const { floor_id, label_id, route_id, per_language } = readBody(req);
+    const { floor_id, label_id, route_id, per_language, keywords } = readBody(req);
 
     if ((!floor_id || !label_id) && !route_id) {
       return send(res, 400, { success: false, error: 'route_id oder (floor_id + label_id) sind erforderlich' });
@@ -28,6 +28,12 @@ module.exports = async function handler(req, res) {
     if (!per_language || typeof per_language !== 'object') {
       return send(res, 400, { success: false, error: 'per_language ist erforderlich' });
     }
+
+    // Keywords sind routen-/labelweit (sprachunabhaengig). Nur uebernehmen, wenn ein Array
+    // gesendet wurde; [] = Keywords leeren, fehlend = Keyword-Override unveraendert lassen.
+    const cleanedKeywords = Array.isArray(keywords)
+      ? keywords.map(k => String(k).trim()).filter(k => k.length > 0)
+      : null;
 
     // Sprachnamen -> Codes/IDs (geraeteuebergreifend). Eine Sprache (Name) kann auf mehreren
     // Geraeten unterschiedliche IDs haben; daher schreiben wir den Text fuer ALLE diese IDs.
@@ -87,13 +93,18 @@ module.exports = async function handler(req, res) {
     }
 
     const now = new Date().toISOString();
-    const rows = Array.from(pairSet.values()).map(p => ({
-      account_id: accountId,
-      floor_id: p.floor_id,
-      label_id: p.label_id,
-      per_language: cleaned,
-      updated_at: now
-    }));
+    const rows = Array.from(pairSet.values()).map(p => {
+      const row = {
+        account_id: accountId,
+        floor_id: p.floor_id,
+        label_id: p.label_id,
+        per_language: cleaned,
+        updated_at: now
+      };
+      // Keywords nur mitschreiben, wenn ein Array uebergeben wurde (sonst bei Konflikt erhalten)
+      if (cleanedKeywords !== null) row.keywords = cleanedKeywords;
+      return row;
+    });
 
     const { error } = await supabase
       .from('label_overrides')

@@ -32,7 +32,7 @@ module.exports = async function handler(req, res) {
 
     let query = supabase
       .from('label_overrides')
-      .select('floor_id, label_id, per_language, icon, updated_at')
+      .select('floor_id, label_id, per_language, icon, keywords, updated_at')
       .eq('account_id', String(accountId))
       .order('updated_at', { ascending: true });
 
@@ -52,6 +52,7 @@ module.exports = async function handler(req, res) {
         label_id: o.label_id,
         per_language: o.per_language || {},
         icon: o.icon === undefined ? null : o.icon,
+        keywords: Array.isArray(o.keywords) ? o.keywords : null,
         updated_at: o.updated_at
       })),
       server_time: new Date().toISOString()

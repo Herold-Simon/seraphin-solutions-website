@@ -322,6 +322,64 @@
             background-clip: padding-box, border-box;
         }
 
+        /* ── Keywords ───────────────────────────────────── */
+        .label-keywords-section {
+            margin-top: 1.1rem;
+            border-radius: 12px;
+            background: var(--light-gray);
+            border: 1px solid var(--border-color);
+            padding: .6rem 1rem 1rem;
+        }
+        .label-keywords-head {
+            font-size: .8rem; font-weight: 700;
+            letter-spacing: .06em; text-transform: uppercase;
+            color: var(--text-light);
+            margin-bottom: .1rem;
+            display: flex; align-items: center; gap: .4rem;
+        }
+        .label-keywords-hint {
+            font-size: .74rem; color: var(--text-light);
+            margin-bottom: .55rem;
+        }
+        .label-keywords-tags {
+            display: flex; flex-wrap: wrap; gap: .4rem;
+            margin-bottom: .6rem;
+        }
+        .label-keywords-tags:empty { margin-bottom: 0; }
+        .label-keyword-tag {
+            display: inline-flex; align-items: center; gap: .4rem;
+            padding: .3rem .35rem .3rem .7rem;
+            font-size: .85rem; color: var(--text-dark);
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+        }
+        .label-keyword-tag button {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 18px; height: 18px; padding: 0;
+            border: none; border-radius: 50%; cursor: pointer;
+            background: var(--light-gray); color: var(--text-light);
+            font-size: .8rem; line-height: 1;
+            transition: background .15s, color .15s;
+        }
+        .label-keyword-tag button:hover { background: #fee2e2; color: #b91c1c; }
+        .label-keyword-input {
+            width: 100%; padding: .6rem .85rem;
+            font-size: .93rem; font-family: inherit;
+            border: 2px solid #e2e8f0; border-radius: 8px;
+            background: var(--white); box-sizing: border-box;
+            transition: border-color .18s;
+            color: var(--text-dark);
+        }
+        .label-keyword-input:focus {
+            outline: none;
+            border-color: transparent;
+            background-image: linear-gradient(var(--white), var(--white)),
+                              var(--brand-grad);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+        }
+
         /* ── Save row ───────────────────────────────────── */
         .label-save-row {
             display: flex; align-items: center; gap: 1rem;
@@ -758,6 +816,15 @@
                                 }).join('')}
                             </div>
 
+                            <!-- Keywords (routenweit, sprachunabhängig) -->
+                            <div class="label-keywords-section">
+                                <div class="label-keywords-head"><i class="fas fa-tags"></i> Schlüsselwörter</div>
+                                <div class="label-keywords-hint">Verbessern die Auffindbarkeit dieser Route in der Suche.</div>
+                                <div class="label-keywords-tags js-kw-tags"></div>
+                                <input type="text" class="label-keyword-input js-kw-input"
+                                    placeholder="Schlüsselwort eingeben und Enter drücken">
+                            </div>
+
                             <!-- Save -->
                             <div class="label-save-row">
                                 <button class="label-save-btn js-save" type="button">Speichern</button>
@@ -774,6 +841,9 @@
             // ── Icon dropzone wiring
             wireDragDrop(tile, label);
 
+            // ── Keyword editor wiring
+            wireKeywords(tile, label);
+
             // ── Save button
             tile.querySelector('.js-save').addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -781,6 +851,56 @@
             });
 
             return tile;
+        }
+
+        // ── Keyword editor (routenweit, sprachunabhängig) ───────────────────
+        function wireKeywords(tile, label) {
+            const tagsEl  = tile.querySelector('.js-kw-tags');
+            const inputEl = tile.querySelector('.js-kw-input');
+            if (!tagsEl || !inputEl) return;
+
+            // Arbeitskopie der Keywords auf dem Label-Objekt
+            label._kwDraft = Array.isArray(label.keywords)
+                ? label.keywords.map(k => String(k)).filter(k => k.length > 0)
+                : [];
+
+            const render = () => {
+                tagsEl.innerHTML = label._kwDraft.map((kw, i) =>
+                    `<span class="label-keyword-tag">${esc(kw)}<button type="button" data-i="${i}" title="Entfernen" aria-label="Entfernen">&times;</button></span>`
+                ).join('');
+                tagsEl.querySelectorAll('button[data-i]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const idx = parseInt(btn.getAttribute('data-i'), 10);
+                        if (!isNaN(idx)) { label._kwDraft.splice(idx, 1); render(); }
+                    });
+                });
+            };
+
+            const addKeyword = () => {
+                const val = inputEl.value.trim();
+                if (val && !label._kwDraft.some(k => k.toLowerCase() === val.toLowerCase())) {
+                    label._kwDraft.push(val);
+                    render();
+                }
+                inputEl.value = '';
+            };
+
+            inputEl.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    addKeyword();
+                } else if (e.key === 'Backspace' && inputEl.value === '' && label._kwDraft.length > 0) {
+                    label._kwDraft.pop();
+                    render();
+                }
+            });
+            // Eingabe darf nicht die Kachel zu-/aufklappen
+            inputEl.addEventListener('click', (e) => e.stopPropagation());
+            // Beim Verlassen des Feldes offene Eingabe übernehmen
+            inputEl.addEventListener('blur', () => { if (inputEl.value.trim()) addKeyword(); });
+
+            render();
         }
 
         // ── Toggle tile open/closed ─────────────────────────────────────────
@@ -975,10 +1095,13 @@
             saveBtn.innerHTML = '<span class="label-spinner"></span> Speichern…';
 
             try {
+                const keywords = Array.isArray(label._kwDraft)
+                    ? label._kwDraft.slice()
+                    : (Array.isArray(label.keywords) ? label.keywords.slice() : []);
                 const res = await fetch('/api/labels/update', {
                     method: 'POST', credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ route_id: label.route_id, floor_id: label.floor_id, label_id: label.label_id, per_language })
+                    body: JSON.stringify({ route_id: label.route_id, floor_id: label.floor_id, label_id: label.label_id, per_language, keywords })
                 });
                 const data = await res.json();
                 if (!res.ok || !data.success) {
@@ -1009,6 +1132,8 @@
 
                 // Update in-memory label
                 label.languages = mergeLangs(label.languages, per_language);
+                label.keywords = keywords;
+                label.has_keywords_override = true;
                 label.has_override = true;
                 invalidateLabelFuse();   // Suchindex nach Textänderung neu aufbauen
 

@@ -158,6 +158,9 @@ module.exports = async function handler(req, res) {
         route_id: l.route_id != null ? String(l.route_id) : null,
         per_language: l.per_language || {},
         icon: l.icon != null ? String(l.icon) : null,
+        keywords: Array.isArray(l.keywords)
+          ? l.keywords.map(k => String(k)).filter(k => k.length > 0)
+          : [],
         updated_at: now
       });
     }

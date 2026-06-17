@@ -25,7 +25,7 @@ module.exports = async function handler(req, res) {
 
     const { data: labelRows, error: labelError } = await supabase
       .from('labels')
-      .select('device_id, floor_id, label_id, route_id, per_language, icon')
+      .select('device_id, floor_id, label_id, route_id, per_language, icon, keywords')
       .eq('account_id', accountId);
     if (labelError) {
       return send(res, 500, { success: false, error: 'Fehler beim Laden der Labels' });
@@ -33,7 +33,7 @@ module.exports = async function handler(req, res) {
 
     const { data: overrideRows } = await supabase
       .from('label_overrides')
-      .select('floor_id, label_id, per_language, icon, updated_at')
+      .select('floor_id, label_id, per_language, icon, keywords, updated_at')
       .eq('account_id', accountId);
 
     // Sprachnamen (Code -> Name) und Stockwerksnamen (floor_id -> Name) aus den Geraeten sammeln
@@ -89,6 +89,7 @@ module.exports = async function handler(req, res) {
     // Overrides je konkreter Zeile (floor_id + label_id) buendeln, Sprachen nach NAMEN.
     const overrideByPair = new Map();
     const overrideIconByPair = new Map(); // pairKey -> icon (string oder '' zum Loeschen)
+    const overrideKeywordsByPair = new Map(); // pairKey -> keywords (Array; auch [] zum Leeren)
     (overrideRows || [])
       .sort((a, b) => String(a.updated_at || '').localeCompare(String(b.updated_at || '')))
       .forEach(o => {
@@ -105,6 +106,10 @@ module.exports = async function handler(req, res) {
         // Icon-Override (zuletzt aktualisiertes gewinnt; null = kein Override)
         if (o.icon !== undefined && o.icon !== null) {
           overrideIconByPair.set(key, String(o.icon));
+        }
+        // Keyword-Override (zuletzt aktualisiertes gewinnt; null = kein Override)
+        if (Array.isArray(o.keywords)) {
+          overrideKeywordsByPair.set(key, o.keywords.map(k => String(k)).filter(k => k.length > 0));
         }
       });
 
@@ -124,7 +129,8 @@ module.exports = async function handler(req, res) {
           floor_names: new Set(),
           device_ids: new Set(),
           reported: {},
-          reportedIcon: ''
+          reportedIcon: '',
+          reportedKeywords: null
         });
       }
       const g = groups.get(key);
@@ -134,6 +140,10 @@ module.exports = async function handler(req, res) {
       if (floorNames[String(l.floor_id)]) g.floor_names.add(floorNames[String(l.floor_id)]);
       if (l.device_id) g.device_ids.add(l.device_id);
       if (!g.reportedIcon && l.icon) g.reportedIcon = String(l.icon);
+      // Keywords sind routen-/labelweit (sprachunabhaengig): erstes nicht-leeres gewinnt
+      if (!g.reportedKeywords && Array.isArray(l.keywords) && l.keywords.length > 0) {
+        g.reportedKeywords = l.keywords.map(k => String(k)).filter(k => k.length > 0);
+      }
       mergeByName(g.reported, l.per_language);
     });
 
@@ -144,6 +154,8 @@ module.exports = async function handler(req, res) {
       let hasOverride = false;
       let iconOverride; // string oder undefined
       let hasIconOverride = false;
+      let keywordsOverride; // Array oder undefined
+      let hasKeywordsOverride = false;
       g.pairs.forEach((_p, pairKey) => {
         const ov = overrideByPair.get(pairKey);
         if (ov) {
@@ -158,9 +170,14 @@ module.exports = async function handler(req, res) {
           iconOverride = overrideIconByPair.get(pairKey);
           hasIconOverride = true;
         }
+        if (overrideKeywordsByPair.has(pairKey)) {
+          keywordsOverride = overrideKeywordsByPair.get(pairKey);
+          hasKeywordsOverride = true;
+        }
       });
 
       const effectiveIcon = hasIconOverride ? iconOverride : (g.reportedIcon || '');
+      const effectiveKeywords = hasKeywordsOverride ? (keywordsOverride || []) : (g.reportedKeywords || []);
       const languages = {};
 
       // Basis: gemeldete Texte
@@ -194,7 +211,9 @@ module.exports = async function handler(req, res) {
         has_override: hasOverride,
         icon: effectiveIcon,
         has_icon: Boolean(effectiveIcon),
-        has_icon_override: hasIconOverride
+        has_icon_override: hasIconOverride,
+        keywords: effectiveKeywords,
+        has_keywords_override: hasKeywordsOverride
       });
     });
 
