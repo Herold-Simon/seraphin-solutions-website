@@ -8,28 +8,12 @@
       "destination": "/api/$1"
     },
     {
-      "source": "/info",
-      "destination": "/weitere-informationen.html"
-    },
-    {
       "source": "/Wegbeschreibungen/Agatharied/verzeichnis",
       "destination": "/Wegbeschreibungen/Agatharied/verzeichnis.html"
     },
     {
       "source": "/Wegbeschreibungen/Agatharied/Deutsch/verzeichnis",
       "destination": "/Wegbeschreibungen/Agatharied/Deutsch/verzeichnis.html"
-    },
-    {
-      "source": "/programm",
-      "destination": "/programm.html"
-    },
-    {
-      "source": "/weitere-informationen",
-      "destination": "/weitere-informationen.html"
-    },
-    {
-      "source": "/support",
-      "destination": "/support.html"
     },
     {
       "source": "/passwortverlust",

@@ -17,9 +17,6 @@ Diese Anleitung hilft Ihnen dabei, Google Analytics 4 und Google Search Console 
 
 2. **Analytics auf folgenden Seiten aktiviert:**
    - ✅ index.html
-   - ✅ programm.html
-   - ✅ weitere-informationen.html
-   - ✅ support.html
    - ✅ login.html
 
 3. **Nicht getrackt (bewusst):**

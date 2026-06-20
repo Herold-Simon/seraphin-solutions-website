@@ -127,9 +127,6 @@
                 </div>
                 <nav class="nav" id="nav">
                     <a href="index.html" class="nav-link active">Startseite</a>
-                    <a href="programm.html" class="nav-link">Das Programm</a>
-                    <a href="weitere-informationen.html" class="nav-link">Weitere Infos</a>
-                    <a href="support.html" class="nav-link">Support</a>
                     <a href="login.html" class="nav-link nav-login-link">Login</a>
                 </nav>
                 <button class="hamburger" id="hamburger" aria-label="Menü öffnen">
@@ -152,7 +149,6 @@
                     </p>
                     <div class="hero-buttons">
                         <a href="#contact" class="btn btn-primary btn-large">Kostenlose Demo vereinbaren</a>
-                        <a href="/info" class="btn btn-secondary btn-large">Weitere Infos</a>
                     </div>
                     <p class="hero-note">Bereits im Einsatz in Gebäuden mit über 50.000 m² &ndash; darunter auch ein interaktives Wegleitsystem im <a href="#referenzen">Krankenhaus Agatharied</a>.</p>
                 </div>
@@ -180,6 +176,76 @@
                         </script>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Referenzen -->
+    <section class="references" id="referenzen">
+        <div class="container">
+            <div class="references-header">
+                <div class="section-label">Referenzen</div>
+                <h2 class="section-title centered">Im Einsatz bewährt.</h2>
+            </div>
+            <div class="carousel-container">
+                <div class="carousel" id="carousel">
+                    <div class="carousel-track" id="carouselTrack">
+                        <div class="carousel-slide active">
+                            <div class="reference-slide">
+                                <div class="reference-content">
+                                    <div class="reference-image-main">
+                                        <img src="Kiosk_agatharied.jpg" alt="Interaktives Wegleitsystem im Krankenhaus Agatharied: Touch-Kiosk mit 3D-Gebäudenavi">
+                                    </div>
+                                    <div class="reference-info">
+                                        <div class="reference-badge">
+                                            <span class="badge-label">Gebäudegröße:</span>
+                                            <span class="badge-value">50.000 m²</span>
+                                        </div>
+                                        <h3>Krankenhaus Agatharied</h3>
+                                        <p class="reference-description">
+                                            Im Krankenhaus Agatharied unterstützt das Gebäudenavi Besucher und Patienten jeden Tag bei der Orientierung 
+                                            im weitläufigen Klinikgelände. Der interaktive Bildschirm leitet zu Stationen, 
+                                            Funktionsbereichen und weiteren Zielen und entlastet das Personal bei Wegbeschreibungen.
+                                        </p>
+                                    </div>
+                                </div>
+                                <blockquote class="reference-quote reference-quote-box">
+                                    <p>„Es stellt [...] eine sehr gut funktionierende und innovative Erweiterung im Service des Krankenhauses dar.“</p>
+                                    <footer class="reference-quote-meta">
+                                        <cite>Prof.&nbsp;Dr.&nbsp;Markus Rehm, Ärztlicher Direktor<br>Krankenhaus Agatharied&nbsp;KU</cite>
+                                    </footer>
+                                </blockquote>
+                            </div>
+                        </div>
+                        <div class="carousel-slide">
+                            <div class="reference-slide">
+                                <div class="reference-content">
+                                    <div class="reference-image-main">
+                                        <img src="amtsgericht.jpg" alt="Amtsgericht München">
+                                    </div>
+                                    <div class="reference-info">
+                                        <div class="reference-badge">
+                                            <span class="badge-label">Gebäudegröße:</span>
+                                            <span class="badge-value">25.000 m²</span>
+                                        </div>
+                                        <h3>Amtsgericht München</h3>
+                                        <p class="reference-description">
+                                            In einer Machbarkeitsstudie wurde das Gebäudenavi temporär eingesetzt, 
+                                            um Besucher direkt zu ihrem Ziel zu führen. Die Rückmeldungen hoben 
+                                            die Benutzerfreundlichkeit und Einfachheit besonders hervor.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="carousel-btn prev" id="carouselPrev" aria-label="Vorherige Referenz" style="display: none;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <button class="carousel-btn next" id="carouselNext" aria-label="Nächste Referenz" style="display: none;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
             </div>
         </div>
     </section>
@@ -267,175 +333,6 @@
                         Das 3D-Modell bildet reale architektonische Elemente ab, damit sich 
                         Besucher sofort orientieren können.
                     </p>
-                    <a href="programm.html" class="btn btn-secondary">Das Programm im Detail</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Vorteile für Gebäudebetreiber -->
-    <section class="benefits-section">
-        <div class="container">
-            <div class="benefits-header">
-                <h2 class="section-title">Was das für Ihren Betrieb bedeutet</h2>
-            </div>
-            <div class="benefits-list">
-                <article class="benefit-item">
-                    <span class="benefit-number">01</span>
-                    <div class="benefit-body">
-                        <h3>Weniger Belastung am Empfang</h3>
-                        <p>Fragen nach dem Weg gehören zu den häufigsten Anliegen an der Information. Mit dem Gebäudenavi finden Besucher eigenständig ans Ziel &ndash; Ihr Personal wird entlastet und kann sich auf seine eigentlichen Aufgaben konzentrieren.</p>
-                    </div>
-                </article>
-                <article class="benefit-item">
-                    <span class="benefit-number">02</span>
-                    <div class="benefit-body">
-                        <h3>Auswertungen in Echtzeit</h3>
-                        <p>Über das Dashboard sehen Sie, welche Ziele am häufigsten gesucht werden und wo der größte Orientierungsbedarf besteht. Diese Daten helfen, Beschilderung gezielt zu verbessern oder Personalressourcen besser zu planen.</p>
-                    </div>
-                </article>
-                <article class="benefit-item">
-                    <span class="benefit-number">03</span>
-                    <div class="benefit-body">
-                        <h3>Selbst verwalten, ohne IT-Abteilung</h3>
-                        <p>Raumnamen ändern, neue Ziele hinzufügen oder Beschriftungen anpassen &ndash; das funktioniert über ein Adminpanel, das für Nicht-Techniker gemacht ist. Sie behalten die Kontrolle, ohne auf externe Dienstleister warten zu müssen.</p>
-                    </div>
-                </article>
-                <article class="benefit-item">
-                    <span class="benefit-number">04</span>
-                    <div class="benefit-body">
-                        <h3>Wächst mit Ihrem Gebäude</h3>
-                        <p>Ob Anbau, Umstrukturierung oder neuer Standort &ndash; das System lässt sich jederzeit erweitern. Neue Stockwerke oder Gebäudeteile werden ergänzt, ohne dass die bestehende Konfiguration angepasst werden muss.</p>
-                    </div>
-                </article>
-            </div>
-        </div>
-    </section>
-
-    <!-- Referenzen -->
-    <section class="references" id="referenzen">
-        <div class="container">
-            <div class="references-header">
-                <div class="section-label">Referenzen</div>
-                <h2 class="section-title centered">Im Einsatz bewährt.</h2>
-            </div>
-            <div class="carousel-container">
-                <div class="carousel" id="carousel">
-                    <div class="carousel-track" id="carouselTrack">
-                        <div class="carousel-slide active">
-                            <div class="reference-slide">
-                                <div class="reference-content">
-                                    <div class="reference-image-main">
-                                        <img src="Kiosk_agatharied.jpg" alt="Interaktives Wegleitsystem im Krankenhaus Agatharied: Touch-Kiosk mit 3D-Gebäudenavi">
-                                    </div>
-                                    <div class="reference-info">
-                                        <div class="reference-badge">
-                                            <span class="badge-label">Gebäudegröße:</span>
-                                            <span class="badge-value">50.000 m²</span>
-                                        </div>
-                                        <h3>Krankenhaus Agatharied</h3>
-                                        <p class="reference-description">
-                                            Im Krankenhaus Agatharied unterstützt das Gebäudenavi Besucher und Patienten jeden Tag bei der Orientierung 
-                                            im weitläufigen Klinikgelände. Der interaktive Bildschirm leitet zu Stationen, 
-                                            Funktionsbereichen und weiteren Zielen und entlastet das Personal bei Wegbeschreibungen.
-                                        </p>
-                                    </div>
-                                </div>
-                                <blockquote class="reference-quote reference-quote-box">
-                                    <p>„Es stellt [...] eine sehr gut funktionierende und innovative Erweiterung im Service des Krankenhauses dar.“</p>
-                                    <footer class="reference-quote-meta">
-                                        <cite>Prof.&nbsp;Dr.&nbsp;Markus Rehm, Ärztlicher Direktor<br>Krankenhaus Agatharied&nbsp;KU</cite>
-                                    </footer>
-                                </blockquote>
-                            </div>
-                        </div>
-                        <div class="carousel-slide">
-                            <div class="reference-slide">
-                                <div class="reference-content">
-                                    <div class="reference-image-main">
-                                        <img src="amtsgericht.jpg" alt="Amtsgericht München">
-                                    </div>
-                                    <div class="reference-info">
-                                        <div class="reference-badge">
-                                            <span class="badge-label">Gebäudegröße:</span>
-                                            <span class="badge-value">25.000 m²</span>
-                                        </div>
-                                        <h3>Amtsgericht München</h3>
-                                        <p class="reference-description">
-                                            In einer Machbarkeitsstudie wurde das Gebäudenavi temporär eingesetzt, 
-                                            um Besucher direkt zu ihrem Ziel zu führen. Die Rückmeldungen hoben 
-                                            die Benutzerfreundlichkeit und Einfachheit besonders hervor.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <button class="carousel-btn prev" id="carouselPrev" aria-label="Vorherige Referenz" style="display: none;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-                </button>
-                <button class="carousel-btn next" id="carouselNext" aria-label="Nächste Referenz" style="display: none;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-                </button>
-            </div>
-        </div>
-    </section>
-
-    <!-- Preisrechner -->
-    <section class="price-calculator" id="pricing">
-        <div id="preisrechner"></div>
-        <div class="container">
-            <div class="calculator-header">
-                <div class="section-label">Preise</div>
-                <h2 class="section-title centered">Unverbindliche Kostenschätzung</h2>
-                <p class="section-subtitle centered">
-                    Passen Sie die Parameter an Ihr Gebäude an und erhalten Sie sofort eine Schätzung.
-                </p>
-            </div>
-            <div class="calculator-preispolitik-link">
-                <a href="preispolitik.html" class="btn btn-secondary">Preispolitik & Formel ansehen</a>
-            </div>
-            <div class="calculator-container">
-                <div class="calculator-form">
-                    <div class="calc-step">
-                        <div class="calc-step-header">
-                            <span class="calc-step-number">1</span>
-                            <div>
-                                <h3 class="calc-step-title">Gebäudegröße</h3>
-                                <p class="calc-step-question">Wie groß ist Ihr Gebäude?</p>
-                            </div>
-                        </div>
-                        <div class="calc-flaeche-input-wrap">
-                            <button type="button" class="calc-counter-btn" id="flaecheMinus" aria-label="500 m² weniger">&minus;</button>
-                            <input type="number" id="flaecheInput" min="0" step="100" value="60000" placeholder="z.B. 60000" class="calc-flaeche-input" aria-label="Gebäudegröße in Quadratmetern">
-                            <span class="calc-flaeche-unit">m²</span>
-                            <button type="button" class="calc-counter-btn" id="flaechePlus" aria-label="500 m² mehr">+</button>
-                        </div>
-                        <input type="range" id="flaeche" min="500" max="120000" step="500" value="60000" class="calc-slider" aria-label="Gebäudegröße anpassen">
-                    </div>
-                    <div class="calc-step">
-                        <div class="calc-step-header">
-                            <span class="calc-step-number">2</span>
-                            <div>
-                                <h3 class="calc-step-title">Touch-Bildschirme</h3>
-                                <p class="calc-step-question">Wie viele Bildschirme benötigen Sie?</p>
-                            </div>
-                        </div>
-                        <div class="calc-counter">
-                            <button type="button" class="calc-counter-btn" id="kioskeMinus" aria-label="Einen weniger">&minus;</button>
-                            <span class="calc-counter-value" id="kioskeValue">1</span>
-                            <button type="button" class="calc-counter-btn" id="kioskePlus" aria-label="Einen mehr">+</button>
-                        </div>
-                        <input type="range" id="kioske" min="1" max="20" step="1" value="1" class="calc-slider" aria-label="Anzahl Bildschirme anpassen">
-                    </div>
-                </div>
-                <div class="calculator-result" id="calculatorResult">
-                    <div class="result-content">
-                        <div class="result-price" id="resultPrice">&mdash;</div>
-                        <p style="font-size: 0.9375rem; color: var(--color-text-secondary); margin-bottom: 0;">Geschätzter Gesamtpreis</p>
-                        <div class="result-breakdown" id="resultBreakdown"></div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -517,17 +414,8 @@
                 </div>
                 <nav class="footer-nav" aria-label="Footer-Navigation">
                     <div class="footer-nav-block">
-                        <span class="footer-nav-title">Produkt</span>
-                        <ul class="footer-nav-list">
-                            <li><a href="programm.html">Das Programm</a></li>
-                            <li><a href="weitere-informationen.html">Weitere Infos</a></li>
-                            <li><a href="support.html">Support</a></li>
-                        </ul>
-                    </div>
-                    <div class="footer-nav-block">
                         <span class="footer-nav-title">Unternehmen</span>
                         <ul class="footer-nav-list">
-                            <li><a href="index.html#pricing">Preise</a></li>
                             <li><a href="preispolitik.html">Preispolitik</a></li>
                             <li><a href="index.html#kontakt">Kontakt</a></li>
                         </ul>
