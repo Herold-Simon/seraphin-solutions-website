@@ -1346,6 +1346,28 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        /* Bildsequenz-Ladeanimation (ersetzt den blauen Ladering beim Laden der Statistiken) */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            background: rgba(255, 255, 255, 0.92);
+            z-index: 9999;
+        }
+
+        .frame-loader {
+            /* Etwa 3x so groß wie der bisherige 20px-Ladering */
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
         
         .error-message {
             background: #FEE;
@@ -1810,9 +1832,9 @@
                 <span><strong>Hinweis:</strong> Manche Funktionen funktionieren im Moment nicht oder sind eingeschränkt<span>
             </div>
 
-            <div id="loadingMessage" style="text-align: center; padding: 2rem;">
-                <div class="loading-spinner"></div>
-                <p style="margin-top: 1rem; color: var(--text-light);">Lade Statistiken...</p>
+            <div id="loadingMessage" class="loading-overlay">
+                <img id="frameLoaderImg" class="frame-loader" src="frames/Ladebilschirm0000.png" alt="Lädt…" draggable="false">
+                <p style="margin: 0; color: var(--text-light);">Lade Statistiken...</p>
             </div>
             
             <div id="errorMessage" class="error-message" style="display: none;"></div>
@@ -5909,6 +5931,65 @@
             window.location.href = 'login.html';
         }
         
+        // Bildsequenz-Ladeanimation (frames/Ladebilschirm0000.png .. 0100.png) mit 30 FPS
+        const frameLoader = (function() {
+            const FRAME_COUNT = 101;     // 0000 .. 0100
+            const FPS = 30;
+            const FRAME_DURATION = 1000 / FPS; // ~33.33ms pro Bild
+            const images = [];
+            let currentFrame = 0;
+            let rafId = null;
+            let lastTime = 0;
+
+            function framePath(index) {
+                return 'frames/Ladebilschirm' + String(index).padStart(4, '0') + '.png';
+            }
+
+            // Alle Frames vorladen, um Flackern während der Animation zu vermeiden.
+            for (let i = 0; i < FRAME_COUNT; i++) {
+                const img = new Image();
+                img.src = framePath(i);
+                images[i] = img;
+            }
+
+            function tick(timestamp) {
+                const el = document.getElementById('frameLoaderImg');
+                const container = document.getElementById('loadingMessage');
+                // Beendet die Schleife automatisch, sobald die Ladeanzeige ausgeblendet ist.
+                if (!el || !container || container.style.display === 'none') {
+                    rafId = null;
+                    return;
+                }
+                if (!lastTime) lastTime = timestamp;
+                const elapsed = timestamp - lastTime;
+                if (elapsed >= FRAME_DURATION) {
+                    // Mehrere Frames überspringen, falls der Browser ins Stocken geriet.
+                    const advance = Math.floor(elapsed / FRAME_DURATION);
+                    currentFrame = (currentFrame + advance) % FRAME_COUNT;
+                    el.src = images[currentFrame].src;
+                    lastTime = timestamp - (elapsed % FRAME_DURATION);
+                }
+                rafId = requestAnimationFrame(tick);
+            }
+
+            return {
+                start() {
+                    if (rafId !== null) return;
+                    lastTime = 0;
+                    rafId = requestAnimationFrame(tick);
+                },
+                stop() {
+                    if (rafId !== null) {
+                        cancelAnimationFrame(rafId);
+                        rafId = null;
+                    }
+                }
+            };
+        })();
+
+        // Animation sofort starten – die Ladeanzeige ist beim Seitenaufruf sichtbar.
+        frameLoader.start();
+
         // Loading verstecken
         function hideLoading() {
             try {
@@ -5918,6 +5999,7 @@
                 if (loadingMessageElement) {
                     loadingMessageElement.style.display = 'none';
                 }
+                frameLoader.stop();
                 
                 if (dashboardContentElement) {
                     dashboardContentElement.style.display = 'block';
@@ -5953,6 +6035,7 @@
                 if (loadingMessageElement) {
                     loadingMessageElement.style.display = 'none';
                 }
+                frameLoader.stop();
                 
                 if (dashboardContentElement) {
                     dashboardContentElement.innerHTML = `
