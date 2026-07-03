@@ -41,7 +41,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css?v=20">
+    <link rel="stylesheet" href="styles.css?v=25">
     
     <script type="application/ld+json">
     {
@@ -145,7 +145,7 @@
                 <div class="hero-text">
                     <h1>Das Gebäudenavi.</h1>
                     <p class="hero-description">
-                        Mit unseren 3D-Wegführungen findet jeder Ihrer Besucher ohne Hilfe ans Ziel.
+                        Mit unserem Wegleitsystem findet jeder Ihrer Besucher ohne Hilfe ans Ziel.
                     </p>
                     <div class="hero-buttons">
                         <a href="#contact" class="btn btn-primary btn-large">Kostenlose Demo vereinbaren</a>
@@ -176,6 +176,36 @@
                         </script>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Was ist das Gebäudenavi -->
+    <section class="what-is" id="was-ist-das-gebaeudenavi">
+        <div class="container">
+            <div class="what-is__head">
+                <h2 class="what-is__title">Was ist das Gebäudenavi?</h2>
+            </div>
+            <div class="what-is__layout">
+                <div class="what-is__media">
+                    <img src="bilder/Was_ist_das_GBN/Handy+kiosk.png" alt="Das Gebäudenavi auf einem Touch-Kiosk und auf dem Smartphone" loading="lazy">
+                </div>
+                <div class="what-is__text">
+                    <p>
+                        Wird das Gebäudenavi bei einem Gebäude eingesetzt, hilft es den Besuchern, sich im Gebäude zurechtzufinden. 
+                        Dazu wird ein interaktiver Touch-Bildschirm in Ihrem Gebäude installiert, mit dem den Besuchern eine interaktive 
+                        3D-Karte des Gebäudes angezeigt wird. Diese Karte hält architektonische Details stilistisch fest, sodass sich 
+                        Besucher auf der Karte sofort zurechtfinden.
+                    </p>
+                    <p>
+                        Die Besucher können Ihr Ziel auf der Karte auswählen oder mit der smarten Suchfunktion ausfindig machen und sich dann mit einer 
+                        intuitiven 3D-Animation zum Ziel führen lassen (siehe Beispiel oben). Ebenfalls werden QR-Codes eingesetzt, um den Besuchern das
+                         Laden der Wegbeschreibung auf ihr Smartphone zu ermöglichen.
+                    </p>
+                </div>
+            </div>
+            <div class="what-is__cta">
+                <a href="#fuer-verwalter" class="btn btn-primary btn-large btn-bounce">Mehr Details zum Gebäudenavi</a>
             </div>
         </div>
     </section>
@@ -250,90 +280,104 @@
         </div>
     </section>
 
-    <!-- Schmerzpunkte für Gebäudebetreiber -->
-    <section class="pain-section">
+    <!-- Für Verwalter -->
+    <section class="admin-value" id="fuer-verwalter">
         <div class="container">
-            <div class="pain-header">
-                <div class="section-label">Das Problem:</div>
-                <h2 class="section-title">Jeden Tag die gleichen Fragen</h2>
-                <p class="section-subtitle">
-                    In großen Gebäuden verlieren Besucher schnell die Orientierung. Das kostet Zeit, Nerven und Personalressourcen.
+            <div class="admin-value__head">
+                <h2 class="admin-value__title">Was das Gebäudenavi Ihnen als Verwalter bringt.</h2>
+                <p class="admin-value__lead">
+                    Einmal eingerichtet, läuft das Gebäudenavi im Hintergrund. Es entlastet Ihr Team,
+                    zeigt Ihnen, wonach Ihre Besucher suchen, und erfordert im Alltag keine Betreuung.
                 </p>
             </div>
-            <div class="pain-grid">
-                <div class="pain-card">
-                    <div class="pain-icon"><i class="fas fa-route"></i></div>
-                    <h3>Besucher finden nicht ans Ziel</h3>
-                    <p>
-                        In weitläufigen Gebäuden suchen Besucher oft vergeblich nach dem richtigen Raum. 
-                        Statische Schilder reichen nicht aus, um komplexe Wege verständlich zu machen.
-                    </p>
+
+            <div class="admin-value__layout">
+                <div class="admin-value__media">
+                    <div class="admin-value__video-frame">
+                        <video
+                            class="admin-value__video"
+                            data-autoplay-in-view
+                            muted
+                            playsinline
+                            preload="metadata"
+                            aria-label="Animation der Verwalter-Oberfläche des Gebäudenavis">
+                            <source src="Videos/Startseite/Adminvorteile/UI-Animation.mp4" type="video/mp4">
+                        </video>
+                    </div>
                 </div>
-                <div class="pain-card">
-                    <div class="pain-icon"><i class="fas fa-user-clock"></i></div>
-                    <h3>Personal wird ständig unterbrochen</h3>
-                    <p>
-                        Empfangsmitarbeiter und Angestellte beantworten täglich dieselben Wegfragen. 
-                        Zeit, die für wichtigere Aufgaben fehlt.
-                    </p>
+
+                <div class="admin-value__grid">
+                    <article class="value-card">
+                        <div class="value-card__inner">
+                            <h3 class="value-card__title">Statistikenerfassung</h3>
+                            <p class="value-card__text">
+                                Das Gebäudenavi wertet anonym aus, welche Ziele am häufigsten gesucht werden und
+                                wohin sich Besucher leiten lassen. So erkennen Sie, welche Bereiche stark
+                                frequentiert sind und wo Orientierung oft fehlt. Statt auf Vermutungen können Sie
+                                Entscheidungen rund um Ihr Gebäude auf konkrete Zahlen stützen.
+                            </p>
+                        </div>
+                    </article>
+
+                    <article class="value-card">
+                        <div class="value-card__inner">
+                            <h3 class="value-card__title">Personalentlastung</h3>
+                            <p class="value-card__text">
+                                Fragen nach dem richtigen Weg gehören für viele Empfangskräfte zum Alltag. Mit dem
+                                Gebäudenavi finden Besucher eigenständig zum Ziel und müssen seltener nachfragen.
+                                Das reduziert Unterbrechungen spürbar und schafft Ihrem Team mehr Zeit für die
+                                eigentlichen Aufgaben.
+                            </p>
+                        </div>
+                    </article>
+
+                    <article class="value-card">
+                        <div class="value-card__inner">
+                            <h3 class="value-card__title">Autonomes Verhalten</h3>
+                            <p class="value-card__text">
+                                Das Gebäudenavi ist für Jahrelangen und autonomen Einsatz ausgelegt. Es muss nicht täglich gestartet oder heruntergefahren werden,
+                                und das Programm ist darauf ausgelegt auch ohne Wartung zuverlässig funktionieren.
+                            </p>
+                        </div>
+                    </article>
+
+                    <article class="value-card">
+                        <div class="value-card__inner">
+                            <h3 class="value-card__title">Einfache Verwaltung</h3>
+                            <p class="value-card__text">
+                                Das Gebäudenavi erfordert nur bei änderungen des Grundrisses Ihre Aufmerksamkeit. Falls z.B ein Bereich in
+                                Ihrem Gebäude umfunktioniert wird, können Sie ganz einfach über die Weboberfläche die Beschriftung der einzelnen 
+                                Bereiche anpassen.
+                            </p>
+                        </div>
+                    </article>
                 </div>
-                <div class="pain-card">
-                    <div class="pain-icon"><i class="fas fa-chart-pie"></i></div>
-                    <h3>Kein Überblick über Besucherbewegungen</h3>
-                    <p>
-                        Welche Bereiche werden am häufigsten gesucht? Wo entstehen Engpässe?
-                        Ohne Daten bleiben diese Fragen unbeantwortet.
-                    </p>
-                </div>
+            </div>
+
+            <div class="admin-value__cta">
+                <a href="verwaltervorteile.html" class="btn btn-primary btn-large">Verwaltervorteile im Detail</a>
             </div>
         </div>
     </section>
 
-    <!-- Lösung: So funktioniert das Gebäudenavi -->
-    <section class="solution-section">
+    <!-- Nutzerperspektive -->
+    <section class="user-view" id="fuer-nutzer">
         <div class="container">
-            <div class="solution-header">
-                <div class="section-label">Die Lösung:</div>
-                <h2 class="section-title centered">Das Gebäudenavi.</h2>
-                <p class="section-subtitle centered">
-                    Interaktive Touch-Bildschirme mit 3D-Grundrissen, die Besucher Schritt für Schritt zum Ziel führen.
+            <div class="user-view__head">
+                <h2 class="user-view__title">Das Gebäudenavi aus der Perspektive eines Nutzers.</h2>
+                <p class="user-view__lead">
+                    Ziel antippen, dem Weg folgen, ankommen. Am besten überzeugen Sie sich selbst davon,
+                    wie einfach sich Besucher mit dem Gebäudenavi zurechtfinden.
                 </p>
             </div>
-            <div class="solution-steps">
-                <div class="solution-step">
-                    <div class="step-number">1</div>
-                    <h3>Touch-Bildschirm aufstellen</h3>
-                    <p>
-                        Im Eingangsbereich und an strategischen Punkten werden Bildschirme mit dem Gebäudenavi installiert.
-                    </p>
-                </div>
-                <div class="solution-step">
-                    <div class="step-number">2</div>
-                    <h3>Ziel auswählen</h3>
-                    <p>
-                        Besucher tippen auf dem 3D-Grundriss ihren Zielraum an oder nutzen die Suchfunktion.
-                    </p>
-                </div>
-                <div class="solution-step">
-                    <div class="step-number">3</div>
-                    <h3>3D-Wegbeschreibung folgen</h3>
-                    <p>
-                        Eine verständliche 3D-Animation zeigt den Weg Schritt für Schritt. Optional per QR-Code aufs Smartphone.
-                    </p>
-                </div>
+
+            <div class="user-view__actions">
+                <a href="https://seraphin-solutions.de/Demonstration" class="btn btn-primary btn-large">Demoversion öffnen</a>
+                <a href="nutzerperspektive.html" class="btn btn-outline btn-large">Das Gebäudenavi im Detail</a>
             </div>
-            <div class="solution-visual">
-                <div>
-                    <img src="1.png" alt="Interaktiver Touch-Bildschirm mit Gebäudenavi im Einsatz">
-                </div>
-                <div class="solution-visual-text">
-                    <h3>Entwickelt für echte Gebäude</h3>
-                    <p>
-                        Jedes Gebäudenavi wird individuell auf Ihren Grundriss zugeschnitten. 
-                        Das 3D-Modell bildet reale architektonische Elemente ab, damit sich 
-                        Besucher sofort orientieren können.
-                    </p>
-                </div>
+
+            <div class="user-view__image">
+                <img src="1.png" alt="Besucher nutzt das interaktive Gebäudenavi auf einem Touch-Bildschirm" loading="lazy">
             </div>
         </div>
     </section>
@@ -443,7 +487,7 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script src="script.js?v=3"></script>
+    <script src="script.js?v=5"></script>
     <script>
         (function() {
             emailjs.init("gjH_P6NbXkIm7GpNh");

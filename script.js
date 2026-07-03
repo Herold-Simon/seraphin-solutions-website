@@ -325,6 +325,34 @@ if (header) {
     });
 }
 
+// Autoplay videos once they are (almost) fully in view
+(function() {
+    var videos = document.querySelectorAll('video[data-autoplay-in-view]');
+    if (!videos.length) return;
+
+    if (!('IntersectionObserver' in window)) {
+        videos.forEach(function(v) {
+            var p = v.play();
+            if (p && typeof p.catch === 'function') p.catch(function() {});
+        });
+        return;
+    }
+
+    var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            var video = entry.target;
+            if (entry.isIntersecting && entry.intersectionRatio >= 0.85) {
+                var p = video.play();
+                if (p && typeof p.catch === 'function') p.catch(function() {});
+            } else {
+                video.pause();
+            }
+        });
+    }, { threshold: [0, 0.85, 1] });
+
+    videos.forEach(function(v) { observer.observe(v); });
+})();
+
 // Navbar variant scroll effect
 var navbar = document.querySelector('.navbar');
 if (navbar) {
