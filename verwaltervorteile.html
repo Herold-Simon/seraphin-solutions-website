@@ -22,7 +22,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css?v=23">
+    <link rel="stylesheet" href="styles.css?v=30">
 
     <script src="analytics.js"></script>
 </head>
@@ -38,6 +38,9 @@
                 </div>
                 <nav class="nav" id="nav">
                     <a href="index.html" class="nav-link">Startseite</a>
+                    <a href="verwaltervorteile.html" class="nav-link active">Für Verwalter</a>
+                    <a href="https://seraphin-solutions.de/Demonstration" class="nav-link">Demonstration</a>
+                    <a href="#support" class="nav-link">Support</a>
                     <a href="login.html" class="nav-link nav-login-link">Login</a>
                 </nav>
                 <button class="hamburger" id="hamburger" aria-label="Menü öffnen">
@@ -51,38 +54,136 @@
 
     <section class="page-header page-header--brand-gradient">
         <div class="container">
-            <span class="eyebrow">Für Verwalter</span>
             <h1>Verwaltervorteile im Detail</h1>
-            <p>Wie das Gebäudenavi Ihren Betrieb entlastet – ausführlich erklärt.</p>
         </div>
     </section>
 
-    <section class="wi-section">
+    <!-- Beschriftungen -->
+    <section class="detail-section" id="beschriftungen">
         <div class="container">
-            <div class="wi-section-head">
-                <p class="wi-section-head__lead">
-                    Diese Seite befindet sich im Aufbau. Hier werden in Kürze die Vorteile des
-                    Gebäudenavis für Verwalter ausführlich beschrieben.
+            <div class="showcase">
+                <div class="showcase__head">
+                    <h2 class="detail-title">Beschriftungen verwalten</h2>
+                    <p class="showcase__lead">
+                        Falls Bereiche in Ihrem Gebäude umfunktioniert werden und daher beim Gebäudenavi neu beschriftet werden müssen, können Sie diese Änderung ganz einfach über die 
+                        Weboberfläche Ihres Gebäudenavis vornehmen. Durch die Kundschaft bei uns erhalten Sie Zugriff auf ein Konto und eine ausführliche Erklärung, wie Sie solche Änderungen vornehmen können.
+                    </p>
+                    <p class="showcase__lead">
+                        Durch den Login können Sie jede einzelne Beschriftung im Gebäudenavi bearbeiten. Von dem Icon eines Bereichs bis hin zu den Keywords stehen Ihnen alle Möglichkeiten zur Verfügung.
+                    </p>
+                </div>
+                <figure class="showcase__figure">
+                    <span class="gradient-frame"><img src="bilder/verwaltervorteile/Beschriftungen Banner.png" alt="Beschriftungen im Gebäudenavi" loading="lazy"></span>
+                    <figcaption class="showcase__caption">Beispielhafte Beschriftungen im Gebäudenavi</figcaption>
+                </figure>
+            </div>
+        </div>
+    </section>
+
+    <!-- Statistiken -->
+    <section class="detail-section detail-section--surface" id="statistiken">
+        <div class="container">
+            <div class="showcase">
+                <div class="showcase__head showcase__head--right">
+                    <h2 class="detail-title">Statistiken einsehen</h2>
+                    <p class="showcase__lead">
+                        Das Gebäudenavi wertet anonym aus, welche Ziele am häufigsten gesucht werden und wohin sich Besucher leiten lassen. So erkennen Sie,
+                        welche Bereiche stark frequentiert sind und wo Orientierung oft fehlt. Statt auf Vermutungen können Sie Entscheidungen rund um Ihr Gebäude auf konkrete Zahlen stützen. 
+                    </p>
+                    <p class="showcase__lead">
+                        Da die Auswertung absolut anonym erfolgt, können Sie die Statistiken unkompliziert und ohne Konflikte mit Datenschutzgesetzen einsehen und nutzen.
+                    </p>
+                </div>
+                <figure class="showcase__figure">
+                    <span class="gradient-frame"><img src="bilder/verwaltervorteile/statistiken banner.png" alt="Statistiken des Gebäudenavis" loading="lazy"></span>
+                    <figcaption class="showcase__caption">Beispielhafte Auswertung der erfassten Statistiken</figcaption>
+                </figure>
+            </div>
+        </div>
+    </section>
+
+    <!-- Support -->
+    <section class="detail-section" id="support">
+        <div class="container">
+            <h2 class="detail-title">Support</h2>
+            <div class="detail-lead">
+                <p>
+                    Falls Sie Probleme mit dem Gebäudenavi haben, lassen wir Sie nicht im Stich. Neben dem Gebäudenavi wird auf dem Touch-Bildschirm eine Remote-Access-Software installiert, mit der wir 
+                    jederzeit mit Ihrer Erlaubnis auf das Gebäudenavi zugreifen können, um Ihnen mit den meisten Problemen zu helfen. Da die meisten Probleme oft in der ersten Woche des Betriebs auftreten, sind die 
+                    ersten 3 Einsätze für eine Woche kostenlos.
+                </p>
+                <p>
+                    Für seltene, schwerwiegendere Probleme stellen wir auch Vor-Ort-Support zur Verfügung. Bei diesem kommen wir bei Ihnen vor Ort vorbei und helfen Ihnen mit Fragen und Problemen rund um das Gebäudenavi.
                 </p>
             </div>
-            <div class="wi-highlights-grid">
-                <div class="wi-hl-card">
-                    <h3 class="wi-hl-card__title">Statistikenerfassung</h3>
-                    <p>Detaillierte Auswertung, welche Ziele gesucht und angesteuert werden. Inhalt folgt.</p>
+
+            <div class="support-contact">
+                <a href="tel:+4917622911006" class="support-contact__item">
+                    <span class="support-contact__icon"><i class="fas fa-phone"></i></span>
+                    <span>+49&nbsp;176&nbsp;2291&nbsp;1006</span>
+                </a>
+                <a href="mailto:kontakt@seraphin-solutions.de" class="support-contact__item">
+                    <span class="support-contact__icon"><i class="fas fa-envelope"></i></span>
+                    <span>kontakt@seraphin-solutions.de</span>
+                </a>
+            </div>
+
+            <div class="support-price-grid">
+                <div class="support-price-card">
+                    <div class="support-price-card__inner">
+                        <h3 class="support-price-card__name">Remote-Support</h3>
+                        <div class="support-price-card__price">50&nbsp;&euro;</div>
+                        <div class="support-price-card__unit">pro Hilfe-Einsatz</div>
+                        <span class="support-price-card__free">Erste Woche bzw. 3&times; gratis</span>
+
+                    </div>
                 </div>
-                <div class="wi-hl-card">
-                    <h3 class="wi-hl-card__title">Personalentlastung</h3>
-                    <p>Weniger Wegfragen am Empfang, mehr Zeit für das Wesentliche. Inhalt folgt.</p>
+
+                <div class="support-price-card">
+                    <div class="support-price-card__inner">
+                        <h3 class="support-price-card__name">Vor-Ort-Support</h3>
+                        <div class="support-price-card__price">150&nbsp;&euro;</div>
+                        <div class="support-price-card__unit">pro Einsatz + Anfahrt</div>
+                        <span class="support-price-card__free">Erste Woche bzw. 3&times; gratis</span>
+                    </div>
                 </div>
-                <div class="wi-hl-card">
-                    <h3 class="wi-hl-card__title">Autonomes Verhalten</h3>
-                    <p>Läuft nach dem Aufbau vollständig eigenständig – ausgelegt für Jahre. Inhalt folgt.</p>
-                </div>
-                <div class="wi-hl-card">
-                    <h3 class="wi-hl-card__title">Pflegearm</h3>
-                    <p>Kein laufender Instandhaltungsaufwand nach der Einrichtung. Inhalt folgt.</p>
+
+                <div class="support-price-card">
+                    <div class="support-price-card__inner">
+                        <h3 class="support-price-card__name">Grundriss-Erweiterung</h3>
+                        <div class="support-price-card__price">nach Fläche</div>
+                        <div class="support-price-card__unit">individuelle Berechnung</div>
+                    </div>
                 </div>
             </div>
+
+            <p class="support-note">
+                Telefonische Fragen sind selbstverständlich kostenlos. Auf kostenpflichtige Einsätze werden Sie vorher explizit hingewiesen.
+            </p>
+        </div>
+    </section>
+
+    <!-- Langlebigkeit -->
+    <section class="detail-section detail-section--surface" id="langlebigkeit">
+        <div class="container">
+            <div class="detail-split">
+                <div class="detail-split__media">
+                    <span class="gradient-frame"><img src="bilder/verwaltervorteile/lenglebigkeit.png" alt="Langlebigkeit des Gebäudenavis" loading="lazy"></span>
+                </div>
+                <div class="detail-split__text">
+                    <h2 class="detail-title">Langlebigkeit</h2>
+                    <p>
+                        Das Gebäudenavi ist für jahrelangen und autonomen Einsatz ausgelegt. Es muss nicht täglich gestartet oder heruntergefahren werden, 
+                        und das Programm ist darauf ausgelegt, auch ohne Wartung zuverlässig zu funktionieren. 
+                    </p>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="detail-section">
+        <div class="container">
             <div class="admin-value__cta">
                 <a href="index.html#fuer-verwalter" class="btn btn-outline btn-large">Zurück zur Startseite</a>
                 <a href="index.html#contact" class="btn btn-primary btn-large">Kontakt aufnehmen</a>
@@ -134,6 +235,6 @@
         </div>
     </footer>
 
-    <script src="script.js?v=5"></script>
+    <script src="script.js?v=6"></script>
 </body>
 </html>

@@ -341,14 +341,14 @@ if (header) {
     var observer = new IntersectionObserver(function(entries) {
         entries.forEach(function(entry) {
             var video = entry.target;
-            if (entry.isIntersecting && entry.intersectionRatio >= 0.85) {
+            if (entry.isIntersecting && entry.intersectionRatio >= 0.2) {
                 var p = video.play();
                 if (p && typeof p.catch === 'function') p.catch(function() {});
             } else {
                 video.pause();
             }
         });
-    }, { threshold: [0, 0.85, 1] });
+    }, { threshold: [0, 0.2, 0.5, 1] });
 
     videos.forEach(function(v) { observer.observe(v); });
 })();
