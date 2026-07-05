@@ -146,22 +146,63 @@ module.exports = async function handler(req, res) {
 
     // Labels (routen-verknuepft): lueckenloser Ersatz fuer dieses Geraet
     // Deduplizieren nach (floor_id, label_id) (Unique-Constraint)
+    //
+    // WICHTIG fuer bidirektionale Synchronisation ("last writer wins"):
+    // `updated_at` darf NUR dann neu gesetzt werden, wenn sich der INHALT eines Labels
+    // tatsaechlich geaendert hat. Wuerde bei jedem Push `now` gesetzt, waere der vom
+    // Programm gemeldete Stand immer "neuer" als jede Website-Aenderung – die Website
+    // koennte dann nie gewinnen. Deshalb wird der bestehende Zeitstempel erhalten,
+    // wenn Text/Icon/Keywords unveraendert sind.
+    const { data: existingLabelRows } = await supabase
+      .from('labels')
+      .select('floor_id, label_id, per_language, icon, keywords, updated_at')
+      .eq('account_id', accountId)
+      .eq('device_id', deviceId);
+    const existingLabelByKey = new Map();
+    (existingLabelRows || []).forEach(r => {
+      existingLabelByKey.set(`${String(r.floor_id)}\u001f${String(r.label_id)}`, r);
+    });
+    // Kanonische (schluesselsortierte) Signatur: Postgres JSONB normalisiert die
+    // Schluesselreihenfolge, daher muss der Vergleich reihenfolgeunabhaengig sein –
+    // sonst wuerde `updated_at` bei jedem Push faelschlich neu gesetzt.
+    const stableSort = (v) => {
+      if (Array.isArray(v)) return v.map(stableSort);
+      if (v && typeof v === 'object') {
+        return Object.keys(v).sort().reduce((acc, k) => { acc[k] = stableSort(v[k]); return acc; }, {});
+      }
+      return v;
+    };
+    const labelContentSignature = (perLanguage, icon, keywords) =>
+      JSON.stringify(stableSort({
+        p: perLanguage || {},
+        i: icon == null ? null : String(icon),
+        k: Array.isArray(keywords) ? keywords : []
+      }));
+
     const labelMap = new Map();
     for (const l of labels) {
       if (l.floor_id == null || l.label_id == null) continue;
       const key = `${String(l.floor_id)}\u001f${String(l.label_id)}`;
+      const per_language = l.per_language || {};
+      const icon = l.icon != null ? String(l.icon) : null;
+      const keywords = Array.isArray(l.keywords)
+        ? l.keywords.map(k => String(k)).filter(k => k.length > 0)
+        : [];
+      // Zeitstempel erhalten, wenn der Inhalt gleich geblieben ist.
+      const existing = existingLabelByKey.get(key);
+      const unchanged = existing &&
+        labelContentSignature(existing.per_language, existing.icon, existing.keywords)
+          === labelContentSignature(per_language, icon, keywords);
       labelMap.set(key, {
         account_id: accountId,
         device_id: deviceId,
         floor_id: String(l.floor_id),
         label_id: String(l.label_id),
         route_id: l.route_id != null ? String(l.route_id) : null,
-        per_language: l.per_language || {},
-        icon: l.icon != null ? String(l.icon) : null,
-        keywords: Array.isArray(l.keywords)
-          ? l.keywords.map(k => String(k)).filter(k => k.length > 0)
-          : [],
-        updated_at: now
+        per_language,
+        icon,
+        keywords,
+        updated_at: unchanged ? existing.updated_at : now
       });
     }
     // Kleine Chunks, da jede Zeile ein (ggf. grosses) Base64-Icon enthaelt

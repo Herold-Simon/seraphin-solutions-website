@@ -25,7 +25,7 @@ module.exports = async function handler(req, res) {
 
     const { data: labelRows, error: labelError } = await supabase
       .from('labels')
-      .select('device_id, floor_id, label_id, route_id, per_language, icon, keywords')
+      .select('device_id, floor_id, label_id, route_id, per_language, icon, keywords, updated_at')
       .eq('account_id', accountId);
     if (labelError) {
       return send(res, 500, { success: false, error: 'Fehler beim Laden der Labels' });
@@ -90,6 +90,7 @@ module.exports = async function handler(req, res) {
     const overrideByPair = new Map();
     const overrideIconByPair = new Map(); // pairKey -> icon (string oder '' zum Loeschen)
     const overrideKeywordsByPair = new Map(); // pairKey -> keywords (Array; auch [] zum Leeren)
+    const overrideUpdatedByPair = new Map(); // pairKey -> juengster updated_at (ISO-String)
     (overrideRows || [])
       .sort((a, b) => String(a.updated_at || '').localeCompare(String(b.updated_at || '')))
       .forEach(o => {
@@ -111,6 +112,10 @@ module.exports = async function handler(req, res) {
         if (Array.isArray(o.keywords)) {
           overrideKeywordsByPair.set(key, o.keywords.map(k => String(k)).filter(k => k.length > 0));
         }
+        // Juengsten Override-Zeitstempel je Paar merken (fuer "last writer wins").
+        const prevUpd = overrideUpdatedByPair.get(key) || '';
+        const upd = String(o.updated_at || '');
+        if (upd > prevUpd) overrideUpdatedByPair.set(key, upd);
       });
 
     // Gruppieren nach route_id: geraete- UND stockwerkuebergreifend zu einem Eintrag.
@@ -130,7 +135,8 @@ module.exports = async function handler(req, res) {
           device_ids: new Set(),
           reported: {},
           reportedIcon: '',
-          reportedKeywords: null
+          reportedKeywords: null,
+          reportedUpdated: ''
         });
       }
       const g = groups.get(key);
@@ -140,6 +146,11 @@ module.exports = async function handler(req, res) {
       if (floorNames[String(l.floor_id)]) g.floor_names.add(floorNames[String(l.floor_id)]);
       if (l.device_id) g.device_ids.add(l.device_id);
       if (!g.reportedIcon && l.icon) g.reportedIcon = String(l.icon);
+      // Juengsten vom Programm gemeldeten Zeitstempel merken (fuer "last writer wins").
+      {
+        const upd = String(l.updated_at || '');
+        if (upd > g.reportedUpdated) g.reportedUpdated = upd;
+      }
       // Keywords sind routen-/labelweit (sprachunabhaengig): erstes nicht-leeres gewinnt
       if (!g.reportedKeywords && Array.isArray(l.keywords) && l.keywords.length > 0) {
         g.reportedKeywords = l.keywords.map(k => String(k)).filter(k => k.length > 0);
@@ -156,6 +167,7 @@ module.exports = async function handler(req, res) {
       let hasIconOverride = false;
       let keywordsOverride; // Array oder undefined
       let hasKeywordsOverride = false;
+      let overrideUpdated = '';
       g.pairs.forEach((_p, pairKey) => {
         const ov = overrideByPair.get(pairKey);
         if (ov) {
@@ -174,10 +186,21 @@ module.exports = async function handler(req, res) {
           keywordsOverride = overrideKeywordsByPair.get(pairKey);
           hasKeywordsOverride = true;
         }
+        const ou = overrideUpdatedByPair.get(pairKey) || '';
+        if (ou > overrideUpdated) overrideUpdated = ou;
       });
 
-      const effectiveIcon = hasIconOverride ? iconOverride : (g.reportedIcon || '');
-      const effectiveKeywords = hasKeywordsOverride ? (keywordsOverride || []) : (g.reportedKeywords || []);
+      // "Last writer wins": Der Override der Website gilt nur, wenn er MINDESTENS so neu
+      // ist wie der zuletzt vom Programm gemeldete Stand. Aendert man denselben Wert
+      // spaeter im Programm, gewinnt wieder das Programm. So sind beide Richtungen synchron.
+      const overrideWins = hasOverride || hasIconOverride || hasKeywordsOverride
+        ? overrideUpdated >= (g.reportedUpdated || '')
+        : false;
+
+      const effectiveIcon = (hasIconOverride && overrideWins) ? iconOverride : (g.reportedIcon || '');
+      const effectiveKeywords = (hasKeywordsOverride && overrideWins)
+        ? (keywordsOverride || [])
+        : (g.reportedKeywords || []);
       const languages = {};
 
       // Basis: gemeldete Texte
@@ -188,8 +211,8 @@ module.exports = async function handler(req, res) {
         };
       });
 
-      // Overlay: Override (kanonisch)
-      if (hasOverride) {
+      // Overlay: Override (nur wenn die Website-Aenderung neuer ist als der Programm-Stand)
+      if (hasOverride && overrideWins) {
         Object.keys(override).forEach(lang => {
           const o = override[lang] || {};
           if (!languages[lang]) languages[lang] = { title: '', subtitle: '' };
@@ -208,12 +231,12 @@ module.exports = async function handler(req, res) {
         pairs: Array.from(g.pairs.values()),
         device_ids: Array.from(g.device_ids),
         languages,
-        has_override: hasOverride,
+        has_override: hasOverride && overrideWins,
         icon: effectiveIcon,
         has_icon: Boolean(effectiveIcon),
-        has_icon_override: hasIconOverride,
+        has_icon_override: hasIconOverride && overrideWins,
         keywords: effectiveKeywords,
-        has_keywords_override: hasKeywordsOverride
+        has_keywords_override: hasKeywordsOverride && overrideWins
       });
     });
 
