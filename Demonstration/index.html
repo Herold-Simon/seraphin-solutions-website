@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#2563eb" />
+    <script>
+      /*
+       * Basis-URL-Fix: Die Web-Version wird in einem Unterordner deployt (z. B.
+       * /navi/ oder /Test/). Ruft man sie OHNE abschließenden Slash auf
+       * (…/Test), würden relative Pfade (./assets/…, ./manifest.json) fälschlich
+       * gegen die Domain-Wurzel aufgelöst (…/assets/…) und mit falschem MIME-Typ
+       * blockiert. Dieses Skript setzt daher vor allen Asset-Tags eine <base>-URL
+       * auf das Verzeichnis der Seite, sodass alles korrekt in den Unterordner lädt.
+       */
+      (function () {
+        try {
+          var path = location.pathname || '/';
+          var last = path.slice(path.lastIndexOf('/') + 1);
+          var base = last.indexOf('.') !== -1
+            ? path.slice(0, path.lastIndexOf('/') + 1)        // Dateiname -> Verzeichnis
+            : (path.charAt(path.length - 1) === '/' ? path : path + '/');
+          var b = document.createElement('base');
+          b.href = base;
+          document.head.appendChild(b);
+        } catch (e) { /* im Zweifel Standardverhalten */ }
+      })();
+    </script>
+    <title>Gebäudenavi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script type="module" crossorigin src="./assets/index.CJAL3hUw.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/vendor.BXk_ma1u.js">
+    <link rel="modulepreload" crossorigin href="./assets/three.CX5iiBwl.js">
+    <link rel="stylesheet" crossorigin href="./assets/index.Bmstpec5.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
