@@ -535,16 +535,10 @@
                     
                     emailjs.send('service_s74xvzx', 'template_iyd746k', templateParams)
                         .then(function() {
-                            var msg = 'Vielen Dank! Ihre Nachricht wurde gesendet.';
-                            if (wantsDemo) {
-                                msg += ' Wir melden uns innerhalb von 24 Stunden für die Demo bei Ihnen.';
-                            }
-                            showNotification(msg, 'success');
                             contactForm.reset();
+                            window.location.href = 'Danke.html';
                         }, function() {
                             showNotification('Fehler beim Senden. Bitte versuchen Sie es später erneut.', 'error');
-                        })
-                        .finally(function() {
                             submitBtn.innerHTML = originalText;
                             submitBtn.disabled = false;
                         });
