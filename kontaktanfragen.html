@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Kontaktanfragen - Gebäudenavi | Seraphin Solutions</title>
+
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="description" content="Eingegangene Kontaktanfragen verwalten">
+    <meta name="robots" content="noindex, nofollow">
+
+    <link rel="stylesheet" href="styles-app.css?v=1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        .ka-page {
+            min-height: 100vh;
+            background: var(--light-gray);
+            padding-top: 80px;
+            padding-bottom: 4rem;
+        }
+
+        .ka-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .ka-header-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .ka-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            letter-spacing: -0.02em;
+        }
+
+        .ka-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--white);
+            background: var(--gradient-primary);
+            padding: 0.2rem 0.7rem;
+            border-radius: 999px;
+        }
+
+        .ka-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-light);
+            margin-bottom: 2rem;
+        }
+
+        .ka-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .ka-filter-btn {
+            border: 1px solid var(--border-color);
+            background: var(--white);
+            color: var(--text-dark);
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 0.45rem 0.9rem;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .ka-filter-btn:hover { border-color: var(--primary-blue); }
+
+        .ka-filter-btn.active {
+            background: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .ka-alert {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.85rem 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            margin-bottom: 1.25rem;
+        }
+        .ka-alert-error { background: #fdecea; color: #b3261e; }
+
+        .ka-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .ka-card {
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            box-shadow: var(--shadow-sm);
+            padding: 1.25rem 1.35rem;
+            transition: box-shadow 0.15s ease;
+        }
+        .ka-card:hover { box-shadow: var(--shadow-md); }
+
+        .ka-card.is-unread {
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        .ka-card-top {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .ka-card-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .ka-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            flex-shrink: 0;
+        }
+
+        .ka-card-date {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            white-space: nowrap;
+        }
+
+        .ka-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1.25rem;
+            margin-bottom: 0.9rem;
+        }
+
+        .ka-meta-item {
+            font-size: 0.88rem;
+            color: var(--text-dark);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            word-break: break-word;
+        }
+        .ka-meta-item i { color: var(--primary-blue); width: 16px; text-align: center; }
+        .ka-meta-item a { color: var(--primary-blue); text-decoration: none; }
+        .ka-meta-item a:hover { text-decoration: underline; }
+
+        .ka-demo-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--primary-green);
+            background: rgba(50, 167, 26, 0.1);
+            padding: 0.15rem 0.6rem;
+            border-radius: 999px;
+        }
+
+        .ka-message {
+            font-size: 0.93rem;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: var(--light-gray);
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin-bottom: 1rem;
+        }
+
+        .ka-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .ka-btn {
+            border: 1px solid var(--border-color);
+            background: var(--white);
+            color: var(--text-dark);
+            font-family: inherit;
+            font-size: 0.83rem;
+            font-weight: 500;
+            padding: 0.45rem 0.85rem;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            transition: all 0.15s ease;
+        }
+        .ka-btn:hover { border-color: var(--primary-blue); color: var(--primary-blue); }
+        .ka-btn:disabled { opacity: 0.6; cursor: default; }
+        .ka-btn-danger:hover { border-color: #E74C3C; color: #E74C3C; }
+
+        .ka-empty, .ka-loading {
+            text-align: center;
+            padding: 3.5rem 1rem;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+        .ka-empty i { font-size: 2rem; color: var(--border-color); display: block; margin-bottom: 0.75rem; }
+
+        .ka-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0, 140, 255, 0.3);
+            border-top-color: var(--primary-blue);
+            border-radius: 50%;
+            animation: ka-spin 0.7s linear infinite;
+            vertical-align: middle;
+        }
+        @keyframes ka-spin { to { transform: rotate(360deg); } }
+
+        @media (min-width: 1024px) {
+            .ka-page { padding-top: 6rem; padding-bottom: 5rem; }
+            .ka-inner { max-width: 1000px; padding: 0 2rem; }
+            .ka-title { font-size: 2.25rem; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <a href="index.html" class="logo">
+                        <img src="logo.png" alt="Seraphin Solutions Logo">
+                    </a>
+                    <span class="company-name">Seraphin Solutions</span>
+                </div>
+                <nav class="nav" id="nav">
+                    <a href="dashboard.html" class="nav-link">Statistiken</a>
+                    <a href="labels.html" class="nav-link">Beschriftungen</a>
+                    <a href="kontaktanfragen.html" class="nav-link active">Kontaktanfragen</a>
+                    <a href="account.html" class="nav-link">Account</a>
+                    <a href="#" class="nav-link nav-logout-link" onclick="logout(); return false;">
+                        <i class="fas fa-sign-out-alt"></i> Abmelden
+                    </a>
+                </nav>
+                <button class="hamburger" id="hamburger" aria-label="Menü öffnen">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="ka-page">
+        <div class="ka-inner">
+            <div class="ka-header-row">
+                <h1 class="ka-title">Kontaktanfragen</h1>
+                <span class="ka-badge" id="unreadBadge" style="display: none;">
+                    <i class="fas fa-envelope"></i> <span id="unreadCount">0</span> neu
+                </span>
+            </div>
+            <p class="ka-subtitle">Alle über das Kontaktformular auf der Startseite eingegangenen Nachrichten.</p>
+
+            <div id="errorAlert" class="ka-alert ka-alert-error"></div>
+
+            <div class="ka-toolbar" id="toolbar" style="display: none;">
+                <button class="ka-filter-btn active" data-filter="all">Alle</button>
+                <button class="ka-filter-btn" data-filter="unread">Ungelesen</button>
+                <button class="ka-filter-btn" data-filter="demo">Demo-Wunsch</button>
+            </div>
+
+            <div id="loadingState" class="ka-loading">
+                <span class="ka-spinner"></span> Lade Kontaktanfragen…
+            </div>
+
+            <div id="contactList" class="ka-list"></div>
+
+            <div id="emptyState" class="ka-empty" style="display: none;">
+                <i class="fas fa-inbox"></i>
+                Es sind noch keine Kontaktanfragen eingegangen.
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer" role="contentinfo">
+        <div class="footer-inner">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <a class="footer-logo-link" href="index.html" aria-label="Seraphin Solutions – Startseite">
+                        <img src="logo.png" alt="" class="footer-logo-img" width="120" height="40">
+                        <span class="footer-logo-text">Seraphin Solutions</span>
+                    </a>
+                    <p class="footer-tagline">Interaktive Wegleitsysteme für große Gebäude.</p>
+                    <div class="footer-actions">
+                        <a href="tel:+4917622911006" class="footer-contact-link">+49 176 2291 1006</a>
+                        <a href="mailto:kontakt@seraphin-solutions.de" class="footer-contact-link">kontakt@seraphin-solutions.de</a>
+                    </div>
+                </div>
+                <nav class="footer-nav" aria-label="Footer-Navigation">
+                    <div class="footer-nav-block">
+                        <span class="footer-nav-title">Unternehmen</span>
+                        <ul class="footer-nav-list">
+                            <li><a href="preispolitik.html">Preispolitik</a></li>
+                            <li><a href="index.html#kontakt">Kontakt</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-nav-block">
+                        <span class="footer-nav-title">Rechtliches</span>
+                        <ul class="footer-nav-list">
+                            <li><a href="impressum.html">Impressum</a></li>
+                            <li><a href="datenschutz.html">Datenschutz</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-nav-block">
+                        <span class="footer-nav-title">Zugang</span>
+                        <ul class="footer-nav-list">
+                            <li><a href="login.html">Statistiken Login</a></li>
+                            <li><a href="passwortverlust.html">Passwort vergessen</a></li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            <div class="footer-bottom">
+                <p class="footer-copy">&copy; 2025 Seraphin Solutions. Alle Rechte vorbehalten.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let submissionsCache = [];
+        let currentFilter = 'all';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSubmissions();
+            document.querySelectorAll('.ka-filter-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.ka-filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.dataset.filter;
+                    renderList();
+                });
+            });
+        });
+
+        async function loadSubmissions() {
+            try {
+                const res = await fetch('/api/contact/list', { method: 'GET', credentials: 'include' });
+                if (res.status === 401) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                if (res.status === 403) {
+                    document.getElementById('loadingState').style.display = 'none';
+                    showError('Dieser Bereich ist nur für den Admin-Account verfügbar.');
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 2500);
+                    return;
+                }
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    throw new Error(data.error || 'Fehler beim Laden');
+                }
+                submissionsCache = Array.isArray(data.submissions) ? data.submissions : [];
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('toolbar').style.display = submissionsCache.length ? 'flex' : 'none';
+                updateUnreadBadge();
+                renderList();
+            } catch (e) {
+                document.getElementById('loadingState').style.display = 'none';
+                showError(e.message || 'Netzwerkfehler');
+            }
+        }
+
+        function updateUnreadBadge() {
+            const unread = submissionsCache.filter(s => !s.is_read).length;
+            const badge = document.getElementById('unreadBadge');
+            const count = document.getElementById('unreadCount');
+            if (unread > 0) {
+                count.textContent = unread;
+                badge.style.display = 'inline-flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function filteredSubmissions() {
+            if (currentFilter === 'unread') return submissionsCache.filter(s => !s.is_read);
+            if (currentFilter === 'demo') return submissionsCache.filter(s => s.wants_demo);
+            return submissionsCache;
+        }
+
+        function renderList() {
+            const list = document.getElementById('contactList');
+            const empty = document.getElementById('emptyState');
+            const items = filteredSubmissions();
+
+            if (submissionsCache.length === 0) {
+                list.innerHTML = '';
+                empty.style.display = 'block';
+                empty.innerHTML = '<i class="fas fa-inbox"></i> Es sind noch keine Kontaktanfragen eingegangen.';
+                return;
+            }
+            if (items.length === 0) {
+                list.innerHTML = '';
+                empty.style.display = 'block';
+                empty.innerHTML = '<i class="fas fa-filter"></i> Keine Anfragen für diesen Filter.';
+                return;
+            }
+            empty.style.display = 'none';
+
+            list.innerHTML = items.map(function(s) {
+                const date = new Date(s.created_at).toLocaleString('de-DE', {
+                    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+                const demoTag = s.wants_demo
+                    ? '<span class="ka-demo-tag"><i class="fas fa-calendar-check"></i> Demo gewünscht</span>'
+                    : '';
+                const dot = !s.is_read ? '<span class="ka-dot" title="Ungelesen"></span>' : '';
+                const institution = s.institution
+                    ? `<span class="ka-meta-item"><i class="fas fa-building"></i> ${esc(s.institution)}</span>`
+                    : '';
+                const readBtn = s.is_read
+                    ? `<button class="ka-btn" onclick="toggleRead('${s.id}', false)"><i class="fas fa-envelope"></i> Als ungelesen markieren</button>`
+                    : `<button class="ka-btn" onclick="toggleRead('${s.id}', true)"><i class="fas fa-envelope-open"></i> Als gelesen markieren</button>`;
+
+                return `
+                    <article class="ka-card ${s.is_read ? '' : 'is-unread'}" data-id="${s.id}">
+                        <div class="ka-card-top">
+                            <span class="ka-card-name">${dot}${esc(s.name)}</span>
+                            <span class="ka-card-date">${date}</span>
+                        </div>
+                        <div class="ka-meta">
+                            <span class="ka-meta-item"><i class="fas fa-envelope"></i> <a href="mailto:${esc(s.email)}">${esc(s.email)}</a></span>
+                            ${institution}
+                            ${demoTag}
+                        </div>
+                        <div class="ka-message">${esc(s.message)}</div>
+                        <div class="ka-actions">
+                            <a class="ka-btn" href="mailto:${esc(s.email)}?subject=${encodeURIComponent('Ihre Anfrage bei Seraphin Solutions')}"><i class="fas fa-reply"></i> Antworten</a>
+                            ${readBtn}
+                            <button class="ka-btn ka-btn-danger" onclick="deleteSubmission('${s.id}', this)"><i class="fas fa-trash"></i> Löschen</button>
+                        </div>
+                    </article>`;
+            }).join('');
+        }
+
+        async function toggleRead(id, isRead) {
+            try {
+                const res = await fetch('/api/contact/update', {
+                    method: 'POST', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'mark_read', id: id, is_read: isRead })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.error || 'Fehler');
+                const item = submissionsCache.find(s => s.id === id);
+                if (item) item.is_read = isRead;
+                updateUnreadBadge();
+                renderList();
+            } catch (e) {
+                showError(e.message || 'Fehler beim Aktualisieren');
+            }
+        }
+
+        async function deleteSubmission(id, btn) {
+            if (!confirm('Diese Kontaktanfrage wirklich unwiderruflich löschen?')) return;
+            if (btn) { btn.disabled = true; btn.innerHTML = '<span class="ka-spinner"></span> Löschen…'; }
+            try {
+                const res = await fetch('/api/contact/update', {
+                    method: 'POST', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', id: id })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.error || 'Fehler');
+                submissionsCache = submissionsCache.filter(s => s.id !== id);
+                document.getElementById('toolbar').style.display = submissionsCache.length ? 'flex' : 'none';
+                updateUnreadBadge();
+                renderList();
+            } catch (e) {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-trash"></i> Löschen'; }
+                showError(e.message || 'Fehler beim Löschen');
+            }
+        }
+
+        function esc(text) {
+            const div = document.createElement('div');
+            div.textContent = text == null ? '' : String(text);
+            return div.innerHTML;
+        }
+
+        function showError(message) {
+            const el = document.getElementById('errorAlert');
+            el.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+            el.style.display = 'flex';
+            setTimeout(() => { el.style.display = 'none'; }, 7000);
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+            } catch (_) {}
+            window.location.href = 'login.html';
+        }
+    </script>
+    <script src="script.js?v=2"></script>
+    <!-- Vercel Web Analytics -->
+    <script>
+      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

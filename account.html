@@ -422,6 +422,7 @@
                 <nav class="nav" id="nav">
                     <a href="dashboard.html" class="nav-link">Statistiken</a>
                     <a href="labels.html" class="nav-link">Beschriftungen</a>
+                    <a href="kontaktanfragen.html" class="nav-link" id="navKontaktanfragen" style="display: none;">Kontaktanfragen</a>
                     <a href="account.html" class="nav-link active">Account</a>
                     <a href="#" class="nav-link nav-logout-link" onclick="logout(); return false;">
                         <i class="fas fa-sign-out-alt"></i> Abmelden
@@ -635,6 +636,12 @@
 
                 const sessionData = await sessionRes.json();
                 currentUser = sessionData.user;
+
+                // Master-Accounts: Kontaktanfragen-Tab in der Navigation einblenden
+                if (sessionData.user && sessionData.user.is_master) {
+                    const kaLink = document.getElementById('navKontaktanfragen');
+                    if (kaLink) kaLink.style.display = '';
+                }
 
                 // Master verkoerpert ein anderes Konto -> Passwortwechsel ohne aktuelles Kennwort
                 isMasterActing = !!(sessionData.user && sessionData.user.is_master

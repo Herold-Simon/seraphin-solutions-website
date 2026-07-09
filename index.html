@@ -489,13 +489,8 @@
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="script.js?v=6"></script>
     <script>
-        (function() {
-            emailjs.init("gjH_P6NbXkIm7GpNh");
-        })();
-
         document.addEventListener('DOMContentLoaded', function() {
             var contactForm = document.getElementById('contactForm');
             if (contactForm) {
@@ -518,26 +513,41 @@
                         return;
                     }
                     
-                    var templateParams = {
-                        to_email: 'mstorteyt@gmail.com',
-                        from_name: name,
-                        from_email: email,
-                        institution: institution,
-                        message: message,
-                        wants_demo: wantsDemo ? 'Ja' : 'Nein',
-                        demo_request: wantsDemo ? 'Demo gewünscht' : 'Keine Demo gewünscht'
-                    };
-                    
                     var submitBtn = this.querySelector('button[type="submit"]');
                     var originalText = submitBtn.innerHTML;
                     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wird gesendet...';
                     submitBtn.disabled = true;
                     
-                    emailjs.send('service_s74xvzx', 'template_iyd746k', templateParams)
-                        .then(function() {
-                            contactForm.reset();
-                            window.location.href = 'Danke.html';
-                        }, function() {
+                    fetch('/api/contact/submit', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: name,
+                            email: email,
+                            institution: institution,
+                            message: message,
+                            wants_demo: wantsDemo
+                        })
+                    })
+                        .then(function(response) {
+                            return response.json().then(function(data) {
+                                return { ok: response.ok, data: data };
+                            });
+                        })
+                        .then(function(result) {
+                            if (result.ok && result.data && result.data.success) {
+                                contactForm.reset();
+                                window.location.href = 'Danke.html';
+                            } else {
+                                var msg = (result.data && result.data.error)
+                                    ? result.data.error
+                                    : 'Fehler beim Senden. Bitte versuchen Sie es später erneut.';
+                                showNotification(msg, 'error');
+                                submitBtn.innerHTML = originalText;
+                                submitBtn.disabled = false;
+                            }
+                        })
+                        .catch(function() {
                             showNotification('Fehler beim Senden. Bitte versuchen Sie es später erneut.', 'error');
                             submitBtn.innerHTML = originalText;
                             submitBtn.disabled = false;

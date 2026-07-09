@@ -459,6 +459,7 @@
                 <nav class="nav" id="nav">
                     <a href="dashboard.html" class="nav-link">Statistiken</a>
                     <a href="labels.html" class="nav-link active">Beschriftungen</a>
+                    <a href="kontaktanfragen.html" class="nav-link" id="navKontaktanfragen" style="display: none;">Kontaktanfragen</a>
                     <a href="account.html" class="nav-link">Account</a>
                     <a href="#" class="nav-link nav-logout-link" onclick="logout(); return false;">
                         <i class="fas fa-sign-out-alt"></i> Abmelden
@@ -614,6 +615,8 @@
                 const data = await res.json();
                 if (!data || !data.success) return;
                 if (data.user && data.user.is_master) {
+                    const kaLink = document.getElementById('navKontaktanfragen');
+                    if (kaLink) kaLink.style.display = '';
                     const acting = data.acting_account;
                     if (acting && acting.id) {
                         document.getElementById('masterBarName').textContent = acting.username || '—';

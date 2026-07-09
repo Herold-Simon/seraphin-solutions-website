@@ -1808,6 +1808,7 @@
                 <nav class="nav" id="nav">
                     <a href="dashboard.html" class="nav-link active">Statistiken</a>
                     <a href="labels.html" class="nav-link">Beschriftungen</a>
+                    <a href="kontaktanfragen.html" class="nav-link" id="navKontaktanfragen" style="display: none;">Kontaktanfragen</a>
                     <a href="account.html" class="nav-link">Account</a>
                     <a href="#" class="nav-link nav-logout-link" onclick="logout(); return false;">
                         <i class="fas fa-sign-out-alt"></i> Abmelden
@@ -2963,6 +2964,10 @@
                 // Session pruefen: Master ohne gewaehltes Konto -> Konten-Uebersicht statt Statistiken
                 const sessionData = await fetchSession();
                 dashboardSessionInfo = sessionData;
+                if (sessionData && sessionData.user && sessionData.user.is_master) {
+                    var kaLink = document.getElementById('navKontaktanfragen');
+                    if (kaLink) kaLink.style.display = '';
+                }
                 if (sessionData && sessionData.user && sessionData.user.is_master
                     && !(sessionData.acting_account && sessionData.acting_account.id)) {
                     hideLoading();
