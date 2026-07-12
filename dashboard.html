@@ -6186,6 +6186,56 @@
                     ws.getColumn(i + 3).width = Math.max(12, Math.min(30, videoTitles[i].length + 2));
                 }
 
+                // --- Blatt „Stündliche Aufrufe“ (Uhrzeit jedes Aufrufs) ---
+                const hourlyDatesSet = new Set();
+                allVideos.forEach(v => {
+                    const hh = v.view_history_hourly || v.viewHistoryHourly || {};
+                    Object.keys(hh).forEach(d => hourlyDatesSet.add(d));
+                });
+                const hourlyDates = Array.from(hourlyDatesSet).sort();
+                if (hourlyDates.length > 0) {
+                    const wsH = workbook.addWorksheet('Stündliche Aufrufe');
+                    wsH.addRow(['Datum', 'Uhrzeit', 'Gesamt', ...videoTitles]);
+                    const hHdr = wsH.getRow(1);
+                    hHdr.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                    hHdr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF008CFF' } };
+                    hHdr.alignment = { horizontal: 'center' };
+
+                    const perVideoTotals = videoTitles.map(() => 0);
+                    hourlyDates.forEach(date => {
+                        for (let hour = 0; hour < 24; hour++) {
+                            const hStr = String(hour);
+                            let rowTotal = 0;
+                            const perVideo = videoTitles.map((_, i) => {
+                                const hh = allVideos[i].view_history_hourly || allVideos[i].viewHistoryHourly || {};
+                                const val = parseInt((hh[date] || {})[hStr], 10) || 0;
+                                rowTotal += val;
+                                perVideoTotals[i] += val;
+                                return val;
+                            });
+                            if (rowTotal > 0) {
+                                const hourLabel = String(hour).padStart(2, '0') + ':00';
+                                wsH.addRow([formatDateToGerman(date), hourLabel, rowTotal, ...perVideo]);
+                            }
+                        }
+                    });
+
+                    const hTotalRow = wsH.getRow(wsH.rowCount + 1);
+                    hTotalRow.getCell(1).value = 'GESAMT';
+                    hTotalRow.getCell(3).value = perVideoTotals.reduce((s, v) => s + v, 0);
+                    perVideoTotals.forEach((v, i) => { hTotalRow.getCell(4 + i).value = v; });
+                    hTotalRow.commit();
+                    hTotalRow.font = { bold: true };
+                    hTotalRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0F0F0' } };
+
+                    wsH.getColumn(1).width = 14;
+                    wsH.getColumn(2).width = 10;
+                    wsH.getColumn(3).width = 10;
+                    for (let i = 0; i < videoTitles.length; i++) {
+                        wsH.getColumn(i + 4).width = Math.max(12, Math.min(30, videoTitles[i].length + 2));
+                    }
+                }
+
                 // --- Chart-Bilder erzeugen ---
                 const offscreen = document.createElement('div');
                 offscreen.style.cssText = 'position:fixed;left:-9999px;top:0;width:900px;height:500px;';
