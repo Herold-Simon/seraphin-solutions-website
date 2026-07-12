@@ -1,6 +1,14 @@
 // api/products/push.js - App pusht Produktmodus-Daten (Produkte, Produktkategorien,
 // Zuordnungen) in die kontobezogenen Tabellen. Kein Cookie: account_id + device_id im Body.
 //
+// WICHTIG – CHUNKING: Produkte/Kategorien enthalten Base64-Bilder und werden daher in
+// mehreren Teil-Requests gesendet, um Vercels Body-Limit (~4,5 MB) nicht zu ueberschreiten.
+//   - Teil-Requests setzen `partial: true` und werden nur ge-upsertet (kein Aufraeumen).
+//   - Der abschliessende Request (ohne `partial` bzw. `partial:false`) fuehrt das
+//     Aufraeumen (Soft-Delete verwaister device-Zeilen) durch. Er liefert dafuer die
+//     vollstaendigen Schluessellisten `all_product_ids` / `all_category_ids` mit; die
+//     Zuordnungen werden komplett im Abschluss-Request uebertragen.
+//
 // Konfliktloesung (Last-Writer-Wins): Eine eingehende Zeile ueberschreibt die
 // bestehende nur, wenn ihr updated_at strikt neuer ist. Website-Aenderungen setzen
 // serverseitig updated_at=now und gewinnen so gegen aelteren Programm-Stand.
@@ -15,7 +23,7 @@ function toMs(iso) {
   return isNaN(t) ? 0 : t;
 }
 
-async function upsertChunks(table, rows, onConflict, chunkSize = 10) {
+async function upsertChunks(table, rows, onConflict, chunkSize = 8) {
   for (let i = 0; i < rows.length; i += chunkSize) {
     const chunk = rows.slice(i, i + chunkSize);
     const { error } = await supabase.from(table).upsert(chunk, { onConflict });
@@ -27,41 +35,48 @@ async function upsertChunks(table, rows, onConflict, chunkSize = 10) {
   return { ok: true };
 }
 
-// LWW-Sync fuer Produkte/Produktkategorien (einfacher Business-Key + Inhalt).
-async function lwwSync({ table, bizKey, incoming, mapRow, accountId, now }) {
+// LWW-Upsert eingehender Zeilen (OHNE Aufraeumen verwaister Zeilen).
+async function lwwUpsert({ table, bizKey, incoming, mapRow, accountId }) {
+  if (!Array.isArray(incoming) || incoming.length === 0) return { ok: true };
   const { data: existingRows, error: selError } = await supabase
     .from(table)
-    .select(`id, ${bizKey}, updated_at, source, deleted`)
+    .select(`id, ${bizKey}, updated_at`)
     .eq('account_id', accountId);
   if (selError) return { ok: false, error: selError };
 
   const existingByKey = new Map((existingRows || []).map(r => [String(r[bizKey]), r]));
-  const incomingKeys = new Set();
   const rows = [];
   for (const item of incoming) {
     const mapped = mapRow(item);
     if (!mapped) continue;
-    incomingKeys.add(mapped.key);
     const existing = existingByKey.get(mapped.key);
     if (existing && toMs(existing.updated_at) >= toMs(mapped.row.updated_at)) continue;
     rows.push(mapped.row);
   }
+  return upsertChunks(table, rows, `account_id,${bizKey}`, 8);
+}
 
-  const up = await upsertChunks(table, rows, `account_id,${bizKey}`, 8);
-  if (!up.ok) return up;
+// Soft-Delete aller device-Zeilen, deren Business-Key nicht in keepKeys vorkommt.
+async function reconcileDeletions({ table, bizKey, accountId, keepKeys, now }) {
+  const { data: existingRows, error } = await supabase
+    .from(table)
+    .select(`${bizKey}, source, deleted`)
+    .eq('account_id', accountId);
+  if (error) return { ok: false, error };
 
-  // Verwaiste device-Zeilen soft-loeschen (Website-Zeilen unberuehrt lassen).
+  const keep = new Set((keepKeys || []).map(k => String(k)));
   const toDelete = (existingRows || [])
-    .filter(r => r.source === 'device' && !r.deleted && !incomingKeys.has(String(r[bizKey])))
+    .filter(r => r.source === 'device' && !r.deleted && !keep.has(String(r[bizKey])))
     .map(r => String(r[bizKey]));
+
   for (let i = 0; i < toDelete.length; i += 100) {
     const chunk = toDelete.slice(i, i + 100);
-    const { error } = await supabase
+    const { error: delErr } = await supabase
       .from(table)
       .update({ deleted: true, updated_at: now })
       .eq('account_id', accountId)
       .in(bizKey, chunk);
-    if (error) return { ok: false, error };
+    if (delErr) return { ok: false, error: delErr };
   }
   return { ok: true };
 }
@@ -75,6 +90,7 @@ module.exports = async function handler(req, res) {
   try {
     const body = readBody(req);
     const account_id = body.account_id;
+    const partial = body.partial === true;
     const products = Array.isArray(body.products) ? body.products : [];
     const categories = Array.isArray(body.product_categories) ? body.product_categories : [];
     const assignments = Array.isArray(body.product_category_assignments) ? body.product_category_assignments : [];
@@ -93,13 +109,12 @@ module.exports = async function handler(req, res) {
     const accountId = account.id;
     const now = new Date().toISOString();
 
-    // --- Produkte ---
-    const prodResult = await lwwSync({
+    // --- Produkte (Upsert) ---
+    const prodUp = await lwwUpsert({
       table: 'products',
       bizKey: 'product_id',
       incoming: products,
       accountId,
-      now,
       mapRow: (p) => {
         const pid = String(p.product_id != null ? p.product_id : p.id || '');
         if (!pid) return null;
@@ -123,15 +138,14 @@ module.exports = async function handler(req, res) {
         };
       }
     });
-    if (!prodResult.ok) return send(res, 500, { success: false, error: 'Produkte konnten nicht gespeichert werden' });
+    if (!prodUp.ok) return send(res, 500, { success: false, error: 'Produkte konnten nicht gespeichert werden' });
 
-    // --- Produktkategorien ---
-    const catResult = await lwwSync({
+    // --- Produktkategorien (Upsert) ---
+    const catUp = await lwwUpsert({
       table: 'product_categories',
       bizKey: 'category_id',
       incoming: categories,
       accountId,
-      now,
       mapRow: (c) => {
         const cid = String(c.category_id != null ? c.category_id : c.id || '');
         if (!cid) return null;
@@ -153,23 +167,24 @@ module.exports = async function handler(req, res) {
         };
       }
     });
-    if (!catResult.ok) return send(res, 500, { success: false, error: 'Produktkategorien konnten nicht gespeichert werden' });
+    if (!catUp.ok) return send(res, 500, { success: false, error: 'Produktkategorien konnten nicht gespeichert werden' });
 
-    // --- Zuordnungen Produkt <-> Kategorie ---
-    {
+    // --- Zuordnungen Produkt <-> Kategorie (Upsert; Website-Zuordnungen unberuehrt) ---
+    let incomingAssignmentKeys = null;
+    if (assignments.length > 0 || !partial) {
       const { data: existingRows } = await supabase
         .from('product_category_assignments')
         .select('id, product_id, category_id, source, deleted')
         .eq('account_id', accountId);
       const keyOf = (r) => `${String(r.product_id)}\u001f${String(r.category_id)}`;
-      const incomingKeys = new Set();
+      incomingAssignmentKeys = new Set();
       const rows = [];
       for (const a of assignments) {
         const pid = String(a.product_id != null ? a.product_id : a.productId || '');
         const cid = String(a.category_id != null ? a.category_id : a.categoryId || '');
         if (!pid || !cid) continue;
         const key = `${pid}\u001f${cid}`;
-        incomingKeys.add(key);
+        incomingAssignmentKeys.add(key);
         const existing = (existingRows || []).find(r => keyOf(r) === key);
         if (existing && existing.source === 'web') continue; // Website-Zuordnung nicht ueberschreiben
         rows.push({
@@ -185,19 +200,37 @@ module.exports = async function handler(req, res) {
       const up = await upsertChunks('product_category_assignments', rows, 'account_id,product_id,category_id', 25);
       if (!up.ok) return send(res, 500, { success: false, error: 'Zuordnungen konnten nicht gespeichert werden' });
 
-      const toDelete = (existingRows || [])
-        .filter(r => r.source === 'device' && !r.deleted && !incomingKeys.has(keyOf(r)))
-        .map(r => r.id);
-      for (let i = 0; i < toDelete.length; i += 100) {
-        const chunk = toDelete.slice(i, i + 100);
-        await supabase
-          .from('product_category_assignments')
-          .update({ deleted: true, updated_at: now })
-          .in('id', chunk);
+      // Verwaiste device-Zuordnungen nur im Abschluss-Request aufraeumen.
+      if (!partial) {
+        const toDelete = (existingRows || [])
+          .filter(r => r.source === 'device' && !r.deleted && !incomingAssignmentKeys.has(keyOf(r)))
+          .map(r => r.id);
+        for (let i = 0; i < toDelete.length; i += 100) {
+          const chunk = toDelete.slice(i, i + 100);
+          await supabase
+            .from('product_category_assignments')
+            .update({ deleted: true, updated_at: now })
+            .in('id', chunk);
+        }
       }
     }
 
-    return send(res, 200, { success: true, message: 'Produktdaten synchronisiert' });
+    // --- Aufraeumen verwaister Produkte/Kategorien nur im Abschluss-Request ---
+    if (!partial) {
+      const keepProductIds = Array.isArray(body.all_product_ids)
+        ? body.all_product_ids
+        : products.map(p => String(p.product_id != null ? p.product_id : p.id || ''));
+      const keepCategoryIds = Array.isArray(body.all_category_ids)
+        ? body.all_category_ids
+        : categories.map(c => String(c.category_id != null ? c.category_id : c.id || ''));
+
+      const rp = await reconcileDeletions({ table: 'products', bizKey: 'product_id', accountId, keepKeys: keepProductIds, now });
+      if (!rp.ok) return send(res, 500, { success: false, error: 'Produkt-Aufraeumen fehlgeschlagen' });
+      const rc = await reconcileDeletions({ table: 'product_categories', bizKey: 'category_id', accountId, keepKeys: keepCategoryIds, now });
+      if (!rc.ok) return send(res, 500, { success: false, error: 'Kategorie-Aufraeumen fehlgeschlagen' });
+    }
+
+    return send(res, 200, { success: true, message: 'Produktdaten synchronisiert', partial });
   } catch (error) {
     console.error('Products push error:', error.message);
     return send(res, 500, { success: false, error: 'Interner Serverfehler' });
