@@ -33,7 +33,10 @@ module.exports = async function handler(req, res) {
     ]);
 
     const allProducts = (productRows || []).filter(p => !p.deleted);
-    // Zuteilbare Routen: alle route_ids, denen ein Produkt (inkl. Platzhalter) zugeteilt ist.
+    // Zuteilbare Routen: ALLE dem Konto bekannten Routen (aus route_stats, mit Titel).
+    // Frueher waren nur Routen zuteilbar, denen bereits ein Produkt zugeordnet war –
+    // das war zirkulaer (ohne Produkt keine Route waehlbar) und lieferte ein leeres
+    // Dropdown. Jetzt kann jedes Produkt jeder existierenden Route zugewiesen werden.
     const routeTitleById = {};
     (routeStatRows || []).forEach(r => {
       if (r.route_id != null && r.title && !routeTitleById[String(r.route_id)]) {
@@ -41,6 +44,9 @@ module.exports = async function handler(req, res) {
       }
     });
     const assignableRouteIds = new Set();
+    (routeStatRows || []).forEach(r => { if (r.route_id != null) assignableRouteIds.add(String(r.route_id)); });
+    // Routen, die (noch) nicht in route_stats stehen, aber bereits einem Produkt
+    // zugeordnet sind, trotzdem als Option behalten.
     allProducts.forEach(p => { if (p.route_id) assignableRouteIds.add(String(p.route_id)); });
     const assignableRoutes = Array.from(assignableRouteIds).map(rid => ({
       route_id: rid,
