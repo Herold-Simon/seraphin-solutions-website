@@ -23,6 +23,19 @@ module.exports = async function handler(req, res) {
       if (data) effectiveAccount = data;
     }
 
+    // Produktmodus-Flag des effektiven Kontos (bestimmt Standard-Landeseite + Menue).
+    let productMode = false;
+    try {
+      const { data: pmRow } = await supabase
+        .from('accounts')
+        .select('product_mode')
+        .eq('id', ctx.effectiveAccountId)
+        .maybeSingle();
+      productMode = Boolean(pmRow && pmRow.product_mode);
+    } catch (e) {
+      productMode = false;
+    }
+
     return send(res, 200, {
       success: true,
       user: {
@@ -34,6 +47,7 @@ module.exports = async function handler(req, res) {
         ? { id: ctx.actingAccount.id, username: ctx.actingAccount.username }
         : null,
       effective_account_id: ctx.effectiveAccountId,
+      product_mode: productMode,
       account: {
         id: effectiveAccount.id,
         username: effectiveAccount.username,

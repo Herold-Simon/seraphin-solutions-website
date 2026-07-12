@@ -13,7 +13,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const { username, password, device_id, device_name } = readBody(req);
+    const { username, password, device_id, device_name, product_mode } = readBody(req);
 
     if (!username || !password) {
       return send(res, 400, { success: false, error: 'Benutzername und Passwort sind erforderlich' });
@@ -35,7 +35,7 @@ module.exports = async function handler(req, res) {
 
     const { data: account, error: accountError } = await supabase
       .from('accounts')
-      .insert({ username: cleanUsername, password_hash: passwordHash, is_master: false })
+      .insert({ username: cleanUsername, password_hash: passwordHash, is_master: false, product_mode: Boolean(product_mode) })
       .select('id, username')
       .single();
 

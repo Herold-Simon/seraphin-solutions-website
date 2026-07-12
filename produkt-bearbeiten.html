@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Produkt bearbeiten - Gebäudenavi | Seraphin Solutions</title>
+
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="robots" content="noindex, nofollow">
+
+    <link rel="stylesheet" href="styles-app.css?v=1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root { --brand-blue:#008CFF; --brand-green:#32A71A; --brand-grad:linear-gradient(135deg,#008CFF 0%,#32A71A 100%); }
+        .pe-page { min-height:100vh; background:var(--light-gray); padding-top:80px; padding-bottom:4rem; }
+        .pe-inner { max-width:760px; margin:0 auto; padding:0 1.5rem; }
+        .pe-back { display:inline-flex; align-items:center; gap:.5rem; font-size:.9rem; font-weight:600; color:var(--primary-blue); text-decoration:none; margin-bottom:1rem; }
+        .pe-title { font-size:1.75rem; font-weight:700; color:var(--text-dark); letter-spacing:-.02em; margin-bottom:1.5rem; }
+        .pe-card { background:var(--white); border:1px solid var(--border-color); border-radius:14px; padding:1.5rem; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+        .pe-alert { padding:1rem 1.25rem; border-radius:8px; margin-bottom:1.25rem; font-size:.95rem; display:none; align-items:center; gap:.75rem; }
+        .pe-alert-error { background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
+
+        .pe-dz { display:flex; align-items:center; gap:.9rem; padding:.9rem 1.1rem; margin-bottom:1.5rem;
+            border:2px dashed #cbd5e1; border-radius:12px; background:var(--light-gray); cursor:pointer; transition:border-color .15s, background .15s; }
+        .pe-dz:hover, .pe-dz.dragover { border-color:var(--brand-blue); background:rgba(0,140,255,.04); }
+        .pe-dz-thumb { width:56px; height:56px; flex-shrink:0; border-radius:9px; border:1px solid var(--border-color); background:var(--white); overflow:hidden; display:flex; align-items:center; justify-content:center; }
+        .pe-dz-thumb img { width:100%; height:100%; object-fit:cover; }
+        .pe-dz-thumb i { color:var(--text-light); }
+        .pe-dz-info { flex:1; min-width:0; }
+        .pe-dz-title { font-size:.8rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--text-light); display:flex; align-items:center; gap:.4rem; }
+        .pe-dz-hint { font-size:.78rem; color:var(--text-light); margin-top:.15rem; }
+        .pe-dz-status { font-size:.8rem; color:var(--text-light); margin-top:.18rem; }
+        .pe-dz-status.err { color:#b91c1c; }
+
+        .pe-section-title { font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-light); margin:1.5rem 0 .6rem; }
+        .pe-field { margin-bottom:.9rem; }
+        .pe-field label { display:block; font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--text-light); margin-bottom:.3rem; }
+        .pe-input, .pe-select { width:100%; padding:.65rem .85rem; font-size:.95rem; font-family:inherit; color:var(--text-dark);
+            border:2px solid #e2e8f0; border-radius:8px; background:var(--white); box-sizing:border-box; transition:border-color .18s; }
+        .pe-input:focus, .pe-select:focus { outline:none; border-color:var(--primary-blue); }
+
+        .pe-kw-tags { display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:.6rem; }
+        .pe-kw-tag { display:inline-flex; align-items:center; gap:.4rem; padding:.3rem .35rem .3rem .7rem; font-size:.85rem; color:var(--text-dark); background:var(--light-gray); border:1px solid var(--border-color); border-radius:999px; }
+        .pe-kw-tag button { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; padding:0; border:none; border-radius:50%; cursor:pointer; background:var(--white); color:var(--text-light); font-size:.8rem; line-height:1; }
+        .pe-kw-tag button:hover { background:#fee2e2; color:#b91c1c; }
+
+        .pe-cats { display:flex; flex-direction:column; gap:.5rem; }
+        .pe-cat-row { display:flex; align-items:center; gap:.6rem; padding:.55rem .75rem; border:1px solid var(--border-color); border-radius:8px; background:var(--light-gray); cursor:pointer; }
+        .pe-cat-row input { width:18px; height:18px; accent-color:var(--primary-blue); }
+        .pe-cat-row span { font-size:.92rem; color:var(--text-dark); }
+
+        .pe-actions { display:flex; align-items:center; gap:1rem; margin-top:1.75rem; flex-wrap:wrap; }
+        .pe-save-btn { display:inline-flex; align-items:center; gap:.45rem; padding:.7rem 1.8rem; font-size:.95rem; font-weight:600; color:#fff; background:var(--brand-grad); border:none; border-radius:9px; cursor:pointer; font-family:inherit; transition:transform .2s, filter .2s; }
+        .pe-save-btn:hover:not(:disabled) { transform:translateY(-1px); filter:brightness(1.07); }
+        .pe-save-btn:disabled { opacity:.6; cursor:not-allowed; }
+        .pe-del-btn { display:inline-flex; align-items:center; gap:.45rem; padding:.7rem 1.3rem; font-size:.92rem; font-weight:600; color:#b91c1c; background:#fef2f2; border:1px solid #fecaca; border-radius:9px; cursor:pointer; font-family:inherit; }
+        .pe-del-btn:hover { background:#fee2e2; }
+        .pe-status { font-size:.9rem; color:var(--text-light); }
+        .pe-status.ok { color:#16a34a; }
+        .pe-status.err { color:#b91c1c; }
+        .pe-spinner { width:14px; height:14px; border:2px solid currentColor; border-top-color:transparent; border-radius:50%; animation:pespin .8s linear infinite; display:inline-block; }
+        @keyframes pespin { to { transform:rotate(360deg); } }
+
+        @media (min-width:1024px) { .pe-page { padding-top:6rem; } }
+        @media (max-width:640px) { .pe-page { padding-top:70px; } .pe-inner { padding:0 1rem; } }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <a href="index.html" class="logo"><img src="logo.png" alt="Seraphin Solutions Logo"></a>
+                    <span class="company-name">Seraphin Solutions</span>
+                </div>
+                <nav class="nav" id="nav">
+                    <a href="dashboard.html" class="nav-link">Statistiken</a>
+                    <a href="produkt-zuteilung.html" class="nav-link active">Produkte</a>
+                    <a href="kontaktanfragen.html" class="nav-link" id="navKontaktanfragen" style="display:none;">Kontaktanfragen</a>
+                    <a href="account.html" class="nav-link">Account</a>
+                    <a href="#" class="nav-link nav-logout-link" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Abmelden</a>
+                </nav>
+                <button class="hamburger" id="hamburger" aria-label="Menü öffnen"><span></span><span></span><span></span></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="pe-page">
+        <div class="pe-inner">
+            <a href="produkt-zuteilung.html" class="pe-back"><i class="fas fa-arrow-left"></i> Zurück zur Übersicht</a>
+            <h1 class="pe-title" id="peTitle">Produkt bearbeiten</h1>
+
+            <div id="errorAlert" class="pe-alert pe-alert-error"></div>
+
+            <div class="pe-card" id="peCard" style="display:none;">
+                <div class="pe-dz js-dz" title="Bild hierher ziehen oder klicken">
+                    <div class="pe-dz-thumb js-dz-thumb"><i class="fas fa-box"></i></div>
+                    <div class="pe-dz-info">
+                        <div class="pe-dz-title"><i class="fas fa-cloud-arrow-up"></i> Produktbild</div>
+                        <div class="pe-dz-hint">Hierher ziehen oder klicken (PNG/JPG, max. 1,5 MB)</div>
+                        <div class="pe-dz-status js-dz-status"></div>
+                    </div>
+                    <input type="file" accept="image/*" class="js-dz-file" style="display:none">
+                </div>
+
+                <div class="pe-section-title">Titel</div>
+                <div id="peLangs"></div>
+
+                <div class="pe-section-title">Schlüsselwörter</div>
+                <div class="pe-kw-tags js-kw-tags"></div>
+                <input type="text" class="pe-input js-kw-input" placeholder="Schlüsselwort eingeben und Enter drücken">
+
+                <div class="pe-section-title">Zugeordnete Route</div>
+                <select class="pe-select js-route"></select>
+
+                <div class="pe-section-title">Produktkategorien</div>
+                <div class="pe-cats js-cats"></div>
+
+                <div class="pe-actions">
+                    <button class="pe-save-btn js-save" type="button">Speichern</button>
+                    <button class="pe-del-btn js-delete" type="button" style="display:none;"><i class="fas fa-trash"></i> Löschen</button>
+                    <span class="pe-status js-status"></span>
+                </div>
+            </div>
+
+            <div id="peLoading" class="pe-status" style="padding:2rem 0; text-align:center;">Lade…</div>
+        </div>
+    </main>
+
+    <script>
+        'use strict';
+        const params = new URLSearchParams(window.location.search);
+        const productId = params.get('id') || '';
+        const isNew = !productId;
+
+        let languages = [];
+        let assignableRoutes = [];
+        let categories = [];
+        let product = null;
+        let assignedCategoryIds = new Set();
+        let kwDraft = [];
+        let pendingImage; // undefined = unverändert; string = neues Bild; '' = entfernt (nicht genutzt)
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkSession();
+            await loadData();
+        });
+
+        function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+        async function checkSession() {
+            try {
+                const res = await fetch('/api/auth/session', { credentials:'include' });
+                if (res.status === 401) { window.location.href = 'login.html'; return; }
+                const data = await res.json();
+                if (data && data.user && data.user.is_master) {
+                    const kaLink = document.getElementById('navKontaktanfragen');
+                    if (kaLink) kaLink.style.display = '';
+                }
+            } catch(e) { console.error('Session-Check:', e); }
+        }
+
+        async function loadData() {
+            try {
+                const res = await fetch('/api/products/list', { credentials:'include' });
+                if (res.status === 401) { window.location.href = 'login.html'; return; }
+                const data = await res.json();
+                if (!data || !data.success) { showError('Daten konnten nicht geladen werden.'); return; }
+                languages = data.languages || [];
+                assignableRoutes = data.assignable_routes || [];
+                categories = data.product_categories || [];
+                const assignments = data.product_category_assignments || [];
+
+                if (isNew) {
+                    product = { product_id:'', title:'', per_language:{}, keywords:[], image:null, route_id:null };
+                    document.getElementById('peTitle').textContent = 'Neues Produkt';
+                } else {
+                    product = (data.products || []).find(p => String(p.product_id) === String(productId));
+                    if (!product) { showError('Produkt nicht gefunden.'); document.getElementById('peLoading').style.display='none'; return; }
+                    assignedCategoryIds = new Set(assignments.filter(a => String(a.product_id) === String(productId)).map(a => String(a.category_id)));
+                }
+                kwDraft = Array.isArray(product.keywords) ? product.keywords.map(k => String(k)) : [];
+
+                render();
+            } catch(e) {
+                console.error('Laden:', e);
+                showError('Daten konnten nicht geladen werden.');
+            }
+        }
+
+        function render() {
+            document.getElementById('peLoading').style.display = 'none';
+            document.getElementById('peCard').style.display = 'block';
+
+            // Bild
+            setThumb(product.image);
+            wireDropzone();
+
+            // Sprachen
+            if (languages.length === 0) languages = [{ id:'de', name:'Deutsch' }];
+            const langWrap = document.getElementById('peLangs');
+            langWrap.innerHTML = languages.map(l => {
+                const val = (product.per_language && product.per_language[l.id] && product.per_language[l.id].title) || (l.id === languages[0].id ? (product.title||'') : '');
+                return `<div class="pe-field">
+                    <label>${esc(l.name || l.id)}</label>
+                    <input type="text" class="pe-input js-title" data-lang="${esc(l.id)}" value="${esc(val)}" placeholder="Produkttitel">
+                </div>`;
+            }).join('');
+
+            // Keywords
+            renderKeywords();
+            wireKeywords();
+
+            // Route
+            const routeSel = document.querySelector('.js-route');
+            let opts = `<option value="">— Keiner Route zugewiesen —</option>`;
+            const known = new Set(assignableRoutes.map(r => String(r.route_id)));
+            const extra = (product.route_id && !known.has(String(product.route_id))) ? [{ route_id:String(product.route_id), title:String(product.route_id) }] : [];
+            [...assignableRoutes, ...extra].forEach(r => {
+                const sel = String(r.route_id) === String(product.route_id||'') ? ' selected' : '';
+                opts += `<option value="${esc(r.route_id)}"${sel}>${esc(r.title)}</option>`;
+            });
+            routeSel.innerHTML = opts;
+
+            // Kategorien
+            const catsWrap = document.querySelector('.js-cats');
+            if (categories.length === 0) {
+                catsWrap.innerHTML = '<div class="pe-dz-hint">Keine Produktkategorien vorhanden.</div>';
+            } else {
+                catsWrap.innerHTML = categories.map(c => {
+                    const checked = assignedCategoryIds.has(String(c.category_id)) ? ' checked' : '';
+                    const name = (c.per_language && Object.values(c.per_language)[0] && Object.values(c.per_language)[0].title) || c.title || c.category_id;
+                    return `<label class="pe-cat-row"><input type="checkbox" class="js-cat" value="${esc(c.category_id)}"${checked}><span>${esc(name)}</span></label>`;
+                }).join('');
+            }
+
+            // Aktionen
+            document.querySelector('.js-save').addEventListener('click', save);
+            const delBtn = document.querySelector('.js-delete');
+            if (!isNew) { delBtn.style.display = 'inline-flex'; delBtn.addEventListener('click', del); }
+        }
+
+        function setThumb(src) {
+            const thumb = document.querySelector('.js-dz-thumb');
+            thumb.innerHTML = src ? `<img src="${esc(src)}" alt="">` : '<i class="fas fa-box"></i>';
+        }
+
+        function wireDropzone() {
+            const dz = document.querySelector('.js-dz');
+            const fileIn = document.querySelector('.js-dz-file');
+            const status = document.querySelector('.js-dz-status');
+            const setStatus = (cls, txt) => { status.className = 'pe-dz-status' + (cls?' '+cls:''); status.textContent = txt; };
+            const handleFile = file => {
+                if (!file) return;
+                if (!file.type || !file.type.startsWith('image/')) { setStatus('err','Bitte eine Bilddatei wählen.'); return; }
+                if (file.size > 1500000) { setStatus('err','Bild zu groß (max. 1,5 MB).'); return; }
+                const reader = new FileReader();
+                reader.onload = () => { pendingImage = String(reader.result); setThumb(pendingImage); setStatus('', 'Wird beim Speichern übernommen'); };
+                reader.onerror = () => setStatus('err','Datei konnte nicht gelesen werden.');
+                reader.readAsDataURL(file);
+            };
+            dz.addEventListener('click', () => fileIn.click());
+            fileIn.addEventListener('change', () => { handleFile(fileIn.files && fileIn.files[0]); fileIn.value=''; });
+            ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); dz.classList.add('dragover'); }));
+            ['dragleave','dragend','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); dz.classList.remove('dragover'); }));
+            dz.addEventListener('drop', e => { handleFile(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]); });
+        }
+
+        function renderKeywords() {
+            const tags = document.querySelector('.js-kw-tags');
+            tags.innerHTML = kwDraft.map((kw,i) => `<span class="pe-kw-tag">${esc(kw)}<button type="button" data-i="${i}" aria-label="Entfernen">&times;</button></span>`).join('');
+            tags.querySelectorAll('button[data-i]').forEach(btn => btn.addEventListener('click', () => {
+                const i = parseInt(btn.getAttribute('data-i'),10);
+                if (!isNaN(i)) { kwDraft.splice(i,1); renderKeywords(); }
+            }));
+        }
+
+        function wireKeywords() {
+            const input = document.querySelector('.js-kw-input');
+            const add = () => {
+                const v = input.value.trim();
+                if (v && !kwDraft.some(k => k.toLowerCase() === v.toLowerCase())) { kwDraft.push(v); renderKeywords(); }
+                input.value = '';
+            };
+            input.addEventListener('keydown', e => {
+                if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); add(); }
+                else if (e.key === 'Backspace' && input.value === '' && kwDraft.length) { kwDraft.pop(); renderKeywords(); }
+            });
+            input.addEventListener('blur', () => { if (input.value.trim()) add(); });
+        }
+
+        async function save() {
+            const btn = document.querySelector('.js-save');
+            const status = document.querySelector('.js-status');
+            const per_language = {};
+            document.querySelectorAll('.js-title').forEach(inp => {
+                const lang = inp.getAttribute('data-lang');
+                per_language[lang] = { title: inp.value };
+            });
+            const firstLang = languages[0] && languages[0].id;
+            const title = (per_language[firstLang] && per_language[firstLang].title) || '';
+            const route_id = document.querySelector('.js-route').value || '';
+            const category_ids = Array.from(document.querySelectorAll('.js-cat:checked')).map(c => c.value);
+            const image = (pendingImage !== undefined) ? pendingImage : (product.image || null);
+
+            status.className='pe-status'; status.textContent='';
+            btn.disabled = true; btn.innerHTML = '<span class="pe-spinner"></span> Speichern…';
+            try {
+                const body = { title, per_language, keywords:kwDraft.slice(), image, route_id, category_ids };
+                if (!isNew) body.product_id = product.product_id;
+                const res = await fetch('/api/products/save', {
+                    method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) { status.className='pe-status err'; status.textContent=data.error||'Fehler beim Speichern'; return; }
+                status.className='pe-status ok'; status.innerHTML='<i class="fas fa-check"></i> Gespeichert';
+                setTimeout(() => { window.location.href = 'produkt-zuteilung.html'; }, 700);
+            } catch(e) { status.className='pe-status err'; status.textContent='Verbindungsfehler'; }
+            finally { btn.disabled=false; btn.innerHTML='Speichern'; }
+        }
+
+        async function del() {
+            if (!window.confirm('Produkt wirklich löschen?')) return;
+            const status = document.querySelector('.js-status');
+            status.className='pe-status'; status.textContent='';
+            try {
+                const res = await fetch('/api/products/delete', {
+                    method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ product_id: product.product_id })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) { status.className='pe-status err'; status.textContent=data.error||'Fehler'; return; }
+                window.location.href = 'produkt-zuteilung.html';
+            } catch(e) { status.className='pe-status err'; status.textContent='Verbindungsfehler'; }
+        }
+
+        function showError(message) {
+            const el = document.getElementById('errorAlert');
+            if (!el) return;
+            el.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${esc(message)}`;
+            el.style.display = 'flex';
+        }
+
+        async function logout() {
+            try { await fetch('/api/auth/logout', { method:'POST', credentials:'include' }); } catch(_){}
+            window.location.href = 'login.html';
+        }
+    </script>
+    <script src="script.js?v=2"></script>
+    <script>
+      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

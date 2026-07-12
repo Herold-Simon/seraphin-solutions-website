@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Produkte - Gebäudenavi | Seraphin Solutions</title>
+
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="description" content="Verwalten Sie die Produkte Ihres Gebäudenavi">
+    <meta name="robots" content="noindex, nofollow">
+
+    <link rel="stylesheet" href="styles-app.css?v=1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+
+    <style>
+        :root { --brand-blue:#008CFF; --brand-green:#32A71A; --brand-grad:linear-gradient(135deg,#008CFF 0%,#32A71A 100%); }
+        .prod-page { min-height:100vh; background:var(--light-gray); padding-top:80px; padding-bottom:4rem; }
+        .prod-inner { max-width:1100px; margin:0 auto; padding:0 1.5rem; }
+        .prod-head-row { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:.5rem; }
+        .prod-title { font-size:1.75rem; font-weight:700; color:var(--text-dark); letter-spacing:-.02em; }
+        .prod-subtitle { font-size:.95rem; color:var(--text-light); margin-bottom:2rem; }
+        .prod-new-btn {
+            display:inline-flex; align-items:center; gap:.5rem; padding:.7rem 1.3rem;
+            font-size:.92rem; font-weight:600; color:#fff; background:var(--brand-grad);
+            border:none; border-radius:9px; cursor:pointer; font-family:inherit;
+            transition:transform .2s, filter .2s, box-shadow .2s; white-space:nowrap;
+        }
+        .prod-new-btn:hover { transform:translateY(-1px); filter:brightness(1.07); box-shadow:0 4px 14px rgba(0,140,255,.25); }
+
+        .prod-master-bar { display:none; align-items:center; gap:.75rem; flex-wrap:wrap;
+            background:rgba(0,140,255,.06); border:1px solid rgba(0,140,255,.2); border-radius:10px;
+            padding:.85rem 1.25rem; margin-bottom:1.5rem; }
+        .prod-master-bar i { color:var(--primary-blue); font-size:1.1rem; }
+        .prod-master-bar span { color:var(--text-dark); font-size:.95rem; }
+        .master-bar-btn { margin-left:auto; display:inline-flex; align-items:center; gap:.4rem; padding:.5rem 1rem;
+            border-radius:8px; border:1px solid var(--primary-blue); background:var(--white); color:var(--primary-blue);
+            font-size:.9rem; font-weight:600; cursor:pointer; font-family:inherit; }
+        .master-bar-btn:hover { background:rgba(0,140,255,.08); }
+
+        .prod-alert { padding:1rem 1.25rem; border-radius:8px; margin-bottom:1.5rem; font-size:.95rem;
+            display:none; align-items:center; gap:.75rem; }
+        .prod-alert-error { background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
+
+        .prod-search { position:relative; margin-bottom:1.5rem; }
+        .prod-search i { position:absolute; left:1rem; top:50%; transform:translateY(-50%); color:var(--text-light); font-size:.95rem; pointer-events:none; }
+        .prod-search input { width:100%; padding:.85rem 1rem .85rem 2.7rem; font-size:1rem; font-family:inherit;
+            border:2px solid var(--border-color); border-radius:12px; background:var(--white); box-sizing:border-box; transition:border-color .2s, box-shadow .2s; }
+        .prod-search input:focus { outline:none; border-color:var(--primary-blue); box-shadow:0 0 0 3px rgba(0,140,255,.08); }
+
+        .prod-state { text-align:center; padding:3rem 1rem; color:var(--text-light); font-size:.95rem; }
+
+        .prod-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:1rem; align-items:start; }
+        .prod-card { background:var(--white); border-radius:14px; border:1px solid var(--border-color);
+            box-shadow:0 1px 4px rgba(0,0,0,.06); overflow:hidden; display:flex; flex-direction:column; }
+        .prod-card-top { display:flex; gap:.9rem; padding:1rem; }
+        .prod-card-img { width:64px; height:64px; flex-shrink:0; border-radius:10px; border:1px solid var(--border-color);
+            background:var(--light-gray); display:flex; align-items:center; justify-content:center; overflow:hidden; }
+        .prod-card-img img { width:100%; height:100%; object-fit:cover; }
+        .prod-card-img i { color:var(--text-light); font-size:1.3rem; }
+        .prod-card-info { flex:1; min-width:0; }
+        .prod-card-name { font-size:1.02rem; font-weight:600; color:var(--text-dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .prod-card-keywords { font-size:.8rem; color:var(--text-light); margin-top:.25rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .prod-card-body { padding:0 1rem 1rem; }
+        .prod-field-label { display:block; font-size:.7rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--text-light); margin:.4rem 0 .3rem; }
+        .prod-route-select { width:100%; padding:.6rem .85rem; font-size:.92rem; font-family:inherit; color:var(--text-dark);
+            border:2px solid #e2e8f0; border-radius:8px; background:var(--white); box-sizing:border-box; }
+        .prod-route-select:focus { outline:none; border-color:var(--primary-blue); }
+        .prod-card-actions { display:flex; align-items:center; gap:.5rem; margin-top:.9rem; flex-wrap:wrap; }
+        .prod-btn { display:inline-flex; align-items:center; gap:.4rem; padding:.55rem 1rem; font-size:.88rem; font-weight:600;
+            border-radius:8px; cursor:pointer; font-family:inherit; border:1px solid var(--border-color); background:var(--white); color:var(--text-dark); }
+        .prod-btn:hover { background:var(--light-gray); }
+        .prod-btn--primary { color:#fff; background:var(--brand-grad); border:none; }
+        .prod-btn--primary:hover { filter:brightness(1.07); }
+        .prod-btn--primary:disabled { opacity:.6; cursor:not-allowed; }
+        .prod-btn--danger { color:#b91c1c; border-color:#fecaca; background:#fef2f2; }
+        .prod-btn--danger:hover { background:#fee2e2; }
+        .prod-save-status { font-size:.85rem; color:var(--text-light); margin-left:auto; }
+        .prod-save-status.ok { color:#16a34a; }
+        .prod-save-status.err { color:#b91c1c; }
+        .prod-spinner { width:14px; height:14px; border:2px solid currentColor; border-top-color:transparent; border-radius:50%; animation:pspin .8s linear infinite; display:inline-block; }
+        @keyframes pspin { to { transform:rotate(360deg); } }
+
+        .prod-info-hint { display:flex; align-items:flex-start; gap:.85rem; margin-top:2.5rem; padding:1rem 1.25rem;
+            background:var(--white); border:1px solid var(--border-color); border-radius:12px; font-size:.88rem; color:var(--text-light); line-height:1.55; }
+        .prod-info-hint i { flex-shrink:0; margin-top:.18rem; color:var(--text-light); }
+        .prod-info-hint strong { color:var(--text-dark); }
+
+        @media (min-width:1024px) { .prod-page { padding-top:6rem; padding-bottom:5rem; } .prod-inner { padding:0 2rem; } .prod-title { font-size:2.25rem; } }
+        @media (max-width:640px) { .prod-page { padding-top:70px; } .prod-inner { padding:0 1rem; } .prod-grid { grid-template-columns:1fr; } .master-bar-btn { margin-left:0; width:100%; justify-content:center; } }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <a href="index.html" class="logo"><img src="logo.png" alt="Seraphin Solutions Logo"></a>
+                    <span class="company-name">Seraphin Solutions</span>
+                </div>
+                <nav class="nav" id="nav">
+                    <a href="dashboard.html" class="nav-link">Statistiken</a>
+                    <a href="produkt-zuteilung.html" class="nav-link active">Produkte</a>
+                    <a href="kontaktanfragen.html" class="nav-link" id="navKontaktanfragen" style="display:none;">Kontaktanfragen</a>
+                    <a href="account.html" class="nav-link">Account</a>
+                    <a href="#" class="nav-link nav-logout-link" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Abmelden</a>
+                </nav>
+                <button class="hamburger" id="hamburger" aria-label="Menü öffnen"><span></span><span></span><span></span></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="prod-page">
+        <div class="prod-inner">
+            <div class="prod-head-row">
+                <h1 class="prod-title">Produkte verwalten</h1>
+                <button class="prod-new-btn" onclick="window.location.href='produkt-bearbeiten.html'"><i class="fas fa-plus"></i> Neues Produkt</button>
+            </div>
+            <p class="prod-subtitle">Weisen Sie Produkte einer Route zu, bearbeiten Sie Titel, Bild und Schlüsselwörter oder legen Sie neue Produkte an.</p>
+
+            <div id="errorAlert" class="prod-alert prod-alert-error"></div>
+
+            <div id="masterBar" class="prod-master-bar">
+                <i class="fas fa-user-shield"></i>
+                <span>Sie bearbeiten die Produkte des Kontos <strong id="masterBarName">—</strong>.</span>
+                <button id="masterBarSwitch" class="master-bar-btn" onclick="goToAccountsOverview(); return false;"><i class="fas fa-arrow-left"></i> Zur Konten-Übersicht</button>
+            </div>
+
+            <div class="prod-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="prodSearch" placeholder="Produkt suchen (Titel oder Schlüsselwort)…" autocomplete="off">
+            </div>
+
+            <div id="prodLoading" class="prod-state">Lade Produkte…</div>
+            <div id="prodEmpty" class="prod-state" style="display:none;">Noch keine Produkte vorhanden. Legen Sie mit „Neues Produkt“ Ihr erstes Produkt an.</div>
+            <div id="prodGrid" class="prod-grid"></div>
+
+            <div id="prodHint" class="prod-info-hint" style="display:none">
+                <i class="fas fa-circle-info"></i>
+                <span><strong>Zuteilbare Routen</strong> sind Routen, denen im Gebäudenavi-Programm bereits ein Produkt zugeordnet wurde. Neue Produkte können Sie hier anlegen und einer dieser Routen zuweisen.</span>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        'use strict';
+        let products = [];
+        let assignableRoutes = [];
+        let languages = [];
+        let prodFuse = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkSession();
+            await loadProducts();
+            const search = document.getElementById('prodSearch');
+            if (search) {
+                search.addEventListener('input', () => renderProducts(search.value));
+                search.addEventListener('keydown', e => { if (e.key === 'Escape') { search.value = ''; renderProducts(''); } });
+            }
+        });
+
+        function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+        async function goToAccountsOverview() {
+            try { await fetch('/api/accounts/select', { method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ account_id:null }) }); } catch(e){}
+            window.location.href = 'dashboard.html';
+        }
+
+        async function checkSession() {
+            try {
+                const res = await fetch('/api/auth/session', { credentials:'include' });
+                if (res.status === 401) { window.location.href = 'login.html'; return; }
+                const data = await res.json();
+                if (!data || !data.success) return;
+                if (data.user && data.user.is_master) {
+                    const kaLink = document.getElementById('navKontaktanfragen');
+                    if (kaLink) kaLink.style.display = '';
+                    const acting = data.acting_account;
+                    if (acting && acting.id) {
+                        document.getElementById('masterBarName').textContent = acting.username || '—';
+                        document.getElementById('masterBar').style.display = 'flex';
+                    } else {
+                        showError('Bitte wählen Sie zuerst im Dashboard ein Konto aus, um dessen Produkte zu bearbeiten.');
+                    }
+                }
+            } catch(e) { console.error('Session-Check:', e); }
+        }
+
+        async function loadProducts() {
+            const loading = document.getElementById('prodLoading');
+            const empty = document.getElementById('prodEmpty');
+            const grid = document.getElementById('prodGrid');
+            loading.style.display = 'block'; empty.style.display = 'none'; grid.innerHTML = '';
+            try {
+                const res = await fetch('/api/products/list', { credentials:'include' });
+                if (res.status === 401) { window.location.href = 'login.html'; return; }
+                const data = await res.json();
+                loading.style.display = 'none';
+                products = (data.success && Array.isArray(data.products)) ? data.products : [];
+                assignableRoutes = (data.success && Array.isArray(data.assignable_routes)) ? data.assignable_routes : [];
+                languages = (data.success && Array.isArray(data.languages)) ? data.languages : [];
+                prodFuse = null;
+                renderProducts('');
+                document.getElementById('prodHint').style.display = 'flex';
+            } catch(e) {
+                loading.style.display = 'none';
+                console.error('Produkte laden:', e);
+                showError('Produkte konnten nicht geladen werden.');
+            }
+        }
+
+        function buildFuse() {
+            if (typeof Fuse === 'undefined') { prodFuse = null; return; }
+            const records = products.map(p => ({
+                product: p,
+                title: [p.title, ...Object.values(p.per_language||{}).map(v => (v&&v.title)||'')].join(' ').trim(),
+                keywords: (p.keywords||[]).join(' ')
+            }));
+            prodFuse = new Fuse(records, { keys:[{name:'title',weight:.6},{name:'keywords',weight:.4}], threshold:.42, ignoreLocation:true, minMatchCharLength:1, ignoreDiacritics:true });
+        }
+
+        function renderProducts(filter) {
+            const empty = document.getElementById('prodEmpty');
+            const grid = document.getElementById('prodGrid');
+            const q = (filter||'').trim();
+            grid.innerHTML = '';
+            if (products.length === 0) { empty.textContent = 'Noch keine Produkte vorhanden. Legen Sie mit „Neues Produkt“ Ihr erstes Produkt an.'; empty.style.display='block'; return; }
+            let list;
+            if (q) { if (!prodFuse) buildFuse(); list = prodFuse ? prodFuse.search(q).map(r=>r.item.product) : products.filter(p => (p.title||'').toLowerCase().includes(q.toLowerCase())); }
+            else list = products.slice();
+            if (list.length === 0) { empty.textContent='Kein Produkt passt zur Suche.'; empty.style.display='block'; return; }
+            empty.style.display='none';
+            list.forEach(p => grid.appendChild(buildCard(p)));
+        }
+
+        function routeOptions(selected) {
+            let opts = `<option value="">— Keiner Route zugewiesen —</option>`;
+            // Aktuelle Route ggf. ergaenzen, falls nicht in der Liste
+            const known = new Set(assignableRoutes.map(r => String(r.route_id)));
+            const extra = (selected && !known.has(String(selected))) ? [{ route_id:String(selected), title:String(selected) }] : [];
+            [...assignableRoutes, ...extra].forEach(r => {
+                const sel = String(r.route_id) === String(selected||'') ? ' selected' : '';
+                opts += `<option value="${esc(r.route_id)}"${sel}>${esc(r.title)}</option>`;
+            });
+            return opts;
+        }
+
+        function buildCard(p) {
+            const card = document.createElement('div');
+            card.className = 'prod-card';
+            const kw = (p.keywords||[]).join(', ');
+            card.innerHTML = `
+                <div class="prod-card-top">
+                    <div class="prod-card-img">${p.image ? `<img src="${esc(p.image)}" alt="">` : '<i class="fas fa-box"></i>'}</div>
+                    <div class="prod-card-info">
+                        <div class="prod-card-name">${esc(p.title || 'Produkt')}</div>
+                        <div class="prod-card-keywords">${kw ? esc(kw) : 'Keine Schlüsselwörter'}</div>
+                    </div>
+                </div>
+                <div class="prod-card-body">
+                    <label class="prod-field-label">Zugeordnete Route</label>
+                    <select class="prod-route-select js-route">${routeOptions(p.route_id)}</select>
+                    <div class="prod-card-actions">
+                        <button class="prod-btn prod-btn--primary js-assign" type="button"><i class="fas fa-link"></i> Route speichern</button>
+                        <button class="prod-btn js-edit" type="button"><i class="fas fa-pen"></i> Bearbeiten</button>
+                        <button class="prod-btn prod-btn--danger js-delete" type="button" title="Löschen"><i class="fas fa-trash"></i></button>
+                        <span class="prod-save-status js-status"></span>
+                    </div>
+                </div>`;
+
+            card.querySelector('.js-edit').addEventListener('click', () => {
+                window.location.href = 'produkt-bearbeiten.html?id=' + encodeURIComponent(p.product_id);
+            });
+            card.querySelector('.js-assign').addEventListener('click', () => assignRoute(card, p));
+            card.querySelector('.js-delete').addEventListener('click', () => deleteProduct(card, p));
+            return card;
+        }
+
+        async function assignRoute(card, p) {
+            const btn = card.querySelector('.js-assign');
+            const status = card.querySelector('.js-status');
+            const routeId = card.querySelector('.js-route').value || '';
+            status.className = 'prod-save-status'; status.textContent = '';
+            btn.disabled = true; btn.innerHTML = '<span class="prod-spinner"></span> Speichern…';
+            try {
+                const res = await fetch('/api/products/save', {
+                    method:'POST', credentials:'include', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({ product_id:p.product_id, title:p.title, per_language:p.per_language||{}, keywords:p.keywords||[], image:p.image||null, route_id:routeId })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) { status.className='prod-save-status err'; status.textContent=data.error||'Fehler'; return; }
+                p.route_id = routeId || null;
+                status.className='prod-save-status ok'; status.innerHTML='<i class="fas fa-check"></i> Gespeichert';
+            } catch(e) { status.className='prod-save-status err'; status.textContent='Verbindungsfehler'; }
+            finally { btn.disabled=false; btn.innerHTML='<i class="fas fa-link"></i> Route speichern'; }
+        }
+
+        async function deleteProduct(card, p) {
+            if (!window.confirm('Produkt „' + (p.title||'') + '“ wirklich löschen?')) return;
+            const status = card.querySelector('.js-status');
+            status.className='prod-save-status'; status.textContent='';
+            try {
+                const res = await fetch('/api/products/delete', {
+                    method:'POST', credentials:'include', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({ product_id:p.product_id })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) { status.className='prod-save-status err'; status.textContent=data.error||'Fehler'; return; }
+                products = products.filter(x => x.product_id !== p.product_id);
+                prodFuse = null;
+                card.remove();
+                if (products.length === 0) { document.getElementById('prodEmpty').style.display='block'; }
+            } catch(e) { status.className='prod-save-status err'; status.textContent='Verbindungsfehler'; }
+        }
+
+        function showError(message) {
+            const el = document.getElementById('errorAlert');
+            if (!el) return;
+            el.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${esc(message)}`;
+            el.style.display = 'flex';
+        }
+
+        async function logout() {
+            try { await fetch('/api/auth/logout', { method:'POST', credentials:'include' }); } catch(_){}
+            window.location.href = 'login.html';
+        }
+    </script>
+    <script src="script.js?v=2"></script>
+    <script>
+      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
