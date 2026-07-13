@@ -186,10 +186,8 @@
             }
             // Klick außerhalb schließt offene Routen-Dropdowns.
             document.addEventListener('mousedown', (e) => {
-                document.querySelectorAll('.prod-route-panel').forEach(pl => {
-                    const dd = pl.closest('.prod-route-dd');
-                    if (dd && !dd.contains(e.target)) pl.style.display = 'none';
-                });
+                const openDd = e.target && e.target.closest ? e.target.closest('.prod-route-dd') : null;
+                closeAllRouteDropdowns(openDd);
             });
         });
 
@@ -271,6 +269,17 @@
         }
 
         function catTitle(c){ return (c && c.title) ? String(c.title) : 'Kategorie'; }
+
+        // Schließt alle offenen Routen-Dropdowns und setzt das overflow/z-index der Karten zurück.
+        function closeAllRouteDropdowns(except) {
+            document.querySelectorAll('.prod-route-panel').forEach(pl => {
+                const dd = pl.closest('.prod-route-dd');
+                if (except && dd === except) return;
+                pl.style.display = 'none';
+                const card = pl.closest('.prod-card');
+                if (card) { card.style.overflow = ''; card.style.position = ''; card.style.zIndex = ''; }
+            });
+        }
 
         // Ordnet jeder Route die Produktkategorien der ihr zugewiesenen Produkte zu.
         function buildRouteCategoryMap() {
@@ -393,13 +402,23 @@
                     listEl.appendChild(b);
                 });
             }
-            function open() { panel.style.display = 'block'; setTimeout(() => searchInput.focus(), 0); }
-            function close() { panel.style.display = 'none'; }
+            function open() {
+                panel.style.display = 'block';
+                // Karte hat overflow:hidden -> Panel würde sonst abgeschnitten.
+                const card = dd.closest('.prod-card');
+                if (card) { card.style.overflow = 'visible'; card.style.position = 'relative'; card.style.zIndex = '20'; }
+                setTimeout(() => searchInput.focus(), 0);
+            }
+            function close() {
+                panel.style.display = 'none';
+                const card = dd.closest('.prod-card');
+                if (card) { card.style.overflow = ''; card.style.position = ''; card.style.zIndex = ''; }
+            }
 
             toggle.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const isOpen = panel.style.display !== 'none';
-                document.querySelectorAll('.prod-route-panel').forEach(pl => { pl.style.display = 'none'; });
+                closeAllRouteDropdowns();
                 if (!isOpen) open();
             });
             searchInput.addEventListener('input', () => { query = searchInput.value; renderList(); });
