@@ -370,26 +370,29 @@ if (navbar) {
 
 // ── Produktmodus-Header ──────────────────────────────────────────────
 // Auf den eingeloggten App-Seiten (Nav mit "Statistiken") wird bei aktivem
-// Produktmodus des Kontos der Menuepunkt "Beschriftungen" zu "Produkte" und
-// verlinkt auf die Produkt-Zuteilungsseite. Wird man auf labels.html geleitet,
-// erfolgt eine Weiterleitung zur Produktseite.
+// Produktmodus des Kontos ZUSAETZLICH der Menuepunkt "Produkte" eingefuegt.
+// "Beschriftungen" bleibt erhalten, damit Labels auch im Produktmodus weiterhin
+// ueber die Website bearbeitet werden koennen.
 (function () {
     document.addEventListener('DOMContentLoaded', function () {
         var navEl = document.getElementById('nav');
         if (!navEl || !navEl.querySelector('a[href="dashboard.html"]')) return;
-        // Auf den Produktseiten selbst nicht erneut umschreiben.
-        var path = (window.location.pathname || '').toLowerCase();
         fetch('/api/auth/session', { credentials: 'include' })
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (d) {
                 if (!d || !d.success || !d.product_mode) return;
+                // "Produkte"-Link ergaenzen (falls noch nicht vorhanden), direkt hinter
+                // "Beschriftungen". "Beschriftungen" wird bewusst NICHT ersetzt.
+                if (navEl.querySelector('a[href="produkt-zuteilung.html"]')) return;
                 var labelsLink = navEl.querySelector('a[href="labels.html"]');
-                if (labelsLink) {
-                    labelsLink.setAttribute('href', 'produkt-zuteilung.html');
-                    labelsLink.textContent = 'Produkte';
-                }
-                if (/labels\.html$/.test(path)) {
-                    window.location.replace('produkt-zuteilung.html');
+                var prod = document.createElement('a');
+                prod.href = 'produkt-zuteilung.html';
+                prod.className = 'nav-link';
+                prod.textContent = 'Produkte';
+                if (labelsLink && labelsLink.parentNode) {
+                    labelsLink.parentNode.insertBefore(prod, labelsLink.nextSibling);
+                } else {
+                    navEl.appendChild(prod);
                 }
             })
             .catch(function () {});

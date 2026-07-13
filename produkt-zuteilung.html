@@ -72,7 +72,7 @@
             border-radius:8px; cursor:pointer; font-family:inherit; border:1px solid var(--border-color); background:var(--white); color:var(--text-dark); }
         .prod-btn:hover { background:var(--light-gray); }
         .prod-btn--primary { color:#fff; background:var(--brand-grad); border:none; }
-        .prod-btn--primary:hover { filter:brightness(1.07); }
+        .prod-btn--primary:hover { background:var(--brand-grad); filter:brightness(1.07); }
         .prod-btn--primary:disabled { opacity:.6; cursor:not-allowed; }
         .prod-btn--danger { color:#b91c1c; border-color:#fecaca; background:#fef2f2; }
         .prod-btn--danger:hover { background:#fee2e2; }
@@ -101,6 +101,7 @@
                 </div>
                 <nav class="nav" id="nav">
                     <a href="dashboard.html" class="nav-link">Statistiken</a>
+                    <a href="labels.html" class="nav-link">Beschriftungen</a>
                     <a href="produkt-zuteilung.html" class="nav-link active">Produkte</a>
                     <a href="kontaktanfragen.html" class="nav-link" id="navKontaktanfragen" style="display:none;">Kontaktanfragen</a>
                     <a href="account.html" class="nav-link">Account</a>
@@ -326,7 +327,7 @@
             window.location.href = 'login.html';
         }
     </script>
-    <script src="script.js?v=21"></script>
+    <script src="script.js?v=22"></script>
     <script>
       window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
     </script>
