@@ -302,8 +302,8 @@
         }
 
         // Durchsuchbares Routen-Dropdown mit Filter nach Produktkategorien.
-        // Der ausgewählte Wert liegt in dd.dataset.value (von assignRoute gelesen).
-        function buildRouteDropdown(p) {
+        // Bei Auswahl wird onSelect(routeId) aufgerufen (automatisches Speichern).
+        function buildRouteDropdown(p, onSelect) {
             const dd = document.createElement('div');
             dd.className = 'prod-route-dd js-route-dd';
             let selected = p.route_id ? String(p.route_id) : '';
@@ -378,7 +378,7 @@
                 none.type = 'button';
                 none.className = 'prod-route-opt none' + (selected === '' ? ' selected' : '');
                 none.textContent = '— Keiner Route zugewiesen —';
-                none.addEventListener('click', () => { selected = ''; dd.dataset.value = ''; updateLabel(); renderList(); close(); });
+                none.addEventListener('click', () => { selected = ''; dd.dataset.value = ''; updateLabel(); renderList(); close(); if (onSelect) onSelect(''); });
                 listEl.appendChild(none);
 
                 let list = assignableRoutes.slice();
@@ -398,7 +398,7 @@
                     b.type = 'button';
                     b.className = 'prod-route-opt' + (String(r.route_id) === selected ? ' selected' : '');
                     b.textContent = r.title;
-                    b.addEventListener('click', () => { selected = String(r.route_id); dd.dataset.value = selected; updateLabel(); renderList(); close(); });
+                    b.addEventListener('click', () => { selected = String(r.route_id); dd.dataset.value = selected; updateLabel(); renderList(); close(); if (onSelect) onSelect(selected); });
                     listEl.appendChild(b);
                 });
             }
@@ -447,42 +447,38 @@
                     <label class="prod-field-label">Zugeordnete Route</label>
                     <div class="js-route-mount"></div>
                     <div class="prod-card-actions">
-                        <button class="prod-btn prod-btn--primary js-assign" type="button"><i class="fas fa-link"></i> Route speichern</button>
-                        <button class="prod-btn js-edit" type="button"><i class="fas fa-pen"></i> Bearbeiten</button>
+                        <button class="prod-btn js-edit" type="button" style="flex:1;"><i class="fas fa-pen"></i> Bearbeiten</button>
                         <button class="prod-btn prod-btn--danger js-delete" type="button" title="Löschen"><i class="fas fa-trash"></i></button>
-                        <span class="prod-save-status js-status"></span>
                     </div>
+                    <div class="prod-save-status js-status" style="display:none; margin-top:.5rem;"></div>
                 </div>`;
 
             const mount = card.querySelector('.js-route-mount');
-            if (mount) mount.appendChild(buildRouteDropdown(p));
+            if (mount) mount.appendChild(buildRouteDropdown(p, (routeId) => saveRoute(card, p, routeId)));
 
             card.querySelector('.js-edit').addEventListener('click', () => {
                 window.location.href = 'produkt-bearbeiten.html?id=' + encodeURIComponent(p.product_id);
             });
-            card.querySelector('.js-assign').addEventListener('click', () => assignRoute(card, p));
             card.querySelector('.js-delete').addEventListener('click', () => deleteProduct(card, p));
             return card;
         }
 
-        async function assignRoute(card, p) {
-            const btn = card.querySelector('.js-assign');
+        // Wird automatisch aufgerufen, sobald im Dropdown eine (andere) Route gewählt wird.
+        async function saveRoute(card, p, routeId) {
             const status = card.querySelector('.js-status');
-            const routeDd = card.querySelector('.js-route-dd');
-            const routeId = (routeDd && routeDd.dataset.value) || '';
-            status.className = 'prod-save-status'; status.textContent = '';
-            btn.disabled = true; btn.innerHTML = '<span class="prod-spinner"></span> Speichern…';
+            const rid = routeId || '';
+            if (status) { status.style.display = ''; status.className = 'prod-save-status'; status.innerHTML = '<span class="prod-spinner"></span> Speichern…'; }
             try {
                 const res = await fetch('/api/products/save', {
                     method:'POST', credentials:'include', headers:{'Content-Type':'application/json'},
-                    body: JSON.stringify({ product_id:p.product_id, title:p.title, per_language:p.per_language||{}, keywords:p.keywords||[], image:p.image||null, route_id:routeId })
+                    body: JSON.stringify({ product_id:p.product_id, title:p.title, per_language:p.per_language||{}, keywords:p.keywords||[], image:p.image||null, route_id:rid })
                 });
                 const data = await res.json();
-                if (!res.ok || !data.success) { status.className='prod-save-status err'; status.textContent=data.error||'Fehler'; return; }
-                p.route_id = routeId || null;
-                status.className='prod-save-status ok'; status.innerHTML='<i class="fas fa-check"></i> Gespeichert';
-            } catch(e) { status.className='prod-save-status err'; status.textContent='Verbindungsfehler'; }
-            finally { btn.disabled=false; btn.innerHTML='<i class="fas fa-link"></i> Route speichern'; }
+                if (!res.ok || !data.success) { if (status) { status.className='prod-save-status err'; status.textContent=data.error||'Fehler'; } return; }
+                p.route_id = rid || null;
+                buildRouteCategoryMap();
+                if (status) { status.className='prod-save-status ok'; status.innerHTML='<i class="fas fa-check"></i> Gespeichert'; }
+            } catch(e) { if (status) { status.className='prod-save-status err'; status.textContent='Verbindungsfehler'; } }
         }
 
         async function deleteProduct(card, p) {

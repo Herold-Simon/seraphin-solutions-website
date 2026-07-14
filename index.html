@@ -537,7 +537,22 @@
                         .then(function(result) {
                             if (result.ok && result.data && result.data.success) {
                                 contactForm.reset();
-                                window.location.href = 'Danke.html';
+                                // Google Ads / GA4 Conversion-Event, dann Weiterleitung auf Danke.html
+                                var redirected = false;
+                                function goToDanke() {
+                                    if (redirected) return;
+                                    redirected = true;
+                                    window.location.href = 'Danke.html';
+                                }
+                                if (typeof gtag === 'function') {
+                                    gtag('event', 'conversion_event_submit_lead_form', {
+                                        'event_callback': goToDanke
+                                    });
+                                    // Fallback, falls der Callback nicht rechtzeitig feuert
+                                    setTimeout(goToDanke, 1200);
+                                } else {
+                                    goToDanke();
+                                }
                             } else {
                                 var msg = (result.data && result.data.error)
                                     ? result.data.error
