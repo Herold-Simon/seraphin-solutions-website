@@ -662,9 +662,10 @@
             font-family: inherit;
             transition: box-shadow 0.15s ease, border-color 0.15s ease;
         }
-        .bg-budget-pick:hover { box-shadow: var(--shadow-sm); }
+        .bg-budget-pick:hover { border-color: #c5ccd4; }
         .bg-budget-pick.is-selected {
-            box-shadow: 0 0 0 2px rgba(0, 140, 255, 0.12);
+            border-color: var(--pick-color, var(--primary-blue));
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--pick-color, var(--primary-blue)) 20%, transparent);
         }
         .bg-budget-pick-name {
             display: flex;
@@ -1475,9 +1476,11 @@
                 const selected = btn.dataset.budgetId === id;
                 btn.classList.toggle('is-selected', selected);
                 if (selected) {
+                    btn.style.setProperty('--pick-color', btn.dataset.budgetColor || '#008CFF');
                     btn.style.borderColor = btn.dataset.budgetColor || '#008CFF';
                 } else {
-                    btn.style.borderColor = btn.dataset.budgetColor || 'var(--border-color)';
+                    btn.style.removeProperty('--pick-color');
+                    btn.style.borderColor = '';
                 }
             });
             const select = document.getElementById('expenseBudgetSelect');
@@ -1501,7 +1504,6 @@
                     const available = b.available_cents != null ? b.available_cents : (b.amount_cents || 0);
                     return `
                         <button type="button" class="bg-budget-pick" data-budget-id="${b.id}" data-budget-color="${esc(color)}"
-                                style="border-color:${esc(color)};"
                                 onclick="setExpenseBudgetId('${b.id}')">
                             <span class="bg-budget-pick-name">
                                 <span class="bg-dot" style="background:${esc(color)}"></span>
