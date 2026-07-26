@@ -92,10 +92,7 @@
             display: grid;
             gap: 0.9rem;
         }
-        .bg-summary-row-top {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            max-width: 560px;
-        }
+        .bg-summary-row-top,
         .bg-summary-row-bottom {
             grid-template-columns: repeat(2, minmax(0, 280px));
             justify-content: center;
@@ -139,6 +136,8 @@
         }
         @media (max-width: 900px) {
             .bg-layout { grid-template-columns: 1fr; }
+            .bg-layout .bg-panel-budgets { order: 2; }
+            .bg-layout .bg-panel-expenses { order: 1; }
         }
 
         .bg-panel {
@@ -488,7 +487,7 @@
                 <div class="bg-summary" id="summaryGrid"></div>
 
                 <div class="bg-layout">
-                    <section class="bg-panel">
+                    <section class="bg-panel bg-panel-budgets">
                         <div class="bg-panel-head">
                             <h2 class="bg-panel-title">Budgets</h2>
                         </div>
@@ -506,7 +505,7 @@
                         </div>
                     </section>
 
-                    <section class="bg-panel">
+                    <section class="bg-panel bg-panel-expenses">
                         <div class="bg-panel-head">
                             <h2 class="bg-panel-title" id="expensePanelTitle">Ausgaben</h2>
                         </div>
