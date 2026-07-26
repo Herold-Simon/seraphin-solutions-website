@@ -209,7 +209,7 @@
             display: flex;
             justify-content: space-between;
             gap: 0.75rem;
-            margin-bottom: 0.45rem;
+            margin-bottom: 0.55rem;
         }
         .bg-budget-name {
             font-weight: 700;
@@ -230,11 +230,7 @@
             color: var(--text-dark);
             white-space: nowrap;
         }
-        .bg-budget-meta {
-            font-size: 0.8rem;
-            color: var(--text-light);
-            margin-bottom: 0.55rem;
-        }
+        .bg-budget-amount.warn { color: #c0392b; }
         .bg-progress {
             height: 8px;
             background: #eef1f4;
@@ -790,19 +786,14 @@
                                 ${esc(b.name)}
                                 ${b.is_archived ? '<span class="bg-tag">Archiv</span>' : ''}
                             </span>
-                            <span class="bg-budget-amount">${formatEuro(available)}</span>
-                        </div>
-                        <div class="bg-budget-meta">
-                            Monatlich ${formatEuro(b.monthly_amount_cents || 0)}
-                            · Überschuss Vormonat ${formatEuro(b.surplus_cents || 0)}
-                            · ${b.expense_count_month || 0} Ausgaben diesen Monat
+                            <span class="bg-budget-amount ${over ? 'warn' : ''}">${formatEuro(b.remaining_cents)}</span>
                         </div>
                         <div class="bg-progress">
                             <div class="bg-progress-bar ${over ? 'over' : ''}" style="width:${over ? 100 : pct}%"></div>
                         </div>
                         <div class="bg-budget-foot">
                             <span>Ausgegeben: ${formatEuro(b.spent_cents)}</span>
-                            <span>${over ? 'Überzogen' : 'Noch ' + formatEuro(b.remaining_cents)} · ${b.usage_percent || 0}%</span>
+                            <span>Budget: ${formatEuro(available)} · ${b.usage_percent || 0}%</span>
                         </div>
                         <div class="bg-budget-actions" onclick="event.stopPropagation()">
                             <button class="bg-btn" type="button" onclick="openBudgetModal('${b.id}')"><i class="fas fa-pen"></i> Bearbeiten</button>
