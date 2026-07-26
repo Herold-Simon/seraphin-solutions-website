@@ -259,6 +259,16 @@
             flex-wrap: wrap;
             gap: 0.4rem;
         }
+        .bg-filter-select {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0.65rem 0.8rem;
+            font-family: inherit;
+            font-size: 0.92rem;
+            color: var(--text-dark);
+            background: var(--white);
+        }
         .bg-range-labels {
             display: flex;
             justify-content: space-between;
@@ -376,14 +386,9 @@
                 max-height: min(78vh, 560px);
                 padding: 1.1rem 1.1rem 1.15rem;
             }
-            .bg-filter-chip-row {
-                flex-direction: column;
-            }
-            .bg-filter-chip-row .bg-filter-btn {
-                width: 100%;
-                text-align: center;
-                padding: 0.65rem 0.85rem;
-                border-radius: 10px;
+            .bg-filter-select {
+                font-size: 1rem;
+                padding: 0.75rem 0.85rem;
             }
             .bg-range-slider {
                 height: 44px;
@@ -728,11 +733,10 @@
     <div class="bg-filter-backdrop" id="expenseFilterBackdrop" aria-hidden="true"></div>
     <div class="bg-filter-panel" id="expenseFilterPanel" role="dialog" aria-label="Ausgabenfilter" aria-hidden="true">
         <div class="bg-filter-section">
-            <span class="bg-filter-section-label">Ansicht</span>
-            <div class="bg-filter-chip-row">
-                <button type="button" class="bg-filter-btn active" data-expense-filter="all">Alle Ausgaben</button>
-                <button type="button" class="bg-filter-btn" data-expense-filter="selected">Ausgewähltes Budget</button>
-            </div>
+            <span class="bg-filter-section-label">Budget</span>
+            <select id="expenseFilterBudget" class="bg-filter-select" aria-label="Budget filtern">
+                <option value="">Alle Ausgaben</option>
+            </select>
         </div>
         <div class="bg-filter-section">
             <span class="bg-filter-section-label">Betrag (€)</span>
@@ -932,7 +936,7 @@
         let currentMonthKey = null;
         let selectedBudgetId = null;
         let budgetFilter = 'active';
-        let expenseFilter = 'all';
+        let expenseFilterBudgetId = ''; // '' = alle Ausgaben
         let expenseMinCents = null;
         let expenseMaxCents = null;
         let expenseRangeCeilingCents = 10000; // 100 € Default, wird anhand der Ausgaben angepasst
@@ -963,13 +967,6 @@
             });
             filterPanel.addEventListener('click', function(e) { e.stopPropagation(); });
 
-            document.querySelectorAll('[data-expense-filter]').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('[data-expense-filter]').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    expenseFilter = this.dataset.expenseFilter;
-                });
-            });
             document.getElementById('expenseFilterApplyBtn').addEventListener('click', applyExpenseFilters);
             document.getElementById('expenseFilterResetBtn').addEventListener('click', resetExpenseFilters);
             document.getElementById('expenseFilterBackdrop').addEventListener('click', function() {
@@ -1048,7 +1045,10 @@
                 backdrop.setAttribute('aria-hidden', open ? 'false' : 'true');
             }
             document.body.style.overflow = open ? 'hidden' : '';
-            if (open) syncExpenseRangeSliderUi();
+            if (open) {
+                fillExpenseFilterBudgetSelect();
+                syncExpenseRangeSliderUi();
+            }
         }
 
         function getExpenseRangeCeilingCents() {
@@ -1126,12 +1126,31 @@
             fill.style.width = Math.max(0, right - left) + '%';
         }
 
+        function fillExpenseFilterBudgetSelect() {
+            const select = document.getElementById('expenseFilterBudget');
+            if (!select) return;
+            const budgets = budgetsCache.slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'de'));
+            const current = expenseFilterBudgetId;
+            select.innerHTML = '<option value="">Alle Ausgaben</option>' + budgets.map(b => {
+                const suffix = b.is_archived ? ' (Archiv)' : '';
+                return `<option value="${b.id}">${esc(b.name)}${suffix}</option>`;
+            }).join('');
+            if (current && budgets.some(b => b.id === current)) {
+                select.value = current;
+            } else {
+                select.value = '';
+                expenseFilterBudgetId = '';
+            }
+        }
+
         function applyExpenseFilters() {
             const minRange = document.getElementById('expenseRangeMin');
             const maxRange = document.getElementById('expenseRangeMax');
             const minVal = Number(minRange.value);
             const maxVal = Number(maxRange.value);
             const ceiling = Number(minRange.max);
+
+            expenseFilterBudgetId = document.getElementById('expenseFilterBudget').value || '';
 
             // Voller Bereich = kein Betragsfilter
             expenseMinCents = minVal <= 0 ? null : minVal;
@@ -1143,12 +1162,11 @@
         }
 
         function resetExpenseFilters() {
-            expenseFilter = 'all';
+            expenseFilterBudgetId = '';
             expenseMinCents = null;
             expenseMaxCents = null;
-            document.querySelectorAll('[data-expense-filter]').forEach(b => {
-                b.classList.toggle('active', b.dataset.expenseFilter === 'all');
-            });
+            const select = document.getElementById('expenseFilterBudget');
+            if (select) select.value = '';
             setupExpenseRangeSlider();
             updateExpenseFilterUi();
             renderExpenses();
@@ -1156,7 +1174,7 @@
         }
 
         function hasActiveExpenseFilters() {
-            return expenseFilter !== 'all' || expenseMinCents != null || expenseMaxCents != null;
+            return Boolean(expenseFilterBudgetId) || expenseMinCents != null || expenseMaxCents != null;
         }
 
         function updateExpenseFilterUi() {
@@ -1165,7 +1183,10 @@
             btn.classList.toggle('has-filters', hasActiveExpenseFilters());
 
             const parts = [];
-            if (expenseFilter === 'selected') parts.push('Ausgewähltes Budget');
+            if (expenseFilterBudgetId) {
+                const budget = budgetsCache.find(b => b.id === expenseFilterBudgetId);
+                parts.push(budget ? budget.name : 'Gewähltes Budget');
+            }
             if (expenseMinCents != null) parts.push('ab ' + formatEuro(expenseMinCents));
             if (expenseMaxCents != null) parts.push('bis ' + formatEuro(expenseMaxCents));
             if (parts.length) {
@@ -1208,6 +1229,7 @@
 
                 document.getElementById('loadingState').style.display = 'none';
                 document.getElementById('content').style.display = 'block';
+                fillExpenseFilterBudgetSelect();
                 setupExpenseRangeSlider();
                 updateExpenseFilterUi();
                 renderSummary();
@@ -1338,17 +1360,19 @@
         function selectBudget(id) {
             selectedBudgetId = id;
             renderBudgets();
-            if (expenseFilter === 'selected') renderExpenses();
             const title = document.getElementById('expensePanelTitle');
-            const budget = budgetsCache.find(b => b.id === id);
-            title.textContent = budget ? `Ausgaben · ${budget.name}` : 'Ausgaben';
+            const filterBudget = budgetsCache.find(b => b.id === expenseFilterBudgetId);
+            if (expenseFilterBudgetId && filterBudget) {
+                title.textContent = `Ausgaben · ${filterBudget.name}`;
+            } else {
+                title.textContent = 'Alle Ausgaben';
+            }
         }
 
         function filteredExpenses() {
             let items = expensesCache;
-            if (expenseFilter === 'selected') {
-                if (!selectedBudgetId) return [];
-                items = items.filter(e => e.budget_id === selectedBudgetId);
+            if (expenseFilterBudgetId) {
+                items = items.filter(e => e.budget_id === expenseFilterBudgetId);
             }
             if (expenseMinCents != null) {
                 items = items.filter(e => (e.amount_cents || 0) >= expenseMinCents);
@@ -1363,19 +1387,16 @@
             const list = document.getElementById('expenseList');
             const empty = document.getElementById('expenseEmpty');
             const items = filteredExpenses();
-            const budget = budgetsCache.find(b => b.id === selectedBudgetId);
+            const filterBudget = budgetsCache.find(b => b.id === expenseFilterBudgetId);
             const title = document.getElementById('expensePanelTitle');
-            if (expenseFilter === 'all') title.textContent = 'Alle Ausgaben';
-            else title.textContent = budget ? `Ausgaben · ${budget.name}` : 'Ausgaben';
+            title.textContent = filterBudget ? `Ausgaben · ${filterBudget.name}` : 'Alle Ausgaben';
 
             if (!items.length) {
                 list.innerHTML = '';
                 empty.style.display = 'block';
-                empty.innerHTML = expenseFilter === 'selected' && !selectedBudgetId
-                    ? '<i class="fas fa-wallet"></i> Bitte zuerst ein Budget auswählen oder erstellen.'
-                    : (hasActiveExpenseFilters()
-                        ? '<i class="fas fa-filter"></i> Keine Ausgaben für diesen Filter.'
-                        : '<i class="fas fa-receipt"></i> Keine Ausgaben vorhanden.');
+                empty.innerHTML = hasActiveExpenseFilters()
+                    ? '<i class="fas fa-filter"></i> Keine Ausgaben für diesen Filter.'
+                    : '<i class="fas fa-receipt"></i> Keine Ausgaben vorhanden.';
                 return;
             }
             empty.style.display = 'none';
