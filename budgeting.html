@@ -147,6 +147,14 @@
             box-shadow: var(--shadow-sm);
             overflow: hidden;
         }
+        .bg-panel-expenses {
+            overflow: visible;
+            z-index: 6;
+        }
+        .bg-panel-expenses .bg-panel-body {
+            border-radius: 0 0 14px 14px;
+            overflow: hidden;
+        }
         .bg-panel-head {
             display: flex;
             align-items: center;
@@ -155,6 +163,9 @@
             padding: 1rem 1.2rem;
             border-bottom: 1px solid var(--border-color);
             position: relative;
+            border-radius: 14px 14px 0 0;
+            background: var(--white);
+            z-index: 7;
         }
         .bg-panel-title {
             font-size: 1.05rem;
@@ -219,18 +230,28 @@
             background: var(--primary-blue);
             border: 1.5px solid var(--white);
         }
+        .bg-filter-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.35);
+            z-index: 2500;
+        }
         .bg-filter-panel {
             display: none;
             position: absolute;
             top: calc(100% + 0.45rem);
             right: 0;
             width: min(320px, calc(100vw - 2.5rem));
+            max-height: min(70vh, 480px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
             background: var(--white);
             border: 1px solid var(--border-color);
             border-radius: 14px;
             box-shadow: var(--shadow-md);
             padding: 0.95rem 1rem 1rem;
-            z-index: 20;
+            z-index: 30;
         }
         .bg-filter-panel.is-open { display: block; }
         .bg-filter-section {
@@ -280,6 +301,45 @@
             font-size: 0.78rem;
             color: var(--text-light);
             margin-bottom: 0.75rem;
+        }
+        @media (max-width: 640px) {
+            .bg-filter-backdrop.is-open { display: block; }
+            .bg-filter-panel {
+                position: fixed;
+                left: 1rem;
+                right: 1rem;
+                top: auto;
+                bottom: 1rem;
+                width: auto;
+                max-height: min(78vh, 560px);
+                z-index: 2600;
+                padding: 1.1rem 1.1rem 1.15rem;
+            }
+            .bg-filter-chip-row {
+                flex-direction: column;
+            }
+            .bg-filter-chip-row .bg-filter-btn {
+                width: 100%;
+                text-align: center;
+                padding: 0.65rem 0.85rem;
+                border-radius: 10px;
+            }
+            .bg-filter-fields {
+                grid-template-columns: 1fr;
+            }
+            .bg-filter-fields input {
+                font-size: 1rem;
+                padding: 0.7rem 0.8rem;
+            }
+            .bg-filter-actions {
+                flex-direction: column-reverse;
+                gap: 0.5rem;
+            }
+            .bg-filter-actions .bg-btn {
+                width: 100%;
+                justify-content: center;
+                padding: 0.75rem 0.95rem;
+            }
         }
 
         .bg-budget-list, .bg-expense-list {
@@ -597,6 +657,8 @@
         </div>
     </header>
 
+    <div class="bg-filter-backdrop" id="expenseFilterBackdrop" aria-hidden="true"></div>
+
     <main class="bg-page">
         <div class="bg-inner">
             <div class="bg-top-actions">
@@ -835,6 +897,9 @@
             });
             document.getElementById('expenseFilterApplyBtn').addEventListener('click', applyExpenseFilters);
             document.getElementById('expenseFilterResetBtn').addEventListener('click', resetExpenseFilters);
+            document.getElementById('expenseFilterBackdrop').addEventListener('click', function() {
+                setExpenseFilterPanelOpen(false);
+            });
 
             document.addEventListener('click', function() {
                 setExpenseFilterPanelOpen(false);
@@ -851,9 +916,17 @@
         function setExpenseFilterPanelOpen(open) {
             const filterBtn = document.getElementById('expenseFilterBtn');
             const filterPanel = document.getElementById('expenseFilterPanel');
+            const backdrop = document.getElementById('expenseFilterBackdrop');
             filterPanel.classList.toggle('is-open', open);
             filterBtn.classList.toggle('is-open', open);
             filterBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            if (backdrop) {
+                backdrop.classList.toggle('is-open', open);
+                backdrop.setAttribute('aria-hidden', open ? 'false' : 'true');
+            }
+            document.body.style.overflow = open && window.matchMedia('(max-width: 640px)').matches
+                ? 'hidden'
+                : '';
         }
 
         function parseFilterEuroToCents(value) {
