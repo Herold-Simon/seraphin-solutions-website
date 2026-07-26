@@ -147,14 +147,6 @@
             box-shadow: var(--shadow-sm);
             overflow: hidden;
         }
-        .bg-panel-expenses {
-            overflow: visible;
-            z-index: 6;
-        }
-        .bg-panel-expenses .bg-panel-body {
-            border-radius: 0 0 14px 14px;
-            overflow: hidden;
-        }
         .bg-panel-head {
             display: flex;
             align-items: center;
@@ -162,10 +154,6 @@
             gap: 0.75rem;
             padding: 1rem 1.2rem;
             border-bottom: 1px solid var(--border-color);
-            position: relative;
-            border-radius: 14px 14px 0 0;
-            background: var(--white);
-            z-index: 7;
         }
         .bg-panel-title {
             font-size: 1.05rem;
@@ -234,24 +222,23 @@
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(15, 23, 42, 0.35);
-            z-index: 2500;
+            background: rgba(15, 23, 42, 0.4);
+            z-index: 4000;
         }
+        .bg-filter-backdrop.is-open { display: block; }
         .bg-filter-panel {
             display: none;
-            position: absolute;
-            top: calc(100% + 0.45rem);
-            right: 0;
-            width: min(320px, calc(100vw - 2.5rem));
-            max-height: min(70vh, 480px);
+            position: fixed;
+            width: min(340px, calc(100vw - 2rem));
+            max-height: min(70vh, 520px);
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             background: var(--white);
             border: 1px solid var(--border-color);
             border-radius: 14px;
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--shadow-lg, 0 12px 32px rgba(0, 0, 0, 0.18));
             padding: 0.95rem 1rem 1rem;
-            z-index: 30;
+            z-index: 4100;
         }
         .bg-filter-panel.is-open { display: block; }
         .bg-filter-section {
@@ -272,24 +259,101 @@
             flex-wrap: wrap;
             gap: 0.4rem;
         }
-        .bg-filter-fields {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.55rem;
+        .bg-range-labels {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 0.7rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-dark);
         }
-        .bg-filter-fields label {
-            display: block;
-            font-size: 0.75rem;
+        .bg-range-labels span {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+        .bg-range-labels small {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
             color: var(--text-light);
-            margin-bottom: 0.25rem;
         }
-        .bg-filter-fields input {
+        .bg-range-slider {
+            position: relative;
+            height: 36px;
+            margin: 0 0.15rem 0.15rem;
+        }
+        .bg-range-track {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 6px;
+            margin-top: -3px;
+            border-radius: 999px;
+            background: #e5e7eb;
+        }
+        .bg-range-fill {
+            position: absolute;
+            top: 50%;
+            height: 6px;
+            margin-top: -3px;
+            border-radius: 999px;
+            background: var(--gradient-primary);
+            pointer-events: none;
+        }
+        .bg-range-slider input[type="range"] {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
             width: 100%;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 0.5rem 0.65rem;
-            font-family: inherit;
-            font-size: 0.88rem;
+            height: 36px;
+            margin: 0;
+            background: none;
+            appearance: none;
+            -webkit-appearance: none;
+            pointer-events: none;
+        }
+        .bg-range-slider input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--white);
+            border: 2px solid var(--primary-blue);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+            cursor: grab;
+            pointer-events: auto;
+            position: relative;
+            z-index: 2;
+        }
+        .bg-range-slider input[type="range"]::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--white);
+            border: 2px solid var(--primary-blue);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+            cursor: grab;
+            pointer-events: auto;
+            position: relative;
+            z-index: 2;
+        }
+        .bg-range-slider input[type="range"]::-webkit-slider-runnable-track {
+            height: 6px;
+            background: transparent;
+        }
+        .bg-range-slider input[type="range"]::-moz-range-track {
+            height: 6px;
+            background: transparent;
+            border: none;
+        }
+        .bg-range-slider input#expenseRangeMax {
+            z-index: 3;
         }
         .bg-filter-actions {
             display: flex;
@@ -303,16 +367,13 @@
             margin-bottom: 0.75rem;
         }
         @media (max-width: 640px) {
-            .bg-filter-backdrop.is-open { display: block; }
             .bg-filter-panel {
-                position: fixed;
-                left: 1rem;
-                right: 1rem;
-                top: auto;
-                bottom: 1rem;
+                left: 1rem !important;
+                right: 1rem !important;
+                top: auto !important;
+                bottom: 1rem !important;
                 width: auto;
                 max-height: min(78vh, 560px);
-                z-index: 2600;
                 padding: 1.1rem 1.1rem 1.15rem;
             }
             .bg-filter-chip-row {
@@ -324,12 +385,19 @@
                 padding: 0.65rem 0.85rem;
                 border-radius: 10px;
             }
-            .bg-filter-fields {
-                grid-template-columns: 1fr;
+            .bg-range-slider {
+                height: 44px;
             }
-            .bg-filter-fields input {
-                font-size: 1rem;
-                padding: 0.7rem 0.8rem;
+            .bg-range-slider input[type="range"] {
+                height: 44px;
+            }
+            .bg-range-slider input[type="range"]::-webkit-slider-thumb {
+                width: 26px;
+                height: 26px;
+            }
+            .bg-range-slider input[type="range"]::-moz-range-thumb {
+                width: 26px;
+                height: 26px;
             }
             .bg-filter-actions {
                 flex-direction: column-reverse;
@@ -658,6 +726,38 @@
     </header>
 
     <div class="bg-filter-backdrop" id="expenseFilterBackdrop" aria-hidden="true"></div>
+    <div class="bg-filter-panel" id="expenseFilterPanel" role="dialog" aria-label="Ausgabenfilter" aria-hidden="true">
+        <div class="bg-filter-section">
+            <span class="bg-filter-section-label">Ansicht</span>
+            <div class="bg-filter-chip-row">
+                <button type="button" class="bg-filter-btn active" data-expense-filter="all">Alle Ausgaben</button>
+                <button type="button" class="bg-filter-btn" data-expense-filter="selected">Ausgewähltes Budget</button>
+            </div>
+        </div>
+        <div class="bg-filter-section">
+            <span class="bg-filter-section-label">Betrag (€)</span>
+            <div class="bg-range-labels">
+                <span>
+                    <small>Mindestens</small>
+                    <strong id="expenseRangeMinLabel">0,00 €</strong>
+                </span>
+                <span style="text-align:right;">
+                    <small>Höchstens</small>
+                    <strong id="expenseRangeMaxLabel">0,00 €</strong>
+                </span>
+            </div>
+            <div class="bg-range-slider" id="expenseRangeSlider">
+                <div class="bg-range-track"></div>
+                <div class="bg-range-fill" id="expenseRangeFill"></div>
+                <input type="range" id="expenseRangeMin" min="0" max="100" step="1" value="0" aria-label="Mindestbetrag">
+                <input type="range" id="expenseRangeMax" min="0" max="100" step="1" value="100" aria-label="Höchstbetrag">
+            </div>
+        </div>
+        <div class="bg-filter-actions">
+            <button type="button" class="bg-btn" id="expenseFilterResetBtn">Zurücksetzen</button>
+            <button type="button" class="bg-btn bg-btn-primary" id="expenseFilterApplyBtn">Anwenden</button>
+        </div>
+    </div>
 
     <main class="bg-page">
         <div class="bg-inner">
@@ -702,32 +802,6 @@
                                 <button type="button" class="bg-filter-icon-btn" id="expenseFilterBtn" aria-label="Filter" aria-expanded="false">
                                     <i class="fas fa-filter"></i>
                                 </button>
-                                <div class="bg-filter-panel" id="expenseFilterPanel" role="dialog" aria-label="Ausgabenfilter">
-                                    <div class="bg-filter-section">
-                                        <span class="bg-filter-section-label">Ansicht</span>
-                                        <div class="bg-filter-chip-row">
-                                            <button type="button" class="bg-filter-btn active" data-expense-filter="all">Alle Ausgaben</button>
-                                            <button type="button" class="bg-filter-btn" data-expense-filter="selected">Ausgewähltes Budget</button>
-                                        </div>
-                                    </div>
-                                    <div class="bg-filter-section">
-                                        <span class="bg-filter-section-label">Betrag (€)</span>
-                                        <div class="bg-filter-fields">
-                                            <div>
-                                                <label for="expenseMinAmount">Mindestens</label>
-                                                <input type="number" id="expenseMinAmount" min="0" step="0.01" placeholder="z. B. 10">
-                                            </div>
-                                            <div>
-                                                <label for="expenseMaxAmount">Höchstens</label>
-                                                <input type="number" id="expenseMaxAmount" min="0" step="0.01" placeholder="z. B. 100">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="bg-filter-actions">
-                                        <button type="button" class="bg-btn" id="expenseFilterResetBtn">Zurücksetzen</button>
-                                        <button type="button" class="bg-btn bg-btn-primary" id="expenseFilterApplyBtn">Anwenden</button>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                         <div class="bg-panel-body">
@@ -861,6 +935,7 @@
         let expenseFilter = 'all';
         let expenseMinCents = null;
         let expenseMaxCents = null;
+        let expenseRangeCeilingCents = 10000; // 100 € Default, wird anhand der Ausgaben angepasst
 
         document.addEventListener('DOMContentLoaded', function() {
             loadData();
@@ -901,6 +976,11 @@
                 setExpenseFilterPanelOpen(false);
             });
 
+            const minRange = document.getElementById('expenseRangeMin');
+            const maxRange = document.getElementById('expenseRangeMax');
+            minRange.addEventListener('input', function() { onExpenseRangeInput('min'); });
+            maxRange.addEventListener('input', function() { onExpenseRangeInput('max'); });
+
             document.addEventListener('click', function() {
                 setExpenseFilterPanelOpen(false);
             });
@@ -913,46 +993,150 @@
             });
         });
 
+        function positionExpenseFilterPanel() {
+            const filterBtn = document.getElementById('expenseFilterBtn');
+            const filterPanel = document.getElementById('expenseFilterPanel');
+            if (!filterBtn || !filterPanel) return;
+
+            // Smartphone: Bottom-Sheet, Position kommt aus CSS
+            if (window.matchMedia('(max-width: 640px)').matches) {
+                filterPanel.style.top = '';
+                filterPanel.style.left = '';
+                filterPanel.style.right = '';
+                return;
+            }
+
+            const rect = filterBtn.getBoundingClientRect();
+            const panelWidth = Math.min(340, window.innerWidth - 24);
+            const gap = 8;
+            let top = rect.bottom + gap;
+            let left = rect.right - panelWidth;
+
+            if (left < 12) left = 12;
+            if (left + panelWidth > window.innerWidth - 12) {
+                left = Math.max(12, window.innerWidth - panelWidth - 12);
+            }
+
+            // Falls unten kein Platz: oberhalb des Buttons öffnen
+            filterPanel.style.visibility = 'hidden';
+            filterPanel.classList.add('is-open');
+            const panelHeight = filterPanel.offsetHeight || 320;
+            filterPanel.classList.remove('is-open');
+            filterPanel.style.visibility = '';
+
+            if (top + panelHeight > window.innerHeight - 12 && rect.top > panelHeight + gap) {
+                top = rect.top - panelHeight - gap;
+            }
+
+            filterPanel.style.top = Math.max(12, top) + 'px';
+            filterPanel.style.left = left + 'px';
+            filterPanel.style.right = 'auto';
+            filterPanel.style.bottom = 'auto';
+        }
+
         function setExpenseFilterPanelOpen(open) {
             const filterBtn = document.getElementById('expenseFilterBtn');
             const filterPanel = document.getElementById('expenseFilterPanel');
             const backdrop = document.getElementById('expenseFilterBackdrop');
+            if (open) positionExpenseFilterPanel();
             filterPanel.classList.toggle('is-open', open);
+            filterPanel.setAttribute('aria-hidden', open ? 'false' : 'true');
             filterBtn.classList.toggle('is-open', open);
             filterBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
             if (backdrop) {
                 backdrop.classList.toggle('is-open', open);
                 backdrop.setAttribute('aria-hidden', open ? 'false' : 'true');
             }
-            document.body.style.overflow = open && window.matchMedia('(max-width: 640px)').matches
-                ? 'hidden'
-                : '';
+            document.body.style.overflow = open ? 'hidden' : '';
+            if (open) syncExpenseRangeSliderUi();
         }
 
-        function parseFilterEuroToCents(value) {
-            const raw = String(value == null ? '' : value).trim().replace(',', '.');
-            if (!raw) return null;
-            const n = Number(raw);
-            if (!Number.isFinite(n) || n < 0) return null;
-            return Math.round(n * 100);
+        function getExpenseRangeCeilingCents() {
+            const amounts = (expensesCache || []).map(e => Number(e.amount_cents) || 0);
+            const maxAmount = amounts.length ? Math.max.apply(null, amounts) : 0;
+            // Mindestens 100 €, etwas Puffer über dem höchsten Betrag
+            const ceiling = Math.max(10000, Math.ceil((maxAmount * 1.1) / 100) * 100);
+            return ceiling;
+        }
+
+        function setupExpenseRangeSlider() {
+            expenseRangeCeilingCents = getExpenseRangeCeilingCents();
+            const minRange = document.getElementById('expenseRangeMin');
+            const maxRange = document.getElementById('expenseRangeMax');
+            if (!minRange || !maxRange) return;
+
+            minRange.min = 0;
+            minRange.max = expenseRangeCeilingCents;
+            maxRange.min = 0;
+            maxRange.max = expenseRangeCeilingCents;
+            minRange.step = 1;
+            maxRange.step = 1;
+
+            const minVal = expenseMinCents != null ? expenseMinCents : 0;
+            const maxVal = expenseMaxCents != null ? expenseMaxCents : expenseRangeCeilingCents;
+            minRange.value = Math.min(minVal, maxVal);
+            maxRange.value = Math.max(minVal, maxVal);
+            syncExpenseRangeSliderUi();
+        }
+
+        function onExpenseRangeInput(which) {
+            const minRange = document.getElementById('expenseRangeMin');
+            const maxRange = document.getElementById('expenseRangeMax');
+            let minVal = Number(minRange.value);
+            let maxVal = Number(maxRange.value);
+
+            if (which === 'min' && minVal > maxVal) {
+                minVal = maxVal;
+                minRange.value = minVal;
+            }
+            if (which === 'max' && maxVal < minVal) {
+                maxVal = minVal;
+                maxRange.value = maxVal;
+            }
+
+            // Damit der aktive Griff oben liegt
+            if (which === 'min') {
+                minRange.style.zIndex = 4;
+                maxRange.style.zIndex = 3;
+            } else {
+                maxRange.style.zIndex = 4;
+                minRange.style.zIndex = 3;
+            }
+            syncExpenseRangeSliderUi();
+        }
+
+        function syncExpenseRangeSliderUi() {
+            const minRange = document.getElementById('expenseRangeMin');
+            const maxRange = document.getElementById('expenseRangeMax');
+            const fill = document.getElementById('expenseRangeFill');
+            const minLabel = document.getElementById('expenseRangeMinLabel');
+            const maxLabel = document.getElementById('expenseRangeMaxLabel');
+            if (!minRange || !maxRange) return;
+
+            const minVal = Number(minRange.value);
+            const maxVal = Number(maxRange.value);
+            const ceiling = Number(minRange.max) || 1;
+
+            minLabel.textContent = formatEuro(minVal);
+            maxLabel.textContent = formatEuro(maxVal);
+
+            const left = (minVal / ceiling) * 100;
+            const right = (maxVal / ceiling) * 100;
+            fill.style.left = left + '%';
+            fill.style.width = Math.max(0, right - left) + '%';
         }
 
         function applyExpenseFilters() {
-            const minInput = document.getElementById('expenseMinAmount').value;
-            const maxInput = document.getElementById('expenseMaxAmount').value;
-            let minCents = parseFilterEuroToCents(minInput);
-            let maxCents = parseFilterEuroToCents(maxInput);
+            const minRange = document.getElementById('expenseRangeMin');
+            const maxRange = document.getElementById('expenseRangeMax');
+            const minVal = Number(minRange.value);
+            const maxVal = Number(maxRange.value);
+            const ceiling = Number(minRange.max);
 
-            if (minCents != null && maxCents != null && minCents > maxCents) {
-                const tmp = minCents;
-                minCents = maxCents;
-                maxCents = tmp;
-                document.getElementById('expenseMinAmount').value = (minCents / 100).toFixed(2);
-                document.getElementById('expenseMaxAmount').value = (maxCents / 100).toFixed(2);
-            }
+            // Voller Bereich = kein Betragsfilter
+            expenseMinCents = minVal <= 0 ? null : minVal;
+            expenseMaxCents = maxVal >= ceiling ? null : maxVal;
 
-            expenseMinCents = minCents;
-            expenseMaxCents = maxCents;
             updateExpenseFilterUi();
             renderExpenses();
             setExpenseFilterPanelOpen(false);
@@ -965,8 +1149,7 @@
             document.querySelectorAll('[data-expense-filter]').forEach(b => {
                 b.classList.toggle('active', b.dataset.expenseFilter === 'all');
             });
-            document.getElementById('expenseMinAmount').value = '';
-            document.getElementById('expenseMaxAmount').value = '';
+            setupExpenseRangeSlider();
             updateExpenseFilterUi();
             renderExpenses();
             setExpenseFilterPanelOpen(false);
@@ -1025,6 +1208,7 @@
 
                 document.getElementById('loadingState').style.display = 'none';
                 document.getElementById('content').style.display = 'block';
+                setupExpenseRangeSlider();
                 updateExpenseFilterUi();
                 renderSummary();
                 renderBudgets();
