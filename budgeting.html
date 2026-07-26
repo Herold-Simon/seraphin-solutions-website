@@ -265,16 +265,47 @@
         .bg-expense-item {
             border: 2px solid var(--border-color);
             border-radius: 12px;
-            padding: 0.85rem 0.95rem;
+            padding: 0.7rem 0.95rem;
+        }
+        .bg-expense-item.is-open { padding-bottom: 0.85rem; }
+        .bg-expense-toggle {
+            width: 100%;
+            border: none;
+            background: transparent;
+            padding: 0;
+            cursor: pointer;
+            font-family: inherit;
+            text-align: left;
         }
         .bg-expense-top {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             gap: 0.75rem;
-            margin-bottom: 0.25rem;
         }
-        .bg-expense-title { font-weight: 600; color: var(--text-dark); }
+        .bg-expense-title {
+            font-weight: 600;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            min-width: 0;
+        }
+        .bg-expense-chevron {
+            color: var(--text-light);
+            font-size: 0.75rem;
+            transition: transform 0.15s ease;
+            flex-shrink: 0;
+        }
+        .bg-expense-item.is-open .bg-expense-chevron { transform: rotate(180deg); }
         .bg-expense-amount { font-weight: 700; color: var(--text-dark); white-space: nowrap; }
+        .bg-expense-details {
+            display: none;
+            margin-top: 0.7rem;
+            padding-top: 0.7rem;
+            border-top: 1px solid var(--border-color);
+        }
+        .bg-expense-item.is-open .bg-expense-details { display: block; }
         .bg-expense-meta {
             font-size: 0.8rem;
             color: var(--text-light);
@@ -870,21 +901,36 @@
                 const budgetName = budget.name || '—';
                 const budgetColor = budget.color || '#008CFF';
                 return `
-                    <article class="bg-expense-item" style="border-color:${esc(budgetColor)};">
-                        <div class="bg-expense-top">
-                            <span class="bg-expense-title">${esc(e.title)}</span>
-                            <span class="bg-expense-amount">${formatEuro(e.amount_cents)}</span>
-                        </div>
-                        <div class="bg-expense-meta">
-                            <span><i class="fas fa-calendar"></i> ${formatDateTime(e.spent_on)}</span>
-                            <span><i class="fas fa-wallet"></i> ${esc(budgetName)}</span>
-                        </div>
-                        <div class="bg-budget-actions">
-                            <button class="bg-btn" type="button" onclick="openExpenseModal('${e.id}')"><i class="fas fa-pen"></i> Bearbeiten</button>
-                            <button class="bg-btn bg-btn-danger" type="button" onclick="deleteExpense('${e.id}')"><i class="fas fa-trash"></i> Löschen</button>
+                    <article class="bg-expense-item" data-expense-id="${e.id}" style="border-color:${esc(budgetColor)};">
+                        <button type="button" class="bg-expense-toggle" onclick="toggleExpense('${e.id}')" aria-expanded="false">
+                            <div class="bg-expense-top">
+                                <span class="bg-expense-title">
+                                    <i class="fas fa-chevron-down bg-expense-chevron" aria-hidden="true"></i>
+                                    ${esc(e.title)}
+                                </span>
+                                <span class="bg-expense-amount">${formatEuro(e.amount_cents)}</span>
+                            </div>
+                        </button>
+                        <div class="bg-expense-details">
+                            <div class="bg-expense-meta">
+                                <span><i class="fas fa-calendar"></i> ${formatDateTime(e.spent_on)}</span>
+                                <span><i class="fas fa-wallet"></i> ${esc(budgetName)}</span>
+                            </div>
+                            <div class="bg-budget-actions">
+                                <button class="bg-btn" type="button" onclick="openExpenseModal('${e.id}')"><i class="fas fa-pen"></i> Bearbeiten</button>
+                                <button class="bg-btn bg-btn-danger" type="button" onclick="deleteExpense('${e.id}')"><i class="fas fa-trash"></i> Löschen</button>
+                            </div>
                         </div>
                     </article>`;
             }).join('');
+        }
+
+        function toggleExpense(id) {
+            const item = document.querySelector(`.bg-expense-item[data-expense-id="${id}"]`);
+            if (!item) return;
+            const open = item.classList.toggle('is-open');
+            const btn = item.querySelector('.bg-expense-toggle');
+            if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
         }
 
         function openBudgetModal(id) {
