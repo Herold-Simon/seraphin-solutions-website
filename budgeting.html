@@ -154,6 +154,7 @@
             gap: 0.75rem;
             padding: 1rem 1.2rem;
             border-bottom: 1px solid var(--border-color);
+            position: relative;
         }
         .bg-panel-title {
             font-size: 1.05rem;
@@ -183,6 +184,102 @@
             background: var(--primary-blue);
             border-color: var(--primary-blue);
             color: var(--white);
+        }
+
+        .bg-filter-wrap {
+            position: relative;
+            flex-shrink: 0;
+        }
+        .bg-filter-icon-btn {
+            width: 38px;
+            height: 38px;
+            border: 1px solid var(--border-color);
+            background: var(--white);
+            border-radius: 10px;
+            color: var(--text-dark);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .bg-filter-icon-btn:hover,
+        .bg-filter-icon-btn.is-open {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+        }
+        .bg-filter-icon-btn.has-filters::after {
+            content: '';
+            position: absolute;
+            top: 7px;
+            right: 7px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            border: 1.5px solid var(--white);
+        }
+        .bg-filter-panel {
+            display: none;
+            position: absolute;
+            top: calc(100% + 0.45rem);
+            right: 0;
+            width: min(320px, calc(100vw - 2.5rem));
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            box-shadow: var(--shadow-md);
+            padding: 0.95rem 1rem 1rem;
+            z-index: 20;
+        }
+        .bg-filter-panel.is-open { display: block; }
+        .bg-filter-section {
+            margin-bottom: 0.9rem;
+        }
+        .bg-filter-section:last-of-type { margin-bottom: 0.75rem; }
+        .bg-filter-section-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-light);
+            margin-bottom: 0.45rem;
+        }
+        .bg-filter-chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+        .bg-filter-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.55rem;
+        }
+        .bg-filter-fields label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+        }
+        .bg-filter-fields input {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.5rem 0.65rem;
+            font-family: inherit;
+            font-size: 0.88rem;
+        }
+        .bg-filter-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.4rem;
+        }
+        .bg-filter-hint {
+            display: none;
+            font-size: 0.78rem;
+            color: var(--text-light);
+            margin-bottom: 0.75rem;
         }
 
         .bg-budget-list, .bg-expense-list {
@@ -539,12 +636,40 @@
                     <section class="bg-panel bg-panel-expenses">
                         <div class="bg-panel-head">
                             <h2 class="bg-panel-title" id="expensePanelTitle">Ausgaben</h2>
+                            <div class="bg-filter-wrap">
+                                <button type="button" class="bg-filter-icon-btn" id="expenseFilterBtn" aria-label="Filter" aria-expanded="false">
+                                    <i class="fas fa-filter"></i>
+                                </button>
+                                <div class="bg-filter-panel" id="expenseFilterPanel" role="dialog" aria-label="Ausgabenfilter">
+                                    <div class="bg-filter-section">
+                                        <span class="bg-filter-section-label">Ansicht</span>
+                                        <div class="bg-filter-chip-row">
+                                            <button type="button" class="bg-filter-btn active" data-expense-filter="all">Alle Ausgaben</button>
+                                            <button type="button" class="bg-filter-btn" data-expense-filter="selected">Ausgewähltes Budget</button>
+                                        </div>
+                                    </div>
+                                    <div class="bg-filter-section">
+                                        <span class="bg-filter-section-label">Betrag (€)</span>
+                                        <div class="bg-filter-fields">
+                                            <div>
+                                                <label for="expenseMinAmount">Mindestens</label>
+                                                <input type="number" id="expenseMinAmount" min="0" step="0.01" placeholder="z. B. 10">
+                                            </div>
+                                            <div>
+                                                <label for="expenseMaxAmount">Höchstens</label>
+                                                <input type="number" id="expenseMaxAmount" min="0" step="0.01" placeholder="z. B. 100">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="bg-filter-actions">
+                                        <button type="button" class="bg-btn" id="expenseFilterResetBtn">Zurücksetzen</button>
+                                        <button type="button" class="bg-btn bg-btn-primary" id="expenseFilterApplyBtn">Anwenden</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="bg-panel-body">
-                            <div class="bg-toolbar">
-                                <button class="bg-filter-btn active" data-expense-filter="all">Alle Ausgaben</button>
-                                <button class="bg-filter-btn" data-expense-filter="selected">Ausgewähltes Budget</button>
-                            </div>
+                            <div class="bg-filter-hint" id="expenseFilterHint"></div>
                             <div id="expenseList" class="bg-expense-list"></div>
                             <div id="expenseEmpty" class="bg-empty" style="display: none;">
                                 <i class="fas fa-receipt"></i>
@@ -672,6 +797,8 @@
         let selectedBudgetId = null;
         let budgetFilter = 'active';
         let expenseFilter = 'all';
+        let expenseMinCents = null;
+        let expenseMaxCents = null;
 
         document.addEventListener('DOMContentLoaded', function() {
             loadData();
@@ -689,22 +816,110 @@
                     renderBudgets();
                 });
             });
+
+            const filterBtn = document.getElementById('expenseFilterBtn');
+            const filterPanel = document.getElementById('expenseFilterPanel');
+            filterBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const open = !filterPanel.classList.contains('is-open');
+                setExpenseFilterPanelOpen(open);
+            });
+            filterPanel.addEventListener('click', function(e) { e.stopPropagation(); });
+
             document.querySelectorAll('[data-expense-filter]').forEach(btn => {
                 btn.addEventListener('click', function() {
                     document.querySelectorAll('[data-expense-filter]').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     expenseFilter = this.dataset.expenseFilter;
-                    renderExpenses();
                 });
             });
+            document.getElementById('expenseFilterApplyBtn').addEventListener('click', applyExpenseFilters);
+            document.getElementById('expenseFilterResetBtn').addEventListener('click', resetExpenseFilters);
 
+            document.addEventListener('click', function() {
+                setExpenseFilterPanelOpen(false);
+            });
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
+                    setExpenseFilterPanelOpen(false);
                     closeBudgetModal();
                     closeExpenseModal();
                 }
             });
         });
+
+        function setExpenseFilterPanelOpen(open) {
+            const filterBtn = document.getElementById('expenseFilterBtn');
+            const filterPanel = document.getElementById('expenseFilterPanel');
+            filterPanel.classList.toggle('is-open', open);
+            filterBtn.classList.toggle('is-open', open);
+            filterBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
+        function parseFilterEuroToCents(value) {
+            const raw = String(value == null ? '' : value).trim().replace(',', '.');
+            if (!raw) return null;
+            const n = Number(raw);
+            if (!Number.isFinite(n) || n < 0) return null;
+            return Math.round(n * 100);
+        }
+
+        function applyExpenseFilters() {
+            const minInput = document.getElementById('expenseMinAmount').value;
+            const maxInput = document.getElementById('expenseMaxAmount').value;
+            let minCents = parseFilterEuroToCents(minInput);
+            let maxCents = parseFilterEuroToCents(maxInput);
+
+            if (minCents != null && maxCents != null && minCents > maxCents) {
+                const tmp = minCents;
+                minCents = maxCents;
+                maxCents = tmp;
+                document.getElementById('expenseMinAmount').value = (minCents / 100).toFixed(2);
+                document.getElementById('expenseMaxAmount').value = (maxCents / 100).toFixed(2);
+            }
+
+            expenseMinCents = minCents;
+            expenseMaxCents = maxCents;
+            updateExpenseFilterUi();
+            renderExpenses();
+            setExpenseFilterPanelOpen(false);
+        }
+
+        function resetExpenseFilters() {
+            expenseFilter = 'all';
+            expenseMinCents = null;
+            expenseMaxCents = null;
+            document.querySelectorAll('[data-expense-filter]').forEach(b => {
+                b.classList.toggle('active', b.dataset.expenseFilter === 'all');
+            });
+            document.getElementById('expenseMinAmount').value = '';
+            document.getElementById('expenseMaxAmount').value = '';
+            updateExpenseFilterUi();
+            renderExpenses();
+            setExpenseFilterPanelOpen(false);
+        }
+
+        function hasActiveExpenseFilters() {
+            return expenseFilter !== 'all' || expenseMinCents != null || expenseMaxCents != null;
+        }
+
+        function updateExpenseFilterUi() {
+            const btn = document.getElementById('expenseFilterBtn');
+            const hint = document.getElementById('expenseFilterHint');
+            btn.classList.toggle('has-filters', hasActiveExpenseFilters());
+
+            const parts = [];
+            if (expenseFilter === 'selected') parts.push('Ausgewähltes Budget');
+            if (expenseMinCents != null) parts.push('ab ' + formatEuro(expenseMinCents));
+            if (expenseMaxCents != null) parts.push('bis ' + formatEuro(expenseMaxCents));
+            if (parts.length) {
+                hint.textContent = 'Filter: ' + parts.join(' · ');
+                hint.style.display = 'block';
+            } else {
+                hint.textContent = '';
+                hint.style.display = 'none';
+            }
+        }
 
         async function loadData() {
             try {
@@ -737,6 +952,7 @@
 
                 document.getElementById('loadingState').style.display = 'none';
                 document.getElementById('content').style.display = 'block';
+                updateExpenseFilterUi();
                 renderSummary();
                 renderBudgets();
                 renderExpenses();
@@ -872,9 +1088,18 @@
         }
 
         function filteredExpenses() {
-            if (expenseFilter === 'all') return expensesCache;
-            if (!selectedBudgetId) return [];
-            return expensesCache.filter(e => e.budget_id === selectedBudgetId);
+            let items = expensesCache;
+            if (expenseFilter === 'selected') {
+                if (!selectedBudgetId) return [];
+                items = items.filter(e => e.budget_id === selectedBudgetId);
+            }
+            if (expenseMinCents != null) {
+                items = items.filter(e => (e.amount_cents || 0) >= expenseMinCents);
+            }
+            if (expenseMaxCents != null) {
+                items = items.filter(e => (e.amount_cents || 0) <= expenseMaxCents);
+            }
+            return items;
         }
 
         function renderExpenses() {
@@ -891,7 +1116,9 @@
                 empty.style.display = 'block';
                 empty.innerHTML = expenseFilter === 'selected' && !selectedBudgetId
                     ? '<i class="fas fa-wallet"></i> Bitte zuerst ein Budget auswählen oder erstellen.'
-                    : '<i class="fas fa-receipt"></i> Keine Ausgaben vorhanden.';
+                    : (hasActiveExpenseFilters()
+                        ? '<i class="fas fa-filter"></i> Keine Ausgaben für diesen Filter.'
+                        : '<i class="fas fa-receipt"></i> Keine Ausgaben vorhanden.');
                 return;
             }
             empty.style.display = 'none';
