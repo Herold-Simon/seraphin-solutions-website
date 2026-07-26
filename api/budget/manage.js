@@ -1,15 +1,10 @@
 // api/budget/manage.js - Budget erstellen/aktualisieren/archivieren/loeschen (nur Master)
 const { supabase, setCors, send, readBody, resolveSession } = require('../_lib/db');
+const { currentMonthKey } = require('../_lib/budgetTopup');
 
 function clean(value, maxLength) {
   const str = String(value == null ? '' : value).trim();
   return str.length > maxLength ? str.slice(0, maxLength) : str;
-}
-
-function parseCents(value) {
-  const n = Number(value);
-  if (!Number.isFinite(n) || n < 0) return null;
-  return Math.round(n);
 }
 
 function parseEuroToCents(value) {
@@ -21,6 +16,12 @@ function parseEuroToCents(value) {
   const euros = Number(normalized);
   if (!Number.isFinite(euros) || euros < 0) return null;
   return Math.round(euros * 100);
+}
+
+function parseCents(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return Math.round(n);
 }
 
 module.exports = async function handler(req, res) {
@@ -39,16 +40,15 @@ module.exports = async function handler(req, res) {
     if (action === 'create') {
       const name = clean(body.name, 120);
       const description = clean(body.description, 1000) || null;
-      const amountCents = body.amount_cents != null
-        ? parseCents(body.amount_cents)
-        : parseEuroToCents(body.amount);
-      const periodStart = body.period_start || null;
-      const periodEnd = body.period_end || null;
+      const monthlyCents = body.monthly_amount_cents != null
+        ? parseCents(body.monthly_amount_cents)
+        : parseEuroToCents(body.monthly_amount != null ? body.monthly_amount : body.amount);
       const color = clean(body.color, 20) || '#008CFF';
+      const month = currentMonthKey();
 
       if (!name) return send(res, 400, { success: false, error: 'Bitte einen Budget-Namen angeben.' });
-      if (amountCents == null || amountCents < 0) {
-        return send(res, 400, { success: false, error: 'Bitte einen gültigen Betrag angeben.' });
+      if (monthlyCents == null || monthlyCents < 0) {
+        return send(res, 400, { success: false, error: 'Bitte einen gültigen monatlichen Betrag angeben.' });
       }
 
       const { data, error } = await supabase
@@ -56,9 +56,10 @@ module.exports = async function handler(req, res) {
         .insert({
           name,
           description,
-          amount_cents: amountCents,
-          period_start: periodStart,
-          period_end: periodEnd,
+          monthly_amount_cents: monthlyCents,
+          surplus_cents: 0,
+          amount_cents: monthlyCents,
+          last_credited_month: month,
           color,
           updated_at: new Date().toISOString()
         })
@@ -69,6 +70,15 @@ module.exports = async function handler(req, res) {
         console.error('Budget create error:', error.message);
         return send(res, 500, { success: false, error: 'Fehler beim Erstellen des Budgets' });
       }
+
+      if (data && data.id) {
+        await supabase.from('budget_credits').upsert({
+          budget_id: data.id,
+          credit_month: month,
+          amount_cents: monthlyCents
+        }, { onConflict: 'budget_id,credit_month', ignoreDuplicates: true });
+      }
+
       return send(res, 200, { success: true, id: data && data.id });
     }
 
@@ -83,17 +93,26 @@ module.exports = async function handler(req, res) {
         patch.name = name;
       }
       if (body.description !== undefined) patch.description = clean(body.description, 1000) || null;
-      if (body.amount_cents != null || body.amount != null) {
-        const amountCents = body.amount_cents != null
-          ? parseCents(body.amount_cents)
-          : parseEuroToCents(body.amount);
-        if (amountCents == null || amountCents < 0) {
-          return send(res, 400, { success: false, error: 'Bitte einen gültigen Betrag angeben.' });
+
+      if (body.monthly_amount_cents != null || body.monthly_amount != null || body.amount != null) {
+        const monthlyCents = body.monthly_amount_cents != null
+          ? parseCents(body.monthly_amount_cents)
+          : parseEuroToCents(body.monthly_amount != null ? body.monthly_amount : body.amount);
+        if (monthlyCents == null || monthlyCents < 0) {
+          return send(res, 400, { success: false, error: 'Bitte einen gültigen monatlichen Betrag angeben.' });
         }
-        patch.amount_cents = amountCents;
+        patch.monthly_amount_cents = monthlyCents;
+
+        // amount_cents = aktuelles Gesamtbudget (Monatsbetrag + bestehender Überschuss)
+        const { data: existing } = await supabase
+          .from('budgets')
+          .select('surplus_cents')
+          .eq('id', id)
+          .maybeSingle();
+        const surplus = Math.max(0, Number(existing && existing.surplus_cents) || 0);
+        patch.amount_cents = monthlyCents + surplus;
       }
-      if (body.period_start !== undefined) patch.period_start = body.period_start || null;
-      if (body.period_end !== undefined) patch.period_end = body.period_end || null;
+
       if (body.color != null) patch.color = clean(body.color, 20) || '#008CFF';
       if (body.is_archived != null) patch.is_archived = Boolean(body.is_archived);
 

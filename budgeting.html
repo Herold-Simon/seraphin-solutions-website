@@ -478,7 +478,7 @@
                     </button>
                 </div>
             </div>
-            <p class="bg-subtitle">Budgets anlegen, Ausgaben zuordnen und den Verbrauch im Blick behalten.</p>
+            <p class="bg-subtitle">Jeder Monat startet mit einem festen Budgetbetrag. Nicht ausgegebenes Geld erscheint als Überschuss vom letzten Monat.</p>
 
             <div id="errorAlert" class="bg-alert bg-alert-error"></div>
             <div id="okAlert" class="bg-alert bg-alert-ok"></div>
@@ -550,18 +550,11 @@
                         <input type="text" id="budgetName" required maxlength="120" placeholder="z. B. Marketing Q3">
                     </div>
                     <div class="bg-field">
-                        <label for="budgetAmount">Budgetbetrag (€)</label>
+                        <label for="budgetAmount">Monatlicher Betrag (€)</label>
                         <input type="number" id="budgetAmount" required min="0" step="0.01" placeholder="1000.00">
-                    </div>
-                    <div class="bg-field-row">
-                        <div class="bg-field">
-                            <label for="budgetStart">Zeitraum von</label>
-                            <input type="date" id="budgetStart">
-                        </div>
-                        <div class="bg-field">
-                            <label for="budgetEnd">Zeitraum bis</label>
-                            <input type="date" id="budgetEnd">
-                        </div>
+                        <p style="margin-top:0.4rem;font-size:0.8rem;color:var(--text-light);">
+                            Dieser Betrag wird zu Beginn jedes Monats gutgeschrieben. Restbeträge werden als Überschuss übernommen.
+                        </p>
                     </div>
                     <div class="bg-field">
                         <label for="budgetColor">Farbe</label>
@@ -666,6 +659,7 @@
         let budgetsCache = [];
         let expensesCache = [];
         let summaryCache = null;
+        let currentMonthKey = null;
         let selectedBudgetId = null;
         let budgetFilter = 'active';
         let expenseFilter = 'selected';
@@ -725,6 +719,7 @@
                 budgetsCache = Array.isArray(data.budgets) ? data.budgets : [];
                 expensesCache = Array.isArray(data.expenses) ? data.expenses : [];
                 summaryCache = data.summary || null;
+                currentMonthKey = data.current_month || null;
 
                 if (!selectedBudgetId || !budgetsCache.find(b => b.id === selectedBudgetId)) {
                     const firstActive = budgetsCache.find(b => !b.is_archived);
@@ -759,8 +754,17 @@
             return div.innerHTML;
         }
 
+        function formatMonthLabel(monthKey) {
+            if (!monthKey) return 'Aktueller Monat';
+            const [y, m] = String(monthKey).split('-').map(Number);
+            if (!y || !m) return monthKey;
+            return new Date(y, m - 1, 1).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+        }
+
         function renderSummary() {
             const s = summaryCache || {
+                total_monthly_cents: 0,
+                total_surplus_cents: 0,
                 total_budget_cents: 0,
                 total_spent_cents: 0,
                 total_remaining_cents: 0,
@@ -769,20 +773,28 @@
             const remainingClass = s.total_remaining_cents < 0 ? 'warn' : 'ok';
             document.getElementById('summaryGrid').innerHTML = `
                 <div class="bg-summary-card">
-                    <div class="bg-summary-label">Aktive Budgets</div>
-                    <div class="bg-summary-value">${s.active_budgets}</div>
+                    <div class="bg-summary-label">Monat</div>
+                    <div class="bg-summary-value" style="font-size:1.05rem;">${esc(formatMonthLabel(currentMonthKey))}</div>
                 </div>
                 <div class="bg-summary-card">
-                    <div class="bg-summary-label">Gesamtbudget</div>
-                    <div class="bg-summary-value">${formatEuro(s.total_budget_cents)}</div>
+                    <div class="bg-summary-label">Monatliche Budgets</div>
+                    <div class="bg-summary-value">${formatEuro(s.total_monthly_cents || 0)}</div>
                 </div>
                 <div class="bg-summary-card">
-                    <div class="bg-summary-label">Ausgegeben</div>
-                    <div class="bg-summary-value">${formatEuro(s.total_spent_cents)}</div>
+                    <div class="bg-summary-label">Überschuss Vormonat</div>
+                    <div class="bg-summary-value ok">${formatEuro(s.total_surplus_cents || 0)}</div>
+                </div>
+                <div class="bg-summary-card">
+                    <div class="bg-summary-label">Gesamt verfügbar</div>
+                    <div class="bg-summary-value">${formatEuro(s.total_budget_cents || 0)}</div>
+                </div>
+                <div class="bg-summary-card">
+                    <div class="bg-summary-label">Ausgegeben (Monat)</div>
+                    <div class="bg-summary-value">${formatEuro(s.total_spent_cents || 0)}</div>
                 </div>
                 <div class="bg-summary-card">
                     <div class="bg-summary-label">Verbleibend</div>
-                    <div class="bg-summary-value ${remainingClass}">${formatEuro(s.total_remaining_cents)}</div>
+                    <div class="bg-summary-value ${remainingClass}">${formatEuro(s.total_remaining_cents || 0)}</div>
                 </div>`;
         }
 
@@ -805,11 +817,9 @@
             empty.style.display = 'none';
 
             list.innerHTML = items.map(b => {
+                const available = b.available_cents != null ? b.available_cents : (b.amount_cents || 0);
                 const pct = Math.min(Math.max(b.usage_percent || 0, 0), 100);
-                const over = (b.spent_cents || 0) > (b.amount_cents || 0);
-                const period = (b.period_start || b.period_end)
-                    ? `${formatDate(b.period_start)} – ${formatDate(b.period_end)}`
-                    : 'Kein Zeitraum';
+                const over = (b.spent_cents || 0) > available;
                 return `
                     <article class="bg-budget-card ${b.id === selectedBudgetId ? 'active' : ''} ${b.is_archived ? 'archived' : ''}"
                              onclick="selectBudget('${b.id}')">
@@ -819,9 +829,13 @@
                                 ${esc(b.name)}
                                 ${b.is_archived ? '<span class="bg-tag">Archiv</span>' : ''}
                             </span>
-                            <span class="bg-budget-amount">${formatEuro(b.amount_cents)}</span>
+                            <span class="bg-budget-amount">${formatEuro(available)}</span>
                         </div>
-                        <div class="bg-budget-meta">${esc(period)} · ${b.expense_count || 0} Ausgaben</div>
+                        <div class="bg-budget-meta">
+                            Monatlich ${formatEuro(b.monthly_amount_cents || 0)}
+                            · Überschuss Vormonat ${formatEuro(b.surplus_cents || 0)}
+                            · ${b.expense_count_month || 0} Ausgaben diesen Monat
+                        </div>
                         <div class="bg-progress">
                             <div class="bg-progress-bar ${over ? 'over' : ''}" style="width:${over ? 100 : pct}%"></div>
                         </div>
@@ -900,7 +914,11 @@
             const section = document.getElementById('categorySection');
             const wrap = document.getElementById('categoryBreakdown');
             const activeBudgetIds = new Set(budgetsCache.filter(b => !b.is_archived).map(b => b.id));
-            const relevant = expensesCache.filter(e => activeBudgetIds.has(e.budget_id));
+            const relevant = expensesCache.filter(e => {
+                if (!activeBudgetIds.has(e.budget_id)) return false;
+                if (!currentMonthKey) return true;
+                return String(e.spent_on || '').slice(0, 7) === currentMonthKey;
+            });
             if (!relevant.length) {
                 section.style.display = 'none';
                 return;
@@ -934,9 +952,7 @@
                 title.textContent = 'Budget bearbeiten';
                 document.getElementById('budgetId').value = b.id;
                 document.getElementById('budgetName').value = b.name || '';
-                document.getElementById('budgetAmount').value = ((b.amount_cents || 0) / 100).toFixed(2);
-                document.getElementById('budgetStart').value = b.period_start || '';
-                document.getElementById('budgetEnd').value = b.period_end || '';
+                document.getElementById('budgetAmount').value = ((b.monthly_amount_cents || 0) / 100).toFixed(2);
                 document.getElementById('budgetColor').value = b.color || '#008CFF';
                 document.getElementById('budgetDescription').value = b.description || '';
             } else {
@@ -1001,9 +1017,7 @@
                 action: id ? 'update' : 'create',
                 id: id || undefined,
                 name: document.getElementById('budgetName').value.trim(),
-                amount: document.getElementById('budgetAmount').value,
-                period_start: document.getElementById('budgetStart').value || null,
-                period_end: document.getElementById('budgetEnd').value || null,
+                monthly_amount: document.getElementById('budgetAmount').value,
                 color: document.getElementById('budgetColor').value || '#008CFF',
                 description: document.getElementById('budgetDescription').value.trim()
             };

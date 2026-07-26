@@ -1,5 +1,11 @@
 // api/budget/list.js - Budgets + Ausgaben laden (nur Master)
+// Monatliches Modell: Monatsbetrag + Überschuss vom letzten Monat.
 const { supabase, setCors, send, resolveSession } = require('../_lib/db');
+const {
+  applyMonthlyTopups,
+  currentMonthKey,
+  spentInMonth
+} = require('../_lib/budgetTopup');
 
 module.exports = async function handler(req, res) {
   setCors(res);
@@ -15,20 +21,20 @@ module.exports = async function handler(req, res) {
 
     let budgetQuery = supabase
       .from('budgets')
-      .select('id, name, description, amount_cents, currency, period_start, period_end, color, is_archived, created_at, updated_at')
+      .select('id, name, description, amount_cents, monthly_amount_cents, surplus_cents, last_credited_month, currency, color, is_archived, created_at, updated_at')
       .order('created_at', { ascending: false });
 
     if (!includeArchived) {
       budgetQuery = budgetQuery.eq('is_archived', false);
     }
 
-    const { data: budgets, error: budgetError } = await budgetQuery;
+    const { data: budgetsRaw, error: budgetError } = await budgetQuery;
     if (budgetError) {
       console.error('Budget list error:', budgetError.message);
       return send(res, 500, { success: false, error: 'Fehler beim Laden der Budgets' });
     }
 
-    const budgetIds = (budgets || []).map(b => b.id);
+    const budgetIds = (budgetsRaw || []).map(b => b.id);
     let expenses = [];
     if (budgetIds.length > 0) {
       const { data: expenseData, error: expenseError } = await supabase
@@ -44,36 +50,55 @@ module.exports = async function handler(req, res) {
       expenses = expenseData || [];
     }
 
-    const spentByBudget = {};
-    expenses.forEach(e => {
-      spentByBudget[e.budget_id] = (spentByBudget[e.budget_id] || 0) + (e.amount_cents || 0);
-    });
+    // Monatswechsel anwenden (Überschuss berechnen + neuer Monat)
+    const { budgets, currentMonth } = await applyMonthlyTopups(supabase, budgetsRaw || [], expenses);
 
-    const enriched = (budgets || []).map(b => {
-      const spent = spentByBudget[b.id] || 0;
-      const remaining = b.amount_cents - spent;
-      const usagePercent = b.amount_cents > 0 ? Math.round((spent / b.amount_cents) * 1000) / 10 : 0;
+    const enriched = budgets.map(b => {
+      const monthly = Math.max(0, Number(b.monthly_amount_cents) || 0);
+      const surplus = Math.max(0, Number(b.surplus_cents) || 0);
+      const available = monthly + surplus;
+      const spentThisMonth = spentInMonth(expenses, b.id, currentMonth);
+      const remaining = available - spentThisMonth;
+      const usagePercent = available > 0
+        ? Math.round((spentThisMonth / available) * 1000) / 10
+        : 0;
+
       return {
         ...b,
-        spent_cents: spent,
+        monthly_amount_cents: monthly,
+        surplus_cents: surplus,
+        available_cents: available,
+        amount_cents: available,
+        spent_cents: spentThisMonth,
         remaining_cents: remaining,
         usage_percent: usagePercent,
-        expense_count: expenses.filter(e => e.budget_id === b.id).length
+        expense_count: expenses.filter(e => e.budget_id === b.id).length,
+        expense_count_month: expenses.filter(e => {
+          const day = String(e.spent_on || '').slice(0, 7);
+          return e.budget_id === b.id && day === currentMonth;
+        }).length,
+        current_month: currentMonth
       };
     });
 
-    const totalBudget = enriched.filter(b => !b.is_archived).reduce((s, b) => s + b.amount_cents, 0);
-    const totalSpent = enriched.filter(b => !b.is_archived).reduce((s, b) => s + b.spent_cents, 0);
+    const active = enriched.filter(b => !b.is_archived);
+    const totalMonthly = active.reduce((s, b) => s + b.monthly_amount_cents, 0);
+    const totalSurplus = active.reduce((s, b) => s + b.surplus_cents, 0);
+    const totalAvailable = active.reduce((s, b) => s + b.available_cents, 0);
+    const totalSpent = active.reduce((s, b) => s + b.spent_cents, 0);
 
     return send(res, 200, {
       success: true,
+      current_month: currentMonth || currentMonthKey(),
       budgets: enriched,
       expenses,
       summary: {
-        total_budget_cents: totalBudget,
+        total_monthly_cents: totalMonthly,
+        total_surplus_cents: totalSurplus,
+        total_budget_cents: totalAvailable,
         total_spent_cents: totalSpent,
-        total_remaining_cents: totalBudget - totalSpent,
-        active_budgets: enriched.filter(b => !b.is_archived).length
+        total_remaining_cents: totalAvailable - totalSpent,
+        active_budgets: active.length
       }
     });
   } catch (error) {
