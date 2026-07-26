@@ -42,9 +42,8 @@ module.exports = async function handler(req, res) {
       const amountCents = body.amount_cents != null
         ? parseCents(body.amount_cents)
         : parseEuroToCents(body.amount);
-      const category = clean(body.category, 80) || null;
-      const spentOn = body.spent_on || new Date().toISOString().slice(0, 10);
-      const notes = clean(body.notes, 2000) || null;
+      // Immer aktueller Zeitstempel (Datum + Uhrzeit inkl. Sekunden)
+      const spentOn = new Date().toISOString();
 
       if (!budgetId) return send(res, 400, { success: false, error: 'Budget fehlt' });
       if (!title) return send(res, 400, { success: false, error: 'Bitte einen Titel angeben.' });
@@ -63,9 +62,9 @@ module.exports = async function handler(req, res) {
           budget_id: budgetId,
           title,
           amount_cents: amountCents,
-          category,
+          category: null,
           spent_on: spentOn,
-          notes,
+          notes: null,
           updated_at: new Date().toISOString()
         })
         .select('id')
@@ -96,9 +95,6 @@ module.exports = async function handler(req, res) {
         if (amountCents == null) return send(res, 400, { success: false, error: 'Bitte einen gültigen Betrag angeben.' });
         patch.amount_cents = amountCents;
       }
-      if (body.category !== undefined) patch.category = clean(body.category, 80) || null;
-      if (body.spent_on != null) patch.spent_on = body.spent_on;
-      if (body.notes !== undefined) patch.notes = clean(body.notes, 2000) || null;
 
       const { error } = await supabase.from('budget_expenses').update(patch).eq('id', id);
       if (error) {

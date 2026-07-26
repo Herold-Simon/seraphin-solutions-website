@@ -87,10 +87,21 @@
         .bg-alert-ok { background: #e8f7e8; color: #1e7a1e; }
 
         .bg-summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            display: flex;
+            flex-direction: column;
             gap: 0.9rem;
             margin-bottom: 1.75rem;
+        }
+        .bg-summary-row {
+            display: grid;
+            gap: 0.9rem;
+        }
+        .bg-summary-row-top {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+        .bg-summary-row-bottom {
+            grid-template-columns: repeat(2, minmax(0, 280px));
+            justify-content: center;
         }
         .bg-summary-card {
             background: var(--white);
@@ -98,6 +109,7 @@
             border-radius: 14px;
             padding: 1.1rem 1.2rem;
             box-shadow: var(--shadow-sm);
+            text-align: center;
         }
         .bg-summary-label {
             font-size: 0.78rem;
@@ -113,6 +125,14 @@
         }
         .bg-summary-value.warn { color: #c0392b; }
         .bg-summary-value.ok { color: var(--primary-green); }
+        @media (max-width: 900px) {
+            .bg-summary-row-top { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .bg-summary-row-bottom { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 520px) {
+            .bg-summary-row-top,
+            .bg-summary-row-bottom { grid-template-columns: 1fr; }
+        }
 
         .bg-layout {
             display: grid;
@@ -291,45 +311,6 @@
         }
         .bg-empty i { display: block; font-size: 1.8rem; color: var(--border-color); margin-bottom: 0.6rem; }
 
-        .bg-cats {
-            margin-top: 1.25rem;
-            background: var(--white);
-            border: 1px solid var(--border-color);
-            border-radius: 14px;
-            padding: 1.1rem 1.2rem;
-            box-shadow: var(--shadow-sm);
-        }
-        .bg-cat-row {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 0.55rem;
-        }
-        .bg-cat-name {
-            min-width: 110px;
-            font-size: 0.85rem;
-            color: var(--text-dark);
-        }
-        .bg-cat-bar-wrap {
-            flex: 1;
-            height: 8px;
-            background: #eef1f4;
-            border-radius: 999px;
-            overflow: hidden;
-        }
-        .bg-cat-bar {
-            height: 100%;
-            background: var(--primary-blue);
-            border-radius: 999px;
-        }
-        .bg-cat-val {
-            min-width: 80px;
-            text-align: right;
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: var(--text-dark);
-        }
-
         .bg-modal-overlay {
             position: fixed;
             inset: 0;
@@ -478,8 +459,6 @@
                     </button>
                 </div>
             </div>
-            <p class="bg-subtitle">Jeder Monat startet mit einem festen Budgetbetrag. Nicht ausgegebenes Geld erscheint als Überschuss vom letzten Monat.</p>
-
             <div id="errorAlert" class="bg-alert bg-alert-error"></div>
             <div id="okAlert" class="bg-alert bg-alert-ok"></div>
 
@@ -527,10 +506,6 @@
                     </section>
                 </div>
 
-                <section class="bg-cats" id="categorySection" style="display: none;">
-                    <h2 class="bg-panel-title" style="margin-bottom: 0.9rem;">Ausgaben nach Kategorie</h2>
-                    <div id="categoryBreakdown"></div>
-                </section>
             </div>
         </div>
     </main>
@@ -594,33 +569,13 @@
                         <label for="expenseTitle">Titel</label>
                         <input type="text" id="expenseTitle" required maxlength="200" placeholder="z. B. Domain-Verlängerung">
                     </div>
-                    <div class="bg-field-row">
-                        <div class="bg-field">
-                            <label for="expenseAmount">Betrag (€)</label>
-                            <input type="number" id="expenseAmount" required min="0.01" step="0.01" placeholder="49.90">
-                        </div>
-                        <div class="bg-field">
-                            <label for="expenseDate">Datum</label>
-                            <input type="date" id="expenseDate" required>
-                        </div>
-                    </div>
                     <div class="bg-field">
-                        <label for="expenseCategory">Kategorie</label>
-                        <input type="text" id="expenseCategory" list="categorySuggestions" maxlength="80" placeholder="z. B. Software, Marketing, Hardware">
-                        <datalist id="categorySuggestions">
-                            <option value="Software"></option>
-                            <option value="Marketing"></option>
-                            <option value="Hardware"></option>
-                            <option value="Büro"></option>
-                            <option value="Reise"></option>
-                            <option value="Support"></option>
-                            <option value="Sonstiges"></option>
-                        </datalist>
+                        <label for="expenseAmount">Betrag (€)</label>
+                        <input type="number" id="expenseAmount" required min="0.01" step="0.01" placeholder="49.90">
                     </div>
-                    <div class="bg-field">
-                        <label for="expenseNotes">Notiz (optional)</label>
-                        <textarea id="expenseNotes" maxlength="2000" placeholder="Zusätzliche Infos zur Ausgabe"></textarea>
-                    </div>
+                    <p style="font-size:0.8rem;color:var(--text-light);margin:-0.2rem 0 0.9rem;">
+                        Datum und Uhrzeit werden beim Speichern automatisch erfasst.
+                    </p>
                     <div class="bg-modal-actions">
                         <button type="button" class="bg-btn" onclick="closeExpenseModal()">Abbrechen</button>
                         <button type="submit" class="bg-btn bg-btn-primary" id="expenseSubmitBtn">Speichern</button>
@@ -731,7 +686,6 @@
                 renderSummary();
                 renderBudgets();
                 renderExpenses();
-                renderCategories();
             } catch (e) {
                 document.getElementById('loadingState').style.display = 'none';
                 showError(e.message || 'Netzwerkfehler');
@@ -743,9 +697,18 @@
             return value.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
         }
 
-        function formatDate(value) {
+        function formatDateTime(value) {
             if (!value) return '—';
-            return new Date(value + (String(value).length === 10 ? 'T00:00:00' : '')).toLocaleDateString('de-DE');
+            const d = new Date(String(value).length === 10 ? value + 'T00:00:00' : value);
+            if (Number.isNaN(d.getTime())) return String(value);
+            return d.toLocaleString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
         }
 
         function esc(text) {
@@ -772,29 +735,33 @@
             };
             const remainingClass = s.total_remaining_cents < 0 ? 'warn' : 'ok';
             document.getElementById('summaryGrid').innerHTML = `
-                <div class="bg-summary-card">
-                    <div class="bg-summary-label">Monat</div>
-                    <div class="bg-summary-value" style="font-size:1.05rem;">${esc(formatMonthLabel(currentMonthKey))}</div>
+                <div class="bg-summary-row bg-summary-row-bottom">
+                    <div class="bg-summary-card">
+                        <div class="bg-summary-label">Überschuss Vormonat</div>
+                        <div class="bg-summary-value ok">${formatEuro(s.total_surplus_cents || 0)}</div>
+                    </div>
+                    <div class="bg-summary-card">
+                        <div class="bg-summary-label">Verbleibend</div>
+                        <div class="bg-summary-value ${remainingClass}">${formatEuro(s.total_remaining_cents || 0)}</div>
+                    </div>
                 </div>
-                <div class="bg-summary-card">
-                    <div class="bg-summary-label">Monatliche Budgets</div>
-                    <div class="bg-summary-value">${formatEuro(s.total_monthly_cents || 0)}</div>
-                </div>
-                <div class="bg-summary-card">
-                    <div class="bg-summary-label">Überschuss Vormonat</div>
-                    <div class="bg-summary-value ok">${formatEuro(s.total_surplus_cents || 0)}</div>
-                </div>
-                <div class="bg-summary-card">
-                    <div class="bg-summary-label">Gesamt verfügbar</div>
-                    <div class="bg-summary-value">${formatEuro(s.total_budget_cents || 0)}</div>
-                </div>
-                <div class="bg-summary-card">
-                    <div class="bg-summary-label">Ausgegeben (Monat)</div>
-                    <div class="bg-summary-value">${formatEuro(s.total_spent_cents || 0)}</div>
-                </div>
-                <div class="bg-summary-card">
-                    <div class="bg-summary-label">Verbleibend</div>
-                    <div class="bg-summary-value ${remainingClass}">${formatEuro(s.total_remaining_cents || 0)}</div>
+                <div class="bg-summary-row bg-summary-row-top">
+                    <div class="bg-summary-card">
+                        <div class="bg-summary-label">Monat</div>
+                        <div class="bg-summary-value" style="font-size:1.05rem;">${esc(formatMonthLabel(currentMonthKey))}</div>
+                    </div>
+                    <div class="bg-summary-card">
+                        <div class="bg-summary-label">Monatliche Budgets</div>
+                        <div class="bg-summary-value">${formatEuro(s.total_monthly_cents || 0)}</div>
+                    </div>
+                    <div class="bg-summary-card">
+                        <div class="bg-summary-label">Gesamt verfügbar</div>
+                        <div class="bg-summary-value">${formatEuro(s.total_budget_cents || 0)}</div>
+                    </div>
+                    <div class="bg-summary-card">
+                        <div class="bg-summary-label">Ausgegeben</div>
+                        <div class="bg-summary-value">${formatEuro(s.total_spent_cents || 0)}</div>
+                    </div>
                 </div>`;
         }
 
@@ -897,46 +864,15 @@
                             <span class="bg-expense-amount">${formatEuro(e.amount_cents)}</span>
                         </div>
                         <div class="bg-expense-meta">
-                            <span><i class="fas fa-calendar"></i> ${formatDate(e.spent_on)}</span>
+                            <span><i class="fas fa-calendar"></i> ${formatDateTime(e.spent_on)}</span>
                             <span><i class="fas fa-wallet"></i> ${esc(budgetName)}</span>
-                            ${e.category ? `<span class="bg-tag">${esc(e.category)}</span>` : ''}
                         </div>
-                        ${e.notes ? `<div style="font-size:0.85rem;color:var(--text-light);margin-bottom:0.55rem;">${esc(e.notes)}</div>` : ''}
                         <div class="bg-budget-actions">
                             <button class="bg-btn" type="button" onclick="openExpenseModal('${e.id}')"><i class="fas fa-pen"></i> Bearbeiten</button>
                             <button class="bg-btn bg-btn-danger" type="button" onclick="deleteExpense('${e.id}')"><i class="fas fa-trash"></i> Löschen</button>
                         </div>
                     </article>`;
             }).join('');
-        }
-
-        function renderCategories() {
-            const section = document.getElementById('categorySection');
-            const wrap = document.getElementById('categoryBreakdown');
-            const activeBudgetIds = new Set(budgetsCache.filter(b => !b.is_archived).map(b => b.id));
-            const relevant = expensesCache.filter(e => {
-                if (!activeBudgetIds.has(e.budget_id)) return false;
-                if (!currentMonthKey) return true;
-                return String(e.spent_on || '').slice(0, 7) === currentMonthKey;
-            });
-            if (!relevant.length) {
-                section.style.display = 'none';
-                return;
-            }
-            const map = {};
-            relevant.forEach(e => {
-                const key = e.category || 'Ohne Kategorie';
-                map[key] = (map[key] || 0) + e.amount_cents;
-            });
-            const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
-            const max = entries[0][1] || 1;
-            section.style.display = 'block';
-            wrap.innerHTML = entries.map(([name, cents]) => `
-                <div class="bg-cat-row">
-                    <div class="bg-cat-name">${esc(name)}</div>
-                    <div class="bg-cat-bar-wrap"><div class="bg-cat-bar" style="width:${Math.round((cents / max) * 100)}%"></div></div>
-                    <div class="bg-cat-val">${formatEuro(cents)}</div>
-                </div>`).join('');
         }
 
         function openBudgetModal(id) {
@@ -985,7 +921,6 @@
             const title = document.getElementById('expenseModalTitle');
             document.getElementById('expenseForm').reset();
             document.getElementById('expenseId').value = '';
-            document.getElementById('expenseDate').value = new Date().toISOString().slice(0, 10);
             fillExpenseBudgetSelect();
 
             if (id) {
@@ -996,9 +931,6 @@
                 fillExpenseBudgetSelect(e.budget_id);
                 document.getElementById('expenseTitle').value = e.title || '';
                 document.getElementById('expenseAmount').value = ((e.amount_cents || 0) / 100).toFixed(2);
-                document.getElementById('expenseDate').value = e.spent_on || '';
-                document.getElementById('expenseCategory').value = e.category || '';
-                document.getElementById('expenseNotes').value = e.notes || '';
             } else {
                 title.textContent = 'Ausgabe erfassen';
             }
@@ -1052,10 +984,7 @@
                 id: id || undefined,
                 budget_id: document.getElementById('expenseBudget').value,
                 title: document.getElementById('expenseTitle').value.trim(),
-                amount: document.getElementById('expenseAmount').value,
-                spent_on: document.getElementById('expenseDate').value,
-                category: document.getElementById('expenseCategory').value.trim(),
-                notes: document.getElementById('expenseNotes').value.trim()
+                amount: document.getElementById('expenseAmount').value
             };
             try {
                 btn.disabled = true;
@@ -1139,16 +1068,14 @@
                 showError('Keine Ausgaben zum Exportieren.');
                 return;
             }
-            const rows = [['Datum', 'Budget', 'Titel', 'Kategorie', 'Betrag EUR', 'Notiz']];
+            const rows = [['Datum/Uhrzeit', 'Budget', 'Titel', 'Betrag EUR']];
             expensesCache.forEach(e => {
                 const budgetName = (budgetsCache.find(b => b.id === e.budget_id) || {}).name || '';
                 rows.push([
-                    e.spent_on || '',
+                    formatDateTime(e.spent_on),
                     budgetName,
                     e.title || '',
-                    e.category || '',
-                    ((e.amount_cents || 0) / 100).toFixed(2).replace('.', ','),
-                    (e.notes || '').replace(/\r?\n/g, ' ')
+                    ((e.amount_cents || 0) / 100).toFixed(2).replace('.', ',')
                 ]);
             });
             const csv = rows.map(r => r.map(cell => {

@@ -4,7 +4,8 @@ const { supabase, setCors, send, resolveSession } = require('../_lib/db');
 const {
   applyMonthlyTopups,
   currentMonthKey,
-  spentInMonth
+  spentInMonth,
+  toBerlinMonthKey
 } = require('../_lib/budgetTopup');
 
 module.exports = async function handler(req, res) {
@@ -73,10 +74,9 @@ module.exports = async function handler(req, res) {
         remaining_cents: remaining,
         usage_percent: usagePercent,
         expense_count: expenses.filter(e => e.budget_id === b.id).length,
-        expense_count_month: expenses.filter(e => {
-          const day = String(e.spent_on || '').slice(0, 7);
-          return e.budget_id === b.id && day === currentMonth;
-        }).length,
+        expense_count_month: expenses.filter(e =>
+          e.budget_id === b.id && toBerlinMonthKey(e.spent_on) === currentMonth
+        ).length,
         current_month: currentMonth
       };
     });

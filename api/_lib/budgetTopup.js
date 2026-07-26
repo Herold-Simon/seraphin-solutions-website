@@ -40,17 +40,20 @@ function monthRange(monthKey) {
   };
 }
 
+function toBerlinMonthKey(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) {
+    // Fallback fuer reine Datumsstrings YYYY-MM-DD
+    return String(value).slice(0, 7);
+  }
+  return currentMonthKey(d);
+}
+
 function spentInMonth(expenses, budgetId, monthKey) {
-  const { start, endExclusive } = monthRange(monthKey);
   return (expenses || [])
     .filter(e => e.budget_id === budgetId)
-    .filter(e => {
-      const day = String(e.spent_on || '').slice(0, 10);
-      if (!day) return false;
-      if (day < start) return false;
-      if (endExclusive && day >= endExclusive) return false;
-      return true;
-    })
+    .filter(e => toBerlinMonthKey(e.spent_on) === monthKey)
     .reduce((sum, e) => sum + (Number(e.amount_cents) || 0), 0);
 }
 
@@ -148,6 +151,7 @@ module.exports = {
   currentMonthKey,
   nextMonthKey,
   compareMonthKeys,
+  toBerlinMonthKey,
   spentInMonth,
   applyMonthlyTopups
 };
