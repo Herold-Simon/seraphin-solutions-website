@@ -25,29 +25,25 @@
             margin: 0 auto;
             padding: 0 1.5rem;
         }
-        .bg-header-row {
+        .bg-top-actions {
             display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            margin-bottom: 0.4rem;
+            margin-bottom: 1.25rem;
         }
-        .bg-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            letter-spacing: -0.02em;
-        }
-        .bg-subtitle {
-            font-size: 0.95rem;
-            color: var(--text-light);
-            margin-bottom: 1.75rem;
-        }
-        .bg-actions {
+        .bg-bottom-actions {
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
+            margin-top: 1.5rem;
+            justify-content: flex-start;
+        }
+        .bg-btn-expense-top {
+            justify-content: center;
+        }
+        @media (max-width: 640px) {
+            .bg-top-actions { width: 100%; }
+            .bg-btn-expense-top { width: 100%; }
+            .bg-bottom-actions { width: 100%; }
+            .bg-bottom-actions .bg-btn { flex: 1 1 100%; justify-content: center; }
         }
         .bg-btn {
             border: 1px solid var(--border-color);
@@ -271,7 +267,7 @@
         }
 
         .bg-expense-item {
-            border: 1px solid var(--border-color);
+            border: 2px solid var(--border-color);
             border-radius: 12px;
             padding: 0.85rem 0.95rem;
         }
@@ -410,7 +406,6 @@
         @media (min-width: 1024px) {
             .bg-page { padding-top: 6rem; padding-bottom: 5rem; }
             .bg-inner { padding: 0 2rem; }
-            .bg-title { font-size: 2.25rem; }
         }
     </style>
 </head>
@@ -445,19 +440,10 @@
 
     <main class="bg-page">
         <div class="bg-inner">
-            <div class="bg-header-row">
-                <h1 class="bg-title">Budgeting</h1>
-                <div class="bg-actions">
-                    <button class="bg-btn" id="exportCsvBtn" type="button">
-                        <i class="fas fa-file-csv"></i> CSV exportieren
-                    </button>
-                    <button class="bg-btn bg-btn-primary" id="newBudgetBtn" type="button">
-                        <i class="fas fa-plus"></i> Budget erstellen
-                    </button>
-                    <button class="bg-btn bg-btn-primary" id="newExpenseBtn" type="button">
-                        <i class="fas fa-receipt"></i> Ausgabe erfassen
-                    </button>
-                </div>
+            <div class="bg-top-actions">
+                <button class="bg-btn bg-btn-primary bg-btn-expense-top" id="newExpenseBtn" type="button">
+                    <i class="fas fa-receipt"></i> Ausgabe erfassen
+                </button>
             </div>
             <div id="errorAlert" class="bg-alert bg-alert-error"></div>
             <div id="okAlert" class="bg-alert bg-alert-ok"></div>
@@ -494,8 +480,8 @@
                         </div>
                         <div class="bg-panel-body">
                             <div class="bg-toolbar">
-                                <button class="bg-filter-btn active" data-expense-filter="selected">Ausgewähltes Budget</button>
-                                <button class="bg-filter-btn" data-expense-filter="all">Alle Ausgaben</button>
+                                <button class="bg-filter-btn active" data-expense-filter="all">Alle Ausgaben</button>
+                                <button class="bg-filter-btn" data-expense-filter="selected">Ausgewähltes Budget</button>
                             </div>
                             <div id="expenseList" class="bg-expense-list"></div>
                             <div id="expenseEmpty" class="bg-empty" style="display: none;">
@@ -506,6 +492,14 @@
                     </section>
                 </div>
 
+                <div class="bg-bottom-actions">
+                    <button class="bg-btn bg-btn-primary" id="newBudgetBtn" type="button">
+                        <i class="fas fa-plus"></i> Budget erstellen
+                    </button>
+                    <button class="bg-btn" id="exportCsvBtn" type="button">
+                        <i class="fas fa-file-csv"></i> CSV exportieren
+                    </button>
+                </div>
             </div>
         </div>
     </main>
@@ -617,7 +611,7 @@
         let currentMonthKey = null;
         let selectedBudgetId = null;
         let budgetFilter = 'active';
-        let expenseFilter = 'selected';
+        let expenseFilter = 'all';
 
         document.addEventListener('DOMContentLoaded', function() {
             loadData();
@@ -856,9 +850,11 @@
             empty.style.display = 'none';
 
             list.innerHTML = items.map(e => {
-                const budgetName = (budgetsCache.find(b => b.id === e.budget_id) || {}).name || '—';
+                const budget = budgetsCache.find(b => b.id === e.budget_id) || {};
+                const budgetName = budget.name || '—';
+                const budgetColor = budget.color || '#008CFF';
                 return `
-                    <article class="bg-expense-item">
+                    <article class="bg-expense-item" style="border-color:${esc(budgetColor)};">
                         <div class="bg-expense-top">
                             <span class="bg-expense-title">${esc(e.title)}</span>
                             <span class="bg-expense-amount">${formatEuro(e.amount_cents)}</span>
