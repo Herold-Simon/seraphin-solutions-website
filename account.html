@@ -420,6 +420,7 @@
                     <span class="company-name">Seraphin Solutions</span>
                 </div>
                 <nav class="nav" id="nav">
+                    <a href="budgeting.html" class="nav-link" id="navBudgeting" style="display: none;">Budgeting</a>
                     <a href="dashboard.html" class="nav-link">Statistiken</a>
                     <a href="labels.html" class="nav-link">Beschriftungen</a>
                     <a href="kontaktanfragen.html" class="nav-link" id="navKontaktanfragen" style="display: none;">Kontaktanfragen</a>
@@ -637,10 +638,12 @@
                 const sessionData = await sessionRes.json();
                 currentUser = sessionData.user;
 
-                // Master-Accounts: Kontaktanfragen-Tab in der Navigation einblenden
+                // Master-Accounts: Admin-Tabs in der Navigation einblenden
                 if (sessionData.user && sessionData.user.is_master) {
                     const kaLink = document.getElementById('navKontaktanfragen');
                     if (kaLink) kaLink.style.display = '';
+                    const bgLink = document.getElementById('navBudgeting');
+                    if (bgLink) bgLink.style.display = '';
                 }
 
                 // Master verkoerpert ein anderes Konto -> Passwortwechsel ohne aktuelles Kennwort

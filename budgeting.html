@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Budgeting - Gebäudenavi | Seraphin Solutions</title>
+
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="description" content="Budgets und Ausgaben verwalten">
+    <meta name="robots" content="noindex, nofollow">
+
+    <link rel="stylesheet" href="styles-app.css?v=1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        .bg-page {
+            min-height: 100vh;
+            background: var(--light-gray);
+            padding-top: 80px;
+            padding-bottom: 4rem;
+        }
+        .bg-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+        .bg-header-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 0.4rem;
+        }
+        .bg-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            letter-spacing: -0.02em;
+        }
+        .bg-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-light);
+            margin-bottom: 1.75rem;
+        }
+        .bg-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .bg-btn {
+            border: 1px solid var(--border-color);
+            background: var(--white);
+            color: var(--text-dark);
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 0.55rem 0.95rem;
+            border-radius: 10px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            transition: all 0.15s ease;
+        }
+        .bg-btn:hover { border-color: var(--primary-blue); color: var(--primary-blue); }
+        .bg-btn:disabled { opacity: 0.55; cursor: default; }
+        .bg-btn-primary {
+            background: var(--gradient-primary);
+            border-color: transparent;
+            color: var(--white);
+        }
+        .bg-btn-primary:hover { color: var(--white); filter: brightness(1.05); }
+        .bg-btn-danger:hover { border-color: #E74C3C; color: #E74C3C; }
+
+        .bg-alert {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.85rem 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            margin-bottom: 1.25rem;
+        }
+        .bg-alert-error { background: #fdecea; color: #b3261e; }
+        .bg-alert-ok { background: #e8f7e8; color: #1e7a1e; }
+
+        .bg-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.9rem;
+            margin-bottom: 1.75rem;
+        }
+        .bg-summary-card {
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.1rem 1.2rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .bg-summary-label {
+            font-size: 0.78rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.35rem;
+        }
+        .bg-summary-value {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        .bg-summary-value.warn { color: #c0392b; }
+        .bg-summary-value.ok { color: var(--primary-green); }
+
+        .bg-layout {
+            display: grid;
+            grid-template-columns: 1.15fr 1fr;
+            gap: 1.25rem;
+            align-items: start;
+        }
+        @media (max-width: 900px) {
+            .bg-layout { grid-template-columns: 1fr; }
+        }
+
+        .bg-panel {
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+        .bg-panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 1rem 1.2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .bg-panel-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        .bg-panel-body { padding: 1rem 1.2rem 1.25rem; }
+
+        .bg-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+            margin-bottom: 1rem;
+        }
+        .bg-filter-btn {
+            border: 1px solid var(--border-color);
+            background: var(--white);
+            color: var(--text-dark);
+            font-family: inherit;
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.35rem 0.75rem;
+            border-radius: 999px;
+            cursor: pointer;
+        }
+        .bg-filter-btn.active {
+            background: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .bg-budget-list, .bg-expense-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .bg-budget-card {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.95rem 1rem;
+            cursor: pointer;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .bg-budget-card:hover { border-color: var(--primary-blue); }
+        .bg-budget-card.active {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 2px rgba(0, 140, 255, 0.12);
+        }
+        .bg-budget-card.archived { opacity: 0.7; }
+
+        .bg-budget-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 0.45rem;
+        }
+        .bg-budget-name {
+            font-weight: 700;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+        .bg-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .bg-budget-amount {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            white-space: nowrap;
+        }
+        .bg-budget-meta {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-bottom: 0.55rem;
+        }
+        .bg-progress {
+            height: 8px;
+            background: #eef1f4;
+            border-radius: 999px;
+            overflow: hidden;
+            margin-bottom: 0.4rem;
+        }
+        .bg-progress-bar {
+            height: 100%;
+            border-radius: 999px;
+            background: var(--gradient-primary);
+            transition: width 0.25s ease;
+        }
+        .bg-progress-bar.over { background: #E74C3C; }
+        .bg-budget-foot {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            color: var(--text-light);
+        }
+        .bg-budget-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            margin-top: 0.7rem;
+        }
+        .bg-budget-actions .bg-btn {
+            padding: 0.35rem 0.65rem;
+            font-size: 0.78rem;
+        }
+
+        .bg-expense-item {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.85rem 0.95rem;
+        }
+        .bg-expense-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 0.25rem;
+        }
+        .bg-expense-title { font-weight: 600; color: var(--text-dark); }
+        .bg-expense-amount { font-weight: 700; color: var(--text-dark); white-space: nowrap; }
+        .bg-expense-meta {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem 1rem;
+            margin-bottom: 0.55rem;
+        }
+        .bg-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: rgba(0, 140, 255, 0.08);
+            color: var(--primary-blue);
+            border-radius: 999px;
+            padding: 0.1rem 0.55rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .bg-empty, .bg-loading {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            color: var(--text-light);
+            font-size: 0.92rem;
+        }
+        .bg-empty i { display: block; font-size: 1.8rem; color: var(--border-color); margin-bottom: 0.6rem; }
+
+        .bg-cats {
+            margin-top: 1.25rem;
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.1rem 1.2rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .bg-cat-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.55rem;
+        }
+        .bg-cat-name {
+            min-width: 110px;
+            font-size: 0.85rem;
+            color: var(--text-dark);
+        }
+        .bg-cat-bar-wrap {
+            flex: 1;
+            height: 8px;
+            background: #eef1f4;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .bg-cat-bar {
+            height: 100%;
+            background: var(--primary-blue);
+            border-radius: 999px;
+        }
+        .bg-cat-val {
+            min-width: 80px;
+            text-align: right;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .bg-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            z-index: 2000;
+        }
+        .bg-modal {
+            background: var(--white);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow: auto;
+            box-shadow: var(--shadow-lg);
+        }
+        .bg-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.1rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .bg-modal-title { font-size: 1.1rem; font-weight: 700; }
+        .bg-modal-close {
+            border: none;
+            background: transparent;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+        .bg-modal-body { padding: 1.15rem 1.25rem 1.35rem; }
+        .bg-field { margin-bottom: 0.9rem; }
+        .bg-field label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.35rem;
+        }
+        .bg-field input,
+        .bg-field select,
+        .bg-field textarea {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0.65rem 0.8rem;
+            font-family: inherit;
+            font-size: 0.92rem;
+            color: var(--text-dark);
+            background: var(--white);
+        }
+        .bg-field textarea { min-height: 80px; resize: vertical; }
+        .bg-field-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+        @media (max-width: 520px) {
+            .bg-field-row { grid-template-columns: 1fr; }
+        }
+        .bg-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .bg-color-row {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .bg-color-row input[type="color"] {
+            width: 44px;
+            height: 38px;
+            padding: 0;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .bg-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0, 140, 255, 0.3);
+            border-top-color: var(--primary-blue);
+            border-radius: 50%;
+            animation: bg-spin 0.7s linear infinite;
+            vertical-align: middle;
+        }
+        @keyframes bg-spin { to { transform: rotate(360deg); } }
+
+        @media (min-width: 1024px) {
+            .bg-page { padding-top: 6rem; padding-bottom: 5rem; }
+            .bg-inner { padding: 0 2rem; }
+            .bg-title { font-size: 2.25rem; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <a href="index.html" class="logo">
+                        <img src="logo.png" alt="Seraphin Solutions Logo">
+                    </a>
+                    <span class="company-name">Seraphin Solutions</span>
+                </div>
+                <nav class="nav" id="nav">
+                    <a href="budgeting.html" class="nav-link active">Budgeting</a>
+                    <a href="dashboard.html" class="nav-link">Statistiken</a>
+                    <a href="labels.html" class="nav-link">Beschriftungen</a>
+                    <a href="kontaktanfragen.html" class="nav-link">Kontaktanfragen</a>
+                    <a href="account.html" class="nav-link">Account</a>
+                    <a href="#" class="nav-link nav-logout-link" onclick="logout(); return false;">
+                        <i class="fas fa-sign-out-alt"></i> Abmelden
+                    </a>
+                </nav>
+                <button class="hamburger" id="hamburger" aria-label="Menü öffnen">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="bg-page">
+        <div class="bg-inner">
+            <div class="bg-header-row">
+                <h1 class="bg-title">Budgeting</h1>
+                <div class="bg-actions">
+                    <button class="bg-btn" id="exportCsvBtn" type="button">
+                        <i class="fas fa-file-csv"></i> CSV exportieren
+                    </button>
+                    <button class="bg-btn bg-btn-primary" id="newBudgetBtn" type="button">
+                        <i class="fas fa-plus"></i> Budget erstellen
+                    </button>
+                    <button class="bg-btn bg-btn-primary" id="newExpenseBtn" type="button">
+                        <i class="fas fa-receipt"></i> Ausgabe erfassen
+                    </button>
+                </div>
+            </div>
+            <p class="bg-subtitle">Budgets anlegen, Ausgaben zuordnen und den Verbrauch im Blick behalten.</p>
+
+            <div id="errorAlert" class="bg-alert bg-alert-error"></div>
+            <div id="okAlert" class="bg-alert bg-alert-ok"></div>
+
+            <div id="loadingState" class="bg-loading">
+                <span class="bg-spinner"></span> Lade Budgets…
+            </div>
+
+            <div id="content" style="display: none;">
+                <div class="bg-summary" id="summaryGrid"></div>
+
+                <div class="bg-layout">
+                    <section class="bg-panel">
+                        <div class="bg-panel-head">
+                            <h2 class="bg-panel-title">Budgets</h2>
+                        </div>
+                        <div class="bg-panel-body">
+                            <div class="bg-toolbar">
+                                <button class="bg-filter-btn active" data-budget-filter="active">Aktiv</button>
+                                <button class="bg-filter-btn" data-budget-filter="archived">Archiviert</button>
+                                <button class="bg-filter-btn" data-budget-filter="all">Alle</button>
+                            </div>
+                            <div id="budgetList" class="bg-budget-list"></div>
+                            <div id="budgetEmpty" class="bg-empty" style="display: none;">
+                                <i class="fas fa-wallet"></i>
+                                Noch keine Budgets vorhanden.
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="bg-panel">
+                        <div class="bg-panel-head">
+                            <h2 class="bg-panel-title" id="expensePanelTitle">Ausgaben</h2>
+                        </div>
+                        <div class="bg-panel-body">
+                            <div class="bg-toolbar">
+                                <button class="bg-filter-btn active" data-expense-filter="selected">Ausgewähltes Budget</button>
+                                <button class="bg-filter-btn" data-expense-filter="all">Alle Ausgaben</button>
+                            </div>
+                            <div id="expenseList" class="bg-expense-list"></div>
+                            <div id="expenseEmpty" class="bg-empty" style="display: none;">
+                                <i class="fas fa-receipt"></i>
+                                Keine Ausgaben vorhanden.
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <section class="bg-cats" id="categorySection" style="display: none;">
+                    <h2 class="bg-panel-title" style="margin-bottom: 0.9rem;">Ausgaben nach Kategorie</h2>
+                    <div id="categoryBreakdown"></div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Budget Modal -->
+    <div class="bg-modal-overlay" id="budgetModal">
+        <div class="bg-modal">
+            <div class="bg-modal-header">
+                <h3 class="bg-modal-title" id="budgetModalTitle">Budget erstellen</h3>
+                <button class="bg-modal-close" type="button" onclick="closeBudgetModal()" aria-label="Schließen">&times;</button>
+            </div>
+            <div class="bg-modal-body">
+                <form id="budgetForm">
+                    <input type="hidden" id="budgetId">
+                    <div class="bg-field">
+                        <label for="budgetName">Name</label>
+                        <input type="text" id="budgetName" required maxlength="120" placeholder="z. B. Marketing Q3">
+                    </div>
+                    <div class="bg-field">
+                        <label for="budgetAmount">Budgetbetrag (€)</label>
+                        <input type="number" id="budgetAmount" required min="0" step="0.01" placeholder="1000.00">
+                    </div>
+                    <div class="bg-field-row">
+                        <div class="bg-field">
+                            <label for="budgetStart">Zeitraum von</label>
+                            <input type="date" id="budgetStart">
+                        </div>
+                        <div class="bg-field">
+                            <label for="budgetEnd">Zeitraum bis</label>
+                            <input type="date" id="budgetEnd">
+                        </div>
+                    </div>
+                    <div class="bg-field">
+                        <label for="budgetColor">Farbe</label>
+                        <div class="bg-color-row">
+                            <input type="color" id="budgetColor" value="#008CFF">
+                            <span style="font-size:0.85rem;color:var(--text-light);">Zur Unterscheidung in der Liste</span>
+                        </div>
+                    </div>
+                    <div class="bg-field">
+                        <label for="budgetDescription">Beschreibung (optional)</label>
+                        <textarea id="budgetDescription" maxlength="1000" placeholder="Wofür ist dieses Budget gedacht?"></textarea>
+                    </div>
+                    <div class="bg-modal-actions">
+                        <button type="button" class="bg-btn" onclick="closeBudgetModal()">Abbrechen</button>
+                        <button type="submit" class="bg-btn bg-btn-primary" id="budgetSubmitBtn">Speichern</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expense Modal -->
+    <div class="bg-modal-overlay" id="expenseModal">
+        <div class="bg-modal">
+            <div class="bg-modal-header">
+                <h3 class="bg-modal-title" id="expenseModalTitle">Ausgabe erfassen</h3>
+                <button class="bg-modal-close" type="button" onclick="closeExpenseModal()" aria-label="Schließen">&times;</button>
+            </div>
+            <div class="bg-modal-body">
+                <form id="expenseForm">
+                    <input type="hidden" id="expenseId">
+                    <div class="bg-field">
+                        <label for="expenseBudget">Budget</label>
+                        <select id="expenseBudget" required></select>
+                    </div>
+                    <div class="bg-field">
+                        <label for="expenseTitle">Titel</label>
+                        <input type="text" id="expenseTitle" required maxlength="200" placeholder="z. B. Domain-Verlängerung">
+                    </div>
+                    <div class="bg-field-row">
+                        <div class="bg-field">
+                            <label for="expenseAmount">Betrag (€)</label>
+                            <input type="number" id="expenseAmount" required min="0.01" step="0.01" placeholder="49.90">
+                        </div>
+                        <div class="bg-field">
+                            <label for="expenseDate">Datum</label>
+                            <input type="date" id="expenseDate" required>
+                        </div>
+                    </div>
+                    <div class="bg-field">
+                        <label for="expenseCategory">Kategorie</label>
+                        <input type="text" id="expenseCategory" list="categorySuggestions" maxlength="80" placeholder="z. B. Software, Marketing, Hardware">
+                        <datalist id="categorySuggestions">
+                            <option value="Software"></option>
+                            <option value="Marketing"></option>
+                            <option value="Hardware"></option>
+                            <option value="Büro"></option>
+                            <option value="Reise"></option>
+                            <option value="Support"></option>
+                            <option value="Sonstiges"></option>
+                        </datalist>
+                    </div>
+                    <div class="bg-field">
+                        <label for="expenseNotes">Notiz (optional)</label>
+                        <textarea id="expenseNotes" maxlength="2000" placeholder="Zusätzliche Infos zur Ausgabe"></textarea>
+                    </div>
+                    <div class="bg-modal-actions">
+                        <button type="button" class="bg-btn" onclick="closeExpenseModal()">Abbrechen</button>
+                        <button type="submit" class="bg-btn bg-btn-primary" id="expenseSubmitBtn">Speichern</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer" role="contentinfo">
+        <div class="footer-inner">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <a class="footer-logo-link" href="index.html" aria-label="Seraphin Solutions – Startseite">
+                        <img src="logo.png" alt="" class="footer-logo-img" width="120" height="40">
+                        <span class="footer-logo-text">Seraphin Solutions</span>
+                    </a>
+                    <p class="footer-tagline">Interaktive Wegleitsysteme für große Gebäude.</p>
+                </div>
+                <nav class="footer-nav" aria-label="Footer-Navigation">
+                    <div class="footer-nav-block">
+                        <span class="footer-nav-title">Zugang</span>
+                        <ul class="footer-nav-list">
+                            <li><a href="login.html">Statistiken Login</a></li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            <div class="footer-bottom">
+                <p class="footer-copy">&copy; 2025 Seraphin Solutions. Alle Rechte vorbehalten.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let budgetsCache = [];
+        let expensesCache = [];
+        let summaryCache = null;
+        let selectedBudgetId = null;
+        let budgetFilter = 'active';
+        let expenseFilter = 'selected';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            document.getElementById('newBudgetBtn').addEventListener('click', () => openBudgetModal());
+            document.getElementById('newExpenseBtn').addEventListener('click', () => openExpenseModal());
+            document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
+            document.getElementById('budgetForm').addEventListener('submit', saveBudget);
+            document.getElementById('expenseForm').addEventListener('submit', saveExpense);
+
+            document.querySelectorAll('[data-budget-filter]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('[data-budget-filter]').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    budgetFilter = this.dataset.budgetFilter;
+                    renderBudgets();
+                });
+            });
+            document.querySelectorAll('[data-expense-filter]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('[data-expense-filter]').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    expenseFilter = this.dataset.expenseFilter;
+                    renderExpenses();
+                });
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeBudgetModal();
+                    closeExpenseModal();
+                }
+            });
+        });
+
+        async function loadData() {
+            try {
+                const res = await fetch('/api/budget/list?include_archived=1', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                if (res.status === 401) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                if (res.status === 403) {
+                    document.getElementById('loadingState').style.display = 'none';
+                    showError('Dieser Bereich ist nur für den Admin-Account verfügbar.');
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 2200);
+                    return;
+                }
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.error || 'Fehler beim Laden');
+
+                budgetsCache = Array.isArray(data.budgets) ? data.budgets : [];
+                expensesCache = Array.isArray(data.expenses) ? data.expenses : [];
+                summaryCache = data.summary || null;
+
+                if (!selectedBudgetId || !budgetsCache.find(b => b.id === selectedBudgetId)) {
+                    const firstActive = budgetsCache.find(b => !b.is_archived);
+                    selectedBudgetId = firstActive ? firstActive.id : (budgetsCache[0] ? budgetsCache[0].id : null);
+                }
+
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+                renderSummary();
+                renderBudgets();
+                renderExpenses();
+                renderCategories();
+            } catch (e) {
+                document.getElementById('loadingState').style.display = 'none';
+                showError(e.message || 'Netzwerkfehler');
+            }
+        }
+
+        function formatEuro(cents) {
+            const value = (Number(cents) || 0) / 100;
+            return value.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+        }
+
+        function formatDate(value) {
+            if (!value) return '—';
+            return new Date(value + (String(value).length === 10 ? 'T00:00:00' : '')).toLocaleDateString('de-DE');
+        }
+
+        function esc(text) {
+            const div = document.createElement('div');
+            div.textContent = text == null ? '' : String(text);
+            return div.innerHTML;
+        }
+
+        function renderSummary() {
+            const s = summaryCache || {
+                total_budget_cents: 0,
+                total_spent_cents: 0,
+                total_remaining_cents: 0,
+                active_budgets: 0
+            };
+            const remainingClass = s.total_remaining_cents < 0 ? 'warn' : 'ok';
+            document.getElementById('summaryGrid').innerHTML = `
+                <div class="bg-summary-card">
+                    <div class="bg-summary-label">Aktive Budgets</div>
+                    <div class="bg-summary-value">${s.active_budgets}</div>
+                </div>
+                <div class="bg-summary-card">
+                    <div class="bg-summary-label">Gesamtbudget</div>
+                    <div class="bg-summary-value">${formatEuro(s.total_budget_cents)}</div>
+                </div>
+                <div class="bg-summary-card">
+                    <div class="bg-summary-label">Ausgegeben</div>
+                    <div class="bg-summary-value">${formatEuro(s.total_spent_cents)}</div>
+                </div>
+                <div class="bg-summary-card">
+                    <div class="bg-summary-label">Verbleibend</div>
+                    <div class="bg-summary-value ${remainingClass}">${formatEuro(s.total_remaining_cents)}</div>
+                </div>`;
+        }
+
+        function filteredBudgets() {
+            if (budgetFilter === 'active') return budgetsCache.filter(b => !b.is_archived);
+            if (budgetFilter === 'archived') return budgetsCache.filter(b => b.is_archived);
+            return budgetsCache;
+        }
+
+        function renderBudgets() {
+            const list = document.getElementById('budgetList');
+            const empty = document.getElementById('budgetEmpty');
+            const items = filteredBudgets();
+
+            if (!items.length) {
+                list.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+
+            list.innerHTML = items.map(b => {
+                const pct = Math.min(Math.max(b.usage_percent || 0, 0), 100);
+                const over = (b.spent_cents || 0) > (b.amount_cents || 0);
+                const period = (b.period_start || b.period_end)
+                    ? `${formatDate(b.period_start)} – ${formatDate(b.period_end)}`
+                    : 'Kein Zeitraum';
+                return `
+                    <article class="bg-budget-card ${b.id === selectedBudgetId ? 'active' : ''} ${b.is_archived ? 'archived' : ''}"
+                             onclick="selectBudget('${b.id}')">
+                        <div class="bg-budget-top">
+                            <span class="bg-budget-name">
+                                <span class="bg-dot" style="background:${esc(b.color || '#008CFF')}"></span>
+                                ${esc(b.name)}
+                                ${b.is_archived ? '<span class="bg-tag">Archiv</span>' : ''}
+                            </span>
+                            <span class="bg-budget-amount">${formatEuro(b.amount_cents)}</span>
+                        </div>
+                        <div class="bg-budget-meta">${esc(period)} · ${b.expense_count || 0} Ausgaben</div>
+                        <div class="bg-progress">
+                            <div class="bg-progress-bar ${over ? 'over' : ''}" style="width:${over ? 100 : pct}%"></div>
+                        </div>
+                        <div class="bg-budget-foot">
+                            <span>Ausgegeben: ${formatEuro(b.spent_cents)}</span>
+                            <span>${over ? 'Überzogen' : 'Noch ' + formatEuro(b.remaining_cents)} · ${b.usage_percent || 0}%</span>
+                        </div>
+                        <div class="bg-budget-actions" onclick="event.stopPropagation()">
+                            <button class="bg-btn" type="button" onclick="openBudgetModal('${b.id}')"><i class="fas fa-pen"></i> Bearbeiten</button>
+                            <button class="bg-btn" type="button" onclick="toggleArchive('${b.id}', ${!b.is_archived})">
+                                <i class="fas fa-box-archive"></i> ${b.is_archived ? 'Reaktivieren' : 'Archivieren'}
+                            </button>
+                            <button class="bg-btn bg-btn-danger" type="button" onclick="deleteBudget('${b.id}')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </article>`;
+            }).join('');
+        }
+
+        function selectBudget(id) {
+            selectedBudgetId = id;
+            renderBudgets();
+            if (expenseFilter === 'selected') renderExpenses();
+            const title = document.getElementById('expensePanelTitle');
+            const budget = budgetsCache.find(b => b.id === id);
+            title.textContent = budget ? `Ausgaben · ${budget.name}` : 'Ausgaben';
+        }
+
+        function filteredExpenses() {
+            if (expenseFilter === 'all') return expensesCache;
+            if (!selectedBudgetId) return [];
+            return expensesCache.filter(e => e.budget_id === selectedBudgetId);
+        }
+
+        function renderExpenses() {
+            const list = document.getElementById('expenseList');
+            const empty = document.getElementById('expenseEmpty');
+            const items = filteredExpenses();
+            const budget = budgetsCache.find(b => b.id === selectedBudgetId);
+            const title = document.getElementById('expensePanelTitle');
+            if (expenseFilter === 'all') title.textContent = 'Alle Ausgaben';
+            else title.textContent = budget ? `Ausgaben · ${budget.name}` : 'Ausgaben';
+
+            if (!items.length) {
+                list.innerHTML = '';
+                empty.style.display = 'block';
+                empty.innerHTML = expenseFilter === 'selected' && !selectedBudgetId
+                    ? '<i class="fas fa-wallet"></i> Bitte zuerst ein Budget auswählen oder erstellen.'
+                    : '<i class="fas fa-receipt"></i> Keine Ausgaben vorhanden.';
+                return;
+            }
+            empty.style.display = 'none';
+
+            list.innerHTML = items.map(e => {
+                const budgetName = (budgetsCache.find(b => b.id === e.budget_id) || {}).name || '—';
+                return `
+                    <article class="bg-expense-item">
+                        <div class="bg-expense-top">
+                            <span class="bg-expense-title">${esc(e.title)}</span>
+                            <span class="bg-expense-amount">${formatEuro(e.amount_cents)}</span>
+                        </div>
+                        <div class="bg-expense-meta">
+                            <span><i class="fas fa-calendar"></i> ${formatDate(e.spent_on)}</span>
+                            <span><i class="fas fa-wallet"></i> ${esc(budgetName)}</span>
+                            ${e.category ? `<span class="bg-tag">${esc(e.category)}</span>` : ''}
+                        </div>
+                        ${e.notes ? `<div style="font-size:0.85rem;color:var(--text-light);margin-bottom:0.55rem;">${esc(e.notes)}</div>` : ''}
+                        <div class="bg-budget-actions">
+                            <button class="bg-btn" type="button" onclick="openExpenseModal('${e.id}')"><i class="fas fa-pen"></i> Bearbeiten</button>
+                            <button class="bg-btn bg-btn-danger" type="button" onclick="deleteExpense('${e.id}')"><i class="fas fa-trash"></i> Löschen</button>
+                        </div>
+                    </article>`;
+            }).join('');
+        }
+
+        function renderCategories() {
+            const section = document.getElementById('categorySection');
+            const wrap = document.getElementById('categoryBreakdown');
+            const activeBudgetIds = new Set(budgetsCache.filter(b => !b.is_archived).map(b => b.id));
+            const relevant = expensesCache.filter(e => activeBudgetIds.has(e.budget_id));
+            if (!relevant.length) {
+                section.style.display = 'none';
+                return;
+            }
+            const map = {};
+            relevant.forEach(e => {
+                const key = e.category || 'Ohne Kategorie';
+                map[key] = (map[key] || 0) + e.amount_cents;
+            });
+            const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
+            const max = entries[0][1] || 1;
+            section.style.display = 'block';
+            wrap.innerHTML = entries.map(([name, cents]) => `
+                <div class="bg-cat-row">
+                    <div class="bg-cat-name">${esc(name)}</div>
+                    <div class="bg-cat-bar-wrap"><div class="bg-cat-bar" style="width:${Math.round((cents / max) * 100)}%"></div></div>
+                    <div class="bg-cat-val">${formatEuro(cents)}</div>
+                </div>`).join('');
+        }
+
+        function openBudgetModal(id) {
+            const modal = document.getElementById('budgetModal');
+            const title = document.getElementById('budgetModalTitle');
+            document.getElementById('budgetForm').reset();
+            document.getElementById('budgetId').value = '';
+            document.getElementById('budgetColor').value = '#008CFF';
+
+            if (id) {
+                const b = budgetsCache.find(x => x.id === id);
+                if (!b) return;
+                title.textContent = 'Budget bearbeiten';
+                document.getElementById('budgetId').value = b.id;
+                document.getElementById('budgetName').value = b.name || '';
+                document.getElementById('budgetAmount').value = ((b.amount_cents || 0) / 100).toFixed(2);
+                document.getElementById('budgetStart').value = b.period_start || '';
+                document.getElementById('budgetEnd').value = b.period_end || '';
+                document.getElementById('budgetColor').value = b.color || '#008CFF';
+                document.getElementById('budgetDescription').value = b.description || '';
+            } else {
+                title.textContent = 'Budget erstellen';
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeBudgetModal() {
+            document.getElementById('budgetModal').style.display = 'none';
+        }
+
+        function fillExpenseBudgetSelect(selectedId) {
+            const select = document.getElementById('expenseBudget');
+            const active = budgetsCache.filter(b => !b.is_archived);
+            const options = (active.length ? active : budgetsCache).map(b =>
+                `<option value="${b.id}">${esc(b.name)}</option>`
+            ).join('');
+            select.innerHTML = options || '<option value="">Kein Budget verfügbar</option>';
+            if (selectedId) select.value = selectedId;
+            else if (selectedBudgetId) select.value = selectedBudgetId;
+        }
+
+        function openExpenseModal(id) {
+            if (!budgetsCache.length) {
+                showError('Bitte zuerst ein Budget erstellen.');
+                return;
+            }
+            const modal = document.getElementById('expenseModal');
+            const title = document.getElementById('expenseModalTitle');
+            document.getElementById('expenseForm').reset();
+            document.getElementById('expenseId').value = '';
+            document.getElementById('expenseDate').value = new Date().toISOString().slice(0, 10);
+            fillExpenseBudgetSelect();
+
+            if (id) {
+                const e = expensesCache.find(x => x.id === id);
+                if (!e) return;
+                title.textContent = 'Ausgabe bearbeiten';
+                document.getElementById('expenseId').value = e.id;
+                fillExpenseBudgetSelect(e.budget_id);
+                document.getElementById('expenseTitle').value = e.title || '';
+                document.getElementById('expenseAmount').value = ((e.amount_cents || 0) / 100).toFixed(2);
+                document.getElementById('expenseDate').value = e.spent_on || '';
+                document.getElementById('expenseCategory').value = e.category || '';
+                document.getElementById('expenseNotes').value = e.notes || '';
+            } else {
+                title.textContent = 'Ausgabe erfassen';
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeExpenseModal() {
+            document.getElementById('expenseModal').style.display = 'none';
+        }
+
+        async function saveBudget(e) {
+            e.preventDefault();
+            const btn = document.getElementById('budgetSubmitBtn');
+            const id = document.getElementById('budgetId').value;
+            const payload = {
+                action: id ? 'update' : 'create',
+                id: id || undefined,
+                name: document.getElementById('budgetName').value.trim(),
+                amount: document.getElementById('budgetAmount').value,
+                period_start: document.getElementById('budgetStart').value || null,
+                period_end: document.getElementById('budgetEnd').value || null,
+                color: document.getElementById('budgetColor').value || '#008CFF',
+                description: document.getElementById('budgetDescription').value.trim()
+            };
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="bg-spinner"></span> Speichern…';
+                const res = await fetch('/api/budget/manage', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.error || 'Fehler beim Speichern');
+                closeBudgetModal();
+                showOk(id ? 'Budget aktualisiert.' : 'Budget erstellt.');
+                await loadData();
+            } catch (err) {
+                showError(err.message || 'Fehler beim Speichern');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Speichern';
+            }
+        }
+
+        async function saveExpense(e) {
+            e.preventDefault();
+            const btn = document.getElementById('expenseSubmitBtn');
+            const id = document.getElementById('expenseId').value;
+            const payload = {
+                action: id ? 'update' : 'create',
+                id: id || undefined,
+                budget_id: document.getElementById('expenseBudget').value,
+                title: document.getElementById('expenseTitle').value.trim(),
+                amount: document.getElementById('expenseAmount').value,
+                spent_on: document.getElementById('expenseDate').value,
+                category: document.getElementById('expenseCategory').value.trim(),
+                notes: document.getElementById('expenseNotes').value.trim()
+            };
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="bg-spinner"></span> Speichern…';
+                const res = await fetch('/api/budget/expense', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.error || 'Fehler beim Speichern');
+                selectedBudgetId = payload.budget_id;
+                closeExpenseModal();
+                showOk(id ? 'Ausgabe aktualisiert.' : 'Ausgabe gespeichert.');
+                await loadData();
+            } catch (err) {
+                showError(err.message || 'Fehler beim Speichern');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Speichern';
+            }
+        }
+
+        async function toggleArchive(id, archive) {
+            try {
+                const res = await fetch('/api/budget/manage', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'update', id, is_archived: archive })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.error || 'Fehler');
+                showOk(archive ? 'Budget archiviert.' : 'Budget reaktiviert.');
+                await loadData();
+            } catch (e) {
+                showError(e.message || 'Fehler beim Archivieren');
+            }
+        }
+
+        async function deleteBudget(id) {
+            if (!confirm('Dieses Budget und alle zugehörigen Ausgaben wirklich löschen?')) return;
+            try {
+                const res = await fetch('/api/budget/manage', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', id })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.error || 'Fehler');
+                if (selectedBudgetId === id) selectedBudgetId = null;
+                showOk('Budget gelöscht.');
+                await loadData();
+            } catch (e) {
+                showError(e.message || 'Fehler beim Löschen');
+            }
+        }
+
+        async function deleteExpense(id) {
+            if (!confirm('Diese Ausgabe wirklich löschen?')) return;
+            try {
+                const res = await fetch('/api/budget/expense', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', id })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.error || 'Fehler');
+                showOk('Ausgabe gelöscht.');
+                await loadData();
+            } catch (e) {
+                showError(e.message || 'Fehler beim Löschen');
+            }
+        }
+
+        function exportCsv() {
+            if (!expensesCache.length) {
+                showError('Keine Ausgaben zum Exportieren.');
+                return;
+            }
+            const rows = [['Datum', 'Budget', 'Titel', 'Kategorie', 'Betrag EUR', 'Notiz']];
+            expensesCache.forEach(e => {
+                const budgetName = (budgetsCache.find(b => b.id === e.budget_id) || {}).name || '';
+                rows.push([
+                    e.spent_on || '',
+                    budgetName,
+                    e.title || '',
+                    e.category || '',
+                    ((e.amount_cents || 0) / 100).toFixed(2).replace('.', ','),
+                    (e.notes || '').replace(/\r?\n/g, ' ')
+                ]);
+            });
+            const csv = rows.map(r => r.map(cell => {
+                const s = String(cell);
+                return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+            }).join(';')).join('\n');
+
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'budget-ausgaben-' + new Date().toISOString().slice(0, 10) + '.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function showError(message) {
+            const el = document.getElementById('errorAlert');
+            el.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${esc(message)}`;
+            el.style.display = 'flex';
+            setTimeout(() => { el.style.display = 'none'; }, 7000);
+        }
+
+        function showOk(message) {
+            const el = document.getElementById('okAlert');
+            el.innerHTML = `<i class="fas fa-check-circle"></i> ${esc(message)}`;
+            el.style.display = 'flex';
+            setTimeout(() => { el.style.display = 'none'; }, 3500);
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+            } catch (_) {}
+            window.location.href = 'login.html';
+        }
+    </script>
+    <script src="script.js?v=2"></script>
+    <!-- Vercel Web Analytics -->
+    <script>
+      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

@@ -748,10 +748,16 @@
                     }
                     
                     document.body.classList.add('login-success');
-                    showMessage('Anmeldung erfolgreich! Weiterleitung zum Dashboard...', 'success');
+                    const isMaster = !!(data.user && data.user.is_master);
+                    showMessage(
+                        isMaster
+                            ? 'Anmeldung erfolgreich! Weiterleitung zum Budgeting...'
+                            : 'Anmeldung erfolgreich! Weiterleitung zum Dashboard...',
+                        'success'
+                    );
                     
                     setTimeout(() => {
-                        window.location.href = 'dashboard.html';
+                        window.location.href = isMaster ? 'budgeting.html' : 'dashboard.html';
                     }, 2200);
                 } else {
                     showMessage(data.error || 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Daten.', 'error');

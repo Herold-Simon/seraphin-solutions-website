@@ -122,6 +122,7 @@
                     <span class="company-name">Seraphin Solutions</span>
                 </div>
                 <nav class="nav" id="nav">
+                    <a href="budgeting.html" class="nav-link" id="navBudgeting" style="display:none;">Budgeting</a>
                     <a href="dashboard.html" class="nav-link">Statistiken</a>
                     <a href="labels.html" class="nav-link">Beschriftungen</a>
                     <a href="produkt-zuteilung.html" class="nav-link active">Produkte</a>
@@ -207,6 +208,8 @@
                 if (data.user && data.user.is_master) {
                     const kaLink = document.getElementById('navKontaktanfragen');
                     if (kaLink) kaLink.style.display = '';
+                    const bgLink = document.getElementById('navBudgeting');
+                    if (bgLink) bgLink.style.display = '';
                     const acting = data.acting_account;
                     if (acting && acting.id) {
                         document.getElementById('masterBarName').textContent = acting.username || '—';

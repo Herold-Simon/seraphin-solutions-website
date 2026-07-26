@@ -32,6 +32,14 @@
       "destination": "/dashboard.html"
     },
     {
+      "source": "/budgeting",
+      "destination": "/budgeting.html"
+    },
+    {
+      "source": "/kontaktanfragen",
+      "destination": "/kontaktanfragen.html"
+    },
+    {
       "source": "/impressum",
       "destination": "/impressum.html"
     },
